@@ -271,8 +271,12 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (state.isLoadingSettings) { return const _Loader(); }
-    if (state.error != null) { return _ErrorState(failure: state.error!); }
+    if (state.isLoadingSettings) {
+      return const _Loader();
+    }
+    if (state.error != null) {
+      return _ErrorState(failure: state.error!);
+    }
     if (state.username == null || state.calendar == null) {
       return const _EmptyState();
     }
