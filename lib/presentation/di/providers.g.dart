@@ -9,64 +9,27 @@ part of 'providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(graphQLClient)
-final graphQLClientProvider = GraphQLClientProvider._();
-
-final class GraphQLClientProvider
-    extends $FunctionalProvider<GraphQLClient, GraphQLClient, GraphQLClient>
-    with $Provider<GraphQLClient> {
-  GraphQLClientProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'graphQLClientProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
-
-  @override
-  String debugGetCreateSourceHash() => _$graphQLClientHash();
-
-  @$internal
-  @override
-  $ProviderElement<GraphQLClient> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  GraphQLClient create(Ref ref) {
-    return graphQLClient(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(GraphQLClient value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<GraphQLClient>(value),
-    );
-  }
-}
-
-String _$graphQLClientHash() => r'209edfddf5ce05081ea155fd05817f92efe452aa';
-
 @ProviderFor(contributionRepository)
 final contributionRepositoryProvider = ContributionRepositoryProvider._();
 
-final class ContributionRepositoryProvider extends $FunctionalProvider<
-    ContributionRepository,
-    ContributionRepository,
-    ContributionRepository> with $Provider<ContributionRepository> {
+final class ContributionRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ContributionRepository,
+          ContributionRepository,
+          ContributionRepository
+        >
+    with $Provider<ContributionRepository> {
   ContributionRepositoryProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'contributionRepositoryProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'contributionRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$contributionRepositoryHash();
@@ -74,8 +37,8 @@ final class ContributionRepositoryProvider extends $FunctionalProvider<
   @$internal
   @override
   $ProviderElement<ContributionRepository> $createElement(
-          $ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
   ContributionRepository create(Ref ref) {
@@ -92,25 +55,29 @@ final class ContributionRepositoryProvider extends $FunctionalProvider<
 }
 
 String _$contributionRepositoryHash() =>
-    r'b9f266512fdc50b55c7a36d42b73c18b83312718';
+    r'7bb8b16906957922dcc2e88d824e87b06f96cafd';
 
 @ProviderFor(settingsRepository)
 final settingsRepositoryProvider = SettingsRepositoryProvider._();
 
-final class SettingsRepositoryProvider extends $FunctionalProvider<
-    SettingsRepository,
-    SettingsRepository,
-    SettingsRepository> with $Provider<SettingsRepository> {
+final class SettingsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          SettingsRepository,
+          SettingsRepository,
+          SettingsRepository
+        >
+    with $Provider<SettingsRepository> {
   SettingsRepositoryProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'settingsRepositoryProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'settingsRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$settingsRepositoryHash();
@@ -118,8 +85,8 @@ final class SettingsRepositoryProvider extends $FunctionalProvider<
   @$internal
   @override
   $ProviderElement<SettingsRepository> $createElement(
-          $ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
   SettingsRepository create(Ref ref) {
@@ -141,20 +108,24 @@ String _$settingsRepositoryHash() =>
 @ProviderFor(svgExportRepository)
 final svgExportRepositoryProvider = SvgExportRepositoryProvider._();
 
-final class SvgExportRepositoryProvider extends $FunctionalProvider<
-    ExportRepository,
-    ExportRepository,
-    ExportRepository> with $Provider<ExportRepository> {
+final class SvgExportRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ExportRepository,
+          ExportRepository,
+          ExportRepository
+        >
+    with $Provider<ExportRepository> {
   SvgExportRepositoryProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'svgExportRepositoryProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'svgExportRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$svgExportRepositoryHash();
@@ -184,20 +155,24 @@ String _$svgExportRepositoryHash() =>
 @ProviderFor(pngExportRepository)
 final pngExportRepositoryProvider = PngExportRepositoryProvider._();
 
-final class PngExportRepositoryProvider extends $FunctionalProvider<
-    ExportRepository,
-    ExportRepository,
-    ExportRepository> with $Provider<ExportRepository> {
+final class PngExportRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ExportRepository,
+          ExportRepository,
+          ExportRepository
+        >
+    with $Provider<ExportRepository> {
   PngExportRepositoryProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'pngExportRepositoryProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pngExportRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$pngExportRepositoryHash();
@@ -227,20 +202,24 @@ String _$pngExportRepositoryHash() =>
 @ProviderFor(markdownExportRepository)
 final markdownExportRepositoryProvider = MarkdownExportRepositoryProvider._();
 
-final class MarkdownExportRepositoryProvider extends $FunctionalProvider<
-    ExportRepository,
-    ExportRepository,
-    ExportRepository> with $Provider<ExportRepository> {
+final class MarkdownExportRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ExportRepository,
+          ExportRepository,
+          ExportRepository
+        >
+    with $Provider<ExportRepository> {
   MarkdownExportRepositoryProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'markdownExportRepositoryProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'markdownExportRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$markdownExportRepositoryHash();
@@ -270,20 +249,24 @@ String _$markdownExportRepositoryHash() =>
 @ProviderFor(fetchContributions)
 final fetchContributionsProvider = FetchContributionsProvider._();
 
-final class FetchContributionsProvider extends $FunctionalProvider<
-    FetchContributions,
-    FetchContributions,
-    FetchContributions> with $Provider<FetchContributions> {
+final class FetchContributionsProvider
+    extends
+        $FunctionalProvider<
+          FetchContributions,
+          FetchContributions,
+          FetchContributions
+        >
+    with $Provider<FetchContributions> {
   FetchContributionsProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'fetchContributionsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'fetchContributionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$fetchContributionsHash();
@@ -291,8 +274,8 @@ final class FetchContributionsProvider extends $FunctionalProvider<
   @$internal
   @override
   $ProviderElement<FetchContributions> $createElement(
-          $ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
   FetchContributions create(Ref ref) {
@@ -318,15 +301,15 @@ final class SvgExportCalendarProvider
     extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
     with $Provider<ExportCalendar> {
   SvgExportCalendarProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'svgExportCalendarProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'svgExportCalendarProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$svgExportCalendarHash();
@@ -359,15 +342,15 @@ final class PngExportCalendarProvider
     extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
     with $Provider<ExportCalendar> {
   PngExportCalendarProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'pngExportCalendarProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pngExportCalendarProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$pngExportCalendarHash();
@@ -400,15 +383,15 @@ final class MarkdownExportCalendarProvider
     extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
     with $Provider<ExportCalendar> {
   MarkdownExportCalendarProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'markdownExportCalendarProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'markdownExportCalendarProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$markdownExportCalendarHash();
@@ -434,3 +417,73 @@ final class MarkdownExportCalendarProvider
 
 String _$markdownExportCalendarHash() =>
     r'22c91609ab2e9462b33b96852dc16dc28929d671';
+
+/// Persists and exposes the user's theme preference.
+///
+/// Starts with [ThemeMode.system] immediately, then overrides with the saved
+/// value once Hive resolves — no loading state needed.
+
+@ProviderFor(ThemeModeNotifier)
+final themeModeProvider = ThemeModeNotifierProvider._();
+
+/// Persists and exposes the user's theme preference.
+///
+/// Starts with [ThemeMode.system] immediately, then overrides with the saved
+/// value once Hive resolves — no loading state needed.
+final class ThemeModeNotifierProvider
+    extends $NotifierProvider<ThemeModeNotifier, ThemeMode> {
+  /// Persists and exposes the user's theme preference.
+  ///
+  /// Starts with [ThemeMode.system] immediately, then overrides with the saved
+  /// value once Hive resolves — no loading state needed.
+  ThemeModeNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themeModeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$themeModeNotifierHash();
+
+  @$internal
+  @override
+  ThemeModeNotifier create() => ThemeModeNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ThemeMode value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ThemeMode>(value),
+    );
+  }
+}
+
+String _$themeModeNotifierHash() => r'a16b06aeb9449284499cc96cf64a0affff3437d4';
+
+/// Persists and exposes the user's theme preference.
+///
+/// Starts with [ThemeMode.system] immediately, then overrides with the saved
+/// value once Hive resolves — no loading state needed.
+
+abstract class _$ThemeModeNotifier extends $Notifier<ThemeMode> {
+  ThemeMode build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<ThemeMode, ThemeMode>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ThemeMode, ThemeMode>,
+              ThemeMode,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

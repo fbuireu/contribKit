@@ -1,3 +1,4 @@
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
@@ -46,19 +47,30 @@ class ViewerNotifier extends _$ViewerNotifier {
     required Username username,
     required Year year,
   }) async {
-    state = state.copyWith(username: username, year: year, calendar: null);
-
-    final useCase = ref.read(fetchContributionsProvider);
-
-    final (:calendar, :fromCache) = await useCase(
+    state = state.copyWith(
       username: username,
       year: year,
+      calendar: null,
+      error: null,
+      isLoadingCalendar: true,
     );
 
-    state = state.copyWith(calendar: calendar, fromCache: fromCache);
-
-    await ref.read(settingsRepositoryProvider).saveLastUsername(username);
-    await ref.read(settingsRepositoryProvider).saveLastYear(year);
+    try {
+      final useCase = ref.read(fetchContributionsProvider);
+      final (:calendar, :fromCache) = await useCase(
+        username: username,
+        year: year,
+      );
+      state = state.copyWith(calendar: calendar, fromCache: fromCache);
+      await ref.read(settingsRepositoryProvider).saveLastUsername(username);
+      await ref.read(settingsRepositoryProvider).saveLastYear(year);
+    } on Failure catch (f) {
+      state = state.copyWith(error: f);
+    } catch (e) {
+      state = state.copyWith(error: UnexpectedFailure(message: e.toString()));
+    } finally {
+      state = state.copyWith(isLoadingCalendar: false);
+    }
   }
 
   void setPalette(Palette palette) {

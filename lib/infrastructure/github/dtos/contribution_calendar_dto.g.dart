@@ -7,13 +7,13 @@ part of 'contribution_calendar_dto.dart';
 // **************************************************************************
 
 ContributionCalendarDto _$ContributionCalendarDtoFromJson(
-        Map<String, dynamic> json) =>
-    ContributionCalendarDto(
-      totalContributions: (json['totalContributions'] as num).toInt(),
-      weeks: (json['weeks'] as List<dynamic>)
-          .map((e) => ContributionWeekDto.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
+  Map<String, dynamic> json,
+) => ContributionCalendarDto(
+  totalContributions: (json['totalContributions'] as num).toInt(),
+  weeks: (json['weeks'] as List<dynamic>)
+      .map((e) => ContributionWeekDto.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
 
 ContributionWeekDto _$ContributionWeekDtoFromJson(Map<String, dynamic> json) =>
     ContributionWeekDto(

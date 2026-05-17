@@ -7,8 +7,8 @@ import 'package:contribkit/infrastructure/export/markdown_export_repository_impl
 import 'package:contribkit/infrastructure/export/png_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/export/svg_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
-import 'package:contribkit/infrastructure/github/graphql_client.dart';
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
@@ -18,17 +18,8 @@ part 'providers.g.dart';
 // ---------------------------------------------------------------------------
 
 @riverpod
-GraphQLClient graphQLClient(Ref ref) {
-  final client = GraphQLClient();
-  ref.onDispose(client.close);
-  return client;
-}
-
-@riverpod
 ContributionRepository contributionRepository(Ref ref) =>
-    GitHubContributionRepository(
-      graphQLClient: ref.watch(graphQLClientProvider),
-    );
+    GitHubContributionRepository();
 
 @riverpod
 SettingsRepository settingsRepository(Ref ref) => HiveSettingsRepository();
@@ -68,3 +59,51 @@ ExportCalendar pngExportCalendar(Ref ref) => ExportCalendar(
 ExportCalendar markdownExportCalendar(Ref ref) => ExportCalendar(
       repository: ref.watch(markdownExportRepositoryProvider),
     );
+
+// ---------------------------------------------------------------------------
+// Theme
+// ---------------------------------------------------------------------------
+
+/// Persists and exposes the user's theme preference.
+///
+/// Starts with [ThemeMode.system] immediately, then overrides with the saved
+/// value once Hive resolves — no loading state needed.
+@riverpod
+class ThemeModeNotifier extends _$ThemeModeNotifier {
+  @override
+  ThemeMode build() {
+    _loadSaved();
+    return ThemeMode.system;
+  }
+
+  Future<void> _loadSaved() async {
+    final saved =
+        await ref.read(settingsRepositoryProvider).getThemeMode();
+    if (saved != null) state = _toFlutter(saved);
+  }
+
+  /// Cycles system → light → dark → system.
+  Future<void> cycle() async {
+    final next = switch (state) {
+      ThemeMode.system => ThemeMode.light,
+      ThemeMode.light => ThemeMode.dark,
+      ThemeMode.dark => ThemeMode.system,
+    };
+    state = next;
+    await ref
+        .read(settingsRepositoryProvider)
+        .saveThemeMode(_toDomain(next));
+  }
+
+  ThemeMode _toFlutter(AppThemeMode m) => switch (m) {
+        AppThemeMode.system => ThemeMode.system,
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+      };
+
+  AppThemeMode _toDomain(ThemeMode m) => switch (m) {
+        ThemeMode.system => AppThemeMode.system,
+        ThemeMode.light => AppThemeMode.light,
+        ThemeMode.dark => AppThemeMode.dark,
+      };
+}

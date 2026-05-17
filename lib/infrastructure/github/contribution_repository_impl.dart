@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
@@ -10,42 +9,34 @@ import 'package:contribkit/domain/services/contribution_level_service.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/github/dtos/contribution_calendar_dto.dart';
-import 'package:contribkit/infrastructure/github/graphql_client.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:http/http.dart' as http;
 
 const _cacheBoxName = 'contribution_cache';
 
-/// Implementation of [ContributionRepository] backed by the GitHub GraphQL API
-/// with Hive-based caching.
+/// Fetches GitHub contribution calendars by scraping the public profile page.
 ///
-/// Past years are cached forever (they never change).
-/// The current year is cached for 1 hour.
+/// No authentication required — uses the same endpoint GitHub loads on
+/// public profile pages (`/users/{login}/contributions`).
 final class GitHubContributionRepository implements ContributionRepository {
-  GitHubContributionRepository({required GraphQLClient graphQLClient})
-      : _client = graphQLClient;
+  GitHubContributionRepository({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client();
 
-  final GraphQLClient _client;
+  final http.Client _httpClient;
 
   static const _currentYearTtl = Duration(hours: 1);
 
-  static const _query = r'''
-    query($login: String!, $from: DateTime!, $to: DateTime!) {
-      user(login: $login) {
-        contributionsCollection(from: $from, to: $to) {
-          contributionCalendar {
-            totalContributions
-            weeks {
-              contributionDays {
-                date
-                contributionCount
-                color
-              }
-            }
-          }
-        }
-      }
-    }
-  ''';
+  // GitHub renders contributions as <td class="ContributionCalendar-day">
+  // with a sibling <tool-tip> containing the count in plain text.
+  static final _tdRegex = RegExp(
+    r'<td\b[^>]*class="ContributionCalendar-day"[^>]*>',
+  );
+  static final _idAttr = RegExp(r'\bid="([^"]+)"');
+  static final _dateAttr = RegExp(r'\bdata-date="([^"]+)"');
+  static final _tooltipRegex = RegExp(
+    r'<tool-tip\b[^>]*for="([^"]+)"[^>]*>([^<]+)</tool-tip>',
+  );
+  static final _countPrefix = RegExp(r'^(\d+)');
 
   @override
   Future<({ContributionCalendar calendar, bool fromCache})> fetchCalendar({
@@ -72,36 +63,27 @@ final class GitHubContributionRepository implements ContributionRepository {
   }
 
   Future<ContributionCalendar> _fetch(Username username, Year year) async {
+    final uri = Uri.parse(
+      'https://github.com/users/${username.value}/contributions'
+      '?from=${year.value}-01-01&to=${year.value}-12-31',
+    );
+
     try {
-      final from = DateTime.utc(year.value, 1, 1).toIso8601String();
-      final to = DateTime.utc(year.value, 12, 31, 23, 59, 59).toIso8601String();
+      final response = await _httpClient.get(uri, headers: {
+        'User-Agent': 'ContribKit/1.0 (Flutter)',
+        'Accept': 'text/html',
+        'X-Requested-With': 'XMLHttpRequest',
+      });
 
-      final data = await _client.query(
-        query: _query,
-        variables: {'login': username.value, 'from': from, 'to': to},
-      );
-
-      final user = data['user'];
-      if (user == null) {
+      if (response.statusCode == 404) {
         throw NotFoundFailure(username: username.value);
       }
-
-      final userMap = user as Map<String, dynamic>;
-      final collection =
-          userMap['contributionsCollection'] as Map<String, dynamic>;
-      final calendarJson =
-          collection['contributionCalendar'] as Map<String, dynamic>;
-
-      final dto = ContributionCalendarDto.fromJson(calendarJson);
-      return _toDomain(dto, username, year);
-    } on GitHubApiException catch (e) {
-      if (e.type == 'NOT_FOUND') {
-        throw NotFoundFailure(username: username.value);
+      if (response.statusCode != 200) {
+        throw NetworkFailure(message: 'HTTP ${response.statusCode}');
       }
-      if (e.type == 'RATE_LIMITED') {
-        throw const RateLimitedFailure();
-      }
-      throw NetworkFailure(message: e.message);
+
+      final calendar = _parseHtml(response.body, username, year);
+      return calendar;
     } on Failure {
       rethrow;
     } catch (e) {
@@ -109,36 +91,81 @@ final class GitHubContributionRepository implements ContributionRepository {
     }
   }
 
-  ContributionCalendar _toDomain(
-    ContributionCalendarDto dto,
+  ContributionCalendar _parseHtml(
+    String html,
     Username username,
     Year year,
   ) {
-    final allCounts = dto.weeks
-        .expand((w) => w.contributionDays)
-        .map((d) => d.contributionCount)
-        .toList();
-    final yearMax = allCounts.isEmpty ? 0 : allCounts.reduce((a, b) => a > b ? a : b);
+    // Pass 1: id → date from <td class="ContributionCalendar-day">
+    final idToDate = <String, DateTime>{};
+    for (final tdMatch in _tdRegex.allMatches(html)) {
+      final td = tdMatch.group(0)!;
+      final idMatch = _idAttr.firstMatch(td);
+      final dateMatch = _dateAttr.firstMatch(td);
+      if (idMatch == null || dateMatch == null) continue;
 
-    final weeks = dto.weeks.map((weekDto) {
-      final days = weekDto.contributionDays.map((dayDto) {
-        final date = DateTime.parse(dayDto.date);
-        final count = dayDto.contributionCount;
-        final level = ContributionLevelService.levelFor(
-          count: count,
-          yearMax: yearMax,
-        );
-        return ContributionDay(date: date, count: count, level: level);
-      }).toList();
-      return ContributionWeek(days: days);
-    }).toList();
+      final date = DateTime.tryParse(dateMatch.group(1)!);
+      if (date == null || date.year != year.value) continue;
+
+      idToDate[idMatch.group(1)!] = date;
+    }
+
+    if (idToDate.isEmpty) throw NotFoundFailure(username: username.value);
+
+    // Pass 2: id → count from <tool-tip for="...">N contribution(s)…</tool-tip>
+    final idToCount = <String, int>{};
+    for (final tipMatch in _tooltipRegex.allMatches(html)) {
+      final forId = tipMatch.group(1)!;
+      final text = tipMatch.group(2)!.trim();
+      final numMatch = _countPrefix.firstMatch(text);
+      idToCount[forId] =
+          numMatch != null ? (int.tryParse(numMatch.group(1)!) ?? 0) : 0;
+    }
+
+    final rawDays = idToDate.entries
+        .map((e) => (date: e.value, count: idToCount[e.key] ?? 0))
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    final yearMax =
+        rawDays.fold(0, (max, d) => d.count > max ? d.count : max);
+
+    final days = rawDays
+        .map(
+          (d) => ContributionDay(
+            date: d.date,
+            count: d.count,
+            level: ContributionLevelService.levelFor(
+              count: d.count,
+              yearMax: yearMax,
+            ),
+          ),
+        )
+        .toList();
 
     return ContributionCalendar(
       username: username,
       year: year,
-      weeks: weeks,
-      totalContributions: dto.totalContributions,
+      weeks: _groupIntoWeeks(days),
+      totalContributions: rawDays.fold(0, (s, d) => s + d.count),
     );
+  }
+
+  /// Groups sorted days into calendar weeks starting on Sunday.
+  List<ContributionWeek> _groupIntoWeeks(List<ContributionDay> days) {
+    final weeks = <ContributionWeek>[];
+    var current = <ContributionDay>[];
+
+    for (final day in days) {
+      if (current.isNotEmpty && day.date.weekday == DateTime.sunday) {
+        weeks.add(ContributionWeek(days: current));
+        current = [];
+      }
+      current.add(day);
+    }
+    if (current.isNotEmpty) weeks.add(ContributionWeek(days: current));
+
+    return weeks;
   }
 
   Future<ContributionCalendar?> _readCache(String key, Year year) async {
@@ -181,6 +208,42 @@ final class GitHubContributionRepository implements ContributionRepository {
     } catch (_) {
       // Cache write failures are non-fatal.
     }
+  }
+
+  ContributionCalendar _toDomain(
+    ContributionCalendarDto dto,
+    Username username,
+    Year year,
+  ) {
+    final allCounts = dto.weeks
+        .expand((w) => w.contributionDays)
+        .map((d) => d.contributionCount)
+        .toList();
+    final yearMax =
+        allCounts.isEmpty ? 0 : allCounts.reduce((a, b) => a > b ? a : b);
+
+    final weeks = dto.weeks.map((weekDto) {
+      final days = weekDto.contributionDays.map((dayDto) {
+        final date = DateTime.parse(dayDto.date);
+        final count = dayDto.contributionCount;
+        return ContributionDay(
+          date: date,
+          count: count,
+          level: ContributionLevelService.levelFor(
+            count: count,
+            yearMax: yearMax,
+          ),
+        );
+      }).toList();
+      return ContributionWeek(days: days);
+    }).toList();
+
+    return ContributionCalendar(
+      username: username,
+      year: year,
+      weeks: weeks,
+      totalContributions: dto.totalContributions,
+    );
   }
 
   Map<String, dynamic> _toDto(ContributionCalendar calendar) => {

@@ -10,6 +10,7 @@ const _keyLastUsername = 'lastUsername';
 const _keyLastYear = 'lastYear';
 const _keyPaletteName = 'paletteName';
 const _keyCellShape = 'cellShape';
+const _keyThemeMode = 'themeMode';
 
 /// Hive-backed implementation of [SettingsRepository].
 final class HiveSettingsRepository implements SettingsRepository {
@@ -79,6 +80,22 @@ final class HiveSettingsRepository implements SettingsRepository {
   Future<void> saveCellShape(CellShape shape) async {
     try {
       await (await _box).put(_keyCellShape, shape.name);
+    } catch (e) {
+      throw CacheFailure(message: e.toString());
+    }
+  }
+
+  @override
+  Future<AppThemeMode?> getThemeMode() async {
+    final raw = (await _box).get(_keyThemeMode) as String?;
+    if (raw == null) return null;
+    return AppThemeMode.values.where((m) => m.name == raw).firstOrNull;
+  }
+
+  @override
+  Future<void> saveThemeMode(AppThemeMode mode) async {
+    try {
+      await (await _box).put(_keyThemeMode, mode.name);
     } catch (e) {
       throw CacheFailure(message: e.toString());
     }

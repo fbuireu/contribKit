@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 /// Semantic color tokens for both light and dark themes.
 ///
@@ -63,9 +64,10 @@ final class AppColors {
     ring: Color(0xFF18181B),
   );
 
-  /// Resolves to dark or light tokens based on [brightness].
+  /// Resolves to dark or light tokens based on the active [ShadTheme] brightness,
+  /// which respects the app's forced [ThemeMode] rather than the platform setting.
   static AppColors of(BuildContext context) {
-    final brightness = MediaQuery.of(context).platformBrightness;
+    final brightness = ShadTheme.of(context).brightness;
     return brightness == Brightness.dark ? dark : light;
   }
 }

@@ -15,15 +15,15 @@ final viewerProvider = ViewerNotifierProvider._();
 final class ViewerNotifierProvider
     extends $NotifierProvider<ViewerNotifier, ViewerState> {
   ViewerNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'viewerProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'viewerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$viewerNotifierHash();
@@ -41,7 +41,7 @@ final class ViewerNotifierProvider
   }
 }
 
-String _$viewerNotifierHash() => r'f1a432689bef6d759f85d79704ce48c0d1926a4f';
+String _$viewerNotifierHash() => r'1e2f513811fd4f6803d0d7d0972a0719d3eff02f';
 
 abstract class _$ViewerNotifier extends $Notifier<ViewerState> {
   ViewerState build();
@@ -49,8 +49,14 @@ abstract class _$ViewerNotifier extends $Notifier<ViewerState> {
   @override
   void runBuild() {
     final ref = this.ref as $Ref<ViewerState, ViewerState>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<ViewerState, ViewerState>, ViewerState, Object?, Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ViewerState, ViewerState>,
+              ViewerState,
+              Object?,
+              Object?
+            >;
     element.handleCreate(ref, build);
   }
 }

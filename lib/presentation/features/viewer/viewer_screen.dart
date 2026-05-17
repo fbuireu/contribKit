@@ -1,5 +1,7 @@
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
+import 'package:contribkit/presentation/di/providers.dart';
 import 'package:contribkit/presentation/features/customizer/widgets/palette_picker.dart';
 import 'package:contribkit/presentation/features/customizer/widgets/shape_picker.dart';
 import 'package:contribkit/presentation/features/export/export_panel.dart';
@@ -12,6 +14,7 @@ import 'package:contribkit/presentation/widgets/app_badge.dart';
 import 'package:contribkit/presentation/widgets/app_button.dart';
 import 'package:contribkit/presentation/widgets/app_card.dart';
 import 'package:contribkit/presentation/widgets/app_text_field.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -92,7 +95,8 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                       focusNode: _usernameFocusNode,
                       error: _inputError,
                       onSubmit: _onSubmit,
-                      isLoading: state.isLoadingSettings,
+                      isLoadingSettings: state.isLoadingSettings,
+                      isLoadingCalendar: state.isLoadingCalendar,
                       selectedYear: state.effectiveYear,
                     ),
                     _Body(state: state),
@@ -107,31 +111,47 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header({required this.colors});
 
   final AppColors colors;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Tokens.space4,
-          vertical: Tokens.space3,
-        ),
-        child: Row(
-          children: [
-            Text(
-              'ContribKit',
-              style: TextStyle(
-                fontSize: Tokens.textLg,
-                fontWeight: FontWeight.w600,
-                color: colors.foreground,
-                letterSpacing: -0.5,
-              ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    final icon = switch (themeMode) {
+      ThemeMode.system => LucideIcons.monitor,
+      ThemeMode.light => LucideIcons.sun,
+      ThemeMode.dark => LucideIcons.moon,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Tokens.space4,
+        vertical: Tokens.space3,
+      ),
+      child: Row(
+        children: [
+          Text(
+            'ContribKit',
+            style: TextStyle(
+              fontSize: Tokens.textLg,
+              fontWeight: FontWeight.w600,
+              color: colors.foreground,
+              letterSpacing: -0.5,
             ),
-          ],
-        ),
-      );
+          ),
+          const Spacer(),
+          AppButton.ghost(
+            onPressed: () =>
+                ref.read(themeModeProvider.notifier).cycle(),
+            size: ShadButtonSize.sm,
+            child: Icon(icon, size: 16),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SearchBar extends ConsumerWidget {
@@ -140,7 +160,8 @@ class _SearchBar extends ConsumerWidget {
     required this.focusNode,
     required this.error,
     required this.onSubmit,
-    required this.isLoading,
+    required this.isLoadingSettings,
+    required this.isLoadingCalendar,
     required this.selectedYear,
   });
 
@@ -148,7 +169,8 @@ class _SearchBar extends ConsumerWidget {
   final FocusNode focusNode;
   final String error;
   final ValueChanged<String> onSubmit;
-  final bool isLoading;
+  final bool isLoadingSettings;
+  final bool isLoadingCalendar;
   final Year selectedYear;
 
   @override
@@ -156,6 +178,7 @@ class _SearchBar extends ConsumerWidget {
     final notifier = ref.read(viewerProvider.notifier);
     final canGoPrev = selectedYear.value > Year.minYear;
     final canGoNext = selectedYear.value < DateTime.now().year;
+    final isLoading = isLoadingSettings || isLoadingCalendar;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -169,22 +192,24 @@ class _SearchBar extends ConsumerWidget {
                 controller: controller,
                 focusNode: focusNode,
                 placeholder: 'GitHub username',
-                onSubmitted: onSubmit,
-                enabled: !isLoading,
+                onSubmitted: isLoading ? null : onSubmit,
+                enabled: !isLoadingSettings,
               ),
             ),
             _YearStepper(
               year: selectedYear,
-              canGoPrev: canGoPrev,
-              canGoNext: canGoNext,
+              canGoPrev: canGoPrev && !isLoading,
+              canGoNext: canGoNext && !isLoading,
               onPrev: () => notifier.setYear(Year(selectedYear.value - 1)),
               onNext: () => notifier.setYear(Year(selectedYear.value + 1)),
             ),
-            AppButton(
-              onPressed: isLoading ? null : () => onSubmit(controller.text),
-              child: const Text('Search'),
-            ),
           ],
+        ),
+        AppButton(
+          onPressed: isLoading ? null : () => onSubmit(controller.text),
+          child: isLoadingCalendar
+              ? const _PulsingDots(dotSize: 5)
+              : const Text('Search'),
         ),
         if (error.isNotEmpty)
           Text(
@@ -223,15 +248,12 @@ class _YearStepper extends StatelessWidget {
             size: ShadButtonSize.sm,
             child: const Icon(LucideIcons.chevronLeft, size: 16.0),
           ),
-          SizedBox(
-            width: Tokens.space8,
-            child: Text(
-              year.value.toString(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: Tokens.textSm,
-                fontWeight: FontWeight.w500,
-              ),
+          Text(
+            year.value.toString(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: Tokens.textSm,
+              fontWeight: FontWeight.w500,
             ),
           ),
           AppButton.ghost(
@@ -251,8 +273,8 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (state.isLoadingSettings) return const _Loader();
-    if (state.username == null) return const _EmptyState();
-    if (state.calendar == null) return const _Loader();
+    if (state.error != null) return _ErrorState(failure: state.error!);
+    if (state.username == null || state.calendar == null) return const _EmptyState();
 
     final notifier = ref.read(viewerProvider.notifier);
 
@@ -279,7 +301,75 @@ class _Loader extends StatelessWidget {
   Widget build(BuildContext context) => const Center(
         child: Padding(
           padding: EdgeInsets.all(Tokens.space8),
-          child: ShadProgress(),
+          child: _PulsingDots(dotSize: 8),
+        ),
+      );
+}
+
+class _PulsingDots extends StatelessWidget {
+  const _PulsingDots({required this.dotSize});
+
+  final double dotSize;
+
+  static const _delays = [0, 160, 320];
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppColors.of(context).mutedForeground;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: dotSize * 0.8,
+      children: [
+        for (final delay in _delays)
+          Container(
+            width: dotSize,
+            height: dotSize,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scaleXY(
+                begin: 0.4,
+                end: 1.0,
+                duration: 500.ms,
+                delay: Duration(milliseconds: delay),
+                curve: Curves.easeInOut,
+              )
+              .fade(
+                begin: 0.3,
+                end: 1.0,
+                duration: 500.ms,
+                delay: Duration(milliseconds: delay),
+                curve: Curves.easeInOut,
+              ),
+      ],
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.failure});
+
+  final Failure failure;
+
+  String _message() => switch (failure) {
+        NotFoundFailure(:final username) => 'User "$username" not found.',
+        RateLimitedFailure() => 'GitHub rate limit exceeded. Try again later.',
+        NetworkFailure(:final message) => 'Network error: $message',
+        _ => 'Something went wrong. Please try again.',
+      };
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(Tokens.space8),
+          child: Text(
+            _message(),
+            style: TextStyle(
+              fontSize: Tokens.textBase,
+              color: ShadTheme.of(context).colorScheme.destructive,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       );
 }

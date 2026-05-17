@@ -52,8 +52,5 @@ dev_dependencies:
   # Testing
   mocktail: ^1.0.0
 
-  # Git hooks
-  lefthook: ^1.11.0
-
 flutter:
   uses-material-design: false

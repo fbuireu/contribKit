@@ -17,9 +17,12 @@ Generate a token at [github.com/settings/tokens](https://github.com/settings/tok
 ## Development
 
 ```bash
-# Install dependencies and git hooks
+# Install dependencies
 flutter pub get
-dart run lefthook install
+
+# Install lefthook (once, globally) and activate git hooks
+brew install lefthook   # or: npm i -g @evilmartians/lefthook
+lefthook install
 
 # Watch for code generation changes
 dart run build_runner watch --delete-conflicting-outputs
