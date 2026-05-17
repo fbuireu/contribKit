@@ -25,12 +25,12 @@ final class Palette {
 
   /// Returns the color for a given contribution level.
   Color colorFor(ContributionLevel level) => switch (level) {
-        ContributionLevel.none => none,
-        ContributionLevel.low => low,
-        ContributionLevel.medium => medium,
-        ContributionLevel.high => high,
-        ContributionLevel.veryHigh => veryHigh,
-      };
+    ContributionLevel.none => none,
+    ContributionLevel.low => low,
+    ContributionLevel.medium => medium,
+    ContributionLevel.high => high,
+    ContributionLevel.veryHigh => veryHigh,
+  };
 
   @override
   bool operator ==(Object other) =>
@@ -43,8 +43,7 @@ final class Palette {
       other.veryHigh == veryHigh;
 
   @override
-  int get hashCode =>
-      Object.hash(name, none, low, medium, high, veryHigh);
+  int get hashCode => Object.hash(name, none, low, medium, high, veryHigh);
 
   @override
   String toString() => 'Palette($name)';

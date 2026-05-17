@@ -80,24 +80,27 @@ class _PaletteSwatch extends StatelessWidget {
           ),
           child: Row(
             spacing: Tokens.cellGap,
-            children: [
-              palette.none,
-              palette.low,
-              palette.medium,
-              palette.high,
-              palette.veryHigh,
-            ]
-                .map(
-                  (c) => Container(
-                    width: Tokens.swatchSize,
-                    height: Tokens.swatchSize,
-                    decoration: BoxDecoration(
-                      color: Color(c.argb),
-                      borderRadius: BorderRadius.circular(Tokens.radiusSm * 0.5),
-                    ),
-                  ),
-                )
-                .toList(),
+            children:
+                [
+                      palette.none,
+                      palette.low,
+                      palette.medium,
+                      palette.high,
+                      palette.veryHigh,
+                    ]
+                    .map(
+                      (c) => Container(
+                        width: Tokens.swatchSize,
+                        height: Tokens.swatchSize,
+                        decoration: BoxDecoration(
+                          color: Color(c.argb),
+                          borderRadius: BorderRadius.circular(
+                            Tokens.radiusSm * 0.5,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
           ),
         ),
       ),

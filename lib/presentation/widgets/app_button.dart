@@ -46,10 +46,10 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShadButton.raw(
-        variant: _variant,
-        size: size,
-        enabled: enabled && onPressed != null,
-        onPressed: onPressed,
-        child: child,
-      );
+    variant: _variant,
+    size: size,
+    enabled: enabled && onPressed != null,
+    onPressed: onPressed,
+    child: child,
+  );
 }

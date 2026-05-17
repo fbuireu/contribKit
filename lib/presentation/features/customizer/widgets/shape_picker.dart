@@ -62,11 +62,9 @@ class _ShapeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShadButton.raw(
-        variant: isSelected
-            ? ShadButtonVariant.primary
-            : ShadButtonVariant.outline,
-        size: ShadButtonSize.sm,
-        onPressed: onTap,
-        child: Text(label),
-      );
+    variant: isSelected ? ShadButtonVariant.primary : ShadButtonVariant.outline,
+    size: ShadButtonSize.sm,
+    onPressed: onTap,
+    child: Text(label),
+  );
 }

@@ -143,8 +143,7 @@ class _Header extends ConsumerWidget {
           ),
           const Spacer(),
           AppButton.ghost(
-            onPressed: () =>
-                ref.read(themeModeProvider.notifier).cycle(),
+            onPressed: () => ref.read(themeModeProvider.notifier).cycle(),
             size: ShadButtonSize.sm,
             child: Icon(icon, size: 16),
           ),
@@ -241,28 +240,28 @@ class _YearStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppButton.ghost(
-            onPressed: canGoPrev ? onPrev : null,
-            size: ShadButtonSize.sm,
-            child: const Icon(LucideIcons.chevronLeft, size: 16.0),
-          ),
-          Text(
-            year.value.toString(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: Tokens.textSm,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          AppButton.ghost(
-            onPressed: canGoNext ? onNext : null,
-            size: ShadButtonSize.sm,
-            child: const Icon(LucideIcons.chevronRight, size: 16.0),
-          ),
-        ],
-      );
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      AppButton.ghost(
+        onPressed: canGoPrev ? onPrev : null,
+        size: ShadButtonSize.sm,
+        child: const Icon(LucideIcons.chevronLeft, size: 16.0),
+      ),
+      Text(
+        year.value.toString(),
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: Tokens.textSm,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      AppButton.ghost(
+        onPressed: canGoNext ? onNext : null,
+        size: ShadButtonSize.sm,
+        child: const Icon(LucideIcons.chevronRight, size: 16.0),
+      ),
+    ],
+  );
 }
 
 class _Body extends ConsumerWidget {
@@ -272,9 +271,11 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (state.isLoadingSettings) return const _Loader();
-    if (state.error != null) return _ErrorState(failure: state.error!);
-    if (state.username == null || state.calendar == null) return const _EmptyState();
+    if (state.isLoadingSettings) { return const _Loader(); }
+    if (state.error != null) { return _ErrorState(failure: state.error!); }
+    if (state.username == null || state.calendar == null) {
+      return const _EmptyState();
+    }
 
     final notifier = ref.read(viewerProvider.notifier);
 
@@ -299,11 +300,11 @@ class _Loader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(Tokens.space8),
-          child: _PulsingDots(dotSize: 8),
-        ),
-      );
+    child: Padding(
+      padding: EdgeInsets.all(Tokens.space8),
+      child: _PulsingDots(dotSize: 8),
+    ),
+  );
 }
 
 class _PulsingDots extends StatelessWidget {
@@ -322,10 +323,10 @@ class _PulsingDots extends StatelessWidget {
       children: [
         for (final delay in _delays)
           Container(
-            width: dotSize,
-            height: dotSize,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          )
+                width: dotSize,
+                height: dotSize,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              )
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .scaleXY(
                 begin: 0.4,
@@ -352,26 +353,26 @@ class _ErrorState extends StatelessWidget {
   final Failure failure;
 
   String _message() => switch (failure) {
-        NotFoundFailure(:final username) => 'User "$username" not found.',
-        RateLimitedFailure() => 'GitHub rate limit exceeded. Try again later.',
-        NetworkFailure(:final message) => 'Network error: $message',
-        _ => 'Something went wrong. Please try again.',
-      };
+    NotFoundFailure(:final username) => 'User "$username" not found.',
+    RateLimitedFailure() => 'GitHub rate limit exceeded. Try again later.',
+    NetworkFailure(:final message) => 'Network error: $message',
+    _ => 'Something went wrong. Please try again.',
+  };
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(Tokens.space8),
-          child: Text(
-            _message(),
-            style: TextStyle(
-              fontSize: Tokens.textBase,
-              color: ShadTheme.of(context).colorScheme.destructive,
-            ),
-            textAlign: TextAlign.center,
-          ),
+    child: Padding(
+      padding: const EdgeInsets.all(Tokens.space8),
+      child: Text(
+        _message(),
+        style: TextStyle(
+          fontSize: Tokens.textBase,
+          color: ShadTheme.of(context).colorScheme.destructive,
         ),
-      );
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
 }
 
 class _EmptyState extends StatelessWidget {
@@ -379,18 +380,18 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(Tokens.space8),
-          child: Text(
-            'Enter a GitHub username to visualize contributions',
-            style: TextStyle(
-              fontSize: Tokens.textBase,
-              color: AppColors.of(context).mutedForeground,
-            ),
-            textAlign: TextAlign.center,
-          ),
+    child: Padding(
+      padding: const EdgeInsets.all(Tokens.space8),
+      child: Text(
+        'Enter a GitHub username to visualize contributions',
+        style: TextStyle(
+          fontSize: Tokens.textBase,
+          color: AppColors.of(context).mutedForeground,
         ),
-      );
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
 }
 
 class _CalendarCard extends StatelessWidget {
@@ -400,74 +401,71 @@ class _CalendarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppCard(
-        padding: EdgeInsets.zero,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                Tokens.space4,
-                Tokens.space4,
-                Tokens.space4,
-                Tokens.space2,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${state.username!.value} · ${state.effectiveYear.value}',
-                      style: const TextStyle(
-                        fontSize: Tokens.textBase,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+    padding: EdgeInsets.zero,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Tokens.space4,
+            Tokens.space4,
+            Tokens.space4,
+            Tokens.space2,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${state.username!.value} · ${state.effectiveYear.value}',
+                  style: const TextStyle(
+                    fontSize: Tokens.textBase,
+                    fontWeight: FontWeight.w500,
                   ),
-                  AppBadge(
-                    child: Text(
-                      '${state.calendar!.totalContributions} contributions',
-                    ),
-                  ),
-                  if (state.fromCache) ...[
-                    const SizedBox(width: Tokens.space2),
-                    const AppBadge.outline(child: Text('cached')),
-                  ],
-                ],
+                ),
               ),
-            ),
-            ContributionGrid(
-              calendar: state.calendar!,
-              palette: state.effectivePalette,
-              shape: state.cellShape,
-            ),
-          ],
+              AppBadge(
+                child: Text(
+                  '${state.calendar!.totalContributions} contributions',
+                ),
+              ),
+              if (state.fromCache) ...[
+                const SizedBox(width: Tokens.space2),
+                const AppBadge.outline(child: Text('cached')),
+              ],
+            ],
+          ),
         ),
-      );
+        ContributionGrid(
+          calendar: state.calendar!,
+          palette: state.effectivePalette,
+          shape: state.cellShape,
+        ),
+      ],
+    ),
+  );
 }
 
 class _CustomizerCard extends StatelessWidget {
-  const _CustomizerCard({
-    required this.state,
-    required this.notifier,
-  });
+  const _CustomizerCard({required this.state, required this.notifier});
 
   final ViewerState state;
   final ViewerNotifier notifier;
 
   @override
   Widget build(BuildContext context) => AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: Tokens.space4,
-          children: [
-            PalettePicker(
-              selected: state.effectivePalette,
-              onSelected: notifier.setPalette,
-            ),
-            ShapePicker(
-              selected: state.cellShape,
-              onSelected: notifier.setCellShape,
-            ),
-          ],
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: Tokens.space4,
+      children: [
+        PalettePicker(
+          selected: state.effectivePalette,
+          onSelected: notifier.setPalette,
         ),
-      );
+        ShapePicker(
+          selected: state.cellShape,
+          onSelected: notifier.setCellShape,
+        ),
+      ],
+    ),
+  );
 }

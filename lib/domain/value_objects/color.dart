@@ -14,14 +14,10 @@ final class Color {
   int get blue => argb & 0xFF;
 
   factory Color.fromARGB(int a, int r, int g, int b) => Color(
-        ((a & 0xFF) << 24) |
-            ((r & 0xFF) << 16) |
-            ((g & 0xFF) << 8) |
-            (b & 0xFF),
-      );
+    ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF),
+  );
 
-  factory Color.fromRGB(int r, int g, int b) =>
-      Color.fromARGB(0xFF, r, g, b);
+  factory Color.fromRGB(int r, int g, int b) => Color.fromARGB(0xFF, r, g, b);
 
   /// Parses `#RRGGBB` or `#AARRGGBB` hex strings.
   factory Color.fromHex(String hex) {

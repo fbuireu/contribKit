@@ -5,6 +5,7 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/presentation/di/providers.dart';
 import 'package:contribkit/presentation/features/viewer/viewer_state.dart';
+import 'package:contribkit/presentation/features/widget/calendar_widget_service.dart';
 import 'package:contribkit/presentation/theme/palettes.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -36,7 +37,10 @@ class ViewerNotifier extends _$ViewerNotifier {
       );
 
       if (username != null) {
-        await fetchContributions(username: username, year: year ?? Year.current);
+        await fetchContributions(
+          username: username,
+          year: year ?? Year.current,
+        );
       }
     } finally {
       state = state.copyWith(isLoadingSettings: false);
@@ -64,6 +68,12 @@ class ViewerNotifier extends _$ViewerNotifier {
       state = state.copyWith(calendar: calendar, fromCache: fromCache);
       await ref.read(settingsRepositoryProvider).saveLastUsername(username);
       await ref.read(settingsRepositoryProvider).saveLastYear(year);
+
+      CalendarWidgetService.update(
+        calendar: calendar,
+        palette: state.effectivePalette,
+        cellShape: state.cellShape,
+      );
     } on Failure catch (f) {
       state = state.copyWith(error: f);
     } catch (e) {

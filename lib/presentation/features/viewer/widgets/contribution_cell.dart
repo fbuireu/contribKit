@@ -25,19 +25,14 @@ class ContributionCell extends StatelessWidget {
     final domainColor = palette.colorFor(day.level);
     final color = Color(domainColor.argb);
 
-    final tooltip = '${day.date.toIso8601String().substring(0, 10)}: '
+    final tooltip =
+        '${day.date.toIso8601String().substring(0, 10)}: '
         '${day.count} contribution${day.count == 1 ? '' : 's'}';
 
     return ShadTooltip(
-      builder: (_) => Text(
-        tooltip,
-        style: const TextStyle(fontSize: Tokens.textXs),
-      ),
-      child: _CellShape(
-        color: color,
-        size: Tokens.cellSize,
-        shape: shape,
-      )
+      builder: (_) =>
+          Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),
+      child: _CellShape(color: color, size: Tokens.cellSize, shape: shape)
           .animate(delay: animationDelay)
           .fadeIn(duration: Tokens.durationBase)
           .scale(
@@ -64,9 +59,9 @@ class _CellShape extends StatelessWidget {
     final decoration = switch (shape) {
       CellShape.square => BoxDecoration(color: color),
       CellShape.rounded => BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(Tokens.radiusSm * 0.5),
-        ),
+        color: color,
+        borderRadius: BorderRadius.circular(Tokens.radiusSm * 0.5),
+      ),
       CellShape.circle => BoxDecoration(color: color, shape: BoxShape.circle),
     };
 

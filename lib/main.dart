@@ -1,5 +1,11 @@
+import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
+import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/username.dart';
+import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/presentation/di/providers.dart';
 import 'package:contribkit/presentation/features/viewer/viewer_screen.dart';
+import 'package:contribkit/presentation/features/widget/calendar_widget_service.dart';
+import 'package:contribkit/presentation/theme/palettes.dart';
 import 'package:contribkit/presentation/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material;
 import 'package:flutter/widgets.dart';
@@ -7,16 +13,70 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:workmanager/workmanager.dart';
+
+const _widgetRefreshTask = 'contribkit.widgetRefresh';
+
+/// Background entry point for WorkManager — runs in a separate Dart isolate.
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, _) async {
+    if (task != _widgetRefreshTask) return true;
+
+    await Hive.initFlutter();
+
+    const settingsBox = 'settings';
+    final box = await Hive.openBox<dynamic>(settingsBox);
+
+    final usernameStr = box.get('lastUsername') as String?;
+    if (usernameStr == null) return true;
+
+    try {
+      final username = Username(usernameStr);
+      final yearVal = box.get('lastYear') as int? ?? DateTime.now().year;
+      final year = Year(yearVal);
+      final paletteName = box.get('paletteName') as String?;
+      final cellShapeName = box.get('cellShape') as String?;
+
+      final palette = paletteName != null
+          ? Palettes.byName(paletteName)
+          : Palettes.github;
+      final cellShape = cellShapeName != null
+          ? CellShape.values.firstWhere(
+              (s) => s.name == cellShapeName,
+              orElse: () => CellShape.rounded,
+            )
+          : CellShape.rounded;
+
+      final (:calendar, :fromCache) = await GitHubContributionRepository()
+          .fetchCalendar(username: username, year: year);
+
+      await CalendarWidgetService.update(
+        calendar: calendar,
+        palette: palette,
+        cellShape: cellShape,
+      );
+    } catch (_) {
+      // Best-effort — returning true so WorkManager doesn't retry.
+    }
+
+    return true;
+  });
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-  runApp(
-    const ProviderScope(
-      child: ContribKitApp(),
-    ),
+  await Workmanager().initialize(callbackDispatcher);
+  await Workmanager().registerPeriodicTask(
+    _widgetRefreshTask,
+    _widgetRefreshTask,
+    frequency: const Duration(hours: 24),
+    existingWorkPolicy: ExistingWorkPolicy.keep,
   );
+
+  runApp(const ProviderScope(child: ContribKitApp()));
 }
 
 class ContribKitApp extends ConsumerWidget {
@@ -42,10 +102,7 @@ class ContribKitApp extends ConsumerWidget {
         textTheme: googleFontTextTheme,
       ),
       themeMode: themeMode,
-      home: const Material(
-        color: Color(0x00000000),
-        child: ViewerScreen(),
-      ),
+      home: const Material(color: Color(0x00000000), child: ViewerScreen()),
     );
   }
 }

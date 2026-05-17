@@ -9,7 +9,7 @@ import 'package:contribkit/domain/value_objects/year.dart';
 /// [ContributionRepository] which handles caching and API calls.
 final class FetchContributions {
   const FetchContributions({required ContributionRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final ContributionRepository _repository;
 

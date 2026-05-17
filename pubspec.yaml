@@ -27,6 +27,11 @@ dependencies:
   # Sharing / export
   share_plus: ^13.1.0
 
+  # Home screen widget + background refresh
+  home_widget: ^0.7.0
+  workmanager: ^0.5.2
+  path_provider: ^2.1.0
+
   # UI primitives
   shadcn_ui: ^0.54.0
   flutter_animate: ^4.5.0

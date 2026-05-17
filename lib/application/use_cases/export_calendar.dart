@@ -7,7 +7,7 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 /// (SVG, PNG, Markdown), keeping this use case format-agnostic.
 final class ExportCalendar {
   const ExportCalendar({required ExportRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final ExportRepository _repository;
 

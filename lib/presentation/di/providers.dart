@@ -31,34 +31,29 @@ ExportRepository svgExportRepository(Ref ref) => SvgExportRepository();
 ExportRepository pngExportRepository(Ref ref) => PngExportRepository();
 
 @riverpod
-ExportRepository markdownExportRepository(Ref ref) =>
-    MarkdownExportRepository(
-      svgRepository: ref.watch(svgExportRepositoryProvider),
-    );
+ExportRepository markdownExportRepository(Ref ref) => MarkdownExportRepository(
+  svgRepository: ref.watch(svgExportRepositoryProvider),
+);
 
 // ---------------------------------------------------------------------------
 // Use cases
 // ---------------------------------------------------------------------------
 
 @riverpod
-FetchContributions fetchContributions(Ref ref) => FetchContributions(
-      repository: ref.watch(contributionRepositoryProvider),
-    );
+FetchContributions fetchContributions(Ref ref) =>
+    FetchContributions(repository: ref.watch(contributionRepositoryProvider));
 
 @riverpod
-ExportCalendar svgExportCalendar(Ref ref) => ExportCalendar(
-      repository: ref.watch(svgExportRepositoryProvider),
-    );
+ExportCalendar svgExportCalendar(Ref ref) =>
+    ExportCalendar(repository: ref.watch(svgExportRepositoryProvider));
 
 @riverpod
-ExportCalendar pngExportCalendar(Ref ref) => ExportCalendar(
-      repository: ref.watch(pngExportRepositoryProvider),
-    );
+ExportCalendar pngExportCalendar(Ref ref) =>
+    ExportCalendar(repository: ref.watch(pngExportRepositoryProvider));
 
 @riverpod
-ExportCalendar markdownExportCalendar(Ref ref) => ExportCalendar(
-      repository: ref.watch(markdownExportRepositoryProvider),
-    );
+ExportCalendar markdownExportCalendar(Ref ref) =>
+    ExportCalendar(repository: ref.watch(markdownExportRepositoryProvider));
 
 // ---------------------------------------------------------------------------
 // Theme
@@ -77,8 +72,7 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   }
 
   Future<void> _loadSaved() async {
-    final saved =
-        await ref.read(settingsRepositoryProvider).getThemeMode();
+    final saved = await ref.read(settingsRepositoryProvider).getThemeMode();
     if (saved != null) state = _toFlutter(saved);
   }
 
@@ -90,20 +84,18 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
       ThemeMode.dark => ThemeMode.system,
     };
     state = next;
-    await ref
-        .read(settingsRepositoryProvider)
-        .saveThemeMode(_toDomain(next));
+    await ref.read(settingsRepositoryProvider).saveThemeMode(_toDomain(next));
   }
 
   ThemeMode _toFlutter(AppThemeMode m) => switch (m) {
-        AppThemeMode.system => ThemeMode.system,
-        AppThemeMode.light => ThemeMode.light,
-        AppThemeMode.dark => ThemeMode.dark,
-      };
+    AppThemeMode.system => ThemeMode.system,
+    AppThemeMode.light => ThemeMode.light,
+    AppThemeMode.dark => ThemeMode.dark,
+  };
 
   AppThemeMode _toDomain(ThemeMode m) => switch (m) {
-        ThemeMode.system => AppThemeMode.system,
-        ThemeMode.light => AppThemeMode.light,
-        ThemeMode.dark => AppThemeMode.dark,
-      };
+    ThemeMode.system => AppThemeMode.system,
+    ThemeMode.light => AppThemeMode.light,
+    ThemeMode.dark => AppThemeMode.dark,
+  };
 }

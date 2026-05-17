@@ -32,10 +32,8 @@ class ExportPanel extends ConsumerStatefulWidget {
 class _ExportPanelState extends ConsumerState<ExportPanel> {
   bool _exporting = false;
 
-  RenderOptions get _options => RenderOptions(
-        palette: widget.palette,
-        shape: widget.cellShape,
-      );
+  RenderOptions get _options =>
+      RenderOptions(palette: widget.palette, shape: widget.cellShape);
 
   Future<void> _export({
     required ExportCalendar useCase,
@@ -46,10 +44,7 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
     setState(() => _exporting = true);
 
     try {
-      final bytes = await useCase(
-        calendar: widget.calendar,
-        options: _options,
-      );
+      final bytes = await useCase(calendar: widget.calendar, options: _options);
       final xFile = XFile.fromData(
         Uint8List.fromList(bytes),
         name: filename,
@@ -78,30 +73,30 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
             onPressed: _exporting
                 ? null
                 : () => _export(
-                      useCase: svg,
-                      filename: '${user}_$year.svg',
-                      mimeType: 'image/svg+xml',
-                    ),
+                    useCase: svg,
+                    filename: '${user}_$year.svg',
+                    mimeType: 'image/svg+xml',
+                  ),
             child: const Text('SVG'),
           ),
           AppButton.outline(
             onPressed: _exporting
                 ? null
                 : () => _export(
-                      useCase: png,
-                      filename: '${user}_$year.png',
-                      mimeType: 'image/png',
-                    ),
+                    useCase: png,
+                    filename: '${user}_$year.png',
+                    mimeType: 'image/png',
+                  ),
             child: const Text('PNG'),
           ),
           AppButton.outline(
             onPressed: _exporting
                 ? null
                 : () => _export(
-                      useCase: md,
-                      filename: '${user}_$year.md',
-                      mimeType: 'text/markdown',
-                    ),
+                    useCase: md,
+                    filename: '${user}_$year.md',
+                    mimeType: 'text/markdown',
+                  ),
             child: const Text('Markdown'),
           ),
         ],

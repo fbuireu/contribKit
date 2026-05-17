@@ -20,10 +20,7 @@ void main() {
     });
 
     test('throws for year after current', () {
-      expect(
-        () => Year(DateTime.now().year + 1),
-        throwsA(isA<RangeError>()),
-      );
+      expect(() => Year(DateTime.now().year + 1), throwsA(isA<RangeError>()));
     });
 
     test('two instances with the same value are equal', () {

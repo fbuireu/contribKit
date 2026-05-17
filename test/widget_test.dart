@@ -45,8 +45,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          settingsRepositoryProvider
-              .overrideWithValue(_FakeSettingsRepository()),
+          settingsRepositoryProvider.overrideWithValue(
+            _FakeSettingsRepository(),
+          ),
         ],
         child: const ContribKitApp(),
       ),

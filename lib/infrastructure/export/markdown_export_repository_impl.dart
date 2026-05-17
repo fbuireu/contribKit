@@ -10,7 +10,7 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 /// GitHub README files and most Markdown-aware tools.
 final class MarkdownExportRepository implements ExportRepository {
   MarkdownExportRepository({required ExportRepository svgRepository})
-      : _svgRepository = svgRepository;
+    : _svgRepository = svgRepository;
 
   final ExportRepository _svgRepository;
 

@@ -20,7 +20,7 @@ const _cacheBoxName = 'contribution_cache';
 /// public profile pages (`/users/{login}/contributions`).
 final class GitHubContributionRepository implements ContributionRepository {
   GitHubContributionRepository({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   final http.Client _httpClient;
 
@@ -69,11 +69,14 @@ final class GitHubContributionRepository implements ContributionRepository {
     );
 
     try {
-      final response = await _httpClient.get(uri, headers: {
-        'User-Agent': 'ContribKit/1.0 (Flutter)',
-        'Accept': 'text/html',
-        'X-Requested-With': 'XMLHttpRequest',
-      });
+      final response = await _httpClient.get(
+        uri,
+        headers: {
+          'User-Agent': 'ContribKit/1.0 (Flutter)',
+          'Accept': 'text/html',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      );
 
       if (response.statusCode == 404) {
         throw NotFoundFailure(username: username.value);
@@ -91,11 +94,7 @@ final class GitHubContributionRepository implements ContributionRepository {
     }
   }
 
-  ContributionCalendar _parseHtml(
-    String html,
-    Username username,
-    Year year,
-  ) {
+  ContributionCalendar _parseHtml(String html, Username username, Year year) {
     // Pass 1: id → date from <td class="ContributionCalendar-day">
     final idToDate = <String, DateTime>{};
     for (final tdMatch in _tdRegex.allMatches(html)) {
@@ -118,17 +117,18 @@ final class GitHubContributionRepository implements ContributionRepository {
       final forId = tipMatch.group(1)!;
       final text = tipMatch.group(2)!.trim();
       final numMatch = _countPrefix.firstMatch(text);
-      idToCount[forId] =
-          numMatch != null ? (int.tryParse(numMatch.group(1)!) ?? 0) : 0;
+      idToCount[forId] = numMatch != null
+          ? (int.tryParse(numMatch.group(1)!) ?? 0)
+          : 0;
     }
 
-    final rawDays = idToDate.entries
-        .map((e) => (date: e.value, count: idToCount[e.key] ?? 0))
-        .toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final rawDays =
+        idToDate.entries
+            .map((e) => (date: e.value, count: idToCount[e.key] ?? 0))
+            .toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
 
-    final yearMax =
-        rawDays.fold(0, (max, d) => d.count > max ? d.count : max);
+    final yearMax = rawDays.fold(0, (max, d) => d.count > max ? d.count : max);
 
     final days = rawDays
         .map(
@@ -219,8 +219,9 @@ final class GitHubContributionRepository implements ContributionRepository {
         .expand((w) => w.contributionDays)
         .map((d) => d.contributionCount)
         .toList();
-    final yearMax =
-        allCounts.isEmpty ? 0 : allCounts.reduce((a, b) => a > b ? a : b);
+    final yearMax = allCounts.isEmpty
+        ? 0
+        : allCounts.reduce((a, b) => a > b ? a : b);
 
     final weeks = dto.weeks.map((weekDto) {
       final days = weekDto.contributionDays.map((dayDto) {
@@ -247,23 +248,23 @@ final class GitHubContributionRepository implements ContributionRepository {
   }
 
   Map<String, dynamic> _toDto(ContributionCalendar calendar) => {
-        'totalContributions': calendar.totalContributions,
-        'weeks': calendar.weeks
-            .map(
-              (w) => {
-                'contributionDays': w.days
-                    .map(
-                      (d) => {
-                        'date': d.date.toIso8601String().substring(0, 10),
-                        'contributionCount': d.count,
-                        'color': '#000000',
-                      },
-                    )
-                    .toList(),
-              },
-            )
-            .toList(),
-      };
+    'totalContributions': calendar.totalContributions,
+    'weeks': calendar.weeks
+        .map(
+          (w) => {
+            'contributionDays': w.days
+                .map(
+                  (d) => {
+                    'date': d.date.toIso8601String().substring(0, 10),
+                    'contributionCount': d.count,
+                    'color': '#000000',
+                  },
+                )
+                .toList(),
+          },
+        )
+        .toList(),
+  };
 
   Future<Box<dynamic>> _openBox() => Hive.openBox<dynamic>(_cacheBoxName);
 }

@@ -10,7 +10,7 @@ const _endpoint = 'https://api.github.com/graphql';
 /// via `--dart-define=GITHUB_TOKEN=...`. The token is never stored in source.
 final class GraphQLClient {
   GraphQLClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   static const _token = String.fromEnvironment('GITHUB_TOKEN');
 
@@ -71,6 +71,7 @@ final class GitHubApiException implements Exception {
   final String? type;
 
   @override
-  String toString() =>
-      type != null ? 'GitHubApiException[$type]: $message' : 'GitHubApiException: $message';
+  String toString() => type != null
+      ? 'GitHubApiException[$type]: $message'
+      : 'GitHubApiException: $message';
 }

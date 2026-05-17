@@ -31,9 +31,7 @@ final class Username {
 
   final String value;
 
-  static final _pattern = RegExp(
-    r'^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$',
-  );
+  static final _pattern = RegExp(r'^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$');
 
   @override
   bool operator ==(Object other) => other is Username && other.value == value;
