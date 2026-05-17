@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ideas & backlog
+    url: https://github.com/fbuireu/contribkit/blob/main/IDEAS.md
+    about: Check the ideas backlog before requesting a feature.
