@@ -41,8 +41,9 @@ abstract final class ContributionStatsService {
     }
 
     final weekCount = calendar.weeks.length;
-    final weeklyAverage =
-        weekCount > 0 ? calendar.totalContributions / weekCount : 0.0;
+    final weeklyAverage = weekCount > 0
+        ? calendar.totalContributions / weekCount
+        : 0.0;
 
     final monthTotals = <int, int>{};
     for (final day in allDays) {
@@ -54,8 +55,9 @@ abstract final class ContributionStatsService {
     int? bestMonthIndex;
     int bestMonthContributions = 0;
     if (monthTotals.isNotEmpty) {
-      final best = monthTotals.entries
-          .reduce((a, b) => a.value >= b.value ? a : b);
+      final best = monthTotals.entries.reduce(
+        (a, b) => a.value >= b.value ? a : b,
+      );
       bestMonthIndex = best.key;
       bestMonthContributions = best.value;
     }

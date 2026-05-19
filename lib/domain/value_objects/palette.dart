@@ -18,8 +18,10 @@ final class Palette {
   });
 
   final String name;
+
   /// Empty-cell color for dark mode.
   final Color none;
+
   /// Empty-cell color for light mode.
   final Color noneLight;
   final Color low;
@@ -27,13 +29,14 @@ final class Palette {
   final Color high;
   final Color veryHigh;
 
-  Color colorFor(ContributionLevel level, {bool isDark = true}) => switch (level) {
-    ContributionLevel.none => isDark ? none : noneLight,
-    ContributionLevel.low => low,
-    ContributionLevel.medium => medium,
-    ContributionLevel.high => high,
-    ContributionLevel.veryHigh => veryHigh,
-  };
+  Color colorFor(ContributionLevel level, {bool isDark = true}) =>
+      switch (level) {
+        ContributionLevel.none => isDark ? none : noneLight,
+        ContributionLevel.low => low,
+        ContributionLevel.medium => medium,
+        ContributionLevel.high => high,
+        ContributionLevel.veryHigh => veryHigh,
+      };
 
   @override
   bool operator ==(Object other) =>
@@ -47,7 +50,8 @@ final class Palette {
       other.veryHigh == veryHigh;
 
   @override
-  int get hashCode => Object.hash(name, none, noneLight, low, medium, high, veryHigh);
+  int get hashCode =>
+      Object.hash(name, none, noneLight, low, medium, high, veryHigh);
 
   @override
   String toString() => 'Palette($name)';

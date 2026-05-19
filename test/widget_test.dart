@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/main.dart';
@@ -32,6 +33,18 @@ final class _FakeSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> saveCellShape(CellShape shape) async {}
+
+  @override
+  Future<CellSize?> getSavedCellSize() async => null;
+
+  @override
+  Future<void> saveCellSize(CellSize size) async {}
+
+  @override
+  Future<String?> getSavedCardBackground() async => null;
+
+  @override
+  Future<void> saveCardBackground(String presetName) async {}
 
   @override
   Future<AppThemeMode?> getThemeMode() async => null;

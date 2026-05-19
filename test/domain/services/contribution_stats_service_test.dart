@@ -7,23 +7,19 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 ContributionCalendar _calendar(List<(DateTime, int)> dayData) {
-  final days = dayData
-      .map(
-        (e) => ContributionDay(
-          date: e.$1,
-          count: e.$2,
-          level: e.$2 == 0 ? ContributionLevel.none : ContributionLevel.low,
-        ),
-      )
-      .toList()
-    ..sort((a, b) => a.date.compareTo(b.date));
+  final days =
+      dayData
+          .map(
+            (e) => ContributionDay(
+              date: e.$1,
+              count: e.$2,
+              level: e.$2 == 0 ? ContributionLevel.none : ContributionLevel.low,
+            ),
+          )
+          .toList()
+        ..sort((a, b) => a.date.compareTo(b.date));
 
-  // Group into weeks starting on Sunday.
   final weeks = <ContributionWeek>[];
   var current = <ContributionDay>[];
   for (final day in days) {
@@ -45,10 +41,6 @@ ContributionCalendar _calendar(List<(DateTime, int)> dayData) {
 }
 
 DateTime _d(int month, int day) => DateTime(2024, month, day);
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 void main() {
   group('ContributionStatsService.compute', () {
@@ -92,11 +84,7 @@ void main() {
     });
 
     test('finds the best day by contribution count', () {
-      final cal = _calendar([
-        (_d(1, 10), 3),
-        (_d(1, 11), 10),
-        (_d(1, 12), 7),
-      ]);
+      final cal = _calendar([(_d(1, 10), 3), (_d(1, 11), 10), (_d(1, 12), 7)]);
       final stats = ContributionStatsService.compute(cal);
       expect(stats.bestDayCount, 10);
       expect(stats.bestDayDate, _d(1, 11));
@@ -117,10 +105,10 @@ void main() {
     test('identifies the best month', () {
       final cal = _calendar([
         (_d(1, 5), 5),
-        (_d(1, 6), 5),  // January: 10 total
+        (_d(1, 6), 5), // January: 10 total
         (_d(2, 1), 8),
-        (_d(2, 2), 8),  // February: 16 total
-        (_d(3, 1), 3),  // March: 3 total
+        (_d(2, 2), 8), // February: 16 total
+        (_d(3, 1), 3), // March: 3 total
       ]);
       final stats = ContributionStatsService.compute(cal);
       expect(stats.bestMonthIndex, 2);
@@ -128,10 +116,9 @@ void main() {
     });
 
     test('weekly average equals total divided by week count', () {
-      // 2 weeks, 10 contributions total → avg 5.0
       final cal = _calendar([
-        (_d(1, 7), 6),   // Sunday → new week
-        (_d(1, 14), 4),  // Sunday → new week
+        (_d(1, 7), 6), // Sunday → new week
+        (_d(1, 14), 4), // Sunday → new week
       ]);
       final stats = ContributionStatsService.compute(cal);
       expect(stats.weeklyAverage, closeTo(10.0 / cal.weeks.length, 0.01));

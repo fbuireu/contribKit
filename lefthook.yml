@@ -3,7 +3,8 @@ pre-commit:
   commands:
     format:
       glob: "*.dart"
-      run: dart format --set-exit-if-changed {staged_files}
+      run: dart format {staged_files}
+      stage_fixed: true
     analyze:
       glob: "*.dart"
       run: flutter analyze --fatal-infos {staged_files}

@@ -23,9 +23,6 @@ abstract final class BackgroundPresets {
     BackgroundPreset.black: Color(0xFF000000),
   };
 
-  static BackgroundPreset byName(String name) =>
-      BackgroundPreset.values.firstWhere(
-        (p) => p.name == name,
-        orElse: () => BackgroundPreset.system,
-      );
+  static BackgroundPreset byName(String name) => BackgroundPreset.values
+      .firstWhere((p) => p.name == name, orElse: () => BackgroundPreset.system);
 }

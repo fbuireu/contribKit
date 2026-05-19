@@ -495,10 +495,7 @@ class _CustomizerCard extends StatelessWidget {
           selected: state.cellShape,
           onSelected: notifier.setCellShape,
         ),
-        SizePicker(
-          selected: state.cellSize,
-          onSelected: notifier.setCellSize,
-        ),
+        SizePicker(selected: state.cellSize, onSelected: notifier.setCellSize),
         BackgroundPicker(
           selected: state.cardBackground,
           onSelected: notifier.setCardBackground,

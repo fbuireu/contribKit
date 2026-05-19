@@ -74,10 +74,9 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
       await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
       if (mounted) {
         setState(() => _copied = true);
-        Future.delayed(
-          const Duration(milliseconds: 1500),
-          () { if (mounted) setState(() => _copied = false); },
-        );
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) setState(() => _copied = false);
+        });
       }
     } finally {
       if (mounted) setState(() => _exporting = false);
