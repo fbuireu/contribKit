@@ -13,10 +13,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
 
-// ---------------------------------------------------------------------------
-// Infrastructure
-// ---------------------------------------------------------------------------
-
 @riverpod
 ContributionRepository contributionRepository(Ref ref) =>
     GitHubContributionRepository();
@@ -35,10 +31,6 @@ ExportRepository markdownExportRepository(Ref ref) => MarkdownExportRepository(
   svgRepository: ref.watch(svgExportRepositoryProvider),
 );
 
-// ---------------------------------------------------------------------------
-// Use cases
-// ---------------------------------------------------------------------------
-
 @riverpod
 FetchContributions fetchContributions(Ref ref) =>
     FetchContributions(repository: ref.watch(contributionRepositoryProvider));
@@ -55,14 +47,6 @@ ExportCalendar pngExportCalendar(Ref ref) =>
 ExportCalendar markdownExportCalendar(Ref ref) =>
     ExportCalendar(repository: ref.watch(markdownExportRepositoryProvider));
 
-// ---------------------------------------------------------------------------
-// Theme
-// ---------------------------------------------------------------------------
-
-/// Persists and exposes the user's theme preference.
-///
-/// Starts with [ThemeMode.system] immediately, then overrides with the saved
-/// value once Hive resolves — no loading state needed.
 @riverpod
 class ThemeModeNotifier extends _$ThemeModeNotifier {
   @override
@@ -76,7 +60,6 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
     if (saved != null) state = _toFlutter(saved);
   }
 
-  /// Cycles system → light → dark → system.
   Future<void> cycle() async {
     final next = switch (state) {
       ThemeMode.system => ThemeMode.light,

@@ -1,9 +1,11 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
+import 'package:contribkit/presentation/theme/background_presets.dart';
 import 'package:contribkit/presentation/theme/palettes.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -21,6 +23,8 @@ abstract class ViewerState with _$ViewerState {
     @Default(false) bool isLoadingSettings,
     Palette? palette,
     @Default(CellShape.rounded) CellShape cellShape,
+    @Default(CellSize.normal) CellSize cellSize,
+    @Default(BackgroundPreset.system) BackgroundPreset cardBackground,
     @Default(null) Failure? error,
   }) = _ViewerState;
 

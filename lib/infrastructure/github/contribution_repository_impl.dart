@@ -14,10 +14,6 @@ import 'package:http/http.dart' as http;
 
 const _cacheBoxName = 'contribution_cache';
 
-/// Fetches GitHub contribution calendars by scraping the public profile page.
-///
-/// No authentication required — uses the same endpoint GitHub loads on
-/// public profile pages (`/users/{login}/contributions`).
 final class GitHubContributionRepository implements ContributionRepository {
   GitHubContributionRepository({http.Client? httpClient})
     : _httpClient = httpClient ?? http.Client();

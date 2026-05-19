@@ -1,10 +1,8 @@
 import 'package:contribkit/domain/entities/contribution_day.dart';
 
-/// A column of up to 7 contribution days in the calendar grid.
 final class ContributionWeek {
   const ContributionWeek({required this.days});
 
-  /// Days in this week, ordered Sunday → Saturday.
   final List<ContributionDay> days;
 
   bool _listEquals(List<ContributionDay> a, List<ContributionDay> b) {

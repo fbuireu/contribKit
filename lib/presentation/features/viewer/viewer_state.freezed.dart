@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ViewerState {
 
- Username? get username; ContributionCalendar? get calendar; bool get fromCache; bool get isExporting; bool get isLoadingCalendar; Year? get year; bool get isLoadingSettings; Palette? get palette; CellShape get cellShape; Failure? get error;
+ Username? get username; ContributionCalendar? get calendar; bool get fromCache; bool get isExporting; bool get isLoadingCalendar; Year? get year; bool get isLoadingSettings; Palette? get palette; CellShape get cellShape; CellSize get cellSize; BackgroundPreset get cardBackground; Failure? get error;
 /// Create a copy of ViewerState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ViewerStateCopyWith<ViewerState> get copyWith => _$ViewerStateCopyWithImpl<View
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ViewerState&&(identical(other.username, username) || other.username == username)&&(identical(other.calendar, calendar) || other.calendar == calendar)&&(identical(other.fromCache, fromCache) || other.fromCache == fromCache)&&(identical(other.isExporting, isExporting) || other.isExporting == isExporting)&&(identical(other.isLoadingCalendar, isLoadingCalendar) || other.isLoadingCalendar == isLoadingCalendar)&&(identical(other.year, year) || other.year == year)&&(identical(other.isLoadingSettings, isLoadingSettings) || other.isLoadingSettings == isLoadingSettings)&&(identical(other.palette, palette) || other.palette == palette)&&(identical(other.cellShape, cellShape) || other.cellShape == cellShape)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ViewerState&&(identical(other.username, username) || other.username == username)&&(identical(other.calendar, calendar) || other.calendar == calendar)&&(identical(other.fromCache, fromCache) || other.fromCache == fromCache)&&(identical(other.isExporting, isExporting) || other.isExporting == isExporting)&&(identical(other.isLoadingCalendar, isLoadingCalendar) || other.isLoadingCalendar == isLoadingCalendar)&&(identical(other.year, year) || other.year == year)&&(identical(other.isLoadingSettings, isLoadingSettings) || other.isLoadingSettings == isLoadingSettings)&&(identical(other.palette, palette) || other.palette == palette)&&(identical(other.cellShape, cellShape) || other.cellShape == cellShape)&&(identical(other.cellSize, cellSize) || other.cellSize == cellSize)&&(identical(other.cardBackground, cardBackground) || other.cardBackground == cardBackground)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,username,calendar,fromCache,isExporting,isLoadingCalendar,year,isLoadingSettings,palette,cellShape,error);
+int get hashCode => Object.hash(runtimeType,username,calendar,fromCache,isExporting,isLoadingCalendar,year,isLoadingSettings,palette,cellShape,cellSize,cardBackground,error);
 
 @override
 String toString() {
-  return 'ViewerState(username: $username, calendar: $calendar, fromCache: $fromCache, isExporting: $isExporting, isLoadingCalendar: $isLoadingCalendar, year: $year, isLoadingSettings: $isLoadingSettings, palette: $palette, cellShape: $cellShape, error: $error)';
+  return 'ViewerState(username: $username, calendar: $calendar, fromCache: $fromCache, isExporting: $isExporting, isLoadingCalendar: $isLoadingCalendar, year: $year, isLoadingSettings: $isLoadingSettings, palette: $palette, cellShape: $cellShape, cellSize: $cellSize, cardBackground: $cardBackground, error: $error)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ViewerStateCopyWith<$Res>  {
   factory $ViewerStateCopyWith(ViewerState value, $Res Function(ViewerState) _then) = _$ViewerStateCopyWithImpl;
 @useResult
 $Res call({
- Username? username, ContributionCalendar? calendar, bool fromCache, bool isExporting, bool isLoadingCalendar, Year? year, bool isLoadingSettings, Palette? palette, CellShape cellShape, Failure? error
+ Username? username, ContributionCalendar? calendar, bool fromCache, bool isExporting, bool isLoadingCalendar, Year? year, bool isLoadingSettings, Palette? palette, CellShape cellShape, CellSize cellSize, BackgroundPreset cardBackground, Failure? error
 });
 
 
@@ -62,7 +62,7 @@ class _$ViewerStateCopyWithImpl<$Res>
 
 /// Create a copy of ViewerState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? username = freezed,Object? calendar = freezed,Object? fromCache = null,Object? isExporting = null,Object? isLoadingCalendar = null,Object? year = freezed,Object? isLoadingSettings = null,Object? palette = freezed,Object? cellShape = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? username = freezed,Object? calendar = freezed,Object? fromCache = null,Object? isExporting = null,Object? isLoadingCalendar = null,Object? year = freezed,Object? isLoadingSettings = null,Object? palette = freezed,Object? cellShape = null,Object? cellSize = null,Object? cardBackground = null,Object? error = freezed,}) {
   return _then(_self.copyWith(
 username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as Username?,calendar: freezed == calendar ? _self.calendar : calendar // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,9 @@ as bool,year: freezed == year ? _self.year : year // ignore: cast_nullable_to_no
 as Year?,isLoadingSettings: null == isLoadingSettings ? _self.isLoadingSettings : isLoadingSettings // ignore: cast_nullable_to_non_nullable
 as bool,palette: freezed == palette ? _self.palette : palette // ignore: cast_nullable_to_non_nullable
 as Palette?,cellShape: null == cellShape ? _self.cellShape : cellShape // ignore: cast_nullable_to_non_nullable
-as CellShape,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as CellShape,cellSize: null == cellSize ? _self.cellSize : cellSize // ignore: cast_nullable_to_non_nullable
+as CellSize,cardBackground: null == cardBackground ? _self.cardBackground : cardBackground // ignore: cast_nullable_to_non_nullable
+as BackgroundPreset,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as Failure?,
   ));
 }
@@ -159,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Username? username,  ContributionCalendar? calendar,  bool fromCache,  bool isExporting,  bool isLoadingCalendar,  Year? year,  bool isLoadingSettings,  Palette? palette,  CellShape cellShape,  Failure? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Username? username,  ContributionCalendar? calendar,  bool fromCache,  bool isExporting,  bool isLoadingCalendar,  Year? year,  bool isLoadingSettings,  Palette? palette,  CellShape cellShape,  CellSize cellSize,  BackgroundPreset cardBackground,  Failure? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ViewerState() when $default != null:
-return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,_that.isLoadingCalendar,_that.year,_that.isLoadingSettings,_that.palette,_that.cellShape,_that.error);case _:
+return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,_that.isLoadingCalendar,_that.year,_that.isLoadingSettings,_that.palette,_that.cellShape,_that.cellSize,_that.cardBackground,_that.error);case _:
   return orElse();
 
 }
@@ -180,10 +182,10 @@ return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Username? username,  ContributionCalendar? calendar,  bool fromCache,  bool isExporting,  bool isLoadingCalendar,  Year? year,  bool isLoadingSettings,  Palette? palette,  CellShape cellShape,  Failure? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Username? username,  ContributionCalendar? calendar,  bool fromCache,  bool isExporting,  bool isLoadingCalendar,  Year? year,  bool isLoadingSettings,  Palette? palette,  CellShape cellShape,  CellSize cellSize,  BackgroundPreset cardBackground,  Failure? error)  $default,) {final _that = this;
 switch (_that) {
 case _ViewerState():
-return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,_that.isLoadingCalendar,_that.year,_that.isLoadingSettings,_that.palette,_that.cellShape,_that.error);case _:
+return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,_that.isLoadingCalendar,_that.year,_that.isLoadingSettings,_that.palette,_that.cellShape,_that.cellSize,_that.cardBackground,_that.error);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +202,10 @@ return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Username? username,  ContributionCalendar? calendar,  bool fromCache,  bool isExporting,  bool isLoadingCalendar,  Year? year,  bool isLoadingSettings,  Palette? palette,  CellShape cellShape,  Failure? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Username? username,  ContributionCalendar? calendar,  bool fromCache,  bool isExporting,  bool isLoadingCalendar,  Year? year,  bool isLoadingSettings,  Palette? palette,  CellShape cellShape,  CellSize cellSize,  BackgroundPreset cardBackground,  Failure? error)?  $default,) {final _that = this;
 switch (_that) {
 case _ViewerState() when $default != null:
-return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,_that.isLoadingCalendar,_that.year,_that.isLoadingSettings,_that.palette,_that.cellShape,_that.error);case _:
+return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,_that.isLoadingCalendar,_that.year,_that.isLoadingSettings,_that.palette,_that.cellShape,_that.cellSize,_that.cardBackground,_that.error);case _:
   return null;
 
 }
@@ -215,7 +217,7 @@ return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,
 
 
 class _ViewerState extends ViewerState {
-  const _ViewerState({this.username = null, this.calendar = null, this.fromCache = false, this.isExporting = false, this.isLoadingCalendar = false, this.year, this.isLoadingSettings = false, this.palette, this.cellShape = CellShape.rounded, this.error = null}): super._();
+  const _ViewerState({this.username = null, this.calendar = null, this.fromCache = false, this.isExporting = false, this.isLoadingCalendar = false, this.year, this.isLoadingSettings = false, this.palette, this.cellShape = CellShape.rounded, this.cellSize = CellSize.normal, this.cardBackground = BackgroundPreset.system, this.error = null}): super._();
   
 
 @override@JsonKey() final  Username? username;
@@ -227,6 +229,8 @@ class _ViewerState extends ViewerState {
 @override@JsonKey() final  bool isLoadingSettings;
 @override final  Palette? palette;
 @override@JsonKey() final  CellShape cellShape;
+@override@JsonKey() final  CellSize cellSize;
+@override@JsonKey() final  BackgroundPreset cardBackground;
 @override@JsonKey() final  Failure? error;
 
 /// Create a copy of ViewerState
@@ -239,16 +243,16 @@ _$ViewerStateCopyWith<_ViewerState> get copyWith => __$ViewerStateCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ViewerState&&(identical(other.username, username) || other.username == username)&&(identical(other.calendar, calendar) || other.calendar == calendar)&&(identical(other.fromCache, fromCache) || other.fromCache == fromCache)&&(identical(other.isExporting, isExporting) || other.isExporting == isExporting)&&(identical(other.isLoadingCalendar, isLoadingCalendar) || other.isLoadingCalendar == isLoadingCalendar)&&(identical(other.year, year) || other.year == year)&&(identical(other.isLoadingSettings, isLoadingSettings) || other.isLoadingSettings == isLoadingSettings)&&(identical(other.palette, palette) || other.palette == palette)&&(identical(other.cellShape, cellShape) || other.cellShape == cellShape)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ViewerState&&(identical(other.username, username) || other.username == username)&&(identical(other.calendar, calendar) || other.calendar == calendar)&&(identical(other.fromCache, fromCache) || other.fromCache == fromCache)&&(identical(other.isExporting, isExporting) || other.isExporting == isExporting)&&(identical(other.isLoadingCalendar, isLoadingCalendar) || other.isLoadingCalendar == isLoadingCalendar)&&(identical(other.year, year) || other.year == year)&&(identical(other.isLoadingSettings, isLoadingSettings) || other.isLoadingSettings == isLoadingSettings)&&(identical(other.palette, palette) || other.palette == palette)&&(identical(other.cellShape, cellShape) || other.cellShape == cellShape)&&(identical(other.cellSize, cellSize) || other.cellSize == cellSize)&&(identical(other.cardBackground, cardBackground) || other.cardBackground == cardBackground)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,username,calendar,fromCache,isExporting,isLoadingCalendar,year,isLoadingSettings,palette,cellShape,error);
+int get hashCode => Object.hash(runtimeType,username,calendar,fromCache,isExporting,isLoadingCalendar,year,isLoadingSettings,palette,cellShape,cellSize,cardBackground,error);
 
 @override
 String toString() {
-  return 'ViewerState(username: $username, calendar: $calendar, fromCache: $fromCache, isExporting: $isExporting, isLoadingCalendar: $isLoadingCalendar, year: $year, isLoadingSettings: $isLoadingSettings, palette: $palette, cellShape: $cellShape, error: $error)';
+  return 'ViewerState(username: $username, calendar: $calendar, fromCache: $fromCache, isExporting: $isExporting, isLoadingCalendar: $isLoadingCalendar, year: $year, isLoadingSettings: $isLoadingSettings, palette: $palette, cellShape: $cellShape, cellSize: $cellSize, cardBackground: $cardBackground, error: $error)';
 }
 
 
@@ -259,7 +263,7 @@ abstract mixin class _$ViewerStateCopyWith<$Res> implements $ViewerStateCopyWith
   factory _$ViewerStateCopyWith(_ViewerState value, $Res Function(_ViewerState) _then) = __$ViewerStateCopyWithImpl;
 @override @useResult
 $Res call({
- Username? username, ContributionCalendar? calendar, bool fromCache, bool isExporting, bool isLoadingCalendar, Year? year, bool isLoadingSettings, Palette? palette, CellShape cellShape, Failure? error
+ Username? username, ContributionCalendar? calendar, bool fromCache, bool isExporting, bool isLoadingCalendar, Year? year, bool isLoadingSettings, Palette? palette, CellShape cellShape, CellSize cellSize, BackgroundPreset cardBackground, Failure? error
 });
 
 
@@ -276,7 +280,7 @@ class __$ViewerStateCopyWithImpl<$Res>
 
 /// Create a copy of ViewerState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? username = freezed,Object? calendar = freezed,Object? fromCache = null,Object? isExporting = null,Object? isLoadingCalendar = null,Object? year = freezed,Object? isLoadingSettings = null,Object? palette = freezed,Object? cellShape = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? username = freezed,Object? calendar = freezed,Object? fromCache = null,Object? isExporting = null,Object? isLoadingCalendar = null,Object? year = freezed,Object? isLoadingSettings = null,Object? palette = freezed,Object? cellShape = null,Object? cellSize = null,Object? cardBackground = null,Object? error = freezed,}) {
   return _then(_ViewerState(
 username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as Username?,calendar: freezed == calendar ? _self.calendar : calendar // ignore: cast_nullable_to_non_nullable
@@ -287,7 +291,9 @@ as bool,year: freezed == year ? _self.year : year // ignore: cast_nullable_to_no
 as Year?,isLoadingSettings: null == isLoadingSettings ? _self.isLoadingSettings : isLoadingSettings // ignore: cast_nullable_to_non_nullable
 as bool,palette: freezed == palette ? _self.palette : palette // ignore: cast_nullable_to_non_nullable
 as Palette?,cellShape: null == cellShape ? _self.cellShape : cellShape // ignore: cast_nullable_to_non_nullable
-as CellShape,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as CellShape,cellSize: null == cellSize ? _self.cellSize : cellSize // ignore: cast_nullable_to_non_nullable
+as CellSize,cardBackground: null == cardBackground ? _self.cardBackground : cardBackground // ignore: cast_nullable_to_non_nullable
+as BackgroundPreset,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as Failure?,
   ));
 }

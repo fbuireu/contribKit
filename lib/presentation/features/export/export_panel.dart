@@ -1,29 +1,33 @@
-import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/presentation/di/providers.dart';
 import 'package:contribkit/presentation/theme/tokens.dart';
 import 'package:contribkit/presentation/widgets/app_button.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Bottom panel with export format buttons.
+/// Bottom panel with export format buttons and clipboard copy for Markdown.
 class ExportPanel extends ConsumerStatefulWidget {
   const ExportPanel({
     super.key,
     required this.calendar,
     required this.palette,
     required this.cellShape,
+    required this.cellSize,
   });
 
   final ContributionCalendar calendar;
   final Palette palette;
   final CellShape cellShape;
+  final CellSize cellSize;
 
   @override
   ConsumerState<ExportPanel> createState() => _ExportPanelState();
@@ -31,9 +35,14 @@ class ExportPanel extends ConsumerStatefulWidget {
 
 class _ExportPanelState extends ConsumerState<ExportPanel> {
   bool _exporting = false;
+  bool _copied = false;
 
-  RenderOptions get _options =>
-      RenderOptions(palette: widget.palette, shape: widget.cellShape);
+  RenderOptions get _options => RenderOptions(
+    palette: widget.palette,
+    shape: widget.cellShape,
+    cellSize: widget.cellSize.pixels,
+    gap: widget.cellSize.gap,
+  );
 
   Future<void> _export({
     required ExportCalendar useCase,
@@ -51,6 +60,25 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
         mimeType: mimeType,
       );
       await SharePlus.instance.share(ShareParams(files: [xFile]));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _copyMarkdown(ExportCalendar useCase) async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+
+    try {
+      final bytes = await useCase(calendar: widget.calendar, options: _options);
+      await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+      if (mounted) {
+        setState(() => _copied = true);
+        Future.delayed(
+          const Duration(milliseconds: 1500),
+          () { if (mounted) setState(() => _copied = false); },
+        );
+      }
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
@@ -97,7 +125,11 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
                     filename: '${user}_$year.md',
                     mimeType: 'text/markdown',
                   ),
-            child: const Text('Markdown'),
+            child: const Text('MD'),
+          ),
+          AppButton.ghost(
+            onPressed: _exporting ? null : () => _copyMarkdown(md),
+            child: Text(_copied ? 'Copied!' : 'Copy MD'),
           ),
         ],
       ),

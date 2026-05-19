@@ -1,5 +1,6 @@
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/presentation/di/providers.dart';
@@ -9,6 +10,7 @@ import 'package:contribkit/presentation/theme/palettes.dart';
 import 'package:contribkit/presentation/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material;
 import 'package:flutter/widgets.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -17,7 +19,6 @@ import 'package:workmanager/workmanager.dart';
 
 const _widgetRefreshTask = 'contribkit.widgetRefresh';
 
-/// Background entry point for WorkManager — runs in a separate Dart isolate.
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, _) async {
@@ -37,6 +38,7 @@ void callbackDispatcher() {
       final year = Year(yearVal);
       final paletteName = box.get('paletteName') as String?;
       final cellShapeName = box.get('cellShape') as String?;
+      final cellSizeName = box.get('cellSize') as String?;
 
       final palette = paletteName != null
           ? Palettes.byName(paletteName)
@@ -47,6 +49,12 @@ void callbackDispatcher() {
               orElse: () => CellShape.rounded,
             )
           : CellShape.rounded;
+      final cellSize = cellSizeName != null
+          ? CellSize.values.firstWhere(
+              (s) => s.name == cellSizeName,
+              orElse: () => CellSize.normal,
+            )
+          : CellSize.normal;
 
       final (:calendar, :fromCache) = await GitHubContributionRepository()
           .fetchCalendar(username: username, year: year);
@@ -55,6 +63,7 @@ void callbackDispatcher() {
         calendar: calendar,
         palette: palette,
         cellShape: cellShape,
+        cellSize: cellSize,
       );
     } catch (_) {
       // Best-effort — returning true so WorkManager doesn't retry.
@@ -65,7 +74,8 @@ void callbackDispatcher() {
 }
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Hive.initFlutter();
 
   await Workmanager().initialize(callbackDispatcher);
@@ -73,9 +83,10 @@ Future<void> main() async {
     _widgetRefreshTask,
     _widgetRefreshTask,
     frequency: const Duration(hours: 24),
-    existingWorkPolicy: ExistingWorkPolicy.keep,
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
   );
 
+  FlutterNativeSplash.remove();
   runApp(const ProviderScope(child: ContribKitApp()));
 }
 

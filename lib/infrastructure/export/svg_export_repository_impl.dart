@@ -47,7 +47,7 @@ final class SvgExportRepository implements ExportRepository {
         final day = week.days[di];
         final x = wi * step;
         final y = di * step;
-        final color = options.palette.colorFor(day.level);
+        final color = options.palette.colorFor(day.level, isDark: true);
         final fill = color.toHex();
         final title =
             '${day.date.toIso8601String().substring(0, 10)}: ${day.count}';

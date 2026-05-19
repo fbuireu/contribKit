@@ -10,6 +10,7 @@ final class Palette {
   const Palette({
     required this.name,
     required this.none,
+    required this.noneLight,
     required this.low,
     required this.medium,
     required this.high,
@@ -17,15 +18,17 @@ final class Palette {
   });
 
   final String name;
+  /// Empty-cell color for dark mode.
   final Color none;
+  /// Empty-cell color for light mode.
+  final Color noneLight;
   final Color low;
   final Color medium;
   final Color high;
   final Color veryHigh;
 
-  /// Returns the color for a given contribution level.
-  Color colorFor(ContributionLevel level) => switch (level) {
-    ContributionLevel.none => none,
+  Color colorFor(ContributionLevel level, {bool isDark = true}) => switch (level) {
+    ContributionLevel.none => isDark ? none : noneLight,
     ContributionLevel.low => low,
     ContributionLevel.medium => medium,
     ContributionLevel.high => high,
@@ -37,13 +40,14 @@ final class Palette {
       other is Palette &&
       other.name == name &&
       other.none == none &&
+      other.noneLight == noneLight &&
       other.low == low &&
       other.medium == medium &&
       other.high == high &&
       other.veryHigh == veryHigh;
 
   @override
-  int get hashCode => Object.hash(name, none, low, medium, high, veryHigh);
+  int get hashCode => Object.hash(name, none, noneLight, low, medium, high, veryHigh);
 
   @override
   String toString() => 'Palette($name)';

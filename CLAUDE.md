@@ -10,7 +10,7 @@ This document is the source of truth for any AI coding agent working on this cod
 - **Language**: Dart (latest stable).
 - **State management**: Riverpod with code generation (`@riverpod`).
 - **Architecture**: Clean Architecture — `domain` / `application` / `infrastructure` / `presentation`.
-- **Data source**: GitHub GraphQL API (`api.github.com/graphql`), endpoint `contributionsCollection`.
+- **Data source**: GitHub public contribution HTML (`github.com/users/{login}/contributions`). No auth token required — scrapes the same page GitHub loads on public profiles.
 - **Design system**: `shadcn_ui` for UI primitives, with a custom token layer on top. No `MaterialApp` chrome.
 
 ## Project Identifiers
@@ -81,7 +81,7 @@ Pure Dart. Orchestrates domain to fulfill user intent.
 
 Implementations of domain interfaces. Can depend on packages (http, hive, etc.) but should not depend on Flutter widgets.
 
-- `github/`: GraphQL client + repository implementation + DTOs.
+- `github/`: HTML-scraping repository implementation + DTOs for cache serialization.
 - `persistence/`: Hive / shared_preferences adapters.
 - `export/`: one repository implementation per export format, plus a composite.
 - `rendering/`: implementations of rendering services (`FlutterCanvasRenderer`, `SvgStringRenderer`).
@@ -263,7 +263,7 @@ flutter_riverpod
 riverpod_annotation
 freezed_annotation
 json_annotation
-http             # for GraphQL client
+http             # for HTTP requests (contribution scraping + exports)
 hive_flutter     # for cache and settings persistence
 share_plus       # for export sharing
 shadcn_ui        # UI primitives — never bypass for raw Material widgets
@@ -292,13 +292,13 @@ dart run build_runner watch --delete-conflicting-outputs
 
 Generated files (`*.freezed.dart`, `*.g.dart`) are committed to the repo to keep CI fast. Never edit them by hand.
 
-## GitHub API Usage
+## GitHub Data Fetching
 
-- **Authentication**: server-side token via `--dart-define=GITHUB_TOKEN=...`. Never hardcode. Never expose to client builds without obfuscation.
-- **Endpoint**: GraphQL only. Do not use REST.
-- **Query**: `contributionsCollection.contributionCalendar`. Fields: `totalContributions`, `weeks.contributionDays.{date,contributionCount,color}`.
-- **Rate limit**: 5000 points/hour. Cache aggressively. Past years never change — cache them forever. Current year — cache for 1 hour.
-- **Errors to handle**: `NOT_FOUND` (user doesn't exist), `RATE_LIMITED`, network errors, malformed responses.
+- **No authentication required.** Uses the public endpoint `github.com/users/{login}/contributions?from=YYYY-01-01&to=YYYY-12-31`.
+- **HTML scraping**, not a formal API. Parses `<td class="ContributionCalendar-day">` cells and sibling `<tool-tip>` elements to extract date + count pairs.
+- **Caching via Hive**: past years are cached forever (they never change). The current year is cached for 1 hour.
+- **Errors to handle**: 404 → `NotFoundFailure`, non-200 → `NetworkFailure`, empty parse result → `NotFoundFailure`, network exception → `NetworkFailure`.
+- **Do not add a GraphQL client.** No token is required and HTML scraping covers all public data needed.
 
 ## Commit Style
 

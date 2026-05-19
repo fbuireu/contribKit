@@ -1,6 +1,7 @@
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -10,6 +11,8 @@ const _keyLastUsername = 'lastUsername';
 const _keyLastYear = 'lastYear';
 const _keyPaletteName = 'paletteName';
 const _keyCellShape = 'cellShape';
+const _keyCellSize = 'cellSize';
+const _keyCardBackground = 'cardBackground';
 const _keyThemeMode = 'themeMode';
 
 /// Hive-backed implementation of [SettingsRepository].
@@ -80,6 +83,35 @@ final class HiveSettingsRepository implements SettingsRepository {
   Future<void> saveCellShape(CellShape shape) async {
     try {
       await (await _box).put(_keyCellShape, shape.name);
+    } catch (e) {
+      throw CacheFailure(message: e.toString());
+    }
+  }
+
+  @override
+  Future<CellSize?> getSavedCellSize() async {
+    final raw = (await _box).get(_keyCellSize) as String?;
+    if (raw == null) return null;
+    return CellSize.values.where((s) => s.name == raw).firstOrNull;
+  }
+
+  @override
+  Future<void> saveCellSize(CellSize size) async {
+    try {
+      await (await _box).put(_keyCellSize, size.name);
+    } catch (e) {
+      throw CacheFailure(message: e.toString());
+    }
+  }
+
+  @override
+  Future<String?> getSavedCardBackground() async =>
+      (await _box).get(_keyCardBackground) as String?;
+
+  @override
+  Future<void> saveCardBackground(String presetName) async {
+    try {
+      await (await _box).put(_keyCardBackground, presetName);
     } catch (e) {
       throw CacheFailure(message: e.toString());
     }

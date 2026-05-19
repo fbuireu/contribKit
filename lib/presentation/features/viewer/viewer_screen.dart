@@ -2,12 +2,16 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/presentation/di/providers.dart';
+import 'package:contribkit/presentation/features/customizer/widgets/background_picker.dart';
 import 'package:contribkit/presentation/features/customizer/widgets/palette_picker.dart';
 import 'package:contribkit/presentation/features/customizer/widgets/shape_picker.dart';
+import 'package:contribkit/presentation/features/customizer/widgets/size_picker.dart';
 import 'package:contribkit/presentation/features/export/export_panel.dart';
+import 'package:contribkit/presentation/theme/background_presets.dart';
 import 'package:contribkit/presentation/features/viewer/viewer_notifier.dart';
 import 'package:contribkit/presentation/features/viewer/viewer_state.dart';
 import 'package:contribkit/presentation/features/viewer/widgets/contribution_grid.dart';
+import 'package:contribkit/presentation/features/viewer/widgets/stats_panel.dart';
 import 'package:contribkit/presentation/theme/app_colors.dart';
 import 'package:contribkit/presentation/theme/tokens.dart';
 import 'package:contribkit/presentation/widgets/app_badge.dart';
@@ -288,11 +292,13 @@ class _Body extends ConsumerWidget {
       spacing: Tokens.space4,
       children: [
         _CalendarCard(state: state),
+        StatsPanel(calendar: state.calendar!),
         _CustomizerCard(state: state, notifier: notifier),
         ExportPanel(
           calendar: state.calendar!,
           palette: state.effectivePalette,
           cellShape: state.cellShape,
+          cellSize: state.cellSize,
         ),
       ],
     );
@@ -398,55 +404,75 @@ class _EmptyState extends StatelessWidget {
   );
 }
 
-class _CalendarCard extends StatelessWidget {
+class _CalendarCard extends ConsumerWidget {
   const _CalendarCard({required this.state});
 
   final ViewerState state;
 
   @override
-  Widget build(BuildContext context) => AppCard(
-    padding: EdgeInsets.zero,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Tokens.space4,
-            Tokens.space4,
-            Tokens.space4,
-            Tokens.space2,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '${state.username!.value} · ${state.effectiveYear.value}',
-                  style: const TextStyle(
-                    fontSize: Tokens.textBase,
-                    fontWeight: FontWeight.w500,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final gridBg =
+        BackgroundPresets.colors[state.cardBackground] ?? colors.card;
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Tokens.space4,
+              Tokens.space4,
+              Tokens.space4,
+              Tokens.space2,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${state.username!.value} · ${state.effectiveYear.value}',
+                    style: const TextStyle(
+                      fontSize: Tokens.textBase,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
-              AppBadge(
-                child: Text(
-                  '${state.calendar!.totalContributions} contributions',
+                AppBadge(
+                  child: Text(
+                    '${state.calendar!.totalContributions} contributions',
+                  ),
                 ),
-              ),
-              if (state.fromCache) ...[
+                if (state.fromCache) ...[
+                  const SizedBox(width: Tokens.space2),
+                  const AppBadge.outline(child: Text('cached')),
+                ],
                 const SizedBox(width: Tokens.space2),
-                const AppBadge.outline(child: Text('cached')),
+                AppButton.ghost(
+                  onPressed: state.isLoadingCalendar
+                      ? null
+                      : () => ref
+                            .read(viewerProvider.notifier)
+                            .refreshContributions(),
+                  size: ShadButtonSize.sm,
+                  child: const Icon(LucideIcons.refreshCw, size: 14),
+                ),
               ],
-            ],
+            ),
           ),
-        ),
-        ContributionGrid(
-          calendar: state.calendar!,
-          palette: state.effectivePalette,
-          shape: state.cellShape,
-        ),
-      ],
-    ),
-  );
+          ColoredBox(
+            color: gridBg,
+            child: ContributionGrid(
+              calendar: state.calendar!,
+              palette: state.effectivePalette,
+              shape: state.cellShape,
+              cellSize: state.cellSize,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CustomizerCard extends StatelessWidget {
@@ -468,6 +494,14 @@ class _CustomizerCard extends StatelessWidget {
         ShapePicker(
           selected: state.cellShape,
           onSelected: notifier.setCellShape,
+        ),
+        SizePicker(
+          selected: state.cellSize,
+          onSelected: notifier.setCellSize,
+        ),
+        BackgroundPicker(
+          selected: state.cardBackground,
+          onSelected: notifier.setCardBackground,
         ),
       ],
     ),

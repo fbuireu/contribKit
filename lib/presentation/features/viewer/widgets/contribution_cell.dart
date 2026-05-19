@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/presentation/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
@@ -12,17 +13,20 @@ class ContributionCell extends StatelessWidget {
     required this.day,
     required this.palette,
     required this.shape,
+    required this.cellSize,
     this.animationDelay = Duration.zero,
   });
 
   final ContributionDay day;
   final Palette palette;
   final CellShape shape;
+  final CellSize cellSize;
   final Duration animationDelay;
 
   @override
   Widget build(BuildContext context) {
-    final domainColor = palette.colorFor(day.level);
+    final isDark = ShadTheme.of(context).brightness == Brightness.dark;
+    final domainColor = palette.colorFor(day.level, isDark: isDark);
     final color = Color(domainColor.argb);
 
     final tooltip =
@@ -32,7 +36,7 @@ class ContributionCell extends StatelessWidget {
     return ShadTooltip(
       builder: (_) =>
           Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),
-      child: _CellShape(color: color, size: Tokens.cellSize, shape: shape)
+      child: _CellShape(color: color, size: cellSize.pixels, shape: shape)
           .animate(delay: animationDelay)
           .fadeIn(duration: Tokens.durationBase)
           .scale(

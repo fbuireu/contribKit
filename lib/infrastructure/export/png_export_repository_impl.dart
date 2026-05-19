@@ -39,7 +39,7 @@ final class PngExportRepository implements ExportRepository {
           final day = week.days[di];
           final x = wi * step;
           final y = di * step;
-          final domainColor = options.palette.colorFor(day.level);
+          final domainColor = options.palette.colorFor(day.level, isDark: true);
           paint.color = ui.Color(domainColor.argb);
 
           final rect = Rect.fromLTWH(x, y, cell, cell);

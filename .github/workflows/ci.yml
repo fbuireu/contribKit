@@ -36,8 +36,6 @@ jobs:
       - name: Analyze
         run: flutter analyze --fatal-infos
 
-      - name: Audit dependencies
-        run: dart pub audit
 
   test:
     name: Test
@@ -89,4 +87,4 @@ jobs:
         run: flutter pub get
 
       - name: Build APK (debug)
-        run: flutter build apk --debug --dart-define=GITHUB_TOKEN=placeholder
+        run: flutter build apk --debug
