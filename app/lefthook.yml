@@ -1,0 +1,18 @@
+pre-commit:
+  parallel: true
+  commands:
+    flutter-format:
+      root: "app/"
+      glob: "*.dart"
+      run: dart format {staged_files}
+      stage_fixed: true
+    flutter-analyze:
+      root: "app/"
+      glob: "*.dart"
+      run: flutter analyze --fatal-infos
+
+pre-push:
+  commands:
+    flutter-analyze:
+      root: "app/"
+      run: flutter analyze --fatal-infos

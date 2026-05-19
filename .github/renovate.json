@@ -1,0 +1,90 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":enableVulnerabilityAlerts"
+  ],
+  "labels": ["dependencies", "renovate", "bot"],
+  "schedule": ["on the 1st and 15th day of the month"],
+  "minimumReleaseAge": "3 days",
+  "rangeStrategy": "pin",
+  "automergeStrategy": "squash",
+  "commitMessagePrefix": "chore(deps):",
+  "assigneesFromCodeOwners": true,
+  "reviewersFromCodeOwners": true,
+  "vulnerabilityAlerts": {
+    "schedule": ["at any time"],
+    "labels": ["security", "vulnerability"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "includePaths": ["app/**", "web/**"],
+  "packageRules": [
+    {
+      "matchManagers": ["pub"],
+      "matchUpdateTypes": ["pin", "pinDigest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "addLabels": ["pin-update"]
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "addLabels": ["patch-update"]
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": true,
+      "automergeType": "pr",
+      "addLabels": ["minor-update"]
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major-update"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchDepNames": [
+        "flutter_riverpod",
+        "riverpod_annotation",
+        "shadcn_ui",
+        "freezed_annotation"
+      ],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major-update", "review-required"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "addLabels": ["patch-update"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": true,
+      "automergeType": "pr",
+      "addLabels": ["minor-update"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major-update"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepNames": ["astro", "@biomejs/biome", "wrangler"],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major-update", "review-required"],
+      "automerge": false
+    }
+  ]
+}

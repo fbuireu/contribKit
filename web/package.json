@@ -1,0 +1,46 @@
+{
+  "name": "contribkit-web",
+  "description": "ContribKit landing page",
+  "author": "Ferran Buireu <fbuireu@gmail.com>",
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.1.1",
+  "engines": {
+    "node": "v24.14.1"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "pnpm check && astro build",
+    "preview": "astro preview",
+    "sync": "astro sync",
+    "check": "astro check",
+    "test": "vitest --passWithNoTests --logHeapUsage",
+    "test:changed": "pnpm test --bail --findRelatedTests",
+    "format": "biome check --write --no-errors-on-unmatched",
+    "format:changed": "pnpm format --changed",
+    "format:all": "pnpm format .",
+    "lint": "biome lint --no-errors-on-unmatched",
+    "lint:all": "pnpm lint .",
+    "lint:changed": "pnpm lint --write --changed",
+    "lint:ts:typecheck": "tsc --project . --noEmit"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.5.2",
+    "astro": "6.3.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp", "workerd"]
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.9",
+    "@astrojs/ts-plugin": "1.10.8",
+    "@biomejs/biome": "2.4.15",
+    "@commitlint/cli": "21.0.1",
+    "@commitlint/config-conventional": "21.0.1",
+    "@commitlint/format": "21.0.1",
+    "@types/node": "25.8.0",
+    "typescript": "5.8.3",
+    "vitest": "4.1.6",
+    "wrangler": "4.91.0"
+  }
+}

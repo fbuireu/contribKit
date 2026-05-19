@@ -1,0 +1,30 @@
+# Build
+dist/
+.astro/
+.wrangler/
+.cache
+
+# Dependencies
+node_modules/
+*.tgz
+
+# Logs
+logs/
+*.log
+pnpm-debug.log*
+
+# Test
+test-results/
+playwright-report/
+
+# Secrets
+.env*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+.history/
+
+# OS
+.DS_Store

@@ -1,0 +1,22 @@
+# Build
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+*.iml
+.idea/
+.vscode/
+.history/
+
+# Coverage
+coverage/
+*.lcov
+
+# Logs
+*.log
+
+# Secrets
+dart-defines.json

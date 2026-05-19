@@ -1,35 +1,10 @@
-# Dart/Flutter generated files
-.dart_tool/
-.packages
-# pubspec.lock is intentionally committed — this is an app, not a library
-build/
-*.iml
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
-migrate_working_dir/
-.flutter-plugins-dependencies
-
 # IDE
-*.iml
 .idea/
+.vscode/
+.history/
 
-# Android
-**/android/
-*.jks
+# OS
+.DS_Store
 
-# iOS/XCode
-**/ios/
-
-# Coverage
-coverage/
-*.lcov
-
-# IA
+# Claude
 .claude/

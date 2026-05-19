@@ -1,0 +1,72 @@
+---
+import '../styles/global.css';
+import TopNav from '../components/TopNav.astro';
+import Footer from '../components/Footer.astro';
+
+const TITLE = 'Privacy Policy — ContribKit';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>{TITLE}</title>
+  </head>
+  <body>
+    <TopNav />
+    <main class="legal-page">
+      <div class="wrap">
+        <div class="legal-header">
+          <a href="/" class="back-link mono">← back</a>
+          <h1>Privacy Policy</h1>
+          <p class="dimmer mono">Effective date: 2026-01-01</p>
+        </div>
+        <div class="legal-body">
+
+          <h2>What we collect</h2>
+          <p>ContribKit does not collect any personal data. The app fetches publicly available contribution data from GitHub's public profile pages using your username. No account, no token, no tracking.</p>
+
+          <h2>GitHub data</h2>
+          <p>Contribution data is fetched from <code>github.com/users/&#123;username&#125;/contributions</code> — the same page visible to anyone on GitHub. We only read data you have already made public on GitHub.</p>
+
+          <h2>Local storage</h2>
+          <p>The app stores your last-used username, year, palette, and visual preferences locally on your device using on-device storage. This data never leaves your device.</p>
+
+          <h2>Analytics</h2>
+          <p>We do not use any analytics, crash reporting, or third-party SDKs that collect personal data, except RevenueCat for in-app purchase processing. RevenueCat's privacy policy applies to purchase transactions.</p>
+
+          <h2>In-app purchases</h2>
+          <p>Tip purchases are processed by Apple (App Store) or Google (Play Store) and RevenueCat. We receive no payment details. Refer to their respective privacy policies for purchase data handling.</p>
+
+          <h2>Children</h2>
+          <p>ContribKit is not directed at children under 13. We do not knowingly collect data from children.</p>
+
+          <h2>Contact</h2>
+          <p>Questions? <a href="mailto:fbuireu@gmail.com">fbuireu@gmail.com</a></p>
+
+        </div>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .legal-page { padding: 64px 0 96px; }
+  .legal-header { margin-bottom: 48px; border-bottom: 1px solid var(--border); padding-bottom: 32px; }
+  .back-link { font-size: 13px; color: var(--text-dim); display: inline-block; margin-bottom: 20px; transition: color 100ms; }
+  .back-link:hover { color: var(--text); }
+  h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.03em; margin: 0 0 8px; }
+  .legal-body { max-width: 640px; }
+  .legal-body h2 { font-size: 15px; font-weight: 600; margin: 36px 0 8px; color: var(--text); }
+  .legal-body p { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0; }
+  .legal-body code { font-family: var(--font-mono); font-size: 12px; background: var(--bg-2); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  .legal-body a { color: var(--g-4); text-decoration: underline; text-underline-offset: 3px; }
+</style>

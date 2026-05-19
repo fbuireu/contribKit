@@ -1,0 +1,20 @@
+name: 'Prepare Web Environment'
+description: 'Sets up Node.js and pnpm for the web project'
+runs:
+  using: "composite"
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        package_json_file: web/package.json
+
+    - name: Read .nvmrc
+      shell: bash
+      run: echo "NODE_VERSION=$(cat web/.nvmrc)" >> $GITHUB_ENV
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: pnpm
+        cache-dependency-path: web/pnpm-lock.yaml

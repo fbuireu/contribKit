@@ -1,0 +1,14 @@
+{
+  "extends": ["astro/tsconfigs/strict"],
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "paths": {
+      "@components/*": ["./src/components/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@assets/*": ["./src/assets/*"]
+    },
+    "plugins": [{ "name": "@astrojs/ts-plugin" }]
+  }
+}

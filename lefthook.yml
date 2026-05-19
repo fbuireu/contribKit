@@ -1,15 +1,2 @@
-pre-commit:
-  parallel: true
-  commands:
-    format:
-      glob: "*.dart"
-      run: dart format {staged_files}
-      stage_fixed: true
-    analyze:
-      glob: "*.dart"
-      run: flutter analyze --fatal-infos {staged_files}
-
-pre-push:
-  commands:
-    analyze:
-      run: flutter analyze --fatal-infos
+extends:
+  - app/lefthook.yml

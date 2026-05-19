@@ -1,0 +1,105 @@
+---
+interface Props {
+  exportPNGSVG: string;
+}
+const { exportPNGSVG } = Astro.props;
+---
+
+<section class="section" id="export">
+  <div class="wrap">
+    <div class="eyebrow"><span class="mono">05 — export</span></div>
+    <h2 class="section-title">
+      Three formats.<br />
+      <span class="dim">Pick the right one for the surface.</span>
+    </h2>
+    <div class="export-grid">
+      <div class="export-tabs" id="export-tabs" role="tablist" aria-label="Export format"></div>
+      <div class="export-preview" id="export-preview" role="tabpanel">
+        <div class="preview-card png-preview">
+          <div class="preview-checker" aria-hidden="true"></div>
+          <div class="preview-content">
+            <Fragment set:html={exportPNGSVG} />
+          </div>
+          <div class="preview-tag mono">torvalds.png</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .export-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px; align-items: start;
+  }
+  @media (max-width: 900px) { .export-grid { grid-template-columns: 1fr; } }
+
+  .export-preview { min-height: 360px; }
+</style>
+
+<!-- Classes used by JS-rendered tab buttons and preview cards -->
+<style is:global>
+  .export-tabs { display: flex; flex-direction: column; gap: 4px; }
+  .export-tab {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 12px; align-items: center;
+    padding: 14px 16px;
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px;
+    text-align: left; transition: background 120ms, border-color 120ms; width: 100%;
+  }
+  .export-tab:hover { background: var(--bg-2); }
+  .export-tab.active { background: var(--bg-2); border-color: var(--g-2); }
+  .tab-key { grid-row: 1 / 3; font-size: 18px; color: var(--text-dim); }
+  .export-tab.active .tab-key { color: var(--g-4); }
+  .tab-label { font-weight: 600; font-size: 14px; }
+  .tab-detail { font-size: 12px; color: var(--text-dim); grid-column: 2 / 3; }
+  .tab-size { grid-row: 1 / 3; font-size: 11px; }
+
+  .preview-card {
+    position: relative;
+    background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; height: 100%; min-height: 360px;
+  }
+  .preview-tag {
+    position: absolute; top: 12px; right: 12px;
+    padding: 4px 10px;
+    background: rgba(9,9,11,0.7); border: 1px solid var(--border-2); border-radius: 999px;
+    font-size: 11px; color: var(--text-dim);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  .png-preview { display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .preview-checker {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(45deg, var(--bg-2) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--bg-2) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--bg-2) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--bg-2) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    opacity: 0.4; pointer-events: none;
+  }
+  .preview-content { position: relative; width: 100%; max-width: 640px; }
+
+  .code-preview { padding: 20px 24px; overflow: auto; }
+  .copy-btn {
+    position: absolute; bottom: 12px; right: 12px;
+    padding: 5px 12px;
+    background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 6px;
+    font-size: 11px; color: var(--text-dim);
+    transition: background 100ms, color 100ms;
+  }
+  .copy-btn:hover { background: var(--bg-3); color: var(--text); }
+  .code {
+    margin: 0; font-family: var(--font-mono); font-size: 12.5px;
+    line-height: 1.7; color: var(--text); white-space: pre;
+  }
+  .code-line { min-height: 1.7em; }
+  .c-tag { color: #8a8a92; }
+  .c-attr { color: #7fb0ff; }
+  .c-str { color: var(--g-4); }
+  .c-comment { color: var(--text-dimmer); font-style: italic; }
+</style>

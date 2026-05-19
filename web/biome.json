@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "includes": ["**", "!**/dist/**"]
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "vcs": {
+    "enabled": true,
+    "useIgnoreFile": true,
+    "clientKind": "git",
+    "defaultBranch": "main"
+  },
+  "formatter": {
+    "lineWidth": 120
+  },
+  "css": {
+    "formatter": {
+      "enabled": true
+    }
+  },
+  "linter": {
+    "includes": ["**", "!**/*.d.ts*"],
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noConsole": "error"
+      }
+    }
+  }
+}
