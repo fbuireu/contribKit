@@ -25,7 +25,7 @@
     "lint:ts:typecheck": "tsc --project . --noEmit"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.5.2",
+    "@astrojs/cloudflare": "^13.1.10",
     "astro": "6.3.5"
   },
   "pnpm": {
