@@ -1,8 +1,27 @@
 import type { APIRoute } from 'astro';
+import { z } from 'astro:schema';
 
 export const prerender = false;
 
-const USER_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+const querySchema = z.object({
+  user: z
+    .string()
+    .min(1)
+    .max(39)
+    .regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/),
+  year: z
+    .string()
+    .optional()
+    .transform((v) => (v ? Number.parseInt(v, 10) : null))
+    .pipe(
+      z
+        .number()
+        .int()
+        .min(2005)
+        .max(new Date().getFullYear())
+        .nullable(),
+    ),
+});
 
 interface Cell {
   date: string;
@@ -11,43 +30,62 @@ interface Cell {
 
 function parseCells(html: string): { cells: Cell[]; total: number | null } {
   const cells: Cell[] = [];
+  const ids: string[] = [];
+
+  // Pass 1: id → {date, level} from <td class="ContributionCalendar-day">
   const tdRe = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
   const dateRe = /data-date="(\d{4}-\d{2}-\d{2})"/;
   const levelRe = /data-level="(\d)"/;
-  const countRe = /data-count="(\d+)"/;
+  const idRe = /\bid="([^"]+)"/;
   let m: RegExpExecArray | null;
-  let totalFromCells = 0;
-  let hasCounts = false;
+
   while ((m = tdRe.exec(html)) !== null) {
     const attrs = m[1];
     const date = dateRe.exec(attrs)?.[1];
     const level = levelRe.exec(attrs)?.[1];
-    const count = countRe.exec(attrs)?.[1];
+    const id = idRe.exec(attrs)?.[1];
     if (date && level !== undefined) {
-      const c = Number.parseInt(count ?? '0', 10);
-      if (c > 0) hasCounts = true;
-      totalFromCells += c;
       cells.push({ date, level: Number.parseInt(level) });
+      if (id) ids.push(id);
     }
   }
-  const total = hasCounts ? totalFromCells : null;
-  return { cells, total };
+
+  // Pass 2: count from <tool-tip for="...">N contributions…</tool-tip>
+  // "No contributions on…" does not start with a digit, so it correctly maps to 0.
+  const tipRe = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
+  const idToCount = new Map<string, number>();
+  while ((m = tipRe.exec(html)) !== null) {
+    idToCount.set(m[1], Number.parseInt(m[2]));
+  }
+
+  if (idToCount.size > 0) {
+    const total = ids.reduce((sum, id) => sum + (idToCount.get(id) ?? 0), 0);
+    return { cells, total };
+  }
+
+  return { cells, total: null };
 }
 
 export const GET: APIRoute = async ({ url }) => {
-  const user = url.searchParams.get('user')?.trim() ?? '';
+  const parsed = querySchema.safeParse({
+    user: url.searchParams.get('user')?.trim() ?? '',
+    year: url.searchParams.get('year') ?? undefined,
+  });
 
-  if (!USER_RE.test(user)) {
-    return Response.json({ error: 'Invalid username' }, { status: 400 });
+  if (!parsed.success) {
+    const field = parsed.error.issues[0]?.path[0];
+    const msg = field === 'user' ? 'Invalid username' : 'Invalid year';
+    return Response.json({ error: msg }, { status: 400 });
   }
 
-  const yearParam = url.searchParams.get('year');
-  const year = yearParam ? Number.parseInt(yearParam) : null;
+  const { user, year } = parsed.data;
   const now = new Date().getFullYear();
-  const validYear = year && year >= 2005 && year < now ? year : null;
-  const ghUrl = validYear
-    ? `https://github.com/users/${user}/contributions?from=${validYear}-01-01&to=${validYear}-12-31`
-    : `https://github.com/users/${user}/contributions`;
+  const encodedUser = encodeURIComponent(user);
+  const ghUrl = year
+    ? year < now
+      ? `https://github.com/users/${encodedUser}/contributions?from=${year}-01-01&to=${year}-12-31`
+      : `https://github.com/users/${encodedUser}/contributions?from=${year}-01-01`
+    : `https://github.com/users/${encodedUser}/contributions`;
 
   let res: Response;
   try {
@@ -59,7 +97,7 @@ export const GET: APIRoute = async ({ url }) => {
         Accept: 'text/html, */*',
         'Accept-Language': 'en-US,en;q=0.9',
         'X-Requested-With': 'XMLHttpRequest',
-        Referer: `https://github.com/${user}`,
+        Referer: `https://github.com/${encodedUser}`,
       },
     });
   } catch (e) {

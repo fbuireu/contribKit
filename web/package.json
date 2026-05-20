@@ -2,7 +2,7 @@
   "name": "contribkit-web",
   "description": "ContribKit landing page",
   "author": "Ferran Buireu <fbuireu@gmail.com>",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "packageManager": "pnpm@11.1.1",
   "engines": {
@@ -27,9 +27,6 @@
   "dependencies": {
     "@astrojs/cloudflare": "^13.1.10",
     "astro": "6.3.5"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp", "workerd"]
   },
   "devDependencies": {
     "@astrojs/check": "0.9.9",

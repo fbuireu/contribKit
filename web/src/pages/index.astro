@@ -539,14 +539,15 @@ function renderExportPreview() {
 
 // ─── Username strip + render ───────────────────────────────────────────────
 function summarizeCells(cells) {
+  const sorted = [...cells].sort((a, b) => (a.date < b.date ? -1 : 1));
   const totals = [0, 1, 4, 9, 16];
   let count = 0, streak = 0, longest = 0, cur = 0;
-  cells.forEach((c) => {
+  sorted.forEach((c) => {
     count += totals[c.level] || 0;
     if (c.level > 0) { cur++; if (cur > longest) longest = cur; } else cur = 0;
   });
-  for (let i = cells.length - 1; i >= 0; i--) {
-    if (cells[i].level > 0) streak++; else break;
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if (sorted[i].level > 0) streak++; else break;
   }
   return { count, streak, longest };
 }
@@ -579,6 +580,23 @@ function setHeroError(msg) {
   else { el.textContent = ''; el.hidden = true; }
 }
 
+function buildGrid(apiCells) {
+  const map = new Map();
+  for (const c of apiCells) map.set(c.date, c.level);
+  const year = parseInt(apiCells[0]?.date ?? String(new Date().getFullYear()), 10);
+  const jan1 = new Date(year, 0, 1, 12, 0, 0);
+  const start = new Date(jan1);
+  start.setDate(jan1.getDate() - jan1.getDay());
+  const cells = [];
+  for (let i = 0; i < 53 * 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const iso = d.toISOString().slice(0, 10);
+    cells.push({ date: d, level: map.get(iso) ?? 0 });
+  }
+  return cells;
+}
+
 async function renderFromGitHub(username) {
   const btn = document.getElementById('hero-render-btn');
   const container = document.getElementById('hero-grid-container');
@@ -587,7 +605,7 @@ async function renderFromGitHub(username) {
   if (!btn || !container) return;
 
   const yearVal = Number(yearEl?.value ?? 0);
-  const yearQuery = yearVal && yearVal < new Date().getFullYear() ? `&year=${yearVal}` : '';
+  const yearQuery = yearVal && yearVal <= new Date().getFullYear() ? `&year=${yearVal}` : '';
 
   setHeroError(null);
   btn.disabled = true;
@@ -600,7 +618,7 @@ async function renderFromGitHub(username) {
     if (!res.ok) {
       setHeroError(ERRORS[res.status] ?? data.error ?? 'something went wrong');
     } else {
-      const cells = data.cells.map((c) => ({ date: new Date(c.date + 'T12:00:00'), level: c.level }));
+      const cells = buildGrid(data.cells);
       liveCells = cells;
       liveUsername = username;
       container.innerHTML = '';
@@ -609,7 +627,8 @@ async function renderFromGitHub(username) {
       const stats = summarizeCells(data.cells);
       if (data.total != null) stats.count = data.total;
       updateHeroStats(stats);
-      updateYearRange(cells);
+      const dataCells = data.cells.map((c) => ({ date: new Date(c.date + 'T12:00:00'), level: c.level }));
+      updateYearRange(dataCells);
       renderExportPreview();
       const howWidget = document.getElementById('how-widget-username');
       if (howWidget) howWidget.textContent = username;
