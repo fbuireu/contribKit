@@ -18,7 +18,7 @@
     "labels": ["security", "vulnerability"]
   },
   "osvVulnerabilityAlerts": true,
-  "includePaths": ["app/**", "web/**"],
+  "includePaths": ["app/**", "web/**", "*"],
   "packageRules": [
     {
       "matchManagers": ["pub"],
@@ -75,13 +75,6 @@
     },
     {
       "matchManagers": ["npm"],
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update"],
-      "automerge": false
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchDepNames": ["astro", "@biomejs/biome", "wrangler"],
       "matchUpdateTypes": ["major"],
       "addLabels": ["major-update", "review-required"],
       "automerge": false
