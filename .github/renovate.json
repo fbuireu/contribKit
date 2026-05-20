@@ -85,6 +85,12 @@
       "matchUpdateTypes": ["major"],
       "addLabels": ["major-update", "review-required"],
       "automerge": false
+    },
+    {
+      "matchManagers": ["gradle"],
+      "matchDepNames": ["dev.flutter.flutter-plugin-loader"],
+      "enabled": false,
+      "description": "Provided by the Flutter SDK via includeBuild, not a published Maven artifact. Update by bumping Flutter, not by Renovate."
     }
   ]
 }
