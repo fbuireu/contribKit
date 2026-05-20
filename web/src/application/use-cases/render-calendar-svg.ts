@@ -1,0 +1,7 @@
+import type { ContributionCalendar } from '../../domain/entities/contribution-calendar';
+import type { SvgRenderOptions, SvgRenderer } from '../../domain/services/svg-renderer';
+
+export const renderCalendarSvg =
+  (renderer: SvgRenderer) =>
+  (calendar: ContributionCalendar, options: SvgRenderOptions): string =>
+    renderer(calendar, options);

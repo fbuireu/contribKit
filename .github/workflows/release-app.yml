@@ -1,0 +1,70 @@
+name: Release App
+
+on:
+  workflow_run:
+    workflows: ["CI App"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: release-app
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Semantic Release (App)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: web/.nvmrc
+          cache: pnpm
+
+      - name: Install root tooling
+        run: pnpm install --frozen-lockfile
+
+      - name: Semantic Release
+        working-directory: app
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        run: pnpm exec semantic-release --extends semantic-release-monorepo
+
+      - name: Update major version tag
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match 'app-v*' 2>/dev/null || true)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No app tag found; skipping major tag update."
+            exit 0
+          fi
+
+          MAJOR_VERSION=$(echo "$LATEST_TAG" | sed -E 's/^(app-v[0-9]+).*/\1/')
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag -fa "$MAJOR_VERSION" -m "Update $MAJOR_VERSION to $LATEST_TAG"
+
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git "$MAJOR_VERSION" --force

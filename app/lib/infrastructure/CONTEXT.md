@@ -5,7 +5,7 @@ Concrete implementations of domain interfaces. Can depend on pub packages but mu
 ## Rules
 - DTOs convert to domain entities at the boundary — DTOs never leak upward.
 - Infrastructure exceptions must be caught here and converted to `Failure` subclasses before returning to callers.
-- Never import from `presentation/`.
+- Never import from `ui/`.
 
 ## Subdirectories
 

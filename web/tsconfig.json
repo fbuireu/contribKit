@@ -5,8 +5,10 @@
   "compilerOptions": {
     "types": ["vite/client"],
     "paths": {
-      "@components/*": ["./src/components/*"],
-      "@styles/*": ["./src/styles/*"],
+      "@domain/*": ["./src/domain/*"],
+      "@application/*": ["./src/application/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@ui/*": ["./src/ui/*"],
       "@assets/*": ["./src/assets/*"]
     },
     "plugins": [{ "name": "@astrojs/ts-plugin" }]

@@ -9,7 +9,7 @@ This document is the source of truth for any AI coding agent working on this cod
 - **Type**: Cross-platform Flutter app (mobile-first; desktop and web later).
 - **Language**: Dart (latest stable).
 - **State management**: Riverpod with code generation (`@riverpod`).
-- **Architecture**: Clean Architecture — `domain` / `application` / `infrastructure` / `presentation`.
+- **Architecture**: Clean Architecture — `domain` / `application` / `infrastructure` / `ui`.
 - **Data source**: GitHub public contribution HTML (`github.com/users/{login}/contributions`). No auth token required — scrapes the same page GitHub loads on public profiles.
 - **Design system**: `shadcn_ui` for UI primitives, with a custom token layer on top. No `MaterialApp` chrome.
 
@@ -35,8 +35,8 @@ When configuring native projects:
 These rules are absolute. Do not bypass them, even if asked to do so casually.
 
 1. **The `domain/` layer has zero external dependencies.** No Flutter imports, no Riverpod, no `dart:ui`, no HTTP clients, no JSON libraries. Only `dart:core` and `dart:async`. If you need a color in the domain, use the project's own `Color` value object — never `dart:ui.Color`.
-2. **Dependency direction is inward.** `presentation` → `application` → `domain`. `infrastructure` implements `domain` interfaces. Never import outward.
-3. **Riverpod lives only in `presentation/`.** Use cases, repositories, and entities never know Riverpod exists.
+2. **Dependency direction is inward.** `ui` → `application` → `domain`. `infrastructure` implements `domain` interfaces. Never import outward.
+3. **Riverpod lives only in `ui/`.** Use cases, repositories, and entities never know Riverpod exists.
 4. **Use cases receive dependencies via constructor.** No service locator inside use cases, no `ref.read` inside domain or application.
 5. **All public APIs are typed.** No `dynamic` unless interfacing with raw JSON, and even then convert at the boundary.
 6. **Errors are typed as `Failure` subclasses.** Never throw raw `Exception` or `String` from domain or application code. Infrastructure can throw library-specific errors but must convert them to `Failure` at the repository boundary.
@@ -54,7 +54,7 @@ These rules are absolute. Do not bypass them, even if asked to do so casually.
     - Variables / functions: `camelCase`.
     - Constants: `camelCase`, not `SCREAMING_SNAKE_CASE`.
     - Private members: leading underscore (`_internalThing`).
-- **Documentation**: every public class and method in `domain/` and `application/` must have a `///` doc comment. Infrastructure and presentation only when non-obvious.
+- **Documentation**: every public class and method in `domain/` and `application/` must have a `///` doc comment. Infrastructure and ui only when non-obvious.
 - **No magic numbers**: extract to named constants. Especially for layout (cell size, gap, padding).
 - **Prefer composition over inheritance.** Use mixins sparingly and only for cross-cutting concerns.
 
@@ -75,7 +75,7 @@ Pure Dart. The business core.
 Pure Dart. Orchestrates domain to fulfill user intent.
 
 - `use_cases/`: one class per use case, single public method named `call`. Receives repository interfaces via constructor.
-- Use cases are stateless. State lives in presentation.
+- Use cases are stateless. State lives in ui.
 
 ### `lib/infrastructure/`
 
@@ -87,7 +87,7 @@ Implementations of domain interfaces. Can depend on packages (http, hive, etc.) 
 - `rendering/`: implementations of rendering services (`FlutterCanvasRenderer`, `SvgStringRenderer`).
 - DTOs convert to domain entities at the boundary. Never leak DTOs upward.
 
-### `lib/presentation/`
+### `lib/ui/`
 
 Flutter widgets + Riverpod providers.
 
@@ -118,10 +118,10 @@ Feature widgets never import `shadcn_ui` directly. They consume `AppButton`, `Ap
 
 ### Tokens — single source of truth
 
-All visual constants live in `presentation/theme/tokens.dart`. No magic numbers in widgets, no hardcoded hex codes, no inline `EdgeInsets.all(16)`.
+All visual constants live in `ui/theme/tokens.dart`. No magic numbers in widgets, no hardcoded hex codes, no inline `EdgeInsets.all(16)`.
 
 ```dart
-// presentation/theme/tokens.dart
+// ui/theme/tokens.dart
 abstract final class Tokens {
   // Spacing — 4px base scale
   static const space1 = 4.0;
@@ -149,7 +149,7 @@ abstract final class Tokens {
 Colors are exposed semantically (`background`, `foreground`, `muted`, `accent`, `border`), never as raw values from widgets. Mirrors the shadcn / Tailwind convention.
 
 ```dart
-// presentation/theme/app_colors.dart
+// ui/theme/app_colors.dart
 class AppColors {
   final Color background;
   final Color foreground;
@@ -223,7 +223,7 @@ When asked to add a new feature, follow this order strictly:
 1. **Model the domain first.** Define entities, value objects, and the repository interface in `domain/`.
 2. **Write the use case.** Pure Dart class in `application/use_cases/`. Write its unit tests immediately, using fakes.
 3. **Implement the infrastructure.** Concrete repository in `infrastructure/`. Write integration tests if it touches external services.
-4. **Wire it in providers.** Add the necessary `@riverpod` providers in `presentation/di/providers.dart`.
+4. **Wire it in providers.** Add the necessary `@riverpod` providers in `ui/di/providers.dart`.
 5. **Build the UI.** Create the widget and a notifier that calls the use case.
 6. **Write widget tests** for the new UI.
 
