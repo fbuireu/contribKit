@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { z } from 'zod';
+import { z } from 'astro/zod';
 import { fetchContributions } from '../../application/use-cases/fetch-contributions';
 import { parseUsername } from '../../domain/value-objects/username';
 import { isYear, parseYear } from '../../domain/value-objects/year';

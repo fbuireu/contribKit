@@ -18,6 +18,8 @@ class ShapePicker extends StatelessWidget {
     CellShape.square: 'Square',
     CellShape.rounded: 'Rounded',
     CellShape.circle: 'Circle',
+    CellShape.dot: 'Dot',
+    CellShape.hex: 'Hex',
   };
 
   @override

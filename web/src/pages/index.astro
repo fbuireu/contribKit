@@ -10,16 +10,15 @@ import Widget from '../ui/components/Widget.astro';
 import Footer from '../ui/components/Footer.astro';
 import { fetchContributions } from '../application/use-cases/fetch-contributions';
 import type { ContributionDay } from '../domain/entities/contribution-day';
+import { PALETTES } from '../domain/value-objects/palette';
 import { parseUsername } from '../domain/value-objects/username';
 import { parseYear, isYear } from '../domain/value-objects/year';
 import { createGithubHtmlContributionsRepository } from '../infrastructure/github/github-html-contributions-repository';
 import { TOTALS_PER_LEVEL, toIsoDate } from '../ui/lib/contribution';
+import { isFailure } from '../ui/lib/failure-http';
 import { mulberry32 } from '../ui/lib/mulberry';
 
 const DEFAULT_USERNAME = 'torvalds';
-
-const isFailure = (value: unknown): value is { kind: string } =>
-  typeof value === 'object' && value !== null && 'kind' in value;
 
 // ─── Deterministic contribution data (seed=7, anchored 2026-05-17) ───────────
 
@@ -173,7 +172,7 @@ function renderSVG(
   return p.join('');
 }
 
-const CLASSIC = ['#161B22','#0E4429','#006D32','#26A641','#39D353'];
+const CLASSIC = [...PALETTES.github.colors];
 
 const initial = await loadInitialContributions();
 const cells: Cell[] = initial?.cells ?? generateData(7);
@@ -250,55 +249,12 @@ const DESCRIPTION = 'Visualize, customize, and export your GitHub contribution c
 <script>
 // @ts-nocheck
 import { TOTALS_PER_LEVEL, toIsoDate, formatContribLabel } from '../ui/lib/contribution';
+import { PALETTES } from '../domain/value-objects/palette';
+import { SHAPE_KINDS } from '../domain/value-objects/shape';
+import { mulberry32 } from '../ui/lib/mulberry';
 
-// ─── Palettes ──────────────────────────────────────────────────────────────
-const PALETTES = {
-  github:      ['#161B22','#0E4429','#006D32','#26A641','#39D353'],
-  catppuccin:  ['#1E1E2E','#313244','#89B4FA','#74C7EC','#CBA6F7'],
-  nord:        ['#2E3440','#3B4252','#5E81AC','#81A1C1','#88C0D0'],
-  dracula:     ['#282A36','#44475A','#6272A4','#BD93F9','#FF79C6'],
-  gruvbox:     ['#282828','#3C3836','#D79921','#D65D0E','#CC241D'],
-  sunset:      ['#1A1A2E','#4A1942','#C9485B','#ED8936','#FECB2F'],
-  tokyonight:  ['#1A1B26','#24283B','#7AA2F7','#7DCFFF','#BB9AF7'],
-  onedark:     ['#282C34','#3E4451','#61AFEF','#56B6C2','#C678DD'],
-  rosepine:    ['#191724','#26233A','#9CCFD8','#EB6F92','#C4A7E7'],
-  solarized:   ['#002B36','#073642','#268BD2','#2AA198','#859900'],
-  monokai:     ['#272822','#3E3D32','#A6E22E','#E6DB74','#F92672'],
-};
-const PALETTE_LIST = [
-  { key:'github',     name:'GitHub',       swatches:PALETTES.github },
-  { key:'catppuccin', name:'Catppuccin',   swatches:PALETTES.catppuccin },
-  { key:'nord',       name:'Nord',         swatches:PALETTES.nord },
-  { key:'dracula',    name:'Dracula',      swatches:PALETTES.dracula },
-  { key:'gruvbox',    name:'Gruvbox',      swatches:PALETTES.gruvbox },
-  { key:'sunset',     name:'Sunset',       swatches:PALETTES.sunset },
-  { key:'tokyonight', name:'Tokyo Night',  swatches:PALETTES.tokyonight },
-  { key:'onedark',    name:'One Dark',     swatches:PALETTES.onedark },
-  { key:'rosepine',   name:'Rosé Pine',    swatches:PALETTES.rosepine },
-  { key:'solarized',  name:'Solarized',    swatches:PALETTES.solarized },
-  { key:'monokai',    name:'Monokai',      swatches:PALETTES.monokai },
-];
-const SHAPES = ['rounded','square','circle','dot','hex'];
-
-// ─── Same deterministic data (same seed/anchor as server) ─────────────────
-// Mirrors src/ui/lib/mulberry.ts (can't be imported here — is:inline script).
-const WEYL_INCREMENT = 0x6d2b79f5;
-const FIRST_MIX_SHIFT = 15;
-const FIRST_ODD_MASK = 1;
-const SECOND_MIX_SHIFT = 7;
-const SECOND_ODD_MASK = 61;
-const FINAL_MIX_SHIFT = 14;
-const UINT32_RANGE = 0x1_0000_0000;
-function mulberry32(seed) {
-  let state = seed;
-  return () => {
-    state += WEYL_INCREMENT;
-    let t = state;
-    t = Math.imul(t ^ (t >>> FIRST_MIX_SHIFT), t | FIRST_ODD_MASK);
-    t ^= t + Math.imul(t ^ (t >>> SECOND_MIX_SHIFT), t | SECOND_ODD_MASK);
-    return ((t ^ (t >>> FINAL_MIX_SHIFT)) >>> 0) / UINT32_RANGE;
-  };
-}
+const PALETTE_LIST = Object.values(PALETTES).map((p) => ({ key: p.key, name: p.name, swatches: [...p.colors] }));
+const SHAPES = SHAPE_KINDS;
 function generateData(seed) {
   const rand = mulberry32(seed);
   const cells = [];
@@ -550,14 +506,14 @@ function renderCustomize() {
   const container = document.getElementById('custom-grid-container');
   if (container) {
     container.innerHTML = '';
-    container.appendChild(renderCalendarSVG(liveCells, PALETTES[customPalette], customShape, 12, 3, false));
+    container.appendChild(renderCalendarSVG(liveCells, PALETTES[customPalette].colors, customShape, 12, 3, false));
   }
   const hero = document.getElementById('hero-grid-container');
   if (hero) {
     hero.innerHTML = '';
-    hero.appendChild(renderCalendarSVG(liveCells, PALETTES[customPalette], customShape, 13, 3, true));
+    hero.appendChild(renderCalendarSVG(liveCells, PALETTES[customPalette].colors, customShape, 13, 3, true));
   }
-  const pal = PALETTES[customPalette];
+  const pal = PALETTES[customPalette].colors;
   document.querySelectorAll('.legend .legend-sq').forEach((sq, i) => {
     sq.style.background = pal[i] ?? pal[0];
   });
@@ -604,7 +560,7 @@ function renderExportPreview() {
     card.appendChild(checker);
     const content = document.createElement('div');
     content.className = 'preview-content';
-    content.appendChild(renderCalendarSVG(liveCells, PALETTES[customPalette], customShape, 10, 2, false));
+    content.appendChild(renderCalendarSVG(liveCells, PALETTES[customPalette].colors, customShape, 10, 2, false));
     card.appendChild(content);
     const tag = document.createElement('div');
     tag.className = 'preview-tag mono';
@@ -617,7 +573,7 @@ function renderExportPreview() {
 
     let plainText;
     if (exportTab === 'svg') {
-      const svgEl = renderCalendarSVG(liveCells, PALETTES[customPalette], customShape, 10, 2, false);
+      const svgEl = renderCalendarSVG(liveCells, PALETTES[customPalette].colors, customShape, 10, 2, false);
       plainText = new XMLSerializer().serializeToString(svgEl);
     } else {
       plainText = `![contributions](https://contribkit.app/user/${liveUsername}.svg)`;

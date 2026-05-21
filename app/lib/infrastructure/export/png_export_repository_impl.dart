@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
@@ -54,6 +55,13 @@ final class PngExportRepository implements ExportRepository {
               );
             case CellShape.circle:
               canvas.drawCircle(rect.center, cell / 2, paint);
+            case CellShape.dot:
+              final li = day.level.index;
+              final r = (li == 0 ? 1.4 : 1.4 + li * 1.0) * (cell / 10.0);
+              canvas.drawCircle(rect.center, r, paint);
+            case CellShape.hex:
+              final path = _hexPath(x + cell / 2, y + cell / 2, cell / 2);
+              canvas.drawPath(path, paint);
           }
         }
       }
@@ -73,4 +81,19 @@ final class PngExportRepository implements ExportRepository {
       throw ExportFailure(message: 'PNG render failed: $e');
     }
   }
+}
+
+Path _hexPath(double cx, double cy, double r) {
+  final path = Path();
+  for (var i = 0; i < 6; i++) {
+    final angle = (math.pi / 3) * i + math.pi / 6;
+    final x = cx + r * math.cos(angle);
+    final y = cy + r * math.sin(angle);
+    if (i == 0) {
+      path.moveTo(x, y);
+    } else {
+      path.lineTo(x, y);
+    }
+  }
+  return path..close();
 }

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
@@ -36,13 +38,22 @@ class ContributionCell extends StatelessWidget {
     return ShadTooltip(
       builder: (_) =>
           Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),
-      child: _CellShape(color: color, size: cellSize.pixels, shape: shape)
-          .animate(delay: animationDelay)
-          .fadeIn(duration: Tokens.durationBase)
-          .scale(
-            begin: const Offset(Tokens.animScaleBegin, Tokens.animScaleBegin),
-            duration: Tokens.durationBase,
-          ),
+      child:
+          _CellShape(
+                color: color,
+                size: cellSize.pixels,
+                shape: shape,
+                levelIndex: day.level.index,
+              )
+              .animate(delay: animationDelay)
+              .fadeIn(duration: Tokens.durationBase)
+              .scale(
+                begin: const Offset(
+                  Tokens.animScaleBegin,
+                  Tokens.animScaleBegin,
+                ),
+                duration: Tokens.durationBase,
+              ),
     );
   }
 }
@@ -52,26 +63,103 @@ class _CellShape extends StatelessWidget {
     required this.color,
     required this.size,
     required this.shape,
+    required this.levelIndex,
   });
 
   final Color color;
   final double size;
   final CellShape shape;
+  final int levelIndex;
 
   @override
   Widget build(BuildContext context) {
-    final decoration = switch (shape) {
-      CellShape.square => BoxDecoration(color: color),
-      CellShape.rounded => BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(Tokens.radiusSm * 0.5),
-      ),
-      CellShape.circle => BoxDecoration(color: color, shape: BoxShape.circle),
-    };
-
     return SizedBox.square(
       dimension: size,
-      child: DecoratedBox(decoration: decoration),
+      child: switch (shape) {
+        CellShape.square => DecoratedBox(
+          decoration: BoxDecoration(color: color),
+        ),
+        CellShape.rounded => DecoratedBox(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(Tokens.radiusSm * 0.5),
+          ),
+        ),
+        CellShape.circle => DecoratedBox(
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        CellShape.dot => CustomPaint(
+          painter: _DotPainter(
+            color: color,
+            levelIndex: levelIndex,
+            cellSize: size,
+          ),
+        ),
+        CellShape.hex => CustomPaint(painter: _HexPainter(color: color)),
+      },
     );
   }
+}
+
+class _DotPainter extends CustomPainter {
+  const _DotPainter({
+    required this.color,
+    required this.levelIndex,
+    required this.cellSize,
+  });
+
+  final Color color;
+  final int levelIndex;
+  final double cellSize;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r =
+        (levelIndex == 0 ? 1.4 : 1.4 + levelIndex * 1.0) * (cellSize / 10.0);
+    canvas.drawCircle(
+      Offset(size.width / 2, size.height / 2),
+      r,
+      Paint()
+        ..color = color
+        ..isAntiAlias = true,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_DotPainter old) =>
+      old.color != color || old.levelIndex != levelIndex;
+}
+
+class _HexPainter extends CustomPainter {
+  const _HexPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width / 2;
+    final path = Path();
+    for (var i = 0; i < 6; i++) {
+      final angle = (math.pi / 3) * i + math.pi / 6;
+      final x = cx + r * math.cos(angle);
+      final y = cy + r * math.sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..isAntiAlias = true,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_HexPainter old) => old.color != color;
 }

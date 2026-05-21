@@ -6,9 +6,10 @@ import IconGrid from './icons/IconGrid.astro';
 import IconClock from './icons/IconClock.astro';
 import IconPalette from './icons/IconPalette.astro';
 import { mulberry32 } from '../lib/mulberry';
+import { PALETTES } from '../../domain/value-objects/palette';
 
 // Mini contribution grid for the phone mockup
-const pal = ['#161b22', '#0E4429', '#006D32', '#26A641', '#39D353'];
+const pal = PALETTES.github.colors;
 
 const rand = mulberry32(99);
 const COLS = 26, ROWS = 7;

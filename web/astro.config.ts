@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
+import path from 'node:path';
 
 export default defineConfig({
   output: 'server',
@@ -12,6 +13,16 @@ export default defineConfig({
   vite: {
     build: {
       target: 'esnext',
+    },
+    resolve: {
+      alias: {
+        '@shared': path.resolve('../shared'),
+      },
+    },
+    server: {
+      fs: {
+        allow: ['..'],
+      },
     },
   },
 });

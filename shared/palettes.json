@@ -1,0 +1,112 @@
+[
+  {
+    "key": "github",
+    "name": "GitHub",
+    "none": "#161B22",
+    "noneLight": "#EBEDF0",
+    "low": "#0E4429",
+    "medium": "#006D32",
+    "high": "#26A641",
+    "veryHigh": "#39D353"
+  },
+  {
+    "key": "catppuccin",
+    "name": "Catppuccin",
+    "none": "#1E1E2E",
+    "noneLight": "#EFF1F5",
+    "low": "#313244",
+    "medium": "#89B4FA",
+    "high": "#74C7EC",
+    "veryHigh": "#CBA6F7"
+  },
+  {
+    "key": "nord",
+    "name": "Nord",
+    "none": "#2E3440",
+    "noneLight": "#ECEFF4",
+    "low": "#3B4252",
+    "medium": "#5E81AC",
+    "high": "#81A1C1",
+    "veryHigh": "#88C0D0"
+  },
+  {
+    "key": "dracula",
+    "name": "Dracula",
+    "none": "#282A36",
+    "noneLight": "#F8F8F2",
+    "low": "#44475A",
+    "medium": "#6272A4",
+    "high": "#BD93F9",
+    "veryHigh": "#FF79C6"
+  },
+  {
+    "key": "gruvbox",
+    "name": "Gruvbox",
+    "none": "#282828",
+    "noneLight": "#FBF1C7",
+    "low": "#3C3836",
+    "medium": "#D79921",
+    "high": "#D65D0E",
+    "veryHigh": "#CC241D"
+  },
+  {
+    "key": "sunset",
+    "name": "Sunset",
+    "none": "#1A1A2E",
+    "noneLight": "#FFF0E6",
+    "low": "#4A1942",
+    "medium": "#C9485B",
+    "high": "#ED8936",
+    "veryHigh": "#FECB2F"
+  },
+  {
+    "key": "tokyonight",
+    "name": "Tokyo Night",
+    "none": "#1A1B26",
+    "noneLight": "#D5D6DB",
+    "low": "#24283B",
+    "medium": "#7AA2F7",
+    "high": "#7DCFFF",
+    "veryHigh": "#BB9AF7"
+  },
+  {
+    "key": "onedark",
+    "name": "One Dark",
+    "none": "#282C34",
+    "noneLight": "#F0F0F0",
+    "low": "#3E4451",
+    "medium": "#61AFEF",
+    "high": "#56B6C2",
+    "veryHigh": "#C678DD"
+  },
+  {
+    "key": "rosepine",
+    "name": "Rosé Pine",
+    "none": "#191724",
+    "noneLight": "#FAF4ED",
+    "low": "#26233A",
+    "medium": "#9CCFD8",
+    "high": "#EB6F92",
+    "veryHigh": "#C4A7E7"
+  },
+  {
+    "key": "solarized",
+    "name": "Solarized",
+    "none": "#002B36",
+    "noneLight": "#FDF6E3",
+    "low": "#073642",
+    "medium": "#268BD2",
+    "high": "#2AA198",
+    "veryHigh": "#859900"
+  },
+  {
+    "key": "monokai",
+    "name": "Monokai",
+    "none": "#272822",
+    "noneLight": "#F8F8F0",
+    "low": "#3E3D32",
+    "medium": "#A6E22E",
+    "high": "#E6DB74",
+    "veryHigh": "#F92672"
+  }
+]

@@ -1,0 +1,7 @@
+[
+  { "key": "rounded", "label": "Rounded" },
+  { "key": "square",  "label": "Square"  },
+  { "key": "circle",  "label": "Circle"  },
+  { "key": "dot",     "label": "Dot"     },
+  { "key": "hex",     "label": "Hex"     }
+]

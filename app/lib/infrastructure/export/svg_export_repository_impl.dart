@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
@@ -74,6 +75,22 @@ final class SvgExportRepository implements ExportRepository {
               '<circle cx="$cx" cy="$cy" r="$r" fill="$fill">'
               '<title>$title</title></circle>',
             );
+          case CellShape.dot:
+            final li = day.level.index;
+            final r = ((li == 0 ? 1.4 : 1.4 + li * 1.0) * (cell / 10.0))
+                .toStringAsFixed(2);
+            final cx = (x + cell / 2).toStringAsFixed(1);
+            final cy = (y + cell / 2).toStringAsFixed(1);
+            buffer.writeln(
+              '<circle cx="$cx" cy="$cy" r="$r" fill="$fill">'
+              '<title>$title</title></circle>',
+            );
+          case CellShape.hex:
+            final pts = _hexPoints(x + cell / 2, y + cell / 2, cell / 2);
+            buffer.writeln(
+              '<polygon points="$pts" fill="$fill">'
+              '<title>$title</title></polygon>',
+            );
         }
       }
     }
@@ -81,4 +98,17 @@ final class SvgExportRepository implements ExportRepository {
     buffer.writeln('</svg>');
     return buffer.toString();
   }
+}
+
+String _hexPoints(double cx, double cy, double r) {
+  final buf = StringBuffer();
+  for (var i = 0; i < 6; i++) {
+    if (i > 0) buf.write(' ');
+    final angle = (math.pi / 3) * i + math.pi / 6;
+    buf.write(
+      '${(cx + r * math.cos(angle)).toStringAsFixed(2)},'
+      '${(cy + r * math.sin(angle)).toStringAsFixed(2)}',
+    );
+  }
+  return buf.toString();
 }
