@@ -68,6 +68,15 @@
   font-family: var(--font-mono); font-size: 13px;
   overflow: hidden; margin-bottom: 48px;
 }
+.username-strip:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.us-input:focus-visible,
+.us-year:focus-visible,
+.us-go:focus-visible {
+  outline: none;
+}
 .us-label { padding: 10px 4px 10px 14px; color: var(--text-dimmer); }
 .us-input { padding: 10px 8px 10px 0; min-width: 120px; color: var(--g-4); }
 .us-sep {
