@@ -9,7 +9,7 @@
     "node": "v24.14.1"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --open",
     "build": "pnpm check && astro build",
     "preview": "astro preview",
     "sync": "astro sync",

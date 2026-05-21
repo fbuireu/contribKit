@@ -1,0 +1,64 @@
+.custom-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+@media (max-width: 900px) { .custom-grid { grid-template-columns: 1fr; } }
+
+.custom-preview {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px; display: flex; flex-direction: column; gap: 16px; justify-content: center;
+}
+.preview-frame {
+  background: radial-gradient(ellipse at center, var(--bg-2) 0%, var(--bg-1) 100%);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; overflow-x: auto; min-height: 80px;
+}
+.preview-meta { display: flex; gap: 8px; align-items: center; font-size: 11px; padding-top: 4px; flex-wrap: wrap; }
+
+.custom-controls { display: flex; flex-direction: column; gap: 16px; }
+.ctrl-group {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.ctrl-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; padding: 0 4px 4px;
+}
+
+/* JS-rendered elements (palette rows + shape buttons) */
+.palette-list { display: flex; flex-direction: column; gap: 2px; }
+.palette-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px; padding: 8px 10px; border-radius: 6px;
+  text-align: left; transition: background 100ms;
+  border: 1px solid transparent; width: 100%;
+}
+.palette-row:hover { background: var(--bg-2); }
+.palette-row.active { background: var(--bg-2); border-color: var(--border-2); }
+.palette-swatches { display: inline-flex; gap: 0; border-radius: 4px; overflow: hidden; }
+.palette-swatches span { width: 18px; height: 18px; display: inline-block; }
+.palette-name { font-size: 12px; color: var(--text); }
+.palette-check { color: var(--accent); display: inline-flex; }
+.palette-row:not(.active) .palette-check { color: var(--text-faint); }
+
+.shape-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.shape-btn {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  padding: 10px 4px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg-2);
+  transition: background 100ms, border-color 100ms;
+  cursor: pointer;
+}
+.shape-btn .mono { font-size: 10px; color: var(--text-dim); }
+.shape-btn:hover { background: var(--bg-3); }
+.shape-btn.active {
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.shape-btn.active .mono { color: var(--accent); }

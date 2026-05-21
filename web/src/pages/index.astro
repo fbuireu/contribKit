@@ -469,6 +469,15 @@ function renderCustomize() {
     container.innerHTML = '';
     container.appendChild(renderCalendarSVG(CELLS, PALETTES[customPalette], customShape, 12, 3, false));
   }
+  const hero = document.getElementById('hero-grid-container');
+  if (hero) {
+    hero.innerHTML = '';
+    hero.appendChild(renderCalendarSVG(liveCells, PALETTES[customPalette], customShape, 13, 3, true));
+  }
+  const pal = PALETTES[customPalette];
+  document.querySelectorAll('.legend .legend-sq').forEach((sq, i) => {
+    sq.style.background = pal[i] ?? pal[0];
+  });
   const pl = document.getElementById('custom-palette-label');
   if (pl) pl.textContent = customPalette;
   const sl = document.getElementById('custom-shape-label');
@@ -634,7 +643,7 @@ async function renderFromGitHub(username) {
       liveCells = cells;
       liveUsername = username;
       container.innerHTML = '';
-      container.appendChild(renderCalendarSVG(cells, PALETTES.github, 'rounded', 13, 3, true));
+      container.appendChild(renderCalendarSVG(cells, PALETTES[customPalette], customShape, 13, 3, true));
       if (display) display.textContent = username;
       const stats = summarizeCells(data.cells);
       if (data.total != null) stats.count = data.total;

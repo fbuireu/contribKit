@@ -1,0 +1,22 @@
+.footer { padding: 48px 0 32px; }
+.foot-top {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 24px; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; gap: 16px;
+}
+.foot-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.brand-name { font-size: 15px; }
+.foot-links { display: flex; gap: 4px; }
+.foot-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--text-dim);
+  padding: 8px 12px; border-radius: 6px; transition: background 100ms;
+}
+.foot-link:hover { background: var(--bg-2); color: var(--text); }
+.foot-bot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 20px; font-size: 11px; flex-wrap: wrap; gap: 8px;
+}
+.foot-legal { display: flex; align-items: center; gap: 8px; }
+.legal-link { color: var(--text-dimmer); transition: color 100ms; }
+.legal-link:hover { color: var(--text); }

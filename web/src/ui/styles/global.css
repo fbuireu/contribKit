@@ -1,21 +1,21 @@
 /* ─── Design tokens ───────────────────────────────────────────────────────── */
 :root {
   /* Dark theme — raw values */
-  --bg-dark: #09090B;
+  --bg-dark: #09090b;
   --bg-1-dark: #0d0d10;
   --bg-2-dark: #111114;
   --bg-3-dark: #161619;
-  --border-dark: #1A1A1D;
+  --border-dark: #1a1a1d;
   --border-2-dark: #232328;
   --text-dark: #f4f4f5;
   --text-dim-dark: #a1a1aa;
   --text-dimmer-dark: #52525a;
   --text-faint-dark: #2e2e33;
-  --overlay-dark: rgba(255,255,255,0.04);
-  --overlay-2-dark: rgba(255,255,255,0.08);
-  --shadow-dark: rgba(0,0,0,0.55);
-  --tag-bg-dark: rgba(9,9,11,0.7);
-  --topnav-bg-dark: rgba(9,9,11,0.7);
+  --overlay-dark: rgba(255, 255, 255, 0.04);
+  --overlay-2-dark: rgba(255, 255, 255, 0.08);
+  --shadow-dark: rgba(0, 0, 0, 0.55);
+  --tag-bg-dark: rgba(9, 9, 11, 0.7);
+  --topnav-bg-dark: rgba(9, 9, 11, 0.7);
 
   /* Light theme — raw values */
   --bg-light: #fafafa;
@@ -28,18 +28,18 @@
   --text-dim-light: #52525a;
   --text-dimmer-light: #a1a1aa;
   --text-faint-light: #d4d4d8;
-  --overlay-light: rgba(0,0,0,0.04);
-  --overlay-2-light: rgba(0,0,0,0.08);
-  --shadow-light: rgba(15,15,20,0.08);
-  --tag-bg-light: rgba(255,255,255,0.7);
-  --topnav-bg-light: rgba(255,255,255,0.75);
+  --overlay-light: rgba(0, 0, 0, 0.04);
+  --overlay-2-light: rgba(0, 0, 0, 0.08);
+  --shadow-light: rgba(15, 15, 20, 0.08);
+  --tag-bg-light: rgba(255, 255, 255, 0.7);
+  --topnav-bg-light: rgba(255, 255, 255, 0.75);
 
   /* GitHub contribution palette (cells) — adapts per theme */
-  --g-0-dark: #161B22;
-  --g-1-dark: #0E4429;
-  --g-2-dark: #006D32;
-  --g-3-dark: #26A641;
-  --g-4-dark: #39D353;
+  --g-0-dark: #161b22;
+  --g-1-dark: #0e4429;
+  --g-2-dark: #006d32;
+  --g-3-dark: #26a641;
+  --g-4-dark: #39d353;
   --g-0-light: #ebedf0;
   --g-1-light: #9be9a8;
   --g-2-light: #40c463;
@@ -47,7 +47,7 @@
   --g-4-light: #216e39;
 
   /* Brand accent — green tuned per theme (button text, eyebrows, marks) */
-  --accent-dark: #39D353;
+  --accent-dark: #39d353;
   --accent-light: #1a7f37;
 
   /* Semantic defaults: pick by system preference (fallback for browsers without light-dark) */
@@ -134,8 +134,12 @@
 }
 
 /* User-pinned overrides — set by inline boot script on <html> */
-:root.theme-light { color-scheme: light; }
-:root.theme-dark { color-scheme: dark; }
+:root.theme-light {
+  color-scheme: light;
+}
+:root.theme-dark {
+  color-scheme: dark;
+}
 
 @supports not (color: light-dark(white, black)) {
   :root.theme-light {
@@ -187,8 +191,14 @@
 }
 
 /* ─── Reset ───────────────────────────────────────────────────────────────── */
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
 html {
   scroll-behavior: smooth;
 }
@@ -197,22 +207,57 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
-  font-feature-settings: "ss01", "cv11";
+  font-feature-settings: 'ss01', 'cv11';
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-a { color: inherit; text-decoration: none; }
-button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
-input { font: inherit; color: inherit; background: none; border: 0; outline: 0; }
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+input {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  outline: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 /* ─── Utilities ───────────────────────────────────────────────────────────── */
-.mono { font-family: var(--font-mono); font-feature-settings: "zero", "ss01"; }
-.dim { color: var(--text-dim); }
-.dimmer { color: var(--text-dimmer); }
-.accent { color: var(--accent); }
-.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad); }
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'zero', 'ss01';
+  font-variant-numeric: tabular-nums;
+}
+.dim {
+  color: var(--text-dim);
+}
+.dimmer {
+  color: var(--text-dimmer);
+}
+.accent {
+  color: var(--accent);
+}
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
 
 /* ─── Section scaffold ────────────────────────────────────────────────────── */
 .section {
@@ -220,7 +265,15 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
   border-bottom: 1px solid var(--border);
   position: relative;
 }
-@media (max-width: 600px) { .section { padding: 56px 0; } }
+@media (max-width: 600px) {
+  .section {
+    padding: 56px 0;
+  }
+}
+
+body {
+  counter-reset: section 0;
+}
 
 .eyebrow {
   display: inline-block;
@@ -228,6 +281,10 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
   font-size: 11px;
   color: var(--accent);
   letter-spacing: 0.04em;
+  counter-increment: section;
+}
+.eyebrow .mono::before {
+  content: counter(section, decimal-leading-zero) ' — ';
 }
 .section-title {
   font-size: clamp(28px, 4.2vw, 44px);
