@@ -9,6 +9,92 @@ part of 'providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(paletteRepository)
+final paletteRepositoryProvider = PaletteRepositoryProvider._();
+
+final class PaletteRepositoryProvider
+    extends
+        $FunctionalProvider<
+          PaletteRepository,
+          PaletteRepository,
+          PaletteRepository
+        >
+    with $Provider<PaletteRepository> {
+  PaletteRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'paletteRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$paletteRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<PaletteRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  PaletteRepository create(Ref ref) {
+    return paletteRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PaletteRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PaletteRepository>(value),
+    );
+  }
+}
+
+String _$paletteRepositoryHash() => r'efdbd82ea469b460b4e98d14cafcd6d4a9330bb7';
+
+@ProviderFor(palettes)
+final palettesProvider = PalettesProvider._();
+
+final class PalettesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Palette>>,
+          List<Palette>,
+          FutureOr<List<Palette>>
+        >
+    with $FutureModifier<List<Palette>>, $FutureProvider<List<Palette>> {
+  PalettesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'palettesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$palettesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Palette>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Palette>> create(Ref ref) {
+    return palettes(ref);
+  }
+}
+
+String _$palettesHash() => r'5c1d8546050d32d64065c0ac6bd3eced1f5d7c15';
+
 @ProviderFor(contributionRepository)
 final contributionRepositoryProvider = ContributionRepositoryProvider._();
 

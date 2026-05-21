@@ -1,11 +1,15 @@
 import 'package:contribkit/domain/value_objects/palette.dart';
-import 'package:contribkit/ui/theme/palettes.dart';
+import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 /// Palette selection strip — a row of color swatches.
-class PalettePicker extends StatelessWidget {
+///
+/// The available palettes are loaded from the shared asset at runtime;
+/// while loading, the strip is hidden.
+class PalettePicker extends ConsumerWidget {
   const PalettePicker({
     super.key,
     required this.selected,
@@ -16,33 +20,39 @@ class PalettePicker extends StatelessWidget {
   final ValueChanged<Palette> onSelected;
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: Tokens.space2,
-      children: [
-        Text(
-          'Palette',
-          style: TextStyle(
-            fontSize: Tokens.textSm,
-            color: ShadTheme.of(context).colorScheme.mutedForeground,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final palettesAsync = ref.watch(palettesProvider);
+
+    return palettesAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (palettes) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: Tokens.space2,
+        children: [
+          Text(
+            'Palette',
+            style: TextStyle(
+              fontSize: Tokens.textSm,
+              color: ShadTheme.of(context).colorScheme.mutedForeground,
+            ),
           ),
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            spacing: Tokens.space2,
-            children: [
-              for (final palette in Palettes.all)
-                _PaletteSwatch(
-                  palette: palette,
-                  isSelected: palette == selected,
-                  onTap: () => onSelected(palette),
-                ),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              spacing: Tokens.space2,
+              children: [
+                for (final palette in palettes)
+                  _PaletteSwatch(
+                    palette: palette,
+                    isSelected: palette == selected,
+                    onTap: () => onSelected(palette),
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -8,7 +8,6 @@ import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_state.dart';
 import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
 import 'package:contribkit/ui/theme/background_presets.dart';
-import 'package:contribkit/ui/theme/palettes.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'viewer_notifier.g.dart';
@@ -33,10 +32,18 @@ class ViewerNotifier extends _$ViewerNotifier {
       final cellSizeSaved = await repo.getSavedCellSize();
       final backgroundName = await repo.getSavedCardBackground();
 
+      final allPalettes = await ref.read(palettesProvider.future);
+      final resolvedPalette = paletteName != null
+          ? allPalettes.firstWhere(
+              (p) => p.name == paletteName,
+              orElse: () => allPalettes.first,
+            )
+          : allPalettes.first;
+
       state = state.copyWith(
         username: username,
         year: year,
-        palette: paletteName != null ? Palettes.byName(paletteName) : null,
+        palette: resolvedPalette,
         cellShape: shape ?? CellShape.rounded,
         cellSize: cellSizeSaved ?? CellSize.normal,
         cardBackground: backgroundName != null
@@ -77,12 +84,15 @@ class ViewerNotifier extends _$ViewerNotifier {
       await ref.read(settingsRepositoryProvider).saveLastUsername(username);
       await ref.read(settingsRepositoryProvider).saveLastYear(year);
 
-      CalendarWidgetService.update(
-        calendar: calendar,
-        palette: state.effectivePalette,
-        cellShape: state.cellShape,
-        cellSize: state.cellSize,
-      );
+      final palette = state.palette;
+      if (palette != null) {
+        CalendarWidgetService.update(
+          calendar: calendar,
+          palette: palette,
+          cellShape: state.cellShape,
+          cellSize: state.cellSize,
+        );
+      }
     } on Failure catch (f) {
       state = state.copyWith(error: f);
     } catch (e) {
@@ -131,10 +141,11 @@ class ViewerNotifier extends _$ViewerNotifier {
 
   void _updateWidget() {
     final calendar = state.calendar;
-    if (calendar == null) return;
+    final palette = state.palette;
+    if (calendar == null || palette == null) return;
     CalendarWidgetService.update(
       calendar: calendar,
-      palette: state.effectivePalette,
+      palette: palette,
       cellShape: state.cellShape,
       cellSize: state.cellSize,
     );

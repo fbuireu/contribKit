@@ -302,7 +302,7 @@ class _Body extends ConsumerWidget {
         _CustomizerCard(state: state, notifier: notifier),
         ExportPanel(
           calendar: state.calendar!,
-          palette: state.effectivePalette,
+          palette: state.palette!,
           cellShape: state.cellShape,
           cellSize: state.cellSize,
         ),
@@ -470,7 +470,7 @@ class _CalendarCard extends ConsumerWidget {
             color: gridBg,
             child: ContributionGrid(
               calendar: state.calendar!,
-              palette: state.effectivePalette,
+              palette: state.palette!,
               shape: state.cellShape,
               cellSize: state.cellSize,
             ),
@@ -494,7 +494,7 @@ class _CustomizerCard extends StatelessWidget {
       spacing: Tokens.space4,
       children: [
         PalettePicker(
-          selected: state.effectivePalette,
+          selected: state.palette!,
           onSelected: notifier.setPalette,
         ),
         ShapePicker(

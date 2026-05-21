@@ -1,3 +1,4 @@
+import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
@@ -6,7 +7,6 @@ import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
-import 'package:contribkit/ui/theme/palettes.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material;
 import 'package:flutter/widgets.dart';
@@ -41,9 +41,13 @@ void callbackDispatcher() {
       final cellShapeName = box.get('cellShape') as String?;
       final cellSizeName = box.get('cellSize') as String?;
 
+      final allPalettes = await AssetPaletteRepository().loadAll();
       final palette = paletteName != null
-          ? Palettes.byName(paletteName)
-          : Palettes.github;
+          ? allPalettes.firstWhere(
+              (p) => p.name == paletteName,
+              orElse: () => allPalettes.first,
+            )
+          : allPalettes.first;
       final cellShape = cellShapeName != null
           ? CellShape.values.firstWhere(
               (s) => s.name == cellShapeName,
