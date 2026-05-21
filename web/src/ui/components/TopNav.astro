@@ -12,6 +12,21 @@
       <a href="#custom">customize</a>
       <a href="#export">export</a>
       <a href="#widget">widget</a>
+      <button
+        type="button"
+        class="theme-toggle"
+        id="theme-toggle"
+        aria-label="Toggle theme"
+        title="Toggle theme"
+      >
+        <svg class="ti sun" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <circle cx="10" cy="10" r="3.6"/>
+          <path d="M10 1.5v2M10 16.5v2M3.5 10h-2M18.5 10h-2M5.05 5.05L3.63 3.63M16.37 16.37l-1.42-1.42M5.05 14.95l-1.42 1.42M16.37 3.63l-1.42 1.42" stroke-linecap="round"/>
+        </svg>
+        <svg class="ti moon" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M16.5 11.8A6.8 6.8 0 1 1 8.2 3.5a5.4 5.4 0 0 0 8.3 8.3z" stroke-linejoin="round"/>
+        </svg>
+      </button>
       <a href="#" class="nav-cta">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M8 2v9m0 0l-3-3m3 3l3-3M3 13h10" stroke-linecap="round" stroke-linejoin="round"/>
@@ -25,7 +40,7 @@
 <style>
   .topnav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(9,9,11,0.7);
+    background: var(--topnav-bg);
     backdrop-filter: saturate(160%) blur(12px);
     -webkit-backdrop-filter: saturate(160%) blur(12px);
     border-bottom: 1px solid var(--border);
@@ -48,6 +63,17 @@
     transition: background 120ms, color 120ms;
   }
   .nav-links a:hover { background: var(--bg-2); color: var(--text); }
+  .theme-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; margin: 0 4px;
+    border-radius: 6px;
+    color: var(--text-dim);
+    transition: background 120ms, color 120ms;
+  }
+  .theme-toggle:hover { background: var(--bg-2); color: var(--text); }
+  .theme-toggle .ti { display: none; }
+  .theme-toggle[data-effective="dark"] .sun { display: block; }
+  .theme-toggle[data-effective="light"] .moon { display: block; }
   .nav-cta {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--bg-2);
@@ -61,3 +87,43 @@
     .nav-links a:not(.nav-cta) { display: none; }
   }
 </style>
+
+<script is:inline>
+  (() => {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+
+    function pinned() {
+      const v = localStorage.getItem('color-scheme');
+      return v === 'light' || v === 'dark' ? v : null;
+    }
+    function effective() {
+      return pinned() ?? (mql.matches ? 'dark' : 'light');
+    }
+    function apply() {
+      const p = pinned();
+      document.documentElement.classList.toggle('theme-light', p === 'light');
+      document.documentElement.classList.toggle('theme-dark', p === 'dark');
+      if (meta) meta.content = p ?? 'light dark';
+      btn.dataset.effective = effective();
+    }
+
+    apply();
+
+    btn.addEventListener('click', () => {
+      const p = pinned();
+      if (p) {
+        localStorage.removeItem('color-scheme');
+      } else {
+        localStorage.setItem('color-scheme', mql.matches ? 'light' : 'dark');
+      }
+      apply();
+    });
+
+    mql.addEventListener('change', () => {
+      if (!pinned()) apply();
+    });
+  })();
+</script>

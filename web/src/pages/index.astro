@@ -103,10 +103,10 @@ function renderSVG(
   p.push(`<svg viewBox="0 0 ${totalW} ${totalH}" width="100%" style="display:block;overflow:visible" role="img" aria-label="GitHub contribution calendar">`);
   if (showLabels) {
     monthLabels.forEach(({ w, label }) => {
-      p.push(`<text x="${padX + labelW + w * cellW}" y="${padY + 11}" fill="rgba(255,255,255,0.45)" font-size="9.5" font-family="ui-monospace,'JetBrains Mono',monospace" letter-spacing="0.04em">${label}</text>`);
+      p.push(`<text x="${padX + labelW + w * cellW}" y="${padY + 11}" style="fill:var(--text-dim);opacity:.85" font-size="9.5" font-family="ui-monospace,'JetBrains Mono',monospace" letter-spacing="0.04em">${label}</text>`);
     });
     DOW.forEach((d, i) => {
-      p.push(`<text x="${padX}" y="${padY + labelH + (i * 2 + 1) * cellW + 4}" fill="rgba(255,255,255,0.35)" font-size="9" font-family="ui-monospace,'JetBrains Mono',monospace">${d}</text>`);
+      p.push(`<text x="${padX}" y="${padY + labelH + (i * 2 + 1) * cellW + 4}" style="fill:var(--text-dimmer)" font-size="9" font-family="ui-monospace,'JetBrains Mono',monospace">${d}</text>`);
     });
   }
   p.push(`<g transform="translate(${padX + labelW},${padY + labelH})">`);
@@ -151,6 +151,16 @@ const DESCRIPTION = 'Visualize, customize, and export your GitHub contribution c
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>
+      {
+        const cs = localStorage.getItem('color-scheme');
+        if (cs === 'light' || cs === 'dark') {
+          document.documentElement.classList.add('theme-' + cs);
+          document.querySelector('meta[name="color-scheme"]').content = cs;
+        }
+      }
+    </script>
     <meta name="description" content={DESCRIPTION} />
     <meta property="og:title" content={TITLE} />
     <meta property="og:description" content={DESCRIPTION} />
@@ -283,7 +293,7 @@ function renderCalendarSVG(cells, palette, shape, size, gap, showLabels) {
       const t = document.createElementNS(ns, 'text');
       t.setAttribute('x', padX + labelW + w * cellW);
       t.setAttribute('y', padY + 11);
-      t.setAttribute('fill', 'rgba(255,255,255,0.45)');
+      t.setAttribute('style', 'fill:var(--text-dim);opacity:.85');
       t.setAttribute('font-size', '9.5');
       t.setAttribute('font-family', "ui-monospace,'JetBrains Mono',monospace");
       t.setAttribute('letter-spacing', '0.04em');
@@ -294,7 +304,7 @@ function renderCalendarSVG(cells, palette, shape, size, gap, showLabels) {
       const t = document.createElementNS(ns, 'text');
       t.setAttribute('x', padX);
       t.setAttribute('y', padY + labelH + (i * 2 + 1) * cellW + 4);
-      t.setAttribute('fill', 'rgba(255,255,255,0.35)');
+      t.setAttribute('style', 'fill:var(--text-dimmer)');
       t.setAttribute('font-size', '9');
       t.setAttribute('font-family', "ui-monospace,'JetBrains Mono',monospace");
       t.textContent = d;

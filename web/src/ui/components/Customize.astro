@@ -86,7 +86,7 @@
   .palette-swatches { display: inline-flex; gap: 0; border-radius: 4px; overflow: hidden; }
   .palette-swatches span { width: 18px; height: 18px; display: inline-block; }
   .palette-name { font-size: 12px; color: var(--text); }
-  .palette-check { color: var(--g-4); display: inline-flex; }
+  .palette-check { color: var(--accent); display: inline-flex; }
   .palette-row:not(.active) .palette-check { color: var(--text-faint); }
 
   .shape-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
@@ -101,6 +101,9 @@
   }
   .shape-btn .mono { font-size: 10px; color: var(--text-dim); }
   .shape-btn:hover { background: var(--bg-3); }
-  .shape-btn.active { border-color: var(--g-2); background: rgba(14,68,41,0.3); }
-  .shape-btn.active .mono { color: var(--g-4); }
+  .shape-btn.active {
+    border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  .shape-btn.active .mono { color: var(--accent); }
 </style>
