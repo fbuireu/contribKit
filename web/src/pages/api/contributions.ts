@@ -1,59 +1,38 @@
 import type { APIRoute } from 'astro';
+import { z } from 'zod';
 import { fetchContributions } from '../../application/use-cases/fetch-contributions';
-import type { Failure } from '../../domain/failures/failure';
 import { parseUsername } from '../../domain/value-objects/username';
-import { parseYear, isYear } from '../../domain/value-objects/year';
+import { isYear, parseYear } from '../../domain/value-objects/year';
 import { createGithubHtmlContributionsRepository } from '../../infrastructure/github/github-html-contributions-repository';
+import { isFailure, messageFor, statusFor } from '../../ui/lib/failure-http';
 
 export const prerender = false;
 
-const isFailure = (value: unknown): value is Failure =>
-  typeof value === 'object' && value !== null && 'kind' in value;
-
-const statusFor = (failure: Failure): number => {
-  switch (failure.kind) {
-    case 'NotFound':
-      return 404;
-    case 'InvalidInput':
-      return 400;
-    case 'Network':
-      return 502;
-    case 'Parse':
-      return 502;
-  }
-};
-
-const messageFor = (failure: Failure): string => {
-  switch (failure.kind) {
-    case 'NotFound':
-      return 'User not found';
-    case 'InvalidInput':
-      return failure.message;
-    case 'Network':
-      return failure.message;
-    case 'Parse':
-      return failure.message;
-  }
-};
+const querySchema = z.object({
+  user: z.string().min(1),
+  year: z.string().optional(),
+});
 
 const repository = createGithubHtmlContributionsRepository();
 const loadContributions = fetchContributions(repository);
 
 export const GET: APIRoute = async ({ url }) => {
-  const username = parseUsername(url.searchParams.get('user') ?? '');
+  const parsed = querySchema.safeParse(Object.fromEntries(url.searchParams));
+  if (!parsed.success) {
+    return Response.json({ error: 'Missing required parameter: user' }, { status: 400 });
+  }
+
+  const username = parseUsername(parsed.data.user);
   if (isFailure(username)) {
     return Response.json({ error: messageFor(username) }, { status: statusFor(username) });
   }
 
-  const yearParam = url.searchParams.get('year');
-  const year = parseYear(yearParam);
+  const year = parseYear(parsed.data.year);
   if (isFailure(year)) {
     return Response.json({ error: messageFor(year) }, { status: statusFor(year) });
   }
 
-  const yearValue = isYear(year) ? year : null;
-
-  const result = await loadContributions(username, yearValue);
+  const result = await loadContributions(username, isYear(year) ? year : null);
   if (isFailure(result)) {
     return Response.json({ error: messageFor(result) }, { status: statusFor(result) });
   }

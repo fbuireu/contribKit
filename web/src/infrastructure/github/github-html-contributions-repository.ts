@@ -17,34 +17,34 @@ const buildUrl = (username: string, year: Year | null): string => {
   return year.value < now ? `${base}&to=${year.value}-12-31` : base;
 };
 
-const TD_RE = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
-const DATE_RE = /data-date="(\d{4}-\d{2}-\d{2})"/;
-const LEVEL_RE = /data-level="(\d)"/;
-const ID_RE = /\bid="([^"]+)"/;
-const TIP_RE = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
+const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
+const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
+const LEVEL_REGEX = /data-level="(\d)"/;
+const ID_REGEX = /\bid="([^"]+)"/;
+const TIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
 
 const parseHtml = (html: string): { days: ContributionDay[]; total: number | null } => {
   const days: { date: string; level: number; id: string | null }[] = [];
 
-  for (const match of html.matchAll(TD_RE)) {
+  for (const match of html.matchAll(TD_REGEX)) {
     const attrs = match[1];
-    const date = DATE_RE.exec(attrs)?.[1];
-    const level = LEVEL_RE.exec(attrs)?.[1];
-    const id = ID_RE.exec(attrs)?.[1] ?? null;
+    const date = DATE_REGEX.exec(attrs)?.[1];
+    const level = LEVEL_REGEX.exec(attrs)?.[1];
+    const id = ID_REGEX.exec(attrs)?.[1] ?? null;
     if (date && level !== undefined) {
       days.push({ date, level: Number.parseInt(level, 10), id });
     }
   }
 
   const idToCount = new Map<string, number>();
-  for (const match of html.matchAll(TIP_RE)) {
+  for (const match of html.matchAll(TIP_REGEX)) {
     idToCount.set(match[1], Number.parseInt(match[2], 10));
   }
 
   const enriched: ContributionDay[] = days.map(({ date, level, id }) => ({
     date,
     level: clampLevel(level),
-    count: id !== null && idToCount.has(id) ? (idToCount.get(id) ?? 0) : null,
+    count: id !== null ? (idToCount.get(id) ?? null) : null,
   }));
 
   const total = idToCount.size > 0 ? enriched.reduce((sum, d) => sum + (d.count ?? 0), 0) : null;
@@ -68,7 +68,7 @@ export const createGithubHtmlContributionsRepository = (): ContributionsReposito
         },
       });
     } catch (e) {
-      return network(`Network error: ${(e as Error).message}`);
+      return network(e instanceof Error ? e.message : String(e));
     }
 
     if (res.status === 404) return notFound(username.value);

@@ -8,7 +8,7 @@ export interface Year {
 }
 
 export const parseYear = (input: number | string | null | undefined): Year | null | Failure => {
-  if (input === null || input === undefined || input === '') return null;
+  if (input == null || input === '') return null;
   const n = typeof input === 'number' ? input : Number.parseInt(input, 10);
   if (!Number.isInteger(n)) return invalidInput('year', 'Year must be an integer');
   const current = new Date().getFullYear();

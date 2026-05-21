@@ -1,19 +1,23 @@
 import type { APIRoute } from 'astro';
+import { z } from 'zod';
 import { fetchContributions } from '../../application/use-cases/fetch-contributions';
 import { renderCalendarSvg } from '../../application/use-cases/render-calendar-svg';
-import type { Failure } from '../../domain/failures/failure';
 import { DEFAULT_PALETTE_KEY, paletteByKey } from '../../domain/value-objects/palette';
 import { isShapeKind, type ShapeKind } from '../../domain/value-objects/shape';
 import { parseUsername } from '../../domain/value-objects/username';
 import { createGithubHtmlContributionsRepository } from '../../infrastructure/github/github-html-contributions-repository';
 import { svgStringRenderer } from '../../infrastructure/rendering/svg-string-renderer';
+import { isFailure, messageFor, statusFor } from '../../ui/lib/failure-http';
 
 export const prerender = false;
 
-const isFailure = (value: unknown): value is Failure =>
-  typeof value === 'object' && value !== null && 'kind' in value;
+const BG_REGEX = /^(transparent|#[0-9a-fA-F]{3,8}|[a-zA-Z]{1,30})$/;
 
-const statusFor = (failure: Failure): number => (failure.kind === 'NotFound' ? 404 : failure.kind === 'InvalidInput' ? 400 : 502);
+const querySchema = z.object({
+  palette: z.string().catch(DEFAULT_PALETTE_KEY),
+  shape: z.string().catch('rounded'),
+  bg: z.string().regex(BG_REGEX).catch('transparent'),
+});
 
 const repository = createGithubHtmlContributionsRepository();
 const loadContributions = fetchContributions(repository);
@@ -22,7 +26,7 @@ const renderSvg = renderCalendarSvg(svgStringRenderer);
 export const GET: APIRoute = async ({ params, url }) => {
   const username = parseUsername(params.username ?? '');
   if (isFailure(username)) {
-    return new Response('Invalid username', { status: statusFor(username), headers: { 'Content-Type': 'text/plain' } });
+    return new Response(messageFor(username), { status: statusFor(username), headers: { 'Content-Type': 'text/plain' } });
   }
 
   const result = await loadContributions(username, null);
@@ -31,10 +35,10 @@ export const GET: APIRoute = async ({ params, url }) => {
     return new Response(body, { status: statusFor(result), headers: { 'Content-Type': 'text/plain' } });
   }
 
-  const paletteKey = url.searchParams.get('palette') ?? DEFAULT_PALETTE_KEY;
-  const shapeParam = url.searchParams.get('shape') ?? 'rounded';
+  const { palette: paletteKey, shape: shapeParam, bg: background } = querySchema.parse(
+    Object.fromEntries(url.searchParams),
+  );
   const shape: ShapeKind = isShapeKind(shapeParam) ? shapeParam : 'rounded';
-  const background = url.searchParams.get('bg') ?? 'transparent';
 
   const svg = renderSvg(result, { palette: paletteByKey(paletteKey), shape, background });
 

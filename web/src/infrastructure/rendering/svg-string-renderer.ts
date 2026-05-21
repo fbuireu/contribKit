@@ -1,4 +1,5 @@
 import type { ContributionCalendar } from '../../domain/entities/contribution-calendar';
+import type { ContributionDay } from '../../domain/entities/contribution-day';
 import type { SvgRenderOptions, SvgRenderer } from '../../domain/services/svg-renderer';
 
 const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
@@ -48,7 +49,7 @@ export const svgStringRenderer: SvgRenderer = (
   const totalH = DAYS_PER_WEEK * cellW + labelH + PAD_Y * 2;
   const radius = shape === 'rounded' ? 2.5 : shape === 'square' ? 0 : size / 2;
 
-  const weeks: typeof calendar.days[number][][] = [];
+  const weeks: ContributionDay[][] = [];
   for (let w = 0; w < WEEKS; w++) {
     weeks.push([...calendar.days.slice(w * DAYS_PER_WEEK, w * DAYS_PER_WEEK + DAYS_PER_WEEK)]);
   }
@@ -88,7 +89,7 @@ export const svgStringRenderer: SvgRenderer = (
 
   weeks.forEach((week, w) => {
     week.forEach((day, d) => {
-      const fill = palette.colors[day.level] ?? palette.colors[0];
+      const fill = palette.colors[day.level];
       const x = w * cellW;
       const y = d * cellW;
       if (shape === 'dot') {

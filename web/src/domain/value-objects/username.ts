@@ -1,6 +1,6 @@
 import { invalidInput, type Failure } from '../failures/failure';
 
-const USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 
 export interface Username {
   readonly _tag: 'Username';
@@ -9,7 +9,7 @@ export interface Username {
 
 export const parseUsername = (input: string): Username | Failure => {
   const trimmed = input.trim();
-  if (!USERNAME_RE.test(trimmed)) {
+  if (!USERNAME_REGEX.test(trimmed)) {
     return invalidInput('username', 'Invalid GitHub username');
   }
   return { _tag: 'Username', value: trimmed };
