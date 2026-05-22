@@ -1,3 +1,5 @@
+import type { Cell, CellSummary } from './calendar-utils';
+import type { ContributionDay } from '../../domain/entities/contribution-day';
 import { formatContribLabel } from './contribution';
 import { PALETTES, DEFAULT_PALETTE_KEY } from '../../domain/value-objects/palette';
 import { DEFAULT_SHAPE_KIND } from '../../domain/value-objects/shape';
@@ -9,7 +11,7 @@ const CELLS = Array.isArray(window.__INITIAL_CELLS__) && window.__INITIAL_CELLS_
   ? rehydrateCells(window.__INITIAL_CELLS__)
   : generateData(7);
 
-const ERRORS = {
+const ERRORS: Record<number, string> = {
   404: 'user not found — check the username and try again',
   400: 'invalid username',
   502: 'could not reach github, try again in a moment',
@@ -19,13 +21,13 @@ let liveCells = CELLS;
 let liveUsername = window.__INITIAL_USERNAME__;
 
 const getActivePalette = () =>
-  document.querySelector('#palette-list .palette-row.active')?.dataset.key ?? DEFAULT_PALETTE_KEY;
+  document.querySelector<HTMLElement>('#palette-list .palette-row.active')?.dataset.key ?? DEFAULT_PALETTE_KEY;
 
 const getActiveShape = () =>
-  document.querySelector('#shape-list .shape-btn.active')?.dataset.key ?? DEFAULT_SHAPE_KIND;
+  document.querySelector<HTMLElement>('#shape-list .shape-btn.active')?.dataset.key ?? DEFAULT_SHAPE_KIND;
 
 const getActiveExportTab = () =>
-  document.querySelector('#export-tabs [aria-selected="true"]')?.dataset.key ?? 'png';
+  document.querySelector<HTMLElement>('#export-tabs [aria-selected="true"]')?.dataset.key ?? 'png';
 
 function renderCustomize() {
   const palette = PALETTES[getActivePalette()].colors;
@@ -34,7 +36,7 @@ function renderCustomize() {
   if (customGrid) customGrid.innerHTML = renderCalendarString({ cells: liveCells, palette, shape, size: 12, gap: 3, showLabels: false });
   const heroGrid = document.getElementById('hero-grid-container');
   if (heroGrid) heroGrid.innerHTML = renderCalendarString({ cells: liveCells, palette, shape, size: 13, gap: 3, showLabels: true });
-  document.querySelectorAll('.legend .legend-sq').forEach((square, i) => {
+  document.querySelectorAll<HTMLElement>('.legend .legend-sq').forEach((square, i) => {
     square.style.background = palette[i] ?? palette[0];
   });
   const paletteLabelEl = document.getElementById('custom-palette-label');
@@ -92,7 +94,7 @@ function renderExportPreview() {
   preview.appendChild(card);
 }
 
-function updateYearRange(cells) {
+function updateYearRange(cells: Cell[]) {
   const el = document.getElementById('hero-year-range');
   if (!el || !cells.length) return;
   const first = cells[0].date.year;
@@ -100,26 +102,26 @@ function updateYearRange(cells) {
   el.textContent = first === last ? String(first) : `${first} – ${last}`;
 }
 
-function updateHeroStats(summary) {
+function updateHeroStats(summary: CellSummary) {
   const bar = document.querySelector('.bar-tag');
   if (bar) bar.innerHTML = `<span class="mono" style="color:var(--contrib-peak)">${summary.count.toLocaleString()}</span> contributions`;
   const stats = document.querySelector('.legend-stats');
   if (stats) stats.innerHTML = `<span><b class="mono">${summary.streak}</b> day streak</span><span class="sep">·</span><span><b class="mono">${summary.longest}</b> longest</span>`;
 }
 
-function setHeroError(message) {
+function setHeroError(message: string | null) {
   const errorEl = document.getElementById('hero-error');
   if (!errorEl) return;
   if (message) { errorEl.textContent = `↳ ${message}`; errorEl.hidden = false; }
   else { errorEl.textContent = ''; errorEl.hidden = true; }
 }
 
-async function renderFromGitHub(username) {
-  const renderButton = document.getElementById('hero-render-btn');
+async function renderFromGitHub(username: string) {
+  const renderButton = document.getElementById('hero-render-btn') as HTMLButtonElement | null;
   const renderLabel = document.getElementById('hero-render-label');
   const gridContainer = document.getElementById('hero-grid-container');
   const usernameDisplay = document.getElementById('hero-username-display');
-  const yearSelect = document.getElementById('hero-year');
+  const yearSelect = document.getElementById('hero-year') as HTMLSelectElement | null;
   if (!renderButton || !gridContainer) return;
 
   const selectedYear = Number(yearSelect?.value ?? 0);
@@ -141,7 +143,13 @@ async function renderFromGitHub(username) {
       liveUsername = username;
       renderCustomize();
       if (usernameDisplay) usernameDisplay.textContent = username;
-      const stats = summarize(data.cells.map((cell) => ({ date: Temporal.PlainDate.from(cell.date), level: cell.level, count: cell.count ?? null })));
+      const stats = summarize(
+        data.cells.map((cell: ContributionDay) => ({
+          date: Temporal.PlainDate.from(cell.date),
+          level: cell.level,
+          count: cell.count ?? null,
+        })),
+      );
       if (data.total != null) stats.count = data.total;
       updateHeroStats(stats);
       updateYearRange(liveCells);
@@ -158,7 +166,7 @@ async function renderFromGitHub(username) {
 }
 
 function initPaletteList() {
-  const allPaletteButtons = document.querySelectorAll('#palette-list .palette-row');
+  const allPaletteButtons = document.querySelectorAll<HTMLElement>('#palette-list .palette-row');
   allPaletteButtons.forEach((button) => {
     button.addEventListener('click', () => {
       allPaletteButtons.forEach((other) => { other.classList.remove('active'); other.setAttribute('aria-checked', 'false'); });
@@ -170,7 +178,7 @@ function initPaletteList() {
 }
 
 function initShapeList() {
-  const allShapeButtons = document.querySelectorAll('#shape-list .shape-btn');
+  const allShapeButtons = document.querySelectorAll<HTMLElement>('#shape-list .shape-btn');
   allShapeButtons.forEach((button) => {
     button.addEventListener('click', () => {
       allShapeButtons.forEach((other) => { other.classList.remove('active'); other.setAttribute('aria-checked', 'false'); });
@@ -182,7 +190,7 @@ function initShapeList() {
 }
 
 function initExportTabs() {
-  const allTabs = document.querySelectorAll('#export-tabs [data-key]');
+  const allTabs = document.querySelectorAll<HTMLElement>('#export-tabs [data-key]');
   allTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       allTabs.forEach((other) => { other.classList.remove('active'); other.setAttribute('aria-selected', 'false'); });
@@ -194,8 +202,8 @@ function initExportTabs() {
 }
 
 function initUsernameStrip() {
-  const input = document.getElementById('hero-username');
-  const renderButton = document.getElementById('hero-render-btn');
+  const input = document.getElementById('hero-username') as HTMLInputElement | null;
+  const renderButton = document.getElementById('hero-render-btn') as HTMLButtonElement | null;
   const usernameDisplay = document.getElementById('hero-username-display');
   if (!input || !renderButton || !usernameDisplay) return;
 
@@ -208,7 +216,7 @@ function initUsernameStrip() {
   renderButton.addEventListener('click', () => {
     renderFromGitHub(input.value.trim() || 'torvalds');
   });
-  document.querySelectorAll('.sug-btn').forEach((button) => {
+  document.querySelectorAll<HTMLElement>('.sug-btn').forEach((button) => {
     button.addEventListener('click', () => {
       const username = button.dataset.username;
       if (!username) return;
@@ -220,10 +228,11 @@ function initUsernameStrip() {
 }
 
 function initCellTooltip() {
-  const tooltip = document.getElementById('cell-tip');
-  if (!tooltip || typeof tooltip.showPopover !== 'function') return;
+  const maybeTooltip = document.getElementById('cell-tip');
+  if (!maybeTooltip || typeof maybeTooltip.showPopover !== 'function') return;
+  const tooltip = maybeTooltip;
 
-  let activeCell = null;
+  let activeCell: Element | null = null;
 
   function positionTooltip() {
     if (!activeCell) return;
@@ -237,7 +246,7 @@ function initCellTooltip() {
     tooltip.style.top = `${top}px`;
   }
 
-  function showTooltip(element) {
+  function showTooltip(element: Element) {
     activeCell = element;
     tooltip.textContent = formatContribLabel(
       element.getAttribute('data-date') || '',
