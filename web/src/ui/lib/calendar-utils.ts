@@ -1,0 +1,95 @@
+import { mulberry32 } from './mulberry';
+import { DOW, MONTHS } from '../../domain/value-objects/calendar-labels';
+import type { ContributionDay } from '../../domain/entities/contribution-day';
+import { TOTALS_PER_LEVEL } from './contribution';
+
+export { DOW, MONTHS };
+
+export interface Cell {
+  date: Temporal.PlainDate;
+  level: number;
+  count?: number | null;
+}
+
+export type RenderCalendarParams = {
+  cells: Cell[];
+  palette: readonly string[];
+  shape: string;
+  size: number;
+  gap: number;
+  showLabels: boolean;
+};
+
+export type CellSummary = { count: number; streak: number; longest: number };
+
+export function buildGridFromApi(days: readonly ContributionDay[], year: number): Cell[] {
+  const map = new Map<string, { level: number; count: number | null }>();
+  for (const day of days) map.set(day.date, { level: day.level, count: day.count });
+  return buildCalendarGrid(map, year);
+}
+
+export function rehydrateCells(
+  arr: Array<{ date: string; level: number; count: number | null }>,
+): Cell[] {
+  return arr.map(({ date, level, count }) => ({
+    date: Temporal.PlainDate.from(date),
+    level,
+    count: count ?? null,
+  }));
+}
+
+export function summarize(cells: Cell[]): CellSummary {
+  const sorted = [...cells].sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+  let count = 0, streak = 0, longest = 0, cur = 0;
+  for (const cell of sorted) {
+    count += cell.count ?? TOTALS_PER_LEVEL[cell.level] ?? 0;
+    if (cell.level > 0) { cur++; if (cur > longest) longest = cur; } else cur = 0;
+  }
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if (sorted[i].level > 0) streak++; else break;
+  }
+  return { count, streak, longest };
+}
+
+export function buildCalendarGrid(
+  map: Map<string, { level: number; count: number | null }>,
+  year: number,
+): Cell[] {
+  const jan1 = Temporal.PlainDate.from({ year, month: 1, day: 1 });
+  const start = jan1.subtract({ days: jan1.dayOfWeek % 7 });
+  const cells: Cell[] = [];
+  for (let i = 0; i < 53 * 7; i++) {
+    const date = start.add({ days: i });
+    const entry = map.get(date.toString());
+    cells.push({ date, level: entry?.level ?? 0, count: entry?.count ?? null });
+  }
+  return cells;
+}
+
+export function generateData(seed = 7): Cell[] {
+  const rand = mulberry32(seed);
+  const cells: Cell[] = [];
+  const today = Temporal.PlainDate.from({ year: 2026, month: 5, day: 17 });
+  const end = today.add({ days: 6 - today.dayOfWeek % 7 });
+  const totalDays = 53 * 7;
+  const start = end.subtract({ days: totalDays - 1 });
+
+  for (let i = 0; i < totalDays; i++) {
+    const date = start.add({ days: i });
+    const dayOfWeek = date.dayOfWeek;
+    const progress = i / totalDays;
+    let base = 0.35 + progress * 0.5;
+    if (dayOfWeek >= 6) base *= 0.55;
+    const cluster = Math.sin(i / 9) * 0.25 + Math.sin(i / 23) * 0.2;
+    const randomValue = rand();
+    let score = base + cluster + (randomValue - 0.5) * 0.6;
+    if (rand() < 0.08) score -= 0.6;
+    let level = 0;
+    if (score >= 0.2) level = 1;
+    if (score >= 0.45) level = 2;
+    if (score >= 0.7) level = 3;
+    if (score >= 0.95) level = 4;
+    cells.push({ date, level });
+  }
+  return cells;
+}

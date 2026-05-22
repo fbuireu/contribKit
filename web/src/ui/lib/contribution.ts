@@ -8,13 +8,6 @@ declare const Temporal: {
 
 export const TOTALS_PER_LEVEL = [0, 1, 4, 9, 16] as const;
 
-export function toIsoDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
 export function formatContribLabel(dateIso: string, count: number): string {
   const dateText = Temporal.PlainDate.from(dateIso).toLocaleString('en-US', {
     weekday: 'long',

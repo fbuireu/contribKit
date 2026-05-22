@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import { z } from 'zod';
 import { fetchContributions } from '../../application/use-cases/fetch-contributions';
 import { renderCalendarSvg } from '../../application/use-cases/render-calendar-svg';
 import { DEFAULT_PALETTE_KEY, paletteByKey } from '../../domain/value-objects/palette';
@@ -8,15 +7,16 @@ import { parseUsername } from '../../domain/value-objects/username';
 import { createGithubHtmlContributionsRepository } from '../../infrastructure/github/github-html-contributions-repository';
 import { svgStringRenderer } from '../../infrastructure/rendering/svg-string-renderer';
 import { isFailure, messageFor, statusFor } from '../../ui/lib/failure-http';
+import { z } from 'astro/zod';
 
 export const prerender = false;
 
-const BG_REGEX = /^(transparent|#[0-9a-fA-F]{3,8}|[a-zA-Z]{1,30})$/;
+const BACKGROUND_REGEX = /^(transparent|#[0-9a-fA-F]{3,8}|[a-zA-Z]{1,30})$/;
 
 const querySchema = z.object({
   palette: z.string().catch(DEFAULT_PALETTE_KEY),
   shape: z.string().catch('rounded'),
-  bg: z.string().regex(BG_REGEX).catch('transparent'),
+  bg: z.string().regex(BACKGROUND_REGEX).catch('transparent'),
 });
 
 const repository = createGithubHtmlContributionsRepository();

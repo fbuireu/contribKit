@@ -1,194 +1,42 @@
-/* ─── Design tokens ───────────────────────────────────────────────────────── */
 :root {
-  /* Dark theme — raw values */
-  --bg-dark: #09090b;
-  --bg-1-dark: #0d0d10;
-  --bg-2-dark: #111114;
-  --bg-3-dark: #161619;
-  --border-dark: #1a1a1d;
-  --border-2-dark: #232328;
-  --text-dark: #f4f4f5;
-  --text-dim-dark: #a1a1aa;
-  --text-dimmer-dark: #52525a;
-  --text-faint-dark: #2e2e33;
-  --overlay-dark: rgba(255, 255, 255, 0.04);
-  --overlay-2-dark: rgba(255, 255, 255, 0.08);
-  --shadow-dark: rgba(0, 0, 0, 0.55);
-  --tag-bg-dark: rgba(9, 9, 11, 0.7);
-  --topnav-bg-dark: rgba(9, 9, 11, 0.7);
-
-  /* Light theme — raw values */
-  --bg-light: #fafafa;
-  --bg-1-light: #ffffff;
-  --bg-2-light: #f4f4f5;
-  --bg-3-light: #e9e9ec;
-  --border-light: #e4e4e7;
-  --border-2-light: #d4d4d8;
-  --text-light: #18181b;
-  --text-dim-light: #52525a;
-  --text-dimmer-light: #a1a1aa;
-  --text-faint-light: #d4d4d8;
-  --overlay-light: rgba(0, 0, 0, 0.04);
-  --overlay-2-light: rgba(0, 0, 0, 0.08);
-  --shadow-light: rgba(15, 15, 20, 0.08);
-  --tag-bg-light: rgba(255, 255, 255, 0.7);
-  --topnav-bg-light: rgba(255, 255, 255, 0.75);
-
-  /* GitHub contribution palette (cells) — adapts per theme */
-  --g-0-dark: #161b22;
-  --g-1-dark: #0e4429;
-  --g-2-dark: #006d32;
-  --g-3-dark: #26a641;
-  --g-4-dark: #39d353;
-  --g-0-light: #ebedf0;
-  --g-1-light: #9be9a8;
-  --g-2-light: #40c463;
-  --g-3-light: #30a14e;
-  --g-4-light: #216e39;
-
-  /* Brand accent — green tuned per theme (button text, eyebrows, marks) */
-  --accent-dark: #39d353;
-  --accent-light: #1a7f37;
-
-  /* Semantic defaults: pick by system preference (fallback for browsers without light-dark) */
-  --bg: var(--bg-dark);
-  --bg-1: var(--bg-1-dark);
-  --bg-2: var(--bg-2-dark);
-  --bg-3: var(--bg-3-dark);
-  --border: var(--border-dark);
-  --border-2: var(--border-2-dark);
-  --text: var(--text-dark);
-  --text-dim: var(--text-dim-dark);
-  --text-dimmer: var(--text-dimmer-dark);
-  --text-faint: var(--text-faint-dark);
-  --overlay: var(--overlay-dark);
-  --overlay-2: var(--overlay-2-dark);
-  --shadow: var(--shadow-dark);
-  --tag-bg: var(--tag-bg-dark);
-  --topnav-bg: var(--topnav-bg-dark);
-  --g-0: var(--g-0-dark);
-  --g-1: var(--g-1-dark);
-  --g-2: var(--g-2-dark);
-  --g-3: var(--g-3-dark);
-  --g-4: var(--g-4-dark);
-  --accent: var(--accent-dark);
-
-  @media (prefers-color-scheme: light) {
-    --bg: var(--bg-light);
-    --bg-1: var(--bg-1-light);
-    --bg-2: var(--bg-2-light);
-    --bg-3: var(--bg-3-light);
-    --border: var(--border-light);
-    --border-2: var(--border-2-light);
-    --text: var(--text-light);
-    --text-dim: var(--text-dim-light);
-    --text-dimmer: var(--text-dimmer-light);
-    --text-faint: var(--text-faint-light);
-    --overlay: var(--overlay-light);
-    --overlay-2: var(--overlay-2-light);
-    --shadow: var(--shadow-light);
-    --tag-bg: var(--tag-bg-light);
-    --topnav-bg: var(--topnav-bg-light);
-    --g-0: var(--g-0-light);
-    --g-1: var(--g-1-light);
-    --g-2: var(--g-2-light);
-    --g-3: var(--g-3-light);
-    --g-4: var(--g-4-light);
-    --accent: var(--accent-light);
-  }
-
-  /* Browsers with light-dark() resolve based on the computed color-scheme */
-  @supports (color: light-dark(white, black)) {
-    --bg: light-dark(var(--bg-light), var(--bg-dark));
-    --bg-1: light-dark(var(--bg-1-light), var(--bg-1-dark));
-    --bg-2: light-dark(var(--bg-2-light), var(--bg-2-dark));
-    --bg-3: light-dark(var(--bg-3-light), var(--bg-3-dark));
-    --border: light-dark(var(--border-light), var(--border-dark));
-    --border-2: light-dark(var(--border-2-light), var(--border-2-dark));
-    --text: light-dark(var(--text-light), var(--text-dark));
-    --text-dim: light-dark(var(--text-dim-light), var(--text-dim-dark));
-    --text-dimmer: light-dark(var(--text-dimmer-light), var(--text-dimmer-dark));
-    --text-faint: light-dark(var(--text-faint-light), var(--text-faint-dark));
-    --overlay: light-dark(var(--overlay-light), var(--overlay-dark));
-    --overlay-2: light-dark(var(--overlay-2-light), var(--overlay-2-dark));
-    --shadow: light-dark(var(--shadow-light), var(--shadow-dark));
-    --tag-bg: light-dark(var(--tag-bg-light), var(--tag-bg-dark));
-    --topnav-bg: light-dark(var(--topnav-bg-light), var(--topnav-bg-dark));
-    --g-0: light-dark(var(--g-0-light), var(--g-0-dark));
-    --g-1: light-dark(var(--g-1-light), var(--g-1-dark));
-    --g-2: light-dark(var(--g-2-light), var(--g-2-dark));
-    --g-3: light-dark(var(--g-3-light), var(--g-3-dark));
-    --g-4: light-dark(var(--g-4-light), var(--g-4-dark));
-    --accent: light-dark(var(--accent-light), var(--accent-dark));
-  }
-
   color-scheme: light dark;
+
+  --bg:                light-dark(#fafafa,               #09090b);
+  --surface:           light-dark(#ffffff,               #0d0d10);
+  --surface-raised:    light-dark(#f4f4f5,               #111114);
+  --surface-high:      light-dark(#e9e9ec,               #161619);
+  --border:            light-dark(#e4e4e7,               #1a1a1d);
+  --border-strong:     light-dark(#d4d4d8,               #232328);
+  --text:              light-dark(#18181b,               #f4f4f5);
+  --text-dim:          light-dark(#52525a,               #a1a1aa);
+  --text-dimmer:       light-dark(#a1a1aa,               #52525a);
+  --text-faint:        light-dark(#d4d4d8,               #2e2e33);
+  --overlay:           light-dark(rgba(0,0,0,.04),       rgba(255,255,255,.04));
+  --overlay-strong:    light-dark(rgba(0,0,0,.08),       rgba(255,255,255,.08));
+  --shadow:            light-dark(rgba(15,15,20,.08),    rgba(0,0,0,.55));
+  --tag-background:    light-dark(rgba(255,255,255,.70), rgba(9,9,11,.70));
+  --topnav-background: light-dark(rgba(255,255,255,.75), rgba(9,9,11,.70));
+
+  --contrib-none: light-dark(#ebedf0, #161b22);
+  --contrib-low:  light-dark(#9be9a8, #0e4429);
+  --contrib-mid:  light-dark(#40c463, #006d32);
+  --contrib-high: light-dark(#30a14e, #26a641);
+  --contrib-peak: light-dark(#216e39, #39d353);
+  --accent:       light-dark(#1a7f37, #39d353);
+
   accent-color: var(--accent);
   scrollbar-color: var(--text-faint) transparent;
 
-  --maxw: 1200px;
-  --pad: 24px;
+  --max-width:    1200px;
+  --page-padding: 24px;
 
-  --font-ui: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-ui:   'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* User-pinned overrides — set by inline boot script on <html> */
-:root.theme-light {
-  color-scheme: light;
-}
-:root.theme-dark {
-  color-scheme: dark;
-}
-
-@supports not (color: light-dark(white, black)) {
-  :root.theme-light {
-    --bg: var(--bg-light);
-    --bg-1: var(--bg-1-light);
-    --bg-2: var(--bg-2-light);
-    --bg-3: var(--bg-3-light);
-    --border: var(--border-light);
-    --border-2: var(--border-2-light);
-    --text: var(--text-light);
-    --text-dim: var(--text-dim-light);
-    --text-dimmer: var(--text-dimmer-light);
-    --text-faint: var(--text-faint-light);
-    --overlay: var(--overlay-light);
-    --overlay-2: var(--overlay-2-light);
-    --shadow: var(--shadow-light);
-    --tag-bg: var(--tag-bg-light);
-    --topnav-bg: var(--topnav-bg-light);
-    --g-0: var(--g-0-light);
-    --g-1: var(--g-1-light);
-    --g-2: var(--g-2-light);
-    --g-3: var(--g-3-light);
-    --g-4: var(--g-4-light);
-    --accent: var(--accent-light);
-  }
-  :root.theme-dark {
-    --bg: var(--bg-dark);
-    --bg-1: var(--bg-1-dark);
-    --bg-2: var(--bg-2-dark);
-    --bg-3: var(--bg-3-dark);
-    --border: var(--border-dark);
-    --border-2: var(--border-2-dark);
-    --text: var(--text-dark);
-    --text-dim: var(--text-dim-dark);
-    --text-dimmer: var(--text-dimmer-dark);
-    --text-faint: var(--text-faint-dark);
-    --overlay: var(--overlay-dark);
-    --overlay-2: var(--overlay-2-dark);
-    --shadow: var(--shadow-dark);
-    --tag-bg: var(--tag-bg-dark);
-    --topnav-bg: var(--topnav-bg-dark);
-    --g-0: var(--g-0-dark);
-    --g-1: var(--g-1-dark);
-    --g-2: var(--g-2-dark);
-    --g-3: var(--g-3-dark);
-    --g-4: var(--g-4-dark);
-    --accent: var(--accent-dark);
-  }
-}
+:root.theme-light { color-scheme: light; }
+:root.theme-dark  { color-scheme: dark; }
 
 /* ─── Reset ───────────────────────────────────────────────────────────────── */
 * {
@@ -254,9 +102,9 @@ input {
   color: var(--accent);
 }
 .wrap {
-  max-width: var(--maxw);
+  max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 var(--pad);
+  padding: 0 var(--page-padding);
 }
 
 /* ─── Section scaffold ────────────────────────────────────────────────────── */

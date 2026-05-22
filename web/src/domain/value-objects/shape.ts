@@ -4,5 +4,7 @@ export type ShapeKind = 'rounded' | 'square' | 'circle' | 'dot' | 'hex';
 
 export const SHAPE_KINDS: readonly ShapeKind[] = rawShapes.map((s) => s.key) as ShapeKind[];
 
+export const DEFAULT_SHAPE_KIND: ShapeKind = SHAPE_KINDS[0];
+
 export const isShapeKind = (value: string): value is ShapeKind =>
   (SHAPE_KINDS as readonly string[]).includes(value);

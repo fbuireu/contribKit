@@ -12,7 +12,7 @@
   font-size: 13px; color: var(--text-dim);
   padding: 8px 12px; border-radius: 6px; transition: background 100ms;
 }
-.foot-link:hover { background: var(--bg-2); color: var(--text); }
+.foot-link:hover { background: var(--surface-raised); color: var(--text); }
 .foot-bot {
   display: flex; justify-content: space-between; align-items: center;
   padding-top: 20px; font-size: 11px; flex-wrap: wrap; gap: 8px;

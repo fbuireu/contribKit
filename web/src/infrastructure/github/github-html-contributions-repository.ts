@@ -6,22 +6,24 @@ import { clampLevel } from '../../domain/value-objects/contribution-level';
 import type { Username } from '../../domain/value-objects/username';
 import type { Year } from '../../domain/value-objects/year';
 
-const UA =
+const USER_AGENT =
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
-
-const buildUrl = (username: string, year: Year | null): string => {
-  const encoded = encodeURIComponent(username);
-  if (!year) return `https://github.com/users/${encoded}/contributions`;
-  const now = new Date().getFullYear();
-  const base = `https://github.com/users/${encoded}/contributions?from=${year.value}-01-01`;
-  return year.value < now ? `${base}&to=${year.value}-12-31` : base;
-};
-
 const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
 const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
 const LEVEL_REGEX = /data-level="(\d)"/;
 const ID_REGEX = /\bid="([^"]+)"/;
 const TIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
+
+
+const buildUrl = (username: string, year: Year | null): string => {
+  const url = new URL(`https://github.com/users/${encodeURIComponent(username)}/contributions`);
+  if (year) {
+    const now = new Date().getFullYear();
+    url.searchParams.set('from', `${year.value}-01-01`);
+    if (year.value < now) url.searchParams.set('to', `${year.value}-12-31`);
+  }
+  return String(url);
+};
 
 const parseHtml = (html: string): { days: ContributionDay[]; total: number | null } => {
   const days: { date: string; level: number; id: string | null }[] = [];
@@ -47,7 +49,7 @@ const parseHtml = (html: string): { days: ContributionDay[]; total: number | nul
     count: id !== null ? (idToCount.get(id) ?? null) : null,
   }));
 
-  const total = idToCount.size > 0 ? enriched.reduce((sum, d) => sum + (d.count ?? 0), 0) : null;
+  const total = idToCount.size > 0 ? enriched.reduce((sum, day) => sum + (day.count ?? 0), 0) : null;
   return { days: enriched, total };
 };
 
@@ -55,26 +57,26 @@ export const createGithubHtmlContributionsRepository = (): ContributionsReposito
   async fetch(username: Username, year: Year | null): Promise<ContributionCalendar | Failure> {
     const url = buildUrl(username.value, year);
 
-    let res: Response;
+    let response: Response;
     try {
-      res = await fetch(url, {
+      response = await fetch(url, {
         redirect: 'follow',
         headers: {
-          'User-Agent': UA,
+          'User-Agent': USER_AGENT,
           Accept: 'text/html, */*',
           'Accept-Language': 'en-US,en;q=0.9',
           'X-Requested-With': 'XMLHttpRequest',
           Referer: `https://github.com/${encodeURIComponent(username.value)}`,
         },
       });
-    } catch (e) {
-      return network(e instanceof Error ? e.message : String(e));
+    } catch (error) {
+      return network(error instanceof Error ? error.message : String(error));
     }
 
-    if (res.status === 404) return notFound(username.value);
-    if (!res.ok) return network(`GitHub returned ${res.status}`, res.status);
+    if (response.status === 404) return notFound(username.value);
+    if (!response.ok) return network(`GitHub returned ${response.status}`, response.status);
 
-    const html = await res.text();
+    const html = await response.text();
     const { days, total } = parseHtml(html);
     if (days.length === 0) return parse('Could not parse contributions');
 

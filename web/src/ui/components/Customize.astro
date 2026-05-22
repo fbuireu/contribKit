@@ -1,10 +1,11 @@
 ---
-import '../styles/components/customize.css';
+import './customize.css';
 import { PALETTES } from '../../domain/value-objects/palette';
 import { SHAPE_KINDS } from '../../domain/value-objects/shape';
+import { shapePreviewSVG } from '../lib/render-svg';
+import ArrowRight from './icons/ArrowRight.astro';
 
-const paletteCount = Object.keys(PALETTES).length;
-const shapeCount = SHAPE_KINDS.length;
+const paletteEntries = Object.values(PALETTES);
 ---
 
 <section class="section" id="custom">
@@ -19,7 +20,7 @@ const shapeCount = SHAPE_KINDS.length;
         <div class="preview-frame" id="custom-grid-container" aria-live="polite" aria-label="Calendar preview"></div>
         <div class="preview-meta">
           <span class="mono dim">palette</span>
-          <span class="mono" id="custom-palette-label">classic</span>
+          <span class="mono" id="custom-palette-label">github</span>
           <span class="mono dimmer">/</span>
           <span class="mono dim">shape</span>
           <span class="mono" id="custom-shape-label">rounded</span>
@@ -29,19 +30,45 @@ const shapeCount = SHAPE_KINDS.length;
         <div class="ctrl-group">
           <div class="ctrl-label">
             <span class="mono dim">palette</span>
-            <span class="mono dimmer">{paletteCount}</span>
+            <span class="mono dimmer">{paletteEntries.length}</span>
           </div>
-          <div class="palette-list" id="palette-list" role="radiogroup" aria-label="Color palette"></div>
+          <div class="palette-list" id="palette-list" role="radiogroup" aria-label="Color palette">
+            {paletteEntries.map(({ key, name, colors }, i) => (
+              <button
+                class:list={['palette-row', { active: i === 0 }]}
+                role="radio"
+                aria-checked={i === 0 ? 'true' : 'false'}
+                data-key={key}
+              >
+                <span class="palette-swatches">
+                  {colors.map((c) => <span style={`background:${c}`} />)}
+                </span>
+                <span class="palette-name mono">{name}</span>
+                <span class="palette-check"><ArrowRight /></span>
+              </button>
+            ))}
+          </div>
         </div>
         <div class="ctrl-group">
           <div class="ctrl-label">
             <span class="mono dim">shape</span>
-            <span class="mono dimmer">{shapeCount}</span>
+            <span class="mono dimmer">{SHAPE_KINDS.length}</span>
           </div>
-          <div class="shape-list" id="shape-list" role="radiogroup" aria-label="Cell shape"></div>
+          <div class="shape-list" id="shape-list" role="radiogroup" aria-label="Cell shape">
+            {SHAPE_KINDS.map((kind, i) => (
+              <button
+                class:list={['shape-btn', { active: i === 0 }]}
+                role="radio"
+                aria-checked={i === 0 ? 'true' : 'false'}
+                data-key={kind}
+              >
+                <Fragment set:html={shapePreviewSVG(kind)} />
+                <span class="mono">{kind}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
-

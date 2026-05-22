@@ -67,7 +67,7 @@
   display: inline-flex; align-items: center; gap: 3px;
   padding: 2px 6px; border-radius: 999px;
   background: rgba(57,211,83,0.12); border: 1px solid rgba(57,211,83,0.18);
-  color: var(--g-4); font-size: 9.5px;
+  color: var(--contrib-peak); font-size: 9.5px;
 }
 .w-grid { line-height: 0; }
 .w-grid svg { border-radius: 2px; max-width: 100%; }
@@ -79,7 +79,7 @@
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 2px;
 }
-.ws-count { font-size: 24px; font-weight: 700; color: var(--g-4); line-height: 1; }
+.ws-count { font-size: 24px; font-weight: 700; color: var(--contrib-peak); line-height: 1; }
 .ws-label { font-size: 8px; color: rgba(255,255,255,0.3); }
 
 .app-icons { display: grid; grid-template-columns: repeat(2, 36px); gap: 6px; padding-top: 6px; }
@@ -101,7 +101,7 @@
   flex-shrink: 0;
   width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
-  background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 8px;
+  background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 8px;
   color: var(--accent); margin-top: 1px;
 }
 .feat-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 4px; }

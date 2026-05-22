@@ -1,6 +1,6 @@
 .topnav {
   position: sticky; top: 0; z-index: 100;
-  background: var(--topnav-bg);
+  background: var(--topnav-background);
   backdrop-filter: saturate(160%) blur(12px);
   -webkit-backdrop-filter: saturate(160%) blur(12px);
   border-bottom: 1px solid var(--border);
@@ -22,7 +22,7 @@
   padding: 8px 12px; border-radius: 6px;
   transition: background 120ms, color 120ms;
 }
-.nav-links a:hover { background: var(--bg-2); color: var(--text); }
+.nav-links a:hover { background: var(--surface-raised); color: var(--text); }
 .theme-toggle {
   display: inline-flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; margin: 0 4px;
@@ -30,19 +30,19 @@
   color: var(--text-dim);
   transition: background 120ms, color 120ms;
 }
-.theme-toggle:hover { background: var(--bg-2); color: var(--text); }
+.theme-toggle:hover { background: var(--surface-raised); color: var(--text); }
 .theme-toggle .ti { display: none; }
 .theme-toggle[data-effective="dark"] .sun { display: block; }
 .theme-toggle[data-effective="light"] .moon { display: block; }
 .nav-cta {
   display: inline-flex; align-items: center; gap: 6px;
-  background: var(--bg-2);
-  border: 1px solid var(--border-2);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
   color: var(--text) !important;
   padding: 7px 12px !important;
   margin-left: 8px;
 }
-.nav-cta:hover { background: var(--bg-3) !important; }
+.nav-cta:hover { background: var(--surface-high) !important; }
 @media (max-width: 720px) {
   .nav-links a:not(.nav-cta) { display: none; }
 }

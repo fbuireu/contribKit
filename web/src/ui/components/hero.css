@@ -19,8 +19,8 @@
   font-variant-numeric: tabular-nums;
   font-size: 11px; letter-spacing: 0.02em;
   color: var(--text-dim);
-  background: var(--bg-2);
-  border: 1px solid var(--border-2);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
 }
 .badge-dot {
@@ -62,8 +62,8 @@
 
 .username-strip {
   display: inline-flex; align-items: stretch;
-  background: var(--bg-2);
-  border: 1px solid var(--border-2);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   font-family: var(--font-mono); font-size: 13px;
   overflow: hidden; margin-bottom: 48px;
@@ -78,14 +78,14 @@
   outline: none;
 }
 .us-label { padding: 10px 4px 10px 14px; color: var(--text-dimmer); }
-.us-input { padding: 10px 8px 10px 0; min-width: 120px; color: var(--g-4); }
+.us-input { padding: 10px 8px 10px 0; min-width: 120px; color: var(--contrib-peak); }
 .us-sep {
-  width: 1px; background: var(--border-2); align-self: stretch;
+  width: 1px; background: var(--border-strong); align-self: stretch;
 }
 .us-year-wrap {
   position: relative;
   display: flex; align-items: center;
-  border-left: 1px solid var(--border-2);
+  border-left: 1px solid var(--border-strong);
 }
 .us-year {
   padding: 0 28px 0 12px;
@@ -100,7 +100,7 @@
   transition: color 120ms;
 }
 .us-year:hover, .us-year:focus { color: var(--text); outline: none; }
-.us-year option { background: var(--bg-3); color: var(--text); }
+.us-year option { background: var(--surface-high); color: var(--text); }
 .us-year-chevron {
   position: absolute; right: 8px;
   pointer-events: none; color: var(--text-dimmer);
@@ -128,8 +128,8 @@
     margin-top: 6px;
     padding: 4px;
     min-width: 96px;
-    background: var(--bg-1);
-    border: 1px solid var(--border-2);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
     border-radius: 8px;
     box-shadow: 0 12px 32px var(--shadow);
     font-family: var(--font-mono); font-size: 13px;
@@ -143,8 +143,8 @@
     cursor: pointer;
     transition: background 80ms, color 80ms;
   }
-  .us-year option:hover { background: var(--bg-2); color: var(--text); }
-  .us-year option:checked { color: var(--accent); background: var(--bg-2); }
+  .us-year option:hover { background: var(--surface-raised); color: var(--text); }
+  .us-year option:checked { color: var(--accent); background: var(--surface-raised); }
   .us-year option::checkmark { display: none; }
   .us-year-chevron { display: none; }
 }
@@ -152,16 +152,16 @@
 .us-go {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 0 14px;
-  border-left: 1px solid var(--border-2);
-  background: var(--bg-3); color: var(--text);
+  border-left: 1px solid var(--border-strong);
+  background: var(--surface-high); color: var(--text);
   transition: background 120ms;
 }
-.us-go:hover { background: var(--bg-2); }
+.us-go:hover { background: var(--surface-raised); }
 
 .hero-stage { position: relative; margin-top: 8px; }
 .hero-card {
   position: relative;
-  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 16px 18px 14px;
@@ -188,7 +188,7 @@
 .bar-title { font-size: 12px; display: flex; gap: 6px; align-items: center; margin-right: auto; }
 .bar-tag {
   font-size: 12px; color: var(--text-dim);
-  padding: 4px 10px; background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 999px;
+  padding: 4px 10px; background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 999px;
 }
 .bar-tag .mono { color: var(--accent); }
 .hero-card-body { padding: 4px 0 6px; overflow-x: auto; }
@@ -211,10 +211,10 @@
 .sug-btn {
   font-size: 11px; color: var(--text-dim);
   padding: 3px 10px;
-  background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 999px;
+  background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 999px;
   transition: background 100ms, color 100ms, border-color 100ms;
 }
-.sug-btn:hover { background: var(--bg-3); color: var(--text); border-color: var(--border); }
+.sug-btn:hover { background: var(--surface-high); color: var(--text); border-color: var(--border); }
 
 .hero-error {
   font-family: var(--font-mono); font-size: 12px;

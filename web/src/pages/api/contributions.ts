@@ -40,7 +40,7 @@ export const GET: APIRoute = async ({ url }) => {
   return Response.json(
     {
       username: result.username,
-      cells: result.days.map((d) => ({ date: d.date, level: d.level, count: d.count })),
+      cells: result.days.map((day) => ({ date: day.date, level: day.level, count: day.count })),
       total: result.total,
     },
     {

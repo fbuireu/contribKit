@@ -1,9 +1,12 @@
 ---
-import '../styles/components/hero.css';
-import IconAppStore from './icons/IconAppStore.astro';
-import IconGooglePlay from './icons/IconGooglePlay.astro';
-import IconChevronDown from './icons/IconChevronDown.astro';
-import IconArrowRight from './icons/IconArrowRight.astro';
+import './hero.css';
+import AppStore from './icons/AppStore.astro';
+import GooglePlay from './icons/GooglePlay.astro';
+import ChevronDown from './icons/ChevronDown.astro';
+import ArrowRight from './icons/ArrowRight.astro';
+
+const GITHUB_START = 2005;
+const currentYear = Temporal.Now.plainDateISO().year;
 
 interface Props {
   heroSVG: string;
@@ -34,14 +37,14 @@ const { heroSVG, summary, palette } = Astro.props;
 
     <div class="cta-row">
       <a href="#" class="btn btn-store" aria-label="Download on the App Store">
-        <IconAppStore />
+        <AppStore />
         <span>
           <small>Download on the</small>
           App Store
         </span>
       </a>
       <a href="#" class="btn btn-store" aria-label="Get it on Google Play">
-        <IconGooglePlay />
+        <GooglePlay />
         <span>
           <small>Get it on</small>
           Google Play
@@ -57,17 +60,17 @@ const { heroSVG, summary, palette } = Astro.props;
           <button type="button">
             <selectedcontent></selectedcontent>
           </button>
-          {Array.from({ length: new Date().getFullYear() - 2005 + 1 }, (_, i) => new Date().getFullYear() - i).map(y => (
+          {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
             <option value={y}>{y}</option>
           ))}
         </select>
         <span class="us-year-chevron" aria-hidden="true">
-          <IconChevronDown />
+          <ChevronDown />
         </span>
       </div>
       <button class="us-go" id="hero-render-btn" type="button">
-        render
-        <IconArrowRight />
+        <span id="hero-render-label">render</span>
+        <ArrowRight />
       </button>
     </div>
 

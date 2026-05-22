@@ -8,7 +8,7 @@
 @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
 
 .step {
-  background: var(--bg-1);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
@@ -27,7 +27,7 @@
   flex: 1;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg-2);
+  background: var(--surface-raised);
   padding: 16px;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono); font-size: 13px;
@@ -45,7 +45,7 @@
 .chip-row { display: flex; gap: 6px; }
 .chip { width: 14px; height: 14px; border-radius: 50%; }
 .shape-row { display: flex; gap: 10px; align-items: center; }
-.shape-tile { width: 16px; height: 16px; background: var(--g-3); display: inline-block; }
+.shape-tile { width: 16px; height: 16px; background: var(--contrib-high); display: inline-block; }
 .shape-tile.sq { border-radius: 3px; }
 .shape-tile.circ { border-radius: 50%; }
 .shape-tile.dot {
@@ -53,18 +53,18 @@
   display: inline-flex; align-items: center; justify-content: center;
 }
 .shape-tile.dot i {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--g-3); display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--contrib-high); display: inline-block;
 }
 .shape-tile.hex {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background-color: var(--g-3);
+  background-color: var(--contrib-high);
 }
 
 .step-export { flex-direction: column; gap: 8px; width: 100%; }
 .export-pill {
   display: flex; align-items: center; justify-content: space-between;
   padding: 6px 10px;
-  background: var(--bg-3); border: 1px solid var(--border-2); border-radius: 6px;
+  background: var(--surface-high); border: 1px solid var(--border-strong); border-radius: 6px;
   font-size: 12px; width: 100%; max-width: 180px; color: var(--text-dim);
 }
 .export-pill .mono { color: var(--accent); }
@@ -73,7 +73,7 @@
 .widget-mock {
   width: 100%; max-width: 160px;
   background: var(--overlay);
-  border: 1px solid var(--overlay-2);
+  border: 1px solid var(--overlay-strong);
   border-radius: 12px;
   padding: 8px 10px;
   display: flex; flex-direction: column; gap: 6px;
@@ -93,11 +93,11 @@
 .wm-cell {
   aspect-ratio: 1; border-radius: 1px;
 }
-.wm-cell[data-level="0"] { background: var(--g-0); }
-.wm-cell[data-level="1"] { background: var(--g-1); }
-.wm-cell[data-level="2"] { background: var(--g-2); }
-.wm-cell[data-level="3"] { background: var(--g-3); }
-.wm-cell[data-level="4"] { background: var(--g-4); }
+.wm-cell[data-level="0"] { background: var(--contrib-none); }
+.wm-cell[data-level="1"] { background: var(--contrib-low); }
+.wm-cell[data-level="2"] { background: var(--contrib-mid); }
+.wm-cell[data-level="3"] { background: var(--contrib-high); }
+.wm-cell[data-level="4"] { background: var(--contrib-peak); }
 .wm-foot { font-size: 8px; color: var(--text-dimmer); }
 
 .step-title { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }

@@ -1,7 +1,9 @@
 ---
-import '../styles/components/how-it-works.css';
-import IconCopy from './icons/IconCopy.astro';
-import IconDownload from './icons/IconDownload.astro';
+import './how-it-works.css';
+import Copy from './icons/Copy.astro';
+import Download from './icons/Download.astro';
+
+const WIDGET_DEMO_LEVELS = [0,0,1,0,2,1,0,3,1,0,2,4,1,0,1,2,0,3,1,0,1,0,2,1,3,2,0,1,0,0,2,0,1,3,2,1,0,1,0,2,3,1,0,1,0,2,1,0,0,3,2,1,0,1,2,0,1,3,0,2,1,0,1,2,3,0,1,2,0,1,3,2,0,1,0,1,2,3,4,2,1,0,1,2];
 ---
 
 <section class="section" id="how">
@@ -30,12 +32,6 @@ import IconDownload from './icons/IconDownload.astro';
           <span class="step-rule" aria-hidden="true"></span>
         </div>
         <div class="step-glyph step-customize" aria-hidden="true">
-          <div class="chip-row">
-            <span class="chip" style="background:#39D353"></span>
-            <span class="chip" style="background:#7fb0ff"></span>
-            <span class="chip" style="background:#f0a45a"></span>
-            <span class="chip" style="background:#c8a8ff"></span>
-          </div>
           <div class="shape-row">
             <span class="shape-tile sq"></span>
             <span class="shape-tile circ"></span>
@@ -55,15 +51,15 @@ import IconDownload from './icons/IconDownload.astro';
         <div class="step-glyph step-export" aria-hidden="true">
           <div class="export-pill">
             <span class="mono">.png</span>
-            <IconDownload />
+            <Download />
           </div>
           <div class="export-pill">
             <span class="mono">.svg</span>
-            <IconCopy />
+            <Copy />
           </div>
           <div class="export-pill">
             <span class="mono">.md</span>
-            <IconCopy />
+            <Copy />
           </div>
         </div>
         <h3 class="step-title">Export</h3>
@@ -82,10 +78,9 @@ import IconDownload from './icons/IconDownload.astro';
               <span class="wm-user mono" id="how-widget-username">torvalds</span>
             </div>
             <div class="wm-cells">
-              {Array.from({ length: 12 * 7 }, (_, i) => {
-                const lvl = [0,0,1,0,2,1,0,3,1,0,2,4,1,0,1,2,0,3,1,0,1,0,2,1,3,2,0,1,0,0,2,0,1,3,2,1,0,1,0,2,3,1,0,1,0,2,1,0,0,3,2,1,0,1,2,0,1,3,0,2,1,0,1,2,3,0,1,2,0,1,3,2,0,1,0,1,2,3,4,2,1,0,1,2][i % 84];
-                return <span class="wm-cell" data-level={lvl}></span>;
-              })}
+              {WIDGET_DEMO_LEVELS.map((lvl) => (
+                <span class="wm-cell" data-level={lvl}></span>
+              ))}
             </div>
             <div class="wm-foot mono">42 day streak</div>
           </div>

@@ -1,4 +1,4 @@
-import rawPalettes from '@shared/palettes.json' with { type: 'json' };
+import palettes from '@shared/palettes.json' with { type: 'json' };
 
 export type PaletteColors = readonly [string, string, string, string, string];
 
@@ -9,12 +9,12 @@ export interface Palette {
 }
 
 export const PALETTES: Record<string, Palette> = Object.fromEntries(
-  rawPalettes.map((p) => [
-    p.key,
+  palettes.map((palette) => [
+    palette.key,
     {
-      key: p.key,
-      name: p.name,
-      colors: [p.none, p.low, p.medium, p.high, p.veryHigh] as const,
+      key: palette.key,
+      name: palette.name,
+      colors: [palette.none, palette.low, palette.medium, palette.high, palette.veryHigh] as const,
     },
   ]),
 );

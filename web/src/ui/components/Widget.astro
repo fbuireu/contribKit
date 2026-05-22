@@ -1,39 +1,14 @@
 ---
-import '../styles/components/widget.css';
-import IconFlame from './icons/IconFlame.astro';
-import IconPhone from './icons/IconPhone.astro';
-import IconGrid from './icons/IconGrid.astro';
-import IconClock from './icons/IconClock.astro';
-import IconPalette from './icons/IconPalette.astro';
-import { mulberry32 } from '../lib/mulberry';
+import './widget.css';
+import Flame from './icons/Flame.astro';
+import Phone from './icons/Phone.astro';
+import Grid from './icons/Grid.astro';
+import Clock from './icons/Clock.astro';
+import Palette from './icons/Palette.astro';
 import { PALETTES } from '../../domain/value-objects/palette';
+import { generateMiniGrid } from '../lib/mini-grid';
 
-// Mini contribution grid for the phone mockup
-const pal = PALETTES.github.colors;
-
-const rand = mulberry32(99);
-const COLS = 26, ROWS = 7;
-const cells: number[] = Array.from({ length: COLS * ROWS }, (_, i) => {
-  const r = rand();
-  const progress = (Math.floor(i / ROWS)) / COLS;
-  const boosted = r + progress * 0.3 + Math.sin(i / 8) * 0.15;
-  if (boosted > 0.92) return 4;
-  if (boosted > 0.78) return 3;
-  if (boosted > 0.62) return 2;
-  if (boosted > 0.42) return 1;
-  return 0;
-});
-
-const sz = 4, gap = 1, step = sz + gap;
-const svgW = COLS * step, svgH = ROWS * step;
-let miniGrid = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">`;
-for (let w = 0; w < COLS; w++) {
-  for (let d = 0; d < ROWS; d++) {
-    const level = cells[w * ROWS + d];
-    miniGrid += `<rect x="${w * step}" y="${d * step}" width="${sz}" height="${sz}" rx="1" fill="${pal[level]}"/>`;
-  }
-}
-miniGrid += '</svg>';
+const miniGrid = generateMiniGrid(PALETTES.github.colors);
 ---
 
 <section class="section" id="widget">
@@ -56,7 +31,7 @@ miniGrid += '</svg>';
                 <div class="w-head">
                   <span class="mono w-name">torvalds</span>
                   <span class="w-streak">
-                    <IconFlame />
+                    <Flame />
                     <span class="mono">42</span>
                   </span>
                 </div>
@@ -87,7 +62,7 @@ miniGrid += '</svg>';
       <div class="feat-list">
         <div class="feat">
           <div class="feat-icon">
-            <IconPhone />
+            <Phone />
           </div>
           <div class="feat-text">
             <div class="feat-title">iOS &amp; Android</div>
@@ -96,7 +71,7 @@ miniGrid += '</svg>';
         </div>
         <div class="feat">
           <div class="feat-icon">
-            <IconGrid />
+            <Grid />
           </div>
           <div class="feat-text">
             <div class="feat-title">Three sizes</div>
@@ -105,7 +80,7 @@ miniGrid += '</svg>';
         </div>
         <div class="feat">
           <div class="feat-icon">
-            <IconClock />
+            <Clock />
           </div>
           <div class="feat-text">
             <div class="feat-title">Daily refresh</div>
@@ -114,7 +89,7 @@ miniGrid += '</svg>';
         </div>
         <div class="feat">
           <div class="feat-icon">
-            <IconPalette />
+            <Palette />
           </div>
           <div class="feat-text">
             <div class="feat-title">All palettes</div>
@@ -122,7 +97,6 @@ miniGrid += '</svg>';
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </section>

@@ -1,10 +1,16 @@
 ---
-import '../styles/components/export.css';
+import './export.css';
 
 interface Props {
   exportPNGSVG: string;
 }
 const { exportPNGSVG } = Astro.props;
+
+const EXPORT_FORMATS = [
+  { key: 'png', label: 'PNG', detail: '2880×720 · transparent', size: '186 KB' },
+  { key: 'svg', label: 'SVG', detail: 'Vector · 53×7 grid',     size: '24 KB' },
+  { key: 'md',  label: 'MD',  detail: 'GitHub-flavored embed',   size: '410 B' },
+] as const;
 ---
 
 <section class="section" id="export">
@@ -15,7 +21,21 @@ const { exportPNGSVG } = Astro.props;
       <span class="dim">Pick the right one for the surface.</span>
     </h2>
     <div class="export-grid">
-      <div class="export-tabs" id="export-tabs" role="tablist" aria-label="Export format"></div>
+      <div class="export-tabs" id="export-tabs" role="tablist" aria-label="Export format">
+        {EXPORT_FORMATS.map(({ key, label, detail, size }, i) => (
+          <button
+            class:list={['export-tab', { active: i === 0 }]}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            data-key={key}
+          >
+            <span class="mono tab-key">.{key}</span>
+            <span class="tab-label">{label}</span>
+            <span class="tab-detail">{detail}</span>
+            <span class="mono dimmer tab-size">{size}</span>
+          </button>
+        ))}
+      </div>
       <div class="export-preview" id="export-preview" role="tabpanel">
         <div class="preview-card png-preview">
           <div class="preview-checker" aria-hidden="true"></div>
@@ -28,4 +48,3 @@ const { exportPNGSVG } = Astro.props;
     </div>
   </div>
 </section>
-
