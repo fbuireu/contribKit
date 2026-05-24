@@ -11,8 +11,17 @@ pre-commit:
       glob: "*.dart"
       run: flutter analyze --fatal-infos
 
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit "{1}"
+
 pre-push:
+  parallel: true
   commands:
     flutter-analyze:
       root: "app/"
       run: flutter analyze --fatal-infos
+    web-check:
+      root: "web/"
+      run: pnpm check

@@ -23,7 +23,6 @@ import 'package:contribkit/ui/widgets/app_text_field.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 /// The primary screen: username input, contribution grid, and customizer.
@@ -139,11 +138,7 @@ class _Header extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Image.asset(
-            'assets/images/logo.png',
-            height: 22,
-            width: 22,
-          ),
+          Image.asset('assets/images/logo.png', height: 22, width: 22),
           const SizedBox(width: Tokens.space2),
           Text(
             'ContribKit',

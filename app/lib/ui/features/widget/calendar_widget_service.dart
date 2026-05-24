@@ -43,10 +43,7 @@ abstract final class CalendarWidgetService {
           _usernameKey,
           calendar.username.value,
         ),
-        HomeWidget.saveWidgetData<int>(
-          _streakKey,
-          _calculateStreak(calendar),
-        ),
+        HomeWidget.saveWidgetData<int>(_streakKey, _calculateStreak(calendar)),
         HomeWidget.saveWidgetData<int>(
           _totalContributionsKey,
           calendar.totalContributions,

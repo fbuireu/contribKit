@@ -2,18 +2,14 @@
   "name": "contribkit-monorepo",
   "private": true,
   "version": "0.0.0",
-  "description": "Repo-level dev tooling: husky + commitlint + semantic-release. App and web each have their own toolchains.",
+  "description": "Repo-level dev tooling: commitlint. App and web each have their own toolchains.",
   "packageManager": "pnpm@11.3.0",
   "engines": {
     "node": "v24.14.1"
   },
-  "scripts": {
-    "prepare": "husky"
-  },
   "devDependencies": {
     "@commitlint/cli": "21.0.1",
     "@commitlint/config-conventional": "21.0.1",
-    "@commitlint/format": "21.0.1",
-    "husky": "9.1.7"
+    "@commitlint/format": "21.0.1"
   }
 }
