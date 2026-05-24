@@ -1,0 +1,13 @@
+pre-commit:
+  commands:
+    web-format:
+      root: "web/"
+      glob: "**/*.{ts,astro,css,json}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+
+pre-push:
+  commands:
+    web-check:
+      root: "web/"
+      run: pnpm lint:astro

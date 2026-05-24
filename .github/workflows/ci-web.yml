@@ -39,7 +39,7 @@ jobs:
         run: pnpm lint:all
 
       - name: Type check
-        run: pnpm check
+        run: pnpm lint:astro
 
       - name: Test
         run: pnpm test

@@ -1,2 +1,3 @@
 extends:
   - app/lefthook.yml
+  - web/lefthook.yml

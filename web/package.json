@@ -10,10 +10,10 @@
 	},
 	"scripts": {
 		"dev": "astro dev --open",
-		"build": "pnpm check && astro build",
+		"build": "astro build",
 		"preview": "astro preview",
 		"sync": "astro sync",
-		"check": "astro check",
+		"lint:astro": "astro check",
 		"test": "vitest --passWithNoTests --logHeapUsage",
 		"test:changed": "pnpm test --bail --findRelatedTests",
 		"format": "biome check --write --no-errors-on-unmatched",

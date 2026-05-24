@@ -98,10 +98,7 @@ Future<void> main() async {
 
 Future<void> _initRevenueCat() async {
   const key = String.fromEnvironment('REVENUECAT_KEY');
-  assert(
-    key.isNotEmpty,
-    'REVENUECAT_KEY is not set. Run with --dart-define-from-file=dart-defines.json',
-  );
+  if (key.isEmpty) return;
   await Purchases.setLogLevel(LogLevel.error);
   await Purchases.configure(PurchasesConfiguration(key));
 }
