@@ -17,8 +17,8 @@ export function renderCalendarString({
   let lastMonth = -1;
   weeks.forEach((week, weekIndex) => {
     if (!week[0]) return;
-    const month = week[0].date.month - 1;
-    if (month !== lastMonth && week[0].date.day <= 7) {
+    const month = parseInt(week[0].date.slice(5, 7), 10) - 1;
+    if (month !== lastMonth && parseInt(week[0].date.slice(8, 10), 10) <= 7) {
       monthLabels.push({ weekIndex, label: MONTHS[month] });
       lastMonth = month;
     }

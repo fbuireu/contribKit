@@ -18,7 +18,7 @@ const ERRORS: Record<number, string> = {
 };
 
 let liveCells = CELLS;
-let liveUsername = window.__INITIAL_USERNAME__;
+let liveUsername = window.__INITIAL_USERNAME__ ?? '';
 
 const getActivePalette = () =>
   document.querySelector<HTMLElement>('#palette-list .palette-row.active')?.dataset.key ?? DEFAULT_PALETTE_KEY;
