@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_small_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#09090B"
+    android:padding="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/widget_card_bg"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/widget_small_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#39D353"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="day streak"
+            android:textColor="#4DFFFFFF"
+            android:textSize="8sp"
+            android:fontFamily="monospace"
+            android:layout_marginTop="3dp" />
+
+    </LinearLayout>
+</FrameLayout>

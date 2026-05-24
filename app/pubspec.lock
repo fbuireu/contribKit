@@ -189,10 +189,10 @@ packages:
     dependency: transitive
     description:
       name: code_assets
-      sha256: "83ccdaa064c980b5596c35dd64a8d3ecc68620174ab9b90b6343b753aa721687"
+      sha256: dad6bf6b9f4f378b0a69edbf42584d336efd1a9ce15deb1ba591cbb1b5ff440f
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0"
   code_builder:
     dependency: transitive
     description:
@@ -481,18 +481,18 @@ packages:
     dependency: "direct main"
     description:
       name: home_widget
-      sha256: "7430f7549d42cef2e729bd3c779de748b93f1eb78b1abfe6bca8fffd1cfce3e9"
+      sha256: b04f99438ad6c5aad80fc9fca1e2e3471bf2a15028f614e4814d2552e13bc2a3
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.0+1"
+    version: "0.9.1"
   hooks:
     dependency: transitive
     description:
       name: hooks
-      sha256: "025f060e86d2d4c3c47b56e33caf7f93bf9283340f26d23424ebcfccf34f621e"
+      sha256: a41af4e8fc687cd6d33de9751eb936c8c0204ebe2bcb6c15ecf707504bf47f31
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "2.0.0"
   html:
     dependency: transitive
     description:
@@ -641,10 +641,10 @@ packages:
     dependency: transitive
     description:
       name: lucide_icons_flutter
-      sha256: "32d30fd06a84308204e0a2f7725b846a4b289d0ffefd880120989045c760cf94"
+      sha256: f9fd5d49b93bf14b89e0ff4818658a74ab16899bdaf7aa745358ee1a34f54eed
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.14"
+    version: "3.1.14+1"
   matcher:
     dependency: transitive
     description:
@@ -693,14 +693,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
-  native_toolchain_c:
-    dependency: transitive
-    description:
-      name: native_toolchain_c
-      sha256: "6ba77bb18063eebe9de401f5e6437e95e1438af0a87a3a39084fbd37c90df572"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.17.6"
   node_preamble:
     dependency: transitive
     description:
@@ -713,10 +705,10 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: "100a1c87616ab6ed41ec263b083c0ef3261ee6cd1dc3b0f35f8ddfa4f996fe52"
+      sha256: "6cb691c686fa2838c6deb34980d426145c2a5d537491cb83d463c33cdbc726ed"
       url: "https://pub.dev"
     source: hosted
-    version: "9.3.0"
+    version: "9.4.1"
   package_config:
     dependency: transitive
     description:
@@ -849,18 +841,18 @@ packages:
     dependency: "direct main"
     description:
       name: purchases_flutter
-      sha256: "4867880502526a9fcede5b8233288824791d7d6e350f5455f731d527d52accdc"
+      sha256: e0034abc9b4412da1dcf3c4d9df04bf3256998d4982846f9c9952212e5619751
       url: "https://pub.dev"
     source: hosted
-    version: "10.1.0"
+    version: "10.1.1"
   purchases_ui_flutter:
     dependency: "direct main"
     description:
       name: purchases_ui_flutter
-      sha256: "38f45e9236e2109152ea9b0e073b6bfa693488ce24188d8bf5906ccd9bcea0ef"
+      sha256: "9f82fbc98602151f2943e526e0e6e9abca818d5913ba1365f906ca8be711a728"
       url: "https://pub.dev"
     source: hosted
-    version: "10.1.0"
+    version: "10.1.1"
   record_use:
     dependency: transitive
     description:
@@ -1198,10 +1190,10 @@ packages:
     dependency: transitive
     description:
       name: vector_graphics
-      sha256: "4d35a36400983c3457c289d4d553b5308f506ea84f7e51c7a564651b5525209a"
+      sha256: "2306c03da2ba81724afeb589c351ebbc0aa7d86005925be8f8735856dbe5e42d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "1.2.2"
   vector_graphics_codec:
     dependency: transitive
     description:
@@ -1214,10 +1206,10 @@ packages:
     dependency: transitive
     description:
       name: vector_graphics_compiler
-      sha256: "98e7e94de127b46a86ef46197fff84ff99f3d3b80a708390d717ad731efef598"
+      sha256: b9b3f391857781aa96acacef96066f2f49b4cd03cf9fce3ca4d8da2ef5ea129e
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.2"
+    version: "1.2.3"
   vector_math:
     dependency: transitive
     description:
@@ -1278,10 +1270,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: a1fc9eb9248baa05dfc12ed5b66e377b3e23f095eec078e0371622b9033810d9
+      sha256: ba6f4bba816c8d7e3c1580e170f3786d216951cc6b94babc3b814c08d2cb2738
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.0"
+    version: "6.3.0"
   workmanager:
     dependency: "direct main"
     description:

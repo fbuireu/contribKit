@@ -1,42 +1,42 @@
 ---
-import BaseLayout from '../ui/components/layouts/BaseLayout.astro';
-import CellTip from '../ui/components/CellTip.astro';
-import Hero from '../ui/components/Hero.astro';
-import HowItWorks from '../ui/components/HowItWorks.astro';
-import Customize from '../ui/components/Customize.astro';
-import Export from '../ui/components/Export.astro';
-import Widget from '../ui/components/Widget.astro';
-import { fetchContributions } from '../application/use-cases/fetch-contributions';
-import { PALETTES } from '../domain/value-objects/palette';
-import { parseUsername } from '../domain/value-objects/username';
-import { parseYear, isYear } from '../domain/value-objects/year';
-import { createGithubHtmlContributionsRepository } from '../infrastructure/github/github-html-contributions-repository';
-import { isFailure } from '../ui/lib/failure-http';
-import { generateData, buildGridFromApi, summarize, type Cell } from '../ui/lib/calendar-utils';
-import { renderCalendarString } from '../ui/lib/render-svg';
+import { fetchContributions } from "../application/use-cases/fetch-contributions";
+import { PALETTES } from "../domain/value-objects/palette";
+import { parseUsername } from "../domain/value-objects/username";
+import { isYear, parseYear } from "../domain/value-objects/year";
+import { createGithubHtmlContributionsRepository } from "../infrastructure/github/github-html-contributions-repository";
+import CellTip from "../ui/components/CellTip.astro";
+import Customize from "../ui/components/Customize.astro";
+import Export from "../ui/components/Export.astro";
+import Hero from "../ui/components/Hero.astro";
+import HowItWorks from "../ui/components/HowItWorks.astro";
+import BaseLayout from "../ui/components/layouts/BaseLayout.astro";
+import Widget from "../ui/components/Widget.astro";
+import { buildGridFromApi, type Cell, generateData, summarize } from "../ui/lib/calendar-utils";
+import { isFailure } from "../ui/lib/failure-http";
+import { renderCalendarString } from "../ui/lib/render-svg";
 
-const DEFAULT_USERNAME = 'torvalds';
-const SITE_URL = 'https://contribkit.app';
-const TITLE = 'ContribKit — Your GitHub activity, your aesthetic.';
-const DESCRIPTION = 'Visualize, customize, and export your GitHub contribution calendar — no token required.';
+const DEFAULT_USERNAME = "torvalds";
+const SITE_URL = "https://contribkit.app";
+const TITLE = "ContribKit — Your GitHub activity, your aesthetic.";
+const DESCRIPTION = "Visualize, customize, and export your GitHub contribution calendar — no token required.";
 
 async function loadInitialContributions(): Promise<{ cells: Cell[]; total: number | null; year: number } | null> {
-  const username = parseUsername(DEFAULT_USERNAME);
-  if (isFailure(username)) return null;
-  // TODO: migrate to Temporal once it's natively available in Node and all target browsers
-  const currentYear = new Date().getFullYear();
-  const year = parseYear(String(currentYear));
-  if (isFailure(year)) return null;
-  const yearValue = isYear(year) ? year : null;
+	const username = parseUsername(DEFAULT_USERNAME);
+	if (isFailure(username)) return null;
+	// TODO: migrate to Temporal once it's natively available in Node and all target browsers
+	const currentYear = new Date().getFullYear();
+	const year = parseYear(String(currentYear));
+	if (isFailure(year)) return null;
+	const yearValue = isYear(year) ? year : null;
 
-  const repo = createGithubHtmlContributionsRepository();
-  const result = await fetchContributions(repo)(username, yearValue);
-  if (isFailure(result)) return null;
-  return {
-    cells: buildGridFromApi(result.days, currentYear),
-    total: result.total,
-    year: currentYear,
-  };
+	const repo = createGithubHtmlContributionsRepository();
+	const result = await fetchContributions(repo)(username, yearValue);
+	if (isFailure(result)) return null;
+	return {
+		cells: buildGridFromApi(result.days, currentYear),
+		total: result.total,
+		year: currentYear,
+	};
 }
 
 const CLASSIC = [...PALETTES.github.colors];
@@ -46,19 +46,23 @@ const cells: Cell[] = initial?.cells ?? generateData(7);
 const summary = summarize(cells);
 if (initial?.total != null) summary.count = initial.total;
 
-const heroSVG = renderCalendarString({ cells, palette: CLASSIC, shape: 'rounded', size: 13, gap: 3, showLabels: true });
-const exportPNGSVG = renderCalendarString({ cells, palette: CLASSIC, shape: 'rounded', size: 10, gap: 2, showLabels: false });
+const heroSVG = renderCalendarString({ cells, palette: CLASSIC, shape: "rounded", size: 13, gap: 3, showLabels: true });
+const exportPNGSVG = renderCalendarString({
+	cells,
+	palette: CLASSIC,
+	shape: "rounded",
+	size: 10,
+	gap: 2,
+	showLabels: false,
+});
 
 const initialCellsForClient = cells.map((cell) => ({
-  date: cell.date,
-  level: cell.level,
-  count: cell.count ?? null,
+	date: cell.date,
+	level: cell.level,
+	count: cell.count ?? null,
 }));
 
-Astro.response.headers.set(
-  'Cache-Control',
-  'public, max-age=3600, stale-while-revalidate=86400',
-);
+Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL}>

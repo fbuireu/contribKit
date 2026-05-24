@@ -38,8 +38,15 @@ jobs:
         with:
           node-version-file: web/.nvmrc
           cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            app/pnpm-lock.yaml
 
       - name: Install root tooling
+        run: pnpm install --frozen-lockfile
+
+      - name: Install app release tooling
+        working-directory: app
         run: pnpm install --frozen-lockfile
 
       - name: Semantic Release

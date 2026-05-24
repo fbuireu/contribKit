@@ -7,11 +7,14 @@ import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
+import 'package:contribkit/ui/widgets/app_card.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Bottom panel with export format buttons and clipboard copy for Markdown.
@@ -31,6 +34,65 @@ class ExportPanel extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<ExportPanel> createState() => _ExportPanelState();
+}
+
+class _ExportFormatButton extends StatelessWidget {
+  const _ExportFormatButton({
+    required this.label,
+    required this.sublabel,
+    required this.colors,
+    required this.disabled,
+    required this.onTap,
+  });
+
+  final String label;
+  final String sublabel;
+  final AppColors colors;
+  final bool disabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: disabled ? null : onTap,
+    child: AnimatedOpacity(
+      duration: Tokens.durationFast,
+      opacity: disabled ? 0.45 : 1.0,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.muted,
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          border: Border.all(color: colors.border),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Tokens.space3,
+            vertical: Tokens.space2,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: Tokens.textSm,
+                  fontWeight: FontWeight.w600,
+                  color: colors.foreground,
+                ),
+              ),
+              Text(
+                sublabel,
+                style: TextStyle(
+                  fontSize: Tokens.textXs,
+                  color: colors.mutedForeground,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _ExportPanelState extends ConsumerState<ExportPanel> {
@@ -91,44 +153,72 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
     final user = widget.calendar.username.value;
     final year = widget.calendar.year.value;
 
-    return Padding(
-      padding: const EdgeInsets.all(Tokens.space4),
-      child: Row(
-        spacing: Tokens.space2,
+    final colors = AppColors.of(context);
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: Tokens.space3,
         children: [
-          AppButton.outline(
-            onPressed: _exporting
-                ? null
-                : () => _export(
-                    useCase: svg,
-                    filename: '${user}_$year.svg',
-                    mimeType: 'image/svg+xml',
-                  ),
-            child: const Text('SVG'),
+          Text(
+            'Export',
+            style: TextStyle(
+              fontSize: Tokens.textSm,
+              color: ShadTheme.of(context).colorScheme.mutedForeground,
+            ),
           ),
-          AppButton.outline(
-            onPressed: _exporting
-                ? null
-                : () => _export(
-                    useCase: png,
-                    filename: '${user}_$year.png',
-                    mimeType: 'image/png',
-                  ),
-            child: const Text('PNG'),
-          ),
-          AppButton.outline(
-            onPressed: _exporting
-                ? null
-                : () => _export(
-                    useCase: md,
-                    filename: '${user}_$year.md',
-                    mimeType: 'text/markdown',
-                  ),
-            child: const Text('MD'),
-          ),
-          AppButton.ghost(
-            onPressed: _exporting ? null : () => _copyMarkdown(md),
-            child: Text(_copied ? 'Copied!' : 'Copy MD'),
+          Row(
+            spacing: Tokens.space2,
+            children: [
+              _ExportFormatButton(
+                label: 'SVG',
+                sublabel: 'vector',
+                colors: colors,
+                disabled: _exporting,
+                onTap: () => _export(
+                  useCase: svg,
+                  filename: '${user}_$year.svg',
+                  mimeType: 'image/svg+xml',
+                ),
+              ),
+              _ExportFormatButton(
+                label: 'PNG',
+                sublabel: 'image',
+                colors: colors,
+                disabled: _exporting,
+                onTap: () => _export(
+                  useCase: png,
+                  filename: '${user}_$year.png',
+                  mimeType: 'image/png',
+                ),
+              ),
+              _ExportFormatButton(
+                label: 'MD',
+                sublabel: 'markdown',
+                colors: colors,
+                disabled: _exporting,
+                onTap: () => _export(
+                  useCase: md,
+                  filename: '${user}_$year.md',
+                  mimeType: 'text/markdown',
+                ),
+              ),
+              const Spacer(),
+              AppButton.ghost(
+                onPressed: _exporting ? null : () => _copyMarkdown(md),
+                size: ShadButtonSize.sm,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: Tokens.space1,
+                  children: [
+                    Icon(
+                      _copied ? LucideIcons.check : LucideIcons.copy,
+                      size: 14,
+                    ),
+                    Text(_copied ? 'Copied' : 'Copy MD'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

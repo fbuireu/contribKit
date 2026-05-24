@@ -1,11 +1,11 @@
 ---
 interface Props {
-  class?: string;
-  width?: number | string;
-  height?: number | string;
-  fill?: string;
+	class?: string;
+	width?: number | string;
+	height?: number | string;
+	fill?: string;
 }
-const { class: className, width = 9, height = 11, fill = 'var(--contrib-high)' } = Astro.props;
+const { class: className, width = 9, height = 11, fill = "var(--contrib-high)" } = Astro.props;
 ---
 <svg
   class={className}

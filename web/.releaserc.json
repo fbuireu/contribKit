@@ -1,24 +1,24 @@
 {
-  "branches": ["main"],
-  "tagFormat": "web-v${version}",
-  "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
-    "@semantic-release/changelog",
-    [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "pnpm version --no-git-tag-version --allow-same-version ${nextRelease.version}",
-        "successCmd": "echo new_release_published=true >> $GITHUB_OUTPUT && echo new_release_version=${nextRelease.version} >> $GITHUB_OUTPUT"
-      }
-    ],
-    [
-      "@semantic-release/git",
-      {
-        "assets": ["package.json", "CHANGELOG.md"],
-        "message": "chore(release): web ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-      }
-    ],
-    "@semantic-release/github"
-  ]
+	"branches": ["main"],
+	"tagFormat": "web-v${version}",
+	"plugins": [
+		"@semantic-release/commit-analyzer",
+		"@semantic-release/release-notes-generator",
+		"@semantic-release/changelog",
+		[
+			"@semantic-release/exec",
+			{
+				"prepareCmd": "pnpm version --no-git-tag-version --allow-same-version ${nextRelease.version}",
+				"successCmd": "echo new_release_published=true >> $GITHUB_OUTPUT && echo new_release_version=${nextRelease.version} >> $GITHUB_OUTPUT"
+			}
+		],
+		[
+			"@semantic-release/git",
+			{
+				"assets": ["package.json", "CHANGELOG.md"],
+				"message": "chore(release): web ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+			}
+		],
+		"@semantic-release/github"
+	]
 }

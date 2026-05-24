@@ -1,23 +1,16 @@
 ---
-type RobotsDirective = 'index, follow' | 'noindex' | 'noindex, nofollow' | 'nofollow';
+type RobotsDirective = "index, follow" | "noindex" | "noindex, nofollow" | "nofollow";
 
 interface Props {
-  title: string;
-  description?: string;
-  url?: string;
-  image?: string;
-  robots?: RobotsDirective;
-  type?: 'website' | 'article';
+	title: string;
+	description?: string;
+	url?: string;
+	image?: string;
+	robots?: RobotsDirective;
+	type?: "website" | "article";
 }
 
-const {
-  title,
-  description,
-  url,
-  image,
-  robots = 'index, follow',
-  type = 'website',
-} = Astro.props;
+const { title, description, url, image, robots = "index, follow", type = "website" } = Astro.props;
 ---
 
 <title>{title}</title>

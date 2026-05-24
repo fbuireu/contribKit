@@ -1,17 +1,17 @@
 {
-  "extends": ["astro/tsconfigs/strict"],
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"],
-  "compilerOptions": {
-    "types": ["vite/client"],
-    "paths": {
-      "@shared/*": ["../shared/*"],
-      "@domain/*": ["./src/domain/*"],
-      "@application/*": ["./src/application/*"],
-      "@infrastructure/*": ["./src/infrastructure/*"],
-      "@ui/*": ["./src/ui/*"],
-      "@assets/*": ["./src/assets/*"]
-    },
-    "plugins": [{ "name": "@astrojs/ts-plugin" }]
-  }
+	"extends": ["astro/tsconfigs/strict"],
+	"include": [".astro/types.d.ts", "**/*"],
+	"exclude": ["dist"],
+	"compilerOptions": {
+		"types": ["vite/client"],
+		"paths": {
+			"@shared/*": ["../shared/*"],
+			"@domain/*": ["./src/domain/*"],
+			"@application/*": ["./src/application/*"],
+			"@infrastructure/*": ["./src/infrastructure/*"],
+			"@ui/*": ["./src/ui/*"],
+			"@assets/*": ["./src/assets/*"]
+		},
+		"plugins": [{ "name": "@astrojs/ts-plugin" }]
+	}
 }

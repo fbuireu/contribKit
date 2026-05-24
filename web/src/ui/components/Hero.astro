@@ -1,17 +1,17 @@
 ---
-import './hero.css';
-import AppStore from './icons/AppStore.astro';
-import GooglePlay from './icons/GooglePlay.astro';
-import ChevronDown from './icons/ChevronDown.astro';
-import ArrowRight from './icons/ArrowRight.astro';
+import "./hero.css";
+import AppStore from "./icons/AppStore.astro";
+import ArrowRight from "./icons/ArrowRight.astro";
+import ChevronDown from "./icons/ChevronDown.astro";
+import GooglePlay from "./icons/GooglePlay.astro";
 
 const GITHUB_START = 2005;
 const currentYear = new Date().getFullYear();
 
 interface Props {
-  heroSVG: string;
-  summary: { count: number; streak: number; longest: number };
-  palette: string[];
+	heroSVG: string;
+	summary: { count: number; streak: number; longest: number };
+	palette: string[];
 }
 const { heroSVG, summary, palette } = Astro.props;
 ---

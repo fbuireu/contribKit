@@ -4,22 +4,100 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#09090B"
-    android:padding="12dp">
+    android:padding="8dp">
 
-    <ImageView
-        android:id="@+id/widget_image"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitCenter"
-        android:contentDescription="GitHub contribution calendar" />
+        android:background="@drawable/widget_card_bg"
+        android:orientation="vertical"
+        android:padding="12dp">
 
-    <TextView
-        android:id="@+id/widget_placeholder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Open ContribKit to load your calendar"
-        android:textColor="#71717A"
-        android:textSize="12sp" />
+        <!-- Header: username + streak badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
+            <TextView
+                android:id="@+id/widget_username"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="—"
+                android:textColor="#59FFFFFF"
+                android:textSize="9.5sp"
+                android:fontFamily="monospace" />
+
+            <LinearLayout
+                android:id="@+id/widget_streak_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/widget_streak_badge_bg"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔥"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:id="@+id/widget_streak_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="#39D353"
+                    android:textSize="9.5sp"
+                    android:fontFamily="monospace"
+                    android:layout_marginStart="3dp" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Grid or placeholder -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="7dp">
+
+            <ImageView
+                android:id="@+id/widget_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:contentDescription="GitHub contribution calendar"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/widget_placeholder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Open ContribKit to load your calendar"
+                android:textColor="#3FFFFFFF"
+                android:textSize="9sp"
+                android:gravity="center" />
+
+        </FrameLayout>
+
+        <!-- Footer: total contributions -->
+        <TextView
+            android:id="@+id/widget_contributions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:text=""
+            android:textColor="#40FFFFFF"
+            android:textSize="8.5sp"
+            android:fontFamily="monospace" />
+
+    </LinearLayout>
 </FrameLayout>

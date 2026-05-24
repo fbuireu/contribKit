@@ -2,6 +2,7 @@ import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_stats.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
+import 'package:contribkit/ui/theme/app_text_styles.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -107,7 +108,7 @@ class _StatTile extends StatelessWidget {
           const SizedBox(height: Tokens.space1),
           Text(
             value,
-            style: TextStyle(
+            style: AppTextStyles.mono(
               fontSize: Tokens.textLg,
               fontWeight: FontWeight.w600,
               color: colors.foreground,

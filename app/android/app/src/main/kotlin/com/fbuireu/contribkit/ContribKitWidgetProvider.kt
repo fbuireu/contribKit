@@ -28,9 +28,22 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
     ) {
         val views = RemoteViews(context.packageName, R.layout.contribkit_widget)
 
-        // home_widget stores data in FlutterSharedPreferences with "flutter." prefix
         val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
         val imagePath = prefs.getString("flutter.calendar_image_path", null)
+        val username = prefs.getString("flutter.widget_username", null)
+        val streak = prefs.getInt("flutter.widget_streak", 0)
+        val totalContributions = prefs.getInt("flutter.widget_total_contributions", 0)
+
+        if (username != null) {
+            views.setTextViewText(R.id.widget_username, username)
+        }
+
+        views.setTextViewText(R.id.widget_streak_count, streak.toString())
+
+        if (totalContributions > 0) {
+            val formatted = "%,d contributions this year".format(totalContributions)
+            views.setTextViewText(R.id.widget_contributions, formatted)
+        }
 
         if (imagePath != null) {
             val bitmap = BitmapFactory.decodeFile(imagePath)
@@ -41,7 +54,6 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        // Tap opens the app
         val intent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             context,

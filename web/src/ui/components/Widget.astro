@@ -1,12 +1,12 @@
 ---
-import './widget.css';
-import Flame from './icons/Flame.astro';
-import Phone from './icons/Phone.astro';
-import Grid from './icons/Grid.astro';
-import Clock from './icons/Clock.astro';
-import Palette from './icons/Palette.astro';
-import { PALETTES } from '../../domain/value-objects/palette';
-import { generateMiniGrid } from '../lib/mini-grid';
+import "./widget.css";
+import { PALETTES } from "../../domain/value-objects/palette";
+import { generateMiniGrid } from "../lib/mini-grid";
+import Clock from "./icons/Clock.astro";
+import Flame from "./icons/Flame.astro";
+import Grid from "./icons/Grid.astro";
+import Palette from "./icons/Palette.astro";
+import Phone from "./icons/Phone.astro";
 
 const miniGrid = generateMiniGrid(PALETTES.github.colors);
 ---
@@ -24,18 +24,18 @@ const miniGrid = generateMiniGrid(PALETTES.github.colors);
       <div class="phone-wrap" aria-label="Home screen widget preview">
         <div class="phone">
           <div class="phone-pill" aria-hidden="true"></div>
-          <div class="phone-screen">
+          <div class="phone-screen" id="phone-screen">
             <div class="home-glow" aria-hidden="true"></div>
             <div class="home-widgets">
               <div class="w-card w-medium" role="img" aria-label="Medium widget showing contribution grid">
                 <div class="w-head">
-                  <span class="mono w-name">torvalds</span>
+                  <span class="mono w-name" id="widget-username">torvalds</span>
                   <span class="w-streak">
                     <Flame />
                     <span class="mono">42</span>
                   </span>
                 </div>
-                <div class="w-grid">
+                <div class="w-grid" id="widget-mini-grid">
                   <Fragment set:html={miniGrid} />
                 </div>
                 <div class="w-foot mono">1,234 contributions this year</div>

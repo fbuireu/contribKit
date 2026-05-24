@@ -1,17 +1,17 @@
 ---
-import '../../styles/global.css';
-import TopNav from '../TopNav.astro';
-import Footer from '../Footer.astro';
-import SEO from '../core/SEO.astro';
+import "../../styles/global.css";
+import SEO from "../core/SEO.astro";
+import Footer from "../Footer.astro";
+import TopNav from "../TopNav.astro";
 
-type RobotsDirective = 'index, follow' | 'noindex' | 'noindex, nofollow' | 'nofollow';
+type RobotsDirective = "index, follow" | "noindex" | "noindex, nofollow" | "nofollow";
 
 interface Props {
-  title: string;
-  description?: string;
-  url?: string;
-  image?: string;
-  robots?: RobotsDirective;
+	title: string;
+	description?: string;
+	url?: string;
+	image?: string;
+	robots?: RobotsDirective;
 }
 
 const { title, description, url, image, robots } = Astro.props;

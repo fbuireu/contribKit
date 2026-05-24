@@ -1,15 +1,15 @@
 ---
-import './export.css';
+import "./export.css";
 
 interface Props {
-  exportPNGSVG: string;
+	exportPNGSVG: string;
 }
 const { exportPNGSVG } = Astro.props;
 
 const EXPORT_FORMATS = [
-  { key: 'png', label: 'PNG', detail: '2880×720 · transparent', size: '186 KB' },
-  { key: 'svg', label: 'SVG', detail: 'Vector · 53×7 grid',     size: '24 KB' },
-  { key: 'md',  label: 'MD',  detail: 'GitHub-flavored embed',   size: '410 B' },
+	{ key: "png", label: "PNG", detail: "2880×720 · transparent", size: "186 KB" },
+	{ key: "svg", label: "SVG", detail: "Vector · 53×7 grid", size: "24 KB" },
+	{ key: "md", label: "MD", detail: "GitHub-flavored embed", size: "410 B" },
 ] as const;
 ---
 

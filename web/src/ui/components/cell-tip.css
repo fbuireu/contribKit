@@ -1,35 +1,38 @@
 .cell-tip {
-  position: fixed;
-  inset: auto;
-  margin: 0;
-  padding: 6px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--surface-raised);
-  color: var(--text);
-  font: 500 12px/1.3 ui-monospace, 'JetBrains Mono', monospace;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.18),
-    0 12px 32px rgba(0, 0, 0, 0.28);
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(2px);
-  transition:
-    opacity 120ms ease,
-    transform 120ms ease;
+	position: fixed;
+	inset: auto;
+	margin: 0;
+	padding: 6px 10px;
+	border: 1px solid var(--border-strong);
+	border-radius: 6px;
+	background: var(--surface-raised);
+	color: var(--text);
+	font:
+		500 12px / 1.3 ui-monospace,
+		"JetBrains Mono",
+		monospace;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+	box-shadow:
+		0 4px 12px rgba(0, 0, 0, 0.18),
+		0 12px 32px rgba(0, 0, 0, 0.28);
+	pointer-events: none;
+	opacity: 0;
+	transform: translateY(2px);
+	transition:
+		opacity 120ms ease,
+		transform 120ms ease;
 }
 
 .cell-tip:popover-open {
-  opacity: 1;
-  transform: translateY(0);
+	opacity: 1;
+	transform: translateY(0);
 }
 
 .cell-tip::backdrop {
-  background: transparent;
+	background: transparent;
 }
 
 [data-date][data-count] {
-  cursor: default;
+	cursor: default;
 }

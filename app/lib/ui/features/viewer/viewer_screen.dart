@@ -8,12 +8,13 @@ import 'package:contribkit/ui/features/customizer/widgets/shape_picker.dart';
 import 'package:contribkit/ui/features/customizer/widgets/size_picker.dart';
 import 'package:contribkit/ui/features/export/export_panel.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
+import 'package:contribkit/ui/theme/app_text_styles.dart';
 import 'package:contribkit/ui/theme/background_presets.dart';
 import 'package:contribkit/ui/features/viewer/viewer_notifier.dart';
 import 'package:contribkit/ui/features/viewer/viewer_state.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
-import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_badge.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
@@ -22,6 +23,7 @@ import 'package:contribkit/ui/widgets/app_text_field.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 /// The primary screen: username input, contribution grid, and customizer.
@@ -137,6 +139,12 @@ class _Header extends ConsumerWidget {
       ),
       child: Row(
         children: [
+          Image.asset(
+            'assets/images/logo.png',
+            height: 22,
+            width: 22,
+          ),
+          const SizedBox(width: Tokens.space2),
           Text(
             'ContribKit',
             style: TextStyle(
@@ -260,7 +268,7 @@ class _YearStepper extends StatelessWidget {
       Text(
         year.value.toString(),
         textAlign: TextAlign.center,
-        style: const TextStyle(
+        style: AppTextStyles.mono(
           fontSize: Tokens.textSm,
           fontWeight: FontWeight.w500,
         ),
@@ -398,17 +406,37 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.all(Tokens.space8),
-      child: Text(
-        'Enter a GitHub username to visualize contributions',
-        style: TextStyle(
-          fontSize: Tokens.textBase,
-          color: AppColors.of(context).mutedForeground,
-        ),
-        textAlign: TextAlign.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Your GitHub activity.\nYour aesthetic.',
+            style: TextStyle(
+              fontSize: Tokens.textXl,
+              fontWeight: FontWeight.w700,
+              color: AppColors.of(context).foreground,
+              letterSpacing: -0.5,
+              height: 1.15,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Tokens.space3),
+          Text(
+            'Paste any GitHub username above to visualize, customize, and export their contribution calendar — no token required.',
+            style: TextStyle(
+              fontSize: Tokens.textSm,
+              color: AppColors.of(context).mutedForeground,
+              height: 1.55,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     ),
   );
 }
+
+final _contribFmt = NumberFormat.decimalPattern();
 
 class _CalendarCard extends ConsumerWidget {
   const _CalendarCard({required this.state});
@@ -436,17 +464,36 @@ class _CalendarCard extends ConsumerWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    '${state.username!.value} · ${state.effectiveYear.value}',
-                    style: const TextStyle(
-                      fontSize: Tokens.textBase,
-                      fontWeight: FontWeight.w500,
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: state.username!.value,
+                          style: AppTextStyles.mono(
+                            fontSize: Tokens.textBase,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const TextSpan(text: ' · '),
+                        TextSpan(
+                          text: state.effectiveYear.value.toString(),
+                          style: AppTextStyles.mono(
+                            fontSize: Tokens.textBase,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                      style: TextStyle(
+                        fontSize: Tokens.textBase,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.of(context).foreground,
+                      ),
                     ),
                   ),
                 ),
                 AppBadge(
                   child: Text(
-                    '${state.calendar!.totalContributions} contributions',
+                    '${_contribFmt.format(state.calendar!.totalContributions)} contributions this year',
                   ),
                 ),
                 if (state.fromCache) ...[

@@ -31,7 +31,7 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- Home screen widget provider -->
+        <!-- Home screen widget — medium (grid + streak) -->
         <receiver
             android:name=".ContribKitWidgetProvider"
             android:exported="true">
@@ -41,6 +41,18 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/contribkit_widget_info" />
+        </receiver>
+
+        <!-- Home screen widget — small (streak counter only) -->
+        <receiver
+            android:name=".ContribKitSmallWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/contribkit_widget_small_info" />
         </receiver>
 
         <!-- WorkManager background service (required by workmanager plugin) -->

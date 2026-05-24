@@ -12,6 +12,9 @@ import 'package:path_provider/path_provider.dart';
 abstract final class CalendarWidgetService {
   static const _androidProviderName = 'ContribKitWidgetProvider';
   static const _imagePathKey = 'calendar_image_path';
+  static const _usernameKey = 'widget_username';
+  static const _streakKey = 'widget_streak';
+  static const _totalContributionsKey = 'widget_total_contributions';
 
   static Future<void> update({
     required ContributionCalendar calendar,
@@ -34,10 +37,51 @@ abstract final class CalendarWidgetService {
       final file = File('${dir.path}/widget_calendar.png');
       await file.writeAsBytes(pngBytes);
 
-      await HomeWidget.saveWidgetData<String>(_imagePathKey, file.path);
+      await Future.wait([
+        HomeWidget.saveWidgetData<String>(_imagePathKey, file.path),
+        HomeWidget.saveWidgetData<String>(
+          _usernameKey,
+          calendar.username.value,
+        ),
+        HomeWidget.saveWidgetData<int>(
+          _streakKey,
+          _calculateStreak(calendar),
+        ),
+        HomeWidget.saveWidgetData<int>(
+          _totalContributionsKey,
+          calendar.totalContributions,
+        ),
+      ]);
+
       await HomeWidget.updateWidget(androidName: _androidProviderName);
     } catch (_) {
       // Widget updates are best-effort — never crash the app.
     }
+  }
+
+  static int _calculateStreak(ContributionCalendar calendar) {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+
+    final countByDate = <DateTime, int>{
+      for (final week in calendar.weeks)
+        for (final day in week.days)
+          DateTime(day.date.year, day.date.month, day.date.day): day.count,
+    };
+
+    var cursor = todayDate;
+
+    // If today has no contributions yet, start streak check from yesterday.
+    if ((countByDate[cursor] ?? 0) == 0) {
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+
+    var streak = 0;
+    while ((countByDate[cursor] ?? 0) > 0) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+
+    return streak;
   }
 }
