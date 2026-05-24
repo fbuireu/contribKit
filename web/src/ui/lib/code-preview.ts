@@ -11,18 +11,21 @@ export const SVG_LINES: CodeLine[] = [
   [['c-tag', '</svg>']],
 ];
 
-export const MD_LINES: CodeLine[] = [
-  [['c-comment', '<!-- paste into your README -->']],
-  [],
-  [['c-tag', '!['], ['c-str', 'contributions'], ['c-tag', ']('], ['c-attr', 'https://contribkit.app/user/torvalds.svg'], ['c-tag', ')']],
-  [],
-  [['c-comment', '<!-- or with options -->']],
-  [],
-  [['c-tag', '!['], ['c-str', 'contributions'], ['c-tag', ']('], ['c-attr', 'https://contribkit.app/user/torvalds.svg']],
-  [['', ' '], ['c-attr', '?palette'], ['', '='], ['c-str', 'monokai'], ['c-tag', '&']],
-  [['', ' '], ['c-attr', '&shape'], ['', '='], ['c-str', 'hex'], ['c-tag', '&']],
-  [['', ' '], ['c-attr', '&bg'], ['', '='], ['c-str', 'transparent'], ['c-tag', ')']],
-];
+export function buildMdLines(username: string, palette: string, shape: string): CodeLine[] {
+  const base = `https://contribkit.app/user/${username}.svg`;
+  return [
+    [['c-comment', '<!-- paste into your README -->']],
+    [],
+    [['c-tag', '!['], ['c-str', 'contributions'], ['c-tag', ']('], ['c-attr', base], ['c-tag', ')']],
+    [],
+    [['c-comment', '<!-- or with options -->']],
+    [],
+    [['c-tag', '!['], ['c-str', 'contributions'], ['c-tag', ']('], ['c-attr', base]],
+    [['', ' '], ['c-attr', '?palette'], ['', '='], ['c-str', palette], ['c-tag', '&']],
+    [['', ' '], ['c-attr', '&shape'], ['', '='], ['c-str', shape], ['c-tag', '&']],
+    [['', ' '], ['c-attr', '&bg'], ['', '='], ['c-str', 'transparent'], ['c-tag', ')']],
+  ];
+}
 
 export function buildCodeBlock(lines: CodeLine[]): HTMLPreElement {
   const pre = document.createElement('pre');

@@ -5,7 +5,7 @@ import { PALETTES, DEFAULT_PALETTE_KEY } from '../../domain/value-objects/palett
 import { DEFAULT_SHAPE_KIND } from '../../domain/value-objects/shape';
 import { buildGridFromApi, rehydrateCells, summarize, generateData } from './calendar-utils';
 import { renderCalendarString } from './render-svg';
-import { SVG_LINES, MD_LINES, buildCodeBlock } from './code-preview';
+import { SVG_LINES, buildMdLines, buildCodeBlock } from './code-preview';
 
 const CELLS = Array.isArray(window.__INITIAL_CELLS__) && window.__INITIAL_CELLS__.length
   ? rehydrateCells(window.__INITIAL_CELLS__)
@@ -72,7 +72,8 @@ function renderExportPreview() {
     card.appendChild(tag);
   } else {
     card.classList.add('code-preview');
-    card.appendChild(buildCodeBlock(exportTab === 'svg' ? SVG_LINES : MD_LINES));
+    const mdLines = buildMdLines(liveUsername, getActivePalette(), shape);
+    card.appendChild(buildCodeBlock(exportTab === 'svg' ? SVG_LINES : mdLines));
     const plainText = exportTab === 'svg'
       ? renderCalendarString({ cells: liveCells, palette, shape, size: 10, gap: 2, showLabels: false })
       : `![contributions](https://contribkit.app/user/${liveUsername}.svg)`;
@@ -96,10 +97,9 @@ function renderExportPreview() {
 
 function updateYearRange(cells: Cell[]) {
   const el = document.getElementById('hero-year-range');
-  if (!el || !cells.length) return;
-  const first = cells[0].date.year;
-  const last = cells[cells.length - 1].date.year;
-  el.textContent = first === last ? String(first) : `${first} – ${last}`;
+  if (!el || cells.length < 8) return;
+  // cells[0] may be late December of the previous year; cells[7] is always in the target year
+  el.textContent = cells[7].date.slice(0, 4);
 }
 
 function updateHeroStats(summary: CellSummary) {
@@ -125,7 +125,7 @@ async function renderFromGitHub(username: string) {
   if (!renderButton || !gridContainer) return;
 
   const selectedYear = Number(yearSelect?.value ?? 0);
-  const yearQuery = selectedYear && selectedYear <= Temporal.Now.plainDateISO().year ? `&year=${selectedYear}` : '';
+  const yearQuery = selectedYear && selectedYear <= new Date().getFullYear() ? `&year=${selectedYear}` : '';
 
   setHeroError(null);
   renderButton.disabled = true;
@@ -137,15 +137,18 @@ async function renderFromGitHub(username: string) {
 
     if (!response.ok) {
       setHeroError(ERRORS[response.status] ?? data.error ?? 'something went wrong');
+      liveCells = buildGridFromApi([], selectedYear || new Date().getFullYear());
+      renderCustomize();
+      updateHeroStats({ count: 0, streak: 0, longest: 0 });
     } else {
-      const year = parseInt(data.cells[0]?.date ?? String(Temporal.Now.plainDateISO().year), 10);
+      const year = parseInt(data.cells[0]?.date ?? String(new Date().getFullYear()), 10);
       liveCells = buildGridFromApi(data.cells, year);
       liveUsername = username;
       renderCustomize();
       if (usernameDisplay) usernameDisplay.textContent = username;
       const stats = summarize(
         data.cells.map((cell: ContributionDay) => ({
-          date: Temporal.PlainDate.from(cell.date),
+          date: cell.date,
           level: cell.level,
           count: cell.count ?? null,
         })),
@@ -159,6 +162,9 @@ async function renderFromGitHub(username: string) {
     }
   } catch {
     setHeroError('could not reach the server, try again');
+    liveCells = buildGridFromApi([], selectedYear || new Date().getFullYear());
+    renderCustomize();
+    updateHeroStats({ count: 0, streak: 0, longest: 0 });
   }
 
   renderButton.disabled = false;

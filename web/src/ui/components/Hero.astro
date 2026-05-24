@@ -6,7 +6,7 @@ import ChevronDown from './icons/ChevronDown.astro';
 import ArrowRight from './icons/ArrowRight.astro';
 
 const GITHUB_START = 2005;
-const currentYear = Temporal.Now.plainDateISO().year;
+const currentYear = new Date().getFullYear();
 
 interface Props {
   heroSVG: string;

@@ -23,7 +23,8 @@ const DESCRIPTION = 'Visualize, customize, and export your GitHub contribution c
 async function loadInitialContributions(): Promise<{ cells: Cell[]; total: number | null; year: number } | null> {
   const username = parseUsername(DEFAULT_USERNAME);
   if (isFailure(username)) return null;
-  const currentYear = Temporal.Now.plainDateISO().year;
+  // TODO: migrate to Temporal once it's natively available in Node and all target browsers
+  const currentYear = new Date().getFullYear();
   const year = parseYear(String(currentYear));
   if (isFailure(year)) return null;
   const yearValue = isYear(year) ? year : null;
@@ -49,7 +50,7 @@ const heroSVG = renderCalendarString({ cells, palette: CLASSIC, shape: 'rounded'
 const exportPNGSVG = renderCalendarString({ cells, palette: CLASSIC, shape: 'rounded', size: 10, gap: 2, showLabels: false });
 
 const initialCellsForClient = cells.map((cell) => ({
-  date: cell.date.toString(),
+  date: cell.date,
   level: cell.level,
   count: cell.count ?? null,
 }));

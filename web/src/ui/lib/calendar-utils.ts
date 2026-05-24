@@ -5,10 +5,22 @@ import { TOTALS_PER_LEVEL } from './contribution';
 
 export { DOW, MONTHS };
 
+// TODO: migrate to Temporal once it's natively available in all target browsers
+
 export interface Cell {
-  date: Temporal.PlainDate;
+  date: string;
   level: number;
   count?: number | null;
+}
+
+function addDays(iso: string, n: number): string {
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function getWeekday(iso: string): number {
+  return new Date(iso + 'T12:00:00').getDay(); // 0=Sun, 1=Mon … 6=Sat
 }
 
 export type RenderCalendarParams = {
@@ -31,15 +43,11 @@ export function buildGridFromApi(days: readonly ContributionDay[], year: number)
 export function rehydrateCells(
   arr: Array<{ date: string; level: number; count: number | null }>,
 ): Cell[] {
-  return arr.map(({ date, level, count }) => ({
-    date: Temporal.PlainDate.from(date),
-    level,
-    count: count ?? null,
-  }));
+  return arr.map(({ date, level, count }) => ({ date, level, count: count ?? null }));
 }
 
 export function summarize(cells: Cell[]): CellSummary {
-  const sorted = [...cells].sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+  const sorted = [...cells].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   let count = 0, streak = 0, longest = 0, cur = 0;
   for (const cell of sorted) {
     count += cell.count ?? TOTALS_PER_LEVEL[cell.level] ?? 0;
@@ -55,12 +63,12 @@ export function buildCalendarGrid(
   map: Map<string, { level: number; count: number | null }>,
   year: number,
 ): Cell[] {
-  const jan1 = Temporal.PlainDate.from({ year, month: 1, day: 1 });
-  const start = jan1.subtract({ days: jan1.dayOfWeek % 7 });
+  const jan1 = `${year}-01-01`;
+  const start = addDays(jan1, -getWeekday(jan1)); // back to Sunday
   const cells: Cell[] = [];
   for (let i = 0; i < 53 * 7; i++) {
-    const date = start.add({ days: i });
-    const entry = map.get(date.toString());
+    const date = addDays(start, i);
+    const entry = map.get(date);
     cells.push({ date, level: entry?.level ?? 0, count: entry?.count ?? null });
   }
   return cells;
@@ -69,17 +77,17 @@ export function buildCalendarGrid(
 export function generateData(seed = 7): Cell[] {
   const rand = mulberry32(seed);
   const cells: Cell[] = [];
-  const today = Temporal.PlainDate.from({ year: 2026, month: 5, day: 17 });
-  const end = today.add({ days: 6 - today.dayOfWeek % 7 });
+  const today = '2026-05-17';
+  const end = addDays(today, 6 - getWeekday(today)); // forward to Saturday
   const totalDays = 53 * 7;
-  const start = end.subtract({ days: totalDays - 1 });
+  const start = addDays(end, -(totalDays - 1));
 
   for (let i = 0; i < totalDays; i++) {
-    const date = start.add({ days: i });
-    const dayOfWeek = date.dayOfWeek;
+    const date = addDays(start, i);
+    const dow = getWeekday(date);
     const progress = i / totalDays;
     let base = 0.35 + progress * 0.5;
-    if (dayOfWeek >= 6) base *= 0.55;
+    if (dow === 0 || dow === 6) base *= 0.55;
     const cluster = Math.sin(i / 9) * 0.25 + Math.sin(i / 23) * 0.2;
     const randomValue = rand();
     let score = base + cluster + (randomValue - 0.5) * 0.6;
