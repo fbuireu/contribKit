@@ -1,6 +1,6 @@
 import path from "node:path";
 import cloudflare from "@astrojs/cloudflare";
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 
 export default defineConfig({
 	output: "server",
@@ -12,14 +12,14 @@ export default defineConfig({
 	},
 	fonts: [
 		{
-			provider: "google",
+			provider: fontProviders.google(),
 			name: "Inter",
 			cssVariable: "--font-inter",
 			weights: ["400", "500", "600", "700", "800"],
 			display: "swap",
 		},
 		{
-			provider: "google",
+			provider: fontProviders.google(),
 			name: "JetBrains Mono",
 			cssVariable: "--font-jetbrains-mono",
 			weights: ["400", "500", "600"],
