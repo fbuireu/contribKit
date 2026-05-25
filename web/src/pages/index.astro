@@ -17,6 +17,7 @@ import { renderCalendarString } from "../ui/lib/render-svg";
 
 const DEFAULT_USERNAME = "torvalds";
 const SITE_URL = "https://contribkit.app";
+const OG_IMAGE = `${SITE_URL}/og.png`;
 const TITLE = "ContribKit — Your GitHub activity, your aesthetic.";
 const DESCRIPTION = "Visualize, customize, and export your GitHub contribution calendar — no token required.";
 
@@ -65,7 +66,7 @@ const initialCellsForClient = cells.map((cell) => ({
 Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
 ---
 
-<BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL}>
+<BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE}>
   <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} />
   <HowItWorks />
   <Customize />
@@ -77,6 +78,19 @@ Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-r
 <script is:inline define:vars={{ initialCellsForClient, initialUsername: DEFAULT_USERNAME }}>
   window.__INITIAL_CELLS__ = initialCellsForClient;
   window.__INITIAL_USERNAME__ = initialUsername;
+</script>
+
+<script type="application/ld+json" is:inline>
+{
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  "name": "ContribKit",
+  "description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
+  "operatingSystem": "iOS, Android",
+  "applicationCategory": "DeveloperApplication",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "url": "https://contribkit.app"
+}
 </script>
 
 <script>

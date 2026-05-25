@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.app.PendingIntent
+import android.util.Log
 import android.widget.RemoteViews
 
 class ContribKitSmallWidgetProvider : AppWidgetProvider() {
@@ -24,22 +25,32 @@ class ContribKitSmallWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         widgetId: Int,
     ) {
-        val views = RemoteViews(context.packageName, R.layout.contribkit_widget_small)
+        try {
+            val views = RemoteViews(context.packageName, R.layout.contribkit_widget_small)
 
-        val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-        val streak = prefs.getInt("flutter.widget_streak", 0)
+            val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
+            val streakRaw = prefs.getAll()["widget_streak"]
 
-        views.setTextViewText(R.id.widget_small_count, streak.toString())
+            val streak = when (streakRaw) {
+                is Int -> streakRaw
+                is Long -> streakRaw.toInt()
+                else -> 0
+            }
 
-        val intent = Intent(context, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        views.setOnClickPendingIntent(R.id.widget_small_root, pendingIntent)
+            views.setTextViewText(R.id.widget_small_count, streak.toString())
 
-        appWidgetManager.updateAppWidget(widgetId, views)
+            val intent = Intent(context, MainActivity::class.java)
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            views.setOnClickPendingIntent(R.id.widget_small_root, pendingIntent)
+
+            appWidgetManager.updateAppWidget(widgetId, views)
+        } catch (e: Exception) {
+            Log.e("ContribKitSmallWidget", "updateWidget failed for id=$widgetId", e)
+        }
     }
 }

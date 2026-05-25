@@ -1,0 +1,452 @@
+import 'dart:convert';
+
+import 'package:contribkit/domain/entities/contribution_calendar.dart';
+import 'package:contribkit/domain/repositories/export_repository.dart';
+import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
+import 'package:contribkit/ui/theme/app_text_styles.dart';
+import 'package:contribkit/ui/theme/tokens.dart';
+import 'package:contribkit/ui/widgets/app_button.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:share_plus/share_plus.dart';
+
+enum _Fmt { png, svg, md }
+
+/// Bottom sheet for exporting the calendar with format selection and a
+/// live preview showing the current palette and shape settings.
+class ExportSheet extends ConsumerStatefulWidget {
+  const ExportSheet({
+    super.key,
+    required this.calendar,
+    required this.palette,
+    required this.cellShape,
+    required this.cellSize,
+  });
+
+  final ContributionCalendar calendar;
+  final Palette palette;
+  final CellShape cellShape;
+  final CellSize cellSize;
+
+  static Future<void> show(
+    BuildContext context, {
+    required ContributionCalendar calendar,
+    required Palette palette,
+    required CellShape cellShape,
+    required CellSize cellSize,
+  }) => showShadSheet(
+    context: context,
+    side: ShadSheetSide.bottom,
+    builder: (_) => ExportSheet(
+      calendar: calendar,
+      palette: palette,
+      cellShape: cellShape,
+      cellSize: cellSize,
+    ),
+  );
+
+  @override
+  ConsumerState<ExportSheet> createState() => _ExportSheetState();
+}
+
+class _ExportSheetState extends ConsumerState<ExportSheet> {
+  _Fmt _selected = _Fmt.png;
+  bool _exporting = false;
+
+  RenderOptions get _options => RenderOptions(
+    palette: widget.palette,
+    shape: widget.cellShape,
+    cellSize: widget.cellSize.pixels,
+    gap: widget.cellSize.gap,
+  );
+
+  Future<void> _save() async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    final user = widget.calendar.username.value;
+    final year = widget.calendar.year.value;
+    try {
+      switch (_selected) {
+        case _Fmt.png:
+          final bytes = await ref.read(pngExportCalendarProvider)(
+            calendar: widget.calendar,
+            options: _options,
+          );
+          await SharePlus.instance.share(
+            ShareParams(
+              files: [
+                XFile.fromData(
+                  Uint8List.fromList(bytes),
+                  name: '${user}_$year.png',
+                  mimeType: 'image/png',
+                ),
+              ],
+            ),
+          );
+        case _Fmt.svg:
+          final bytes = await ref.read(svgExportCalendarProvider)(
+            calendar: widget.calendar,
+            options: _options,
+          );
+          await SharePlus.instance.share(
+            ShareParams(
+              files: [
+                XFile.fromData(
+                  Uint8List.fromList(bytes),
+                  name: '${user}_$year.svg',
+                  mimeType: 'image/svg+xml',
+                ),
+              ],
+            ),
+          );
+        case _Fmt.md:
+          final bytes = await ref.read(markdownExportCalendarProvider)(
+            calendar: widget.calendar,
+            options: _options,
+          );
+          await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final user = widget.calendar.username.value;
+
+    return ShadSheet(
+      title: const Text('Export'),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          Tokens.space6,
+          0,
+          Tokens.space6,
+          Tokens.space8,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _ExportPreview(
+              calendar: widget.calendar,
+              palette: widget.palette,
+              cellShape: widget.cellShape,
+              cellSize: widget.cellSize,
+              filename: '$user.${_selected.name}',
+              colors: colors,
+            ),
+            const SizedBox(height: Tokens.space4),
+            for (final fmt in _Fmt.values)
+              Padding(
+                padding: const EdgeInsets.only(bottom: Tokens.space2),
+                child: _FormatTile(
+                  fmt: fmt,
+                  isSelected: fmt == _selected,
+                  colors: colors,
+                  onTap: () => setState(() => _selected = fmt),
+                ),
+              ),
+            const SizedBox(height: Tokens.space2),
+            Row(
+              spacing: Tokens.space2,
+              children: [
+                AppButton.outline(
+                  onPressed: _exporting ? null : _save,
+                  child: const Icon(LucideIcons.share, size: 18),
+                ),
+                Expanded(
+                  child: AppButton(
+                    onPressed: _exporting ? null : _save,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(LucideIcons.download, size: 16),
+                        const SizedBox(width: Tokens.space2),
+                        Text('Save ${_selected.name.toUpperCase()}'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExportPreview extends StatelessWidget {
+  const _ExportPreview({
+    required this.calendar,
+    required this.palette,
+    required this.cellShape,
+    required this.cellSize,
+    required this.filename,
+    required this.colors,
+  });
+
+  final ContributionCalendar calendar;
+  final Palette palette;
+  final CellShape cellShape;
+  final CellSize cellSize;
+  final String filename;
+  final AppColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(Tokens.radiusLg),
+        border: Border.all(color: colors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Tokens.radiusLg),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _CheckerPainter(
+                  color1: colors.muted,
+                  color2: colors.card,
+                ),
+              ),
+            ),
+            ContributionGrid(
+              calendar: calendar,
+              palette: palette,
+              shape: cellShape,
+              cellSize: CellSize.compact,
+            ),
+            Positioned(
+              top: Tokens.space2,
+              right: Tokens.space2,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.background.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(Tokens.radiusFull),
+                  border: Border.all(color: colors.border),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Tokens.space2,
+                    vertical: 3,
+                  ),
+                  child: Text(
+                    filename,
+                    style: AppTextStyles.mono(
+                      fontSize: Tokens.textXs,
+                      color: colors.mutedForeground,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckerPainter extends CustomPainter {
+  const _CheckerPainter({required this.color1, required this.color2});
+
+  final Color color1;
+  final Color color2;
+
+  static const _step = 12.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p1 = Paint()..color = color1;
+    final p2 = Paint()..color = color2;
+    final rows = (size.height / _step).ceil() + 1;
+    final cols = (size.width / _step).ceil() + 1;
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        canvas.drawRect(
+          Rect.fromLTWH(c * _step, r * _step, _step, _step),
+          (r + c).isEven ? p1 : p2,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CheckerPainter old) =>
+      old.color1 != color1 || old.color2 != color2;
+}
+
+class _FormatTile extends StatelessWidget {
+  const _FormatTile({
+    required this.fmt,
+    required this.isSelected,
+    required this.colors,
+    required this.onTap,
+  });
+
+  final _Fmt fmt;
+  final bool isSelected;
+  final AppColors colors;
+  final VoidCallback onTap;
+
+  static const _meta = {
+    _Fmt.png: (
+      ext: '.png',
+      label: 'PNG',
+      detail: '2880×720 · transparent',
+      size: '~186 KB',
+    ),
+    _Fmt.svg: (
+      ext: '.svg',
+      label: 'SVG',
+      detail: 'Vector · scalable',
+      size: '~24 KB',
+    ),
+    _Fmt.md: (
+      ext: '.md',
+      label: 'MD',
+      detail: 'README embed snippet',
+      size: '~1 KB',
+    ),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final m = _meta[fmt]!;
+    final accent = colors.accent;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: Tokens.durationFast,
+        padding: const EdgeInsets.symmetric(
+          horizontal: Tokens.space4,
+          vertical: Tokens.space4,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.muted : colors.card,
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          border: Border.all(
+            color: isSelected ? accent.withValues(alpha: 0.5) : colors.border,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            _FmtIcon(
+              fmt: fmt,
+              isSelected: isSelected,
+              accent: accent,
+              colors: colors,
+            ),
+            const SizedBox(width: Tokens.space4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        m.ext,
+                        style: AppTextStyles.mono(
+                          fontSize: Tokens.textSm,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? accent : colors.mutedForeground,
+                        ),
+                      ),
+                      const SizedBox(width: Tokens.space2),
+                      Text(
+                        m.label,
+                        style: TextStyle(
+                          fontSize: Tokens.textBase,
+                          fontWeight: FontWeight.w600,
+                          color: colors.foreground,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    m.detail,
+                    style: TextStyle(
+                      fontSize: Tokens.textXs,
+                      color: colors.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              m.size,
+              style: AppTextStyles.mono(
+                fontSize: Tokens.textXs,
+                color: colors.mutedForeground,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FmtIcon extends StatelessWidget {
+  const _FmtIcon({
+    required this.fmt,
+    required this.isSelected,
+    required this.accent,
+    required this.colors,
+  });
+
+  final _Fmt fmt;
+  final bool isSelected;
+  final Color accent;
+  final AppColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = isSelected ? accent : colors.mutedForeground;
+    final bgColor = isSelected ? accent.withValues(alpha: 0.1) : colors.muted;
+    final borderColor = isSelected
+        ? accent.withValues(alpha: 0.4)
+        : colors.border;
+
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(Tokens.radiusMd),
+        border: Border.all(color: borderColor),
+      ),
+      child: Center(
+        child: switch (fmt) {
+          _Fmt.png => Icon(LucideIcons.image, size: 20, color: iconColor),
+          _Fmt.svg => Icon(LucideIcons.penLine, size: 20, color: iconColor),
+          _Fmt.md => Text(
+            'M↓',
+            style: AppTextStyles.mono(
+              fontSize: Tokens.textSm,
+              fontWeight: FontWeight.w700,
+              color: iconColor,
+            ),
+          ),
+        },
+      ),
+    );
+  }
+}

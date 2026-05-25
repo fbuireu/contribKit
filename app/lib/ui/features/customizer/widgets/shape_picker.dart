@@ -35,8 +35,9 @@ class ShapePicker extends StatelessWidget {
             color: ShadTheme.of(context).colorScheme.mutedForeground,
           ),
         ),
-        Row(
+        Wrap(
           spacing: Tokens.space2,
+          runSpacing: Tokens.space2,
           children: [
             for (final shape in CellShape.values)
               _ShapeButton(

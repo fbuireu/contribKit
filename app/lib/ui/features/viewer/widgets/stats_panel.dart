@@ -1,13 +1,12 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
-import 'package:contribkit/domain/value_objects/contribution_stats.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
-/// Displays six key contribution statistics in a 2-column grid.
+/// Three-tile stats strip: total commits, current streak, longest streak.
 class StatsPanel extends StatelessWidget {
   const StatsPanel({super.key, required this.calendar});
 
@@ -17,58 +16,39 @@ class StatsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final stats = ContributionStatsService.compute(calendar);
     final colors = AppColors.of(context);
+    final fmt = NumberFormat.decimalPattern();
+    final isCurrentYear = calendar.year.value == DateTime.now().year;
 
-    final tiles = [
-      (label: 'Current streak', value: '${stats.currentStreak}d'),
-      (label: 'Longest streak', value: '${stats.longestStreak}d'),
-      (label: 'Best day', value: _bestDayLabel(stats)),
-      (label: 'Weekly avg', value: stats.weeklyAverage.toStringAsFixed(1)),
-      (label: 'Days active', value: stats.totalDaysActive.toString()),
-      (label: 'Best month', value: _bestMonthLabel(stats)),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
+      spacing: Tokens.space2,
       children: [
-        for (var i = 0; i < tiles.length; i += 2) ...[
-          if (i > 0) const SizedBox(height: Tokens.space2),
-          Row(
-            children: [
-              Expanded(
-                child: _StatTile(
-                  label: tiles[i].label,
-                  value: tiles[i].value,
-                  colors: colors,
-                ),
-              ),
-              const SizedBox(width: Tokens.space2),
-              Expanded(
-                child: _StatTile(
-                  label: tiles[i + 1].label,
-                  value: tiles[i + 1].value,
-                  colors: colors,
-                ),
-              ),
-            ],
+        Expanded(
+          child: _StatTile(
+            label: 'TOTAL',
+            value: fmt.format(calendar.totalContributions),
+            unit: 'commits',
+            colors: colors,
           ),
-        ],
+        ),
+        Expanded(
+          child: _StatTile(
+            label: isCurrentYear ? 'CURRENT' : 'FINAL',
+            value: stats.currentStreak.toString(),
+            unit: 'day streak',
+            accent: true,
+            colors: colors,
+          ),
+        ),
+        Expanded(
+          child: _StatTile(
+            label: 'LONGEST',
+            value: stats.longestStreak.toString(),
+            unit: 'days',
+            colors: colors,
+          ),
+        ),
       ],
     );
-  }
-
-  String _bestDayLabel(ContributionStats stats) {
-    if (stats.bestDayDate == null || stats.bestDayCount == 0) return '—';
-    final d = stats.bestDayDate!;
-    final month = DateFormat.MMM().format(d);
-    return '${stats.bestDayCount} · $month ${d.day}';
-  }
-
-  String _bestMonthLabel(ContributionStats stats) {
-    if (stats.bestMonthIndex == null || stats.bestMonthContributions == 0) {
-      return '—';
-    }
-    final month = DateFormat.MMMM().format(DateTime(0, stats.bestMonthIndex!));
-    return '$month · ${stats.bestMonthContributions}';
   }
 }
 
@@ -76,12 +56,16 @@ class _StatTile extends StatelessWidget {
   const _StatTile({
     required this.label,
     required this.value,
+    required this.unit,
     required this.colors,
+    this.accent = false,
   });
 
   final String label;
   final String value;
+  final String unit;
   final AppColors colors;
+  final bool accent;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
@@ -97,21 +81,31 @@ class _StatTile extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: AppTextStyles.mono(
               fontSize: Tokens.textXs,
               color: colors.mutedForeground,
+              letterSpacing: 0.06,
             ),
           ),
           const SizedBox(height: Tokens.space1),
           Text(
             value,
             style: AppTextStyles.mono(
-              fontSize: Tokens.textLg,
-              fontWeight: FontWeight.w600,
-              color: colors.foreground,
+              fontSize: Tokens.text2Xl,
+              fontWeight: FontWeight.w700,
+              color: accent ? colors.accent : colors.foreground,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            unit,
+            style: TextStyle(
+              fontSize: Tokens.textXs,
+              color: colors.mutedForeground,
             ),
           ),
         ],

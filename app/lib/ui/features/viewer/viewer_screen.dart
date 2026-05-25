@@ -2,21 +2,18 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
-import 'package:contribkit/ui/features/customizer/widgets/background_picker.dart';
-import 'package:contribkit/ui/features/customizer/widgets/palette_picker.dart';
-import 'package:contribkit/ui/features/customizer/widgets/shape_picker.dart';
-import 'package:contribkit/ui/features/customizer/widgets/size_picker.dart';
-import 'package:contribkit/ui/features/export/export_panel.dart';
+import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
+import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
+import 'package:contribkit/ui/features/viewer/viewer_notifier.dart';
+import 'package:contribkit/ui/features/viewer/viewer_state.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
+import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
 import 'package:contribkit/ui/theme/background_presets.dart';
-import 'package:contribkit/ui/features/viewer/viewer_notifier.dart';
-import 'package:contribkit/ui/features/viewer/viewer_state.dart';
-import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
-import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
-import 'package:contribkit/ui/widgets/app_badge.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:contribkit/ui/widgets/app_card.dart';
 import 'package:contribkit/ui/widgets/app_text_field.dart';
@@ -25,7 +22,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// The primary screen: username input, contribution grid, and customizer.
+/// The primary screen: username input, year picker, contribution grid,
+/// stats, and action buttons that open the customizer and export sheets.
 class ViewerScreen extends ConsumerStatefulWidget {
   const ViewerScreen({super.key});
 
@@ -41,6 +39,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   @override
   void initState() {
     super.initState();
+    FlutterNativeSplash.remove();
     _usernameController = TextEditingController();
     _usernameFocusNode = FocusNode();
   }
@@ -73,7 +72,6 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     final state = ref.watch(viewerProvider);
     final colors = AppColors.of(context);
 
-    // Sync text field once settings load
     if (!state.isLoadingSettings &&
         state.username != null &&
         _usernameController.text.isEmpty) {
@@ -96,15 +94,15 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: Tokens.space4,
                   children: [
-                    _SearchBar(
+                    _UsernameInput(
                       controller: _usernameController,
                       focusNode: _usernameFocusNode,
                       error: _inputError,
                       onSubmit: _onSubmit,
-                      isLoadingSettings: state.isLoadingSettings,
-                      isLoadingCalendar: state.isLoadingCalendar,
-                      selectedYear: state.effectiveYear,
+                      isLoading:
+                          state.isLoadingSettings || state.isLoadingCalendar,
                     ),
+                    const _YearPills(),
                     _Body(state: state),
                   ],
                 ),
@@ -116,6 +114,8 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     );
   }
 }
+
+// ─── App bar ─────────────────────────────────────────────────────────────────
 
 class _Header extends ConsumerWidget {
   const _Header({required this.colors});
@@ -153,7 +153,7 @@ class _Header extends ConsumerWidget {
           AppButton.ghost(
             onPressed: () => TipJarSheet.show(context),
             size: ShadButtonSize.sm,
-            child: const Icon(LucideIcons.heart, size: 16),
+            child: Icon(LucideIcons.heart, size: 16, color: colors.accent),
           ),
           AppButton.ghost(
             onPressed: () => ref.read(themeModeProvider.notifier).cycle(),
@@ -166,31 +166,34 @@ class _Header extends ConsumerWidget {
   }
 }
 
-class _SearchBar extends ConsumerWidget {
-  const _SearchBar({
+// ─── Username input ───────────────────────────────────────────────────────────
+
+const _kSuggestedUsernames = [
+  'torvalds',
+  'gaearon',
+  'yyx990803',
+  'sindresorhus',
+  'antirez',
+];
+
+class _UsernameInput extends StatelessWidget {
+  const _UsernameInput({
     required this.controller,
     required this.focusNode,
     required this.error,
     required this.onSubmit,
-    required this.isLoadingSettings,
-    required this.isLoadingCalendar,
-    required this.selectedYear,
+    required this.isLoading,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final String error;
   final ValueChanged<String> onSubmit;
-  final bool isLoadingSettings;
-  final bool isLoadingCalendar;
-  final Year selectedYear;
+  final bool isLoading;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(viewerProvider.notifier);
-    final canGoPrev = selectedYear.value > Year.minYear;
-    final canGoNext = selectedYear.value < DateTime.now().year;
-    final isLoading = isLoadingSettings || isLoadingCalendar;
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -205,23 +208,21 @@ class _SearchBar extends ConsumerWidget {
                 focusNode: focusNode,
                 placeholder: 'GitHub username',
                 onSubmitted: isLoading ? null : onSubmit,
-                enabled: !isLoadingSettings,
+                enabled: !isLoading,
               ),
             ),
-            _YearStepper(
-              year: selectedYear,
-              canGoPrev: canGoPrev && !isLoading,
-              canGoNext: canGoNext && !isLoading,
-              onPrev: () => notifier.setYear(Year(selectedYear.value - 1)),
-              onNext: () => notifier.setYear(Year(selectedYear.value + 1)),
+            ShadButton.ghost(
+              onPressed: isLoading ? null : () => onSubmit(controller.text),
+              size: ShadButtonSize.sm,
+              child: isLoading
+                  ? const _PulsingDots(dotSize: 5)
+                  : Icon(
+                      LucideIcons.arrowRight,
+                      size: 16,
+                      color: colors.mutedForeground,
+                    ),
             ),
           ],
-        ),
-        AppButton(
-          onPressed: isLoading ? null : () => onSubmit(controller.text),
-          child: isLoadingCalendar
-              ? const _PulsingDots(dotSize: 5)
-              : const Text('Search'),
         ),
         if (error.isNotEmpty)
           Text(
@@ -231,51 +232,134 @@ class _SearchBar extends ConsumerWidget {
               color: ShadTheme.of(context).colorScheme.destructive,
             ),
           ),
+        _Suggestions(
+          onSelect: (username) {
+            controller.text = username;
+            onSubmit(username);
+          },
+          enabled: !isLoading,
+        ),
       ],
     );
   }
 }
 
-class _YearStepper extends StatelessWidget {
-  const _YearStepper({
-    required this.year,
-    required this.canGoPrev,
-    required this.canGoNext,
-    required this.onPrev,
-    required this.onNext,
-  });
+class _Suggestions extends StatelessWidget {
+  const _Suggestions({required this.onSelect, required this.enabled});
 
-  final Year year;
-  final bool canGoPrev;
-  final bool canGoNext;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
+  final ValueChanged<String> onSelect;
+  final bool enabled;
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      AppButton.ghost(
-        onPressed: canGoPrev ? onPrev : null,
-        size: ShadButtonSize.sm,
-        child: const Icon(LucideIcons.chevronLeft, size: 16.0),
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        spacing: Tokens.space2,
+        children: [
+          Text(
+            'try:',
+            style: AppTextStyles.mono(
+              fontSize: Tokens.textXs,
+              color: colors.mutedForeground,
+            ),
+          ),
+          for (final name in _kSuggestedUsernames)
+            GestureDetector(
+              onTap: enabled ? () => onSelect(name) : null,
+              child: Text(
+                name,
+                style: AppTextStyles.mono(
+                  fontSize: Tokens.textXs,
+                  color: enabled ? colors.accent : colors.mutedForeground,
+                ),
+              ),
+            ),
+        ],
       ),
-      Text(
-        year.value.toString(),
-        textAlign: TextAlign.center,
-        style: AppTextStyles.mono(
-          fontSize: Tokens.textSm,
-          fontWeight: FontWeight.w500,
+    );
+  }
+}
+
+// ─── Year pills ───────────────────────────────────────────────────────────────
+
+class _YearPills extends ConsumerWidget {
+  const _YearPills();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(viewerProvider);
+    final notifier = ref.read(viewerProvider.notifier);
+    final colors = AppColors.of(context);
+    final currentYear = DateTime.now().year;
+    final selectedYear = state.effectiveYear.value;
+
+    final years = List.generate(
+      currentYear - Year.minYear + 1,
+      (i) => currentYear - i,
+    );
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        spacing: Tokens.space1 + 2,
+        children: [
+          for (final year in years)
+            _YearPill(
+              year: year,
+              isSelected: year == selectedYear,
+              colors: colors,
+              onTap: () => notifier.setYear(Year(year)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _YearPill extends StatelessWidget {
+  const _YearPill({
+    required this.year,
+    required this.isSelected,
+    required this.colors,
+    required this.onTap,
+  });
+
+  final int year;
+  final bool isSelected;
+  final AppColors colors;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: Tokens.durationFast,
+        padding: const EdgeInsets.symmetric(
+          horizontal: Tokens.space3,
+          vertical: Tokens.space2,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? colors.muted : const Color(0x00000000),
+          borderRadius: BorderRadius.circular(Tokens.radiusFull),
+          border: Border.all(color: colors.border),
+        ),
+        child: Text(
+          year.toString(),
+          style: AppTextStyles.mono(
+            fontSize: Tokens.textSm,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? colors.foreground : colors.mutedForeground,
+          ),
         ),
       ),
-      AppButton.ghost(
-        onPressed: canGoNext ? onNext : null,
-        size: ShadButtonSize.sm,
-        child: const Icon(LucideIcons.chevronRight, size: 16.0),
-      ),
-    ],
-  );
+    );
+  }
 }
+
+// ─── Body ─────────────────────────────────────────────────────────────────────
 
 class _Body extends ConsumerWidget {
   const _Body({required this.state});
@@ -284,17 +368,20 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (state.isLoadingSettings) {
+    debugPrint(
+      '[Body] loadingSettings=${state.isLoadingSettings} loadingCalendar=${state.isLoadingCalendar} error=${state.error} username=${state.username?.value} calendar=${state.calendar != null} palette=${state.palette?.name}',
+    );
+    if (state.isLoadingSettings || state.isLoadingCalendar) {
       return const _Loader();
     }
     if (state.error != null) {
       return _ErrorState(failure: state.error!);
     }
-    if (state.username == null || state.calendar == null) {
+    if (state.username == null ||
+        state.calendar == null ||
+        state.palette == null) {
       return const _EmptyState();
     }
-
-    final notifier = ref.read(viewerProvider.notifier);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -302,17 +389,159 @@ class _Body extends ConsumerWidget {
       children: [
         _CalendarCard(state: state),
         StatsPanel(calendar: state.calendar!),
-        _CustomizerCard(state: state, notifier: notifier),
-        ExportPanel(
-          calendar: state.calendar!,
-          palette: state.palette!,
-          cellShape: state.cellShape,
-          cellSize: state.cellSize,
+        _ActionRow(state: state),
+      ],
+    );
+  }
+}
+
+// ─── Calendar card ────────────────────────────────────────────────────────────
+
+final _contribFmt = NumberFormat.decimalPattern();
+
+class _CalendarCard extends ConsumerWidget {
+  const _CalendarCard({required this.state});
+
+  final ViewerState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final gridBg =
+        BackgroundPresets.colors[state.cardBackground] ?? colors.card;
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Tokens.space4,
+              Tokens.space4,
+              Tokens.space2,
+              Tokens.space2,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'CONTRIBUTIONS · ${state.effectiveYear.value}',
+                    style: AppTextStyles.mono(
+                      fontSize: Tokens.textXs,
+                      color: colors.mutedForeground,
+                      letterSpacing: 0.04,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${_contribFmt.format(state.calendar!.totalContributions)} commits',
+                  style: AppTextStyles.mono(
+                    fontSize: Tokens.textXs,
+                    color: colors.accent,
+                  ),
+                ),
+                if (state.fromCache) ...[
+                  const SizedBox(width: Tokens.space2),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(Tokens.radiusFull),
+                      border: Border.all(color: colors.border),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Tokens.space2,
+                        vertical: 2,
+                      ),
+                      child: Text(
+                        'cached',
+                        style: AppTextStyles.mono(
+                          fontSize: Tokens.textXs,
+                          color: colors.mutedForeground,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                AppButton.ghost(
+                  onPressed: state.isLoadingCalendar
+                      ? null
+                      : () => ref
+                            .read(viewerProvider.notifier)
+                            .refreshContributions(),
+                  size: ShadButtonSize.sm,
+                  child: const Icon(LucideIcons.refreshCw, size: 14),
+                ),
+              ],
+            ),
+          ),
+          ColoredBox(
+            color: gridBg,
+            child: ContributionGrid(
+              calendar: state.calendar!,
+              palette: state.palette!,
+              shape: state.cellShape,
+              cellSize: state.cellSize,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Action row ───────────────────────────────────────────────────────────────
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({required this.state});
+
+  final ViewerState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      spacing: Tokens.space2,
+      children: [
+        Expanded(
+          child: AppButton(
+            onPressed: () => CustomizerSheet.show(context),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(LucideIcons.sliders, size: 16),
+                SizedBox(width: Tokens.space2),
+                Text('Customize'),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: AppButton.outline(
+            onPressed: () => ExportSheet.show(
+              context,
+              calendar: state.calendar!,
+              palette: state.palette!,
+              cellShape: state.cellShape,
+              cellSize: state.cellSize,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(LucideIcons.download, size: 16),
+                SizedBox(width: Tokens.space2),
+                Text('Export'),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
 }
+
+// ─── Loading / empty / error states ──────────────────────────────────────────
 
 class _Loader extends StatelessWidget {
   const _Loader();
@@ -427,128 +656,6 @@ class _EmptyState extends StatelessWidget {
           ),
         ],
       ),
-    ),
-  );
-}
-
-final _contribFmt = NumberFormat.decimalPattern();
-
-class _CalendarCard extends ConsumerWidget {
-  const _CalendarCard({required this.state});
-
-  final ViewerState state;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = AppColors.of(context);
-    final gridBg =
-        BackgroundPresets.colors[state.cardBackground] ?? colors.card;
-
-    return AppCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Tokens.space4,
-              Tokens.space4,
-              Tokens.space4,
-              Tokens.space2,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: state.username!.value,
-                          style: AppTextStyles.mono(
-                            fontSize: Tokens.textBase,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const TextSpan(text: ' · '),
-                        TextSpan(
-                          text: state.effectiveYear.value.toString(),
-                          style: AppTextStyles.mono(
-                            fontSize: Tokens.textBase,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                      style: TextStyle(
-                        fontSize: Tokens.textBase,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.of(context).foreground,
-                      ),
-                    ),
-                  ),
-                ),
-                AppBadge(
-                  child: Text(
-                    '${_contribFmt.format(state.calendar!.totalContributions)} contributions this year',
-                  ),
-                ),
-                if (state.fromCache) ...[
-                  const SizedBox(width: Tokens.space2),
-                  const AppBadge.outline(child: Text('cached')),
-                ],
-                const SizedBox(width: Tokens.space2),
-                AppButton.ghost(
-                  onPressed: state.isLoadingCalendar
-                      ? null
-                      : () => ref
-                            .read(viewerProvider.notifier)
-                            .refreshContributions(),
-                  size: ShadButtonSize.sm,
-                  child: const Icon(LucideIcons.refreshCw, size: 14),
-                ),
-              ],
-            ),
-          ),
-          ColoredBox(
-            color: gridBg,
-            child: ContributionGrid(
-              calendar: state.calendar!,
-              palette: state.palette!,
-              shape: state.cellShape,
-              cellSize: state.cellSize,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CustomizerCard extends StatelessWidget {
-  const _CustomizerCard({required this.state, required this.notifier});
-
-  final ViewerState state;
-  final ViewerNotifier notifier;
-
-  @override
-  Widget build(BuildContext context) => AppCard(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: Tokens.space4,
-      children: [
-        PalettePicker(
-          selected: state.palette!,
-          onSelected: notifier.setPalette,
-        ),
-        ShapePicker(
-          selected: state.cellShape,
-          onSelected: notifier.setCellShape,
-        ),
-        SizePicker(selected: state.cellSize, onSelected: notifier.setCellSize),
-        BackgroundPicker(
-          selected: state.cardBackground,
-          onSelected: notifier.setCardBackground,
-        ),
-      ],
     ),
   );
 }

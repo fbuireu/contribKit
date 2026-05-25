@@ -203,62 +203,117 @@ async function renderFromGitHub(username: string) {
 	if (renderLabel) renderLabel.textContent = "render";
 }
 
+function activateRadio(buttons: NodeListOf<HTMLElement>, target: HTMLElement) {
+	buttons.forEach((b) => {
+		b.classList.remove("active");
+		b.setAttribute("aria-checked", "false");
+	});
+	target.classList.add("active");
+	target.setAttribute("aria-checked", "true");
+}
+
+function addRadioKeyboard(buttons: NodeListOf<HTMLElement>, index: number, onActivate: () => void) {
+	const btn = buttons[index];
+	btn.addEventListener("keydown", (event) => {
+		const len = buttons.length;
+		let targetIndex = -1;
+		if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+			event.preventDefault();
+			targetIndex = (index + 1) % len;
+		} else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+			event.preventDefault();
+			targetIndex = (index - 1 + len) % len;
+		} else if (event.key === "Home") {
+			event.preventDefault();
+			targetIndex = 0;
+		} else if (event.key === "End") {
+			event.preventDefault();
+			targetIndex = len - 1;
+		}
+		if (targetIndex < 0) return;
+		activateRadio(buttons, buttons[targetIndex]);
+		buttons[targetIndex].focus();
+		onActivate();
+	});
+}
+
 function initPaletteList() {
 	const allPaletteButtons = document.querySelectorAll<HTMLElement>("#palette-list .palette-row");
-	allPaletteButtons.forEach((button) => {
+	allPaletteButtons.forEach((button, index) => {
 		button.addEventListener("click", () => {
-			allPaletteButtons.forEach((other) => {
-				other.classList.remove("active");
-				other.setAttribute("aria-checked", "false");
-			});
-			button.classList.add("active");
-			button.setAttribute("aria-checked", "true");
+			activateRadio(allPaletteButtons, button);
 			renderCustomize();
 		});
+		addRadioKeyboard(allPaletteButtons, index, renderCustomize);
 	});
 }
 
 function initShapeList() {
 	const allShapeButtons = document.querySelectorAll<HTMLElement>("#shape-list .shape-btn");
-	allShapeButtons.forEach((button) => {
+	allShapeButtons.forEach((button, index) => {
 		button.addEventListener("click", () => {
-			allShapeButtons.forEach((other) => {
-				other.classList.remove("active");
-				other.setAttribute("aria-checked", "false");
-			});
-			button.classList.add("active");
-			button.setAttribute("aria-checked", "true");
+			activateRadio(allShapeButtons, button);
 			renderCustomize();
 		});
+		addRadioKeyboard(allShapeButtons, index, renderCustomize);
 	});
+}
+
+function activateTab(tabs: NodeListOf<HTMLElement>, target: HTMLElement) {
+	tabs.forEach((t) => {
+		t.classList.remove("active");
+		t.setAttribute("aria-selected", "false");
+	});
+	target.classList.add("active");
+	target.setAttribute("aria-selected", "true");
+	const panel = document.getElementById("export-preview");
+	if (panel && target.id) panel.setAttribute("aria-labelledby", target.id);
 }
 
 function initExportTabs() {
 	const allTabs = document.querySelectorAll<HTMLElement>("#export-tabs [data-key]");
-	allTabs.forEach((tab) => {
+	allTabs.forEach((tab, index) => {
 		tab.addEventListener("click", () => {
-			allTabs.forEach((other) => {
-				other.classList.remove("active");
-				other.setAttribute("aria-selected", "false");
-			});
-			tab.classList.add("active");
-			tab.setAttribute("aria-selected", "true");
+			activateTab(allTabs, tab);
+			renderExportPreview();
+		});
+		tab.addEventListener("keydown", (event) => {
+			const len = allTabs.length;
+			let targetIndex = -1;
+			if (event.key === "ArrowRight") {
+				event.preventDefault();
+				targetIndex = (index + 1) % len;
+			} else if (event.key === "ArrowLeft") {
+				event.preventDefault();
+				targetIndex = (index - 1 + len) % len;
+			} else if (event.key === "Home") {
+				event.preventDefault();
+				targetIndex = 0;
+			} else if (event.key === "End") {
+				event.preventDefault();
+				targetIndex = len - 1;
+			}
+			if (targetIndex < 0) return;
+			activateTab(allTabs, allTabs[targetIndex]);
+			allTabs[targetIndex].focus();
 			renderExportPreview();
 		});
 	});
 }
 
 function initUsernameStrip() {
+	const form = document.getElementById("username-form") as HTMLFormElement | null;
 	const input = document.getElementById("hero-username") as HTMLInputElement | null;
 	const renderButton = document.getElementById("hero-render-btn") as HTMLButtonElement | null;
 	const usernameDisplay = document.getElementById("hero-username-display");
 	if (!input || !renderButton || !usernameDisplay) return;
 
+	form?.addEventListener("submit", (event) => {
+		event.preventDefault();
+		renderFromGitHub(input.value.trim() || "torvalds");
+	});
 	input.addEventListener("input", () => {
 		usernameDisplay.textContent = input.value.trim() || "torvalds";
-	});
-	input.addEventListener("keydown", (event) => {
-		if (event.key === "Enter") renderFromGitHub(input.value.trim() || "torvalds");
 	});
 	renderButton.addEventListener("click", () => {
 		renderFromGitHub(input.value.trim() || "torvalds");
@@ -312,6 +367,14 @@ function initCellTooltip() {
 		const cell = event.target instanceof Element ? event.target.closest("[data-date][data-count]") : null;
 		if (cell) showTooltip(cell);
 		else if (activeCell) hideTooltip();
+	});
+	document.addEventListener("focusin", (event) => {
+		const cell = event.target instanceof Element ? event.target.closest("[data-date][data-count]") : null;
+		if (cell) showTooltip(cell);
+	});
+	document.addEventListener("focusout", (event) => {
+		const next = (event as FocusEvent).relatedTarget;
+		if (!(next instanceof Element) || !next.closest("[data-date][data-count]")) hideTooltip();
 	});
 	document.addEventListener("mouseleave", hideTooltip);
 	window.addEventListener("scroll", positionTooltip, { passive: true });

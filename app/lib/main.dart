@@ -25,6 +25,7 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, _) async {
     if (task != _widgetRefreshTask) return true;
 
+    WidgetsFlutterBinding.ensureInitialized();
     await Hive.initFlutter();
 
     const settingsBox = 'settings';
@@ -92,7 +93,6 @@ Future<void> main() async {
   );
 
   await _initRevenueCat();
-  FlutterNativeSplash.remove();
   runApp(const ProviderScope(child: ContribKitApp()));
 }
 
@@ -115,13 +115,33 @@ class ContribKitApp extends ConsumerWidget {
       title: 'ContribKit',
       darkTheme: ShadThemeData(
         brightness: Brightness.dark,
-        colorScheme: const ShadSlateColorScheme.dark(),
+        colorScheme: const ShadSlateColorScheme.dark().copyWith(
+          background: const Color(0xFF09090B),
+          card: const Color(0xFF0D0D10),
+          cardForeground: const Color(0xFFF4F4F5),
+          muted: const Color(0xFF111114),
+          mutedForeground: const Color(0xFFA1A1AA),
+          border: const Color(0xFF1A1A1D),
+          input: const Color(0xFF1A1A1D),
+          primary: const Color(0xFF39D353),
+          primaryForeground: const Color(0xFF09090B),
+          ring: const Color(0xFF39D353),
+        ),
         radius: BorderRadius.circular(Tokens.radiusMd),
         textTheme: googleFontTextTheme,
       ),
       theme: ShadThemeData(
         brightness: Brightness.light,
-        colorScheme: const ShadSlateColorScheme.light(),
+        colorScheme: const ShadSlateColorScheme.light().copyWith(
+          background: const Color(0xFFFAFAFA),
+          muted: const Color(0xFFF4F4F5),
+          mutedForeground: const Color(0xFF52525A),
+          border: const Color(0xFFE4E4E7),
+          input: const Color(0xFFE4E4E7),
+          primary: const Color(0xFF1A7F37),
+          primaryForeground: const Color(0xFFFFFFFF),
+          ring: const Color(0xFF1A7F37),
+        ),
         radius: BorderRadius.circular(Tokens.radiusMd),
         textTheme: googleFontTextTheme,
       ),

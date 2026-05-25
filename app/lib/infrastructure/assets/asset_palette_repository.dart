@@ -6,7 +6,7 @@ import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:flutter/services.dart';
 
 final class AssetPaletteRepository implements PaletteRepository {
-  static const _assetKey = '../shared/palettes.json';
+  static const _assetKey = 'assets/palettes.json';
 
   @override
   Future<List<Palette>> loadAll() async {

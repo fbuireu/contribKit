@@ -52,30 +52,30 @@ const { heroSVG, summary, palette } = Astro.props;
       </a>
     </div>
 
-    <div class="username-strip" aria-label="Preview username">
-      <span class="us-label">github.com/</span>
-      <input class="us-input" id="hero-username" value="torvalds" spellcheck="false" autocomplete="off" />
-      <div class="us-year-wrap">
-        <select class="us-year" id="hero-year" aria-label="Year">
-          <button type="button">
-            <selectedcontent></selectedcontent>
-          </button>
-          {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
-            <option value={y}>{y}</option>
-          ))}
-        </select>
-        <span class="us-year-chevron" aria-hidden="true">
-          <ChevronDown />
-        </span>
+    <form id="username-form" role="search" aria-label="Render GitHub contributions">
+      <div class="username-strip">
+        <label for="hero-username" class="us-label sr-only">GitHub username</label>
+        <span class="us-label" aria-hidden="true">github.com/</span>
+        <input class="us-input" id="hero-username" value="torvalds" spellcheck="false" autocomplete="off" />
+        <div class="us-year-wrap">
+          <select class="us-year" id="hero-year" aria-label="Year">
+            {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
+              <option value={y}>{y}</option>
+            ))}
+          </select>
+          <span class="us-year-chevron" aria-hidden="true">
+            <ChevronDown />
+          </span>
+        </div>
+        <button class="us-go" id="hero-render-btn" type="button">
+          <span id="hero-render-label">render</span>
+          <ArrowRight />
+        </button>
       </div>
-      <button class="us-go" id="hero-render-btn" type="button">
-        <span id="hero-render-label">render</span>
-        <ArrowRight />
-      </button>
-    </div>
+    </form>
 
-    <div class="suggestions" aria-label="Try a famous GitHub profile">
-      <span class="mono sug-label">try:</span>
+    <div class="suggestions" role="group" aria-label="Try a famous GitHub profile">
+      <span class="mono sug-label" aria-hidden="true">try:</span>
       <button class="sug-btn mono" data-username="torvalds">torvalds</button>
       <button class="sug-btn mono" data-username="gaearon">gaearon</button>
       <button class="sug-btn mono" data-username="yyx990803">yyx990803</button>
@@ -93,7 +93,7 @@ const { heroSVG, summary, palette } = Astro.props;
           </div>
           <div class="bar-title">
             <span class="mono dim" id="hero-username-display">torvalds</span>
-            <span class="mono dimmer">·</span>
+            <span class="mono dimmer" aria-hidden="true">·</span>
             <span class="mono dim" id="hero-year-range">last year</span>
           </div>
           <div class="bar-tag">
@@ -104,16 +104,16 @@ const { heroSVG, summary, palette } = Astro.props;
           <Fragment set:html={heroSVG} />
         </div>
         <div class="hero-card-foot">
-          <div class="legend" aria-label="Contribution level legend">
-            <span class="mono dimmer">less</span>
+          <div class="legend" role="img" aria-label="Contribution level: less to more">
+            <span class="mono dimmer" aria-hidden="true">less</span>
             {palette.map((c) => (
               <span class="legend-sq" style={`background:${c};border-radius:2px`} aria-hidden="true"></span>
             ))}
-            <span class="mono dimmer">more</span>
+            <span class="mono dimmer" aria-hidden="true">more</span>
           </div>
           <div class="legend-stats">
             <span><b class="mono">{summary.streak}</b> day streak</span>
-            <span class="sep">·</span>
+            <span class="sep" aria-hidden="true">·</span>
             <span><b class="mono">{summary.longest}</b> longest</span>
           </div>
         </div>
@@ -123,4 +123,3 @@ const { heroSVG, summary, palette } = Astro.props;
 
   </div>
 </section>
-

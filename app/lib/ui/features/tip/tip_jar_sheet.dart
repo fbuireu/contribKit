@@ -25,6 +25,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
   bool _hasError = false;
   String? _purchasingId;
   String? _successId;
+  String? _errorId;
 
   static const _meta = {
     'tip_coffee': (emoji: '☕', label: 'Coffee'),
@@ -52,6 +53,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
     setState(() {
       _purchasingId = product.id;
       _successId = null;
+      _errorId = null; // limpia error previo al reintentar
     });
     try {
       await ref.read(purchaseTipProvider).call(product);
@@ -62,7 +64,12 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _purchasingId = null);
+      if (mounted) {
+        setState(() {
+          _purchasingId = null;
+          _errorId = product.id;
+        });
+      }
     }
   }
 
@@ -127,6 +134,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
           label: _meta[p.id]?.label ?? p.title,
           isPurchasing: _purchasingId == p.id,
           isSuccess: _successId == p.id,
+          isError: _errorId == p.id,
           disabled: _purchasingId != null,
           colors: colors,
           onTap: () => _purchase(p),
@@ -150,6 +158,7 @@ class _TierCard extends StatelessWidget {
     required this.label,
     required this.isPurchasing,
     required this.isSuccess,
+    required this.isError,
     required this.disabled,
     required this.colors,
     required this.onTap,
@@ -160,6 +169,7 @@ class _TierCard extends StatelessWidget {
   final String label;
   final bool isPurchasing;
   final bool isSuccess;
+  final bool isError;
   final bool disabled;
   final AppColors colors;
   final VoidCallback onTap;
@@ -177,8 +187,12 @@ class _TierCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSuccess ? colors.muted : colors.card,
           border: Border.all(
-            color: isSuccess ? colors.ring : colors.border,
-            width: isSuccess ? 1.5 : 1,
+            color: isError
+                ? colors.destructive
+                : isSuccess
+                ? colors.ring
+                : colors.border,
+            width: (isSuccess || isError) ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
         ),
@@ -215,6 +229,8 @@ class _TierCard extends StatelessWidget {
                   .rotate(duration: 900.ms, curve: Curves.linear)
             else if (isSuccess)
               Icon(LucideIcons.check, size: 18, color: colors.foreground)
+            else if (isError)
+              Icon(LucideIcons.alertCircle, size: 18, color: colors.destructive)
             else
               Icon(
                 LucideIcons.chevronRight,

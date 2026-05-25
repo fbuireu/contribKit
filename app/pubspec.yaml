@@ -53,6 +53,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # App icon generation
+  flutter_launcher_icons: ^0.14.0
+
   # Code generation
   build_runner: ^2.15.0
   riverpod_generator: ^4.0.0
@@ -67,10 +70,17 @@ dev_dependencies:
   # Testing
   mocktail: ^1.0.0
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#09090B"
+  adaptive_icon_foreground: "assets/images/logo.png"
+
 flutter:
   uses-material-design: false
 
   assets:
     - assets/images/
-    - ../shared/palettes.json
-    - ../shared/shapes.json
+    - assets/palettes.json
+    - assets/shapes.json

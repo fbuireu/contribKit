@@ -22,6 +22,15 @@ class ViewerNotifier extends _$ViewerNotifier {
 
   Future<void> _loadSettings() async {
     state = state.copyWith(isLoadingSettings: true);
+
+    List<Palette> allPalettes = [];
+    try {
+      allPalettes = await ref.read(palettesProvider.future);
+      if (allPalettes.isNotEmpty) {
+        state = state.copyWith(palette: allPalettes.first);
+      }
+    } catch (_) {}
+
     try {
       final repo = ref.read(settingsRepositoryProvider);
 
@@ -32,13 +41,14 @@ class ViewerNotifier extends _$ViewerNotifier {
       final cellSizeSaved = await repo.getSavedCellSize();
       final backgroundName = await repo.getSavedCardBackground();
 
-      final allPalettes = await ref.read(palettesProvider.future);
-      final resolvedPalette = paletteName != null
-          ? allPalettes.firstWhere(
-              (p) => p.name == paletteName,
-              orElse: () => allPalettes.first,
-            )
-          : allPalettes.first;
+      final resolvedPalette = allPalettes.isEmpty
+          ? state.palette
+          : (paletteName != null
+                ? allPalettes.firstWhere(
+                    (p) => p.name == paletteName,
+                    orElse: () => allPalettes.first,
+                  )
+                : allPalettes.first);
 
       state = state.copyWith(
         username: username,
@@ -57,6 +67,7 @@ class ViewerNotifier extends _$ViewerNotifier {
           year: year ?? Year.current,
         );
       }
+    } catch (_) {
     } finally {
       state = state.copyWith(isLoadingSettings: false);
     }
@@ -129,6 +140,8 @@ class ViewerNotifier extends _$ViewerNotifier {
     final username = state.username;
     if (username != null) {
       fetchContributions(username: username, year: year);
+    } else {
+      state = state.copyWith(year: year);
     }
   }
 

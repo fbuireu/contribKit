@@ -10,11 +10,15 @@ import 'package:home_widget/home_widget.dart';
 import 'package:path_provider/path_provider.dart';
 
 abstract final class CalendarWidgetService {
-  static const _androidProviderName = 'ContribKitWidgetProvider';
   static const _imagePathKey = 'calendar_image_path';
   static const _usernameKey = 'widget_username';
   static const _streakKey = 'widget_streak';
   static const _totalContributionsKey = 'widget_total_contributions';
+
+  static const _qualifiedMedium =
+      'com.fbuireu.contribkit.ContribKitWidgetProvider';
+  static const _qualifiedSmall =
+      'com.fbuireu.contribkit.ContribKitSmallWidgetProvider';
 
   static Future<void> update({
     required ContributionCalendar calendar,
@@ -50,9 +54,12 @@ abstract final class CalendarWidgetService {
         ),
       ]);
 
-      await HomeWidget.updateWidget(androidName: _androidProviderName);
+      await Future.wait([
+        HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedMedium),
+        HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedSmall),
+      ]);
     } catch (_) {
-      // Widget updates are best-effort — never crash the app.
+      // Best-effort — never crash the app over a widget update.
     }
   }
 

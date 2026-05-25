@@ -10,6 +10,22 @@ export default defineConfig({
 	prefetch: {
 		prefetchAll: true,
 	},
+	fonts: [
+		{
+			provider: "google",
+			name: "Inter",
+			cssVariable: "--font-inter",
+			weights: ["400", "500", "600", "700", "800"],
+			display: "swap",
+		},
+		{
+			provider: "google",
+			name: "JetBrains Mono",
+			cssVariable: "--font-jetbrains-mono",
+			weights: ["400", "500", "600"],
+			display: "swap",
+		},
+	],
 	vite: {
 		build: {
 			target: "esnext",

@@ -4,14 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#09090B"
-    android:padding="8dp">
+    android:padding="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/widget_card_bg"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔥"
+            android:textSize="13sp"
+            android:layout_marginEnd="4dp" />
 
         <TextView
             android:id="@+id/widget_small_count"
@@ -19,7 +28,7 @@
             android:layout_height="wrap_content"
             android:text="0"
             android:textColor="#39D353"
-            android:textSize="28sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:fontFamily="monospace"
             android:includeFontPadding="false" />
@@ -27,11 +36,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="day streak"
+            android:text=" streak"
             android:textColor="#4DFFFFFF"
             android:textSize="8sp"
             android:fontFamily="monospace"
-            android:layout_marginTop="3dp" />
+            android:layout_marginStart="3dp" />
 
     </LinearLayout>
 </FrameLayout>

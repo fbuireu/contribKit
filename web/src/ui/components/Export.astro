@@ -15,7 +15,7 @@ const EXPORT_FORMATS = [
 
 <section class="section" id="export">
   <div class="wrap">
-    <div class="eyebrow"><span class="mono">export</span></div>
+    <div class="eyebrow" aria-hidden="true"><span class="mono">export</span></div>
     <h2 class="section-title">
       Three formats.<br />
       <span class="dim">Pick the right one for the surface.</span>
@@ -26,7 +26,9 @@ const EXPORT_FORMATS = [
           <button
             class:list={['export-tab', { active: i === 0 }]}
             role="tab"
+            id={`export-tab-${key}`}
             aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls="export-preview"
             data-key={key}
           >
             <span class="mono tab-key">.{key}</span>
@@ -36,7 +38,7 @@ const EXPORT_FORMATS = [
           </button>
         ))}
       </div>
-      <div class="export-preview" id="export-preview" role="tabpanel">
+      <div class="export-preview" id="export-preview" role="tabpanel" aria-labelledby="export-tab-png">
         <div class="preview-card png-preview">
           <div class="preview-checker" aria-hidden="true"></div>
           <div class="preview-content">

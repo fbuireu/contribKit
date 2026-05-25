@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/entities/contribution_week.dart';
@@ -58,20 +59,32 @@ final class GitHubContributionRepository implements ContributionRepository {
     await box.deleteAll(keys);
   }
 
+  static const _timeout = Duration(seconds: 20);
+
   Future<ContributionCalendar> _fetch(Username username, Year year) async {
     final uri = Uri.parse(
       'https://github.com/users/${username.value}/contributions'
       '?from=${year.value}-01-01&to=${year.value}-12-31',
     );
+    debugPrint('[GitHub] GET $uri');
 
     try {
-      final response = await _httpClient.get(
-        uri,
-        headers: {
-          'User-Agent': 'ContribKit/1.0 (Flutter)',
-          'Accept': 'text/html',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
+      final response = await _httpClient
+          .get(
+            uri,
+            headers: {
+              'User-Agent': 'ContribKit/1.0 (Flutter)',
+              'Accept': 'text/html',
+            },
+          )
+          .timeout(
+            _timeout,
+            onTimeout: () => throw NetworkFailure(
+              message: 'Request timed out after ${_timeout.inSeconds}s',
+            ),
+          );
+      debugPrint(
+        '[GitHub] response ${response.statusCode} — body length ${response.body.length}',
       );
 
       if (response.statusCode == 404) {
@@ -105,6 +118,9 @@ final class GitHubContributionRepository implements ContributionRepository {
       idToDate[idMatch.group(1)!] = date;
     }
 
+    debugPrint(
+      '[GitHub] parsed ${idToDate.length} td cells for year ${year.value}',
+    );
     if (idToDate.isEmpty) throw NotFoundFailure(username: username.value);
 
     // Pass 2: id → count from <tool-tip for="...">N contribution(s)…</tool-tip>

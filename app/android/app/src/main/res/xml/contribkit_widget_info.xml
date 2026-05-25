@@ -7,4 +7,5 @@
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/contribkit_widget"
     android:resizeMode="horizontal|vertical"
+    android:previewImage="@mipmap/ic_launcher"
     android:widgetCategory="home_screen" />
