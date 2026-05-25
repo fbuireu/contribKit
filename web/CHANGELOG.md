@@ -1,0 +1,20 @@
+# contribkit-web-v1.0.0 (2026-05-25)
+
+
+### Bug Fixes
+
+* add husky prepush ([df67d00](https://github.com/fbuireu/contribKit/commit/df67d00d55b419cc2795c2ba7ace7cfaa118ae59))
+* contribs year end ([e2e27f7](https://github.com/fbuireu/contribKit/commit/e2e27f7f8cc90669e368c9818246a6a7284e63c7))
+* font provider ([6fcf276](https://github.com/fbuireu/contribKit/commit/6fcf2762dbc771af9e7c93c04ce78d3b6cf49cc7))
+* small issues ([577306c](https://github.com/fbuireu/contribKit/commit/577306c2ca59b83f84ff4fce89464e9f88ccc1cd))
+* stuff ([629e269](https://github.com/fbuireu/contribKit/commit/629e2691a0df1e566043aaeb00cfe209f437dc84))
+* types ([c9ebded](https://github.com/fbuireu/contribKit/commit/c9ebdedf0db1b936d9a6a2631156170e28c282ff))
+
+
+### Features
+
+* add css styles ([624c9c4](https://github.com/fbuireu/contribKit/commit/624c9c48bf493522b177dc50932bb590e1fce781))
+* add dark mode support ([162800e](https://github.com/fbuireu/contribKit/commit/162800ee5fe583a346694374a50e82fcc10c005d))
+* add monorepo web v1 ([e57e519](https://github.com/fbuireu/contribKit/commit/e57e519d5a8255638f55e03dde4b230ffe194d8c))
+* add widget size ([b0c873a](https://github.com/fbuireu/contribKit/commit/b0c873a18badbf5ab0b13239882e1dbda04225a7))
+* simplify ([c1c4d3e](https://github.com/fbuireu/contribKit/commit/c1c4d3ee52bec59cdf8a5e2b0f9d8a628860f15e))
