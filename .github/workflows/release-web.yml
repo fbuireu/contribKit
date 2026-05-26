@@ -55,7 +55,7 @@ jobs:
         working-directory: web
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
-        run: pnpm exec semantic-release --extends semantic-release-monorepo
+        run: pnpm exec semantic-release
 
   deploy:
     name: Deploy to Cloudflare Pages

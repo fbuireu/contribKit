@@ -5,7 +5,7 @@
   "private": true,
   "packageManager": "pnpm@11.3.0",
   "scripts": {
-    "release": "semantic-release --extends semantic-release-monorepo"
+    "release": "semantic-release"
   },
   "devDependencies": {
     "@semantic-release/changelog": "6.0.3",
