@@ -193,62 +193,60 @@
     --cc-z-index: 9000;
 
     /* Surfaces */
-    --cc-bg: light-dark(#ffffff, #0d0d10);
-    --cc-overlay-bg: light-dark(rgba(0,0,0,0.15), rgba(0,0,0,0.5));
-    --cc-separator-bg: light-dark(#e4e4e7, #1a1a1d);
+    --cc-bg: var(--surface);
+    --cc-overlay-bg: var(--overlay-strong);
+    --cc-separator-bg: var(--border);
 
     /* Text */
-    --cc-primary-color: light-dark(#18181b, #f4f4f5);
-    --cc-secondary-color: light-dark(#52525a, #a1a1aa);
+    --cc-primary-color: var(--text);
+    --cc-secondary-color: var(--text-dim);
 
     /* Primary button — accept */
-    --cc-btn-primary-bg: light-dark(#1a7f37, #39d353);
-    --cc-btn-primary-color: light-dark(#ffffff, #09090b);
-    --cc-btn-primary-hover-bg: light-dark(#16692e, #2ab844);
-    --cc-btn-primary-border-color: light-dark(#1a7f37, #39d353);
+    --cc-btn-primary-bg: var(--accent);
+    --cc-btn-primary-color: var(--bg);
+    --cc-btn-primary-hover-bg: var(--accent);
+    --cc-btn-primary-border-color: var(--accent);
 
     /* Secondary button — reject / manage */
-    --cc-btn-secondary-bg: light-dark(#f4f4f5, #111114);
-    --cc-btn-secondary-color: light-dark(#18181b, #f4f4f5);
-    --cc-btn-secondary-hover-bg: light-dark(#e9e9ec, #161619);
-    --cc-btn-secondary-hover-color: light-dark(#18181b, #f4f4f5);
-    --cc-btn-secondary-border-color: light-dark(#e4e4e7, #1a1a1d);
+    --cc-btn-secondary-bg: var(--surface-raised);
+    --cc-btn-secondary-color: var(--text);
+    --cc-btn-secondary-hover-bg: var(--surface-high);
+    --cc-btn-secondary-hover-color: var(--text);
+    --cc-btn-secondary-border-color: var(--border);
 
     /* Category blocks */
-    --cc-cookie-category-block-bg: light-dark(#f4f4f5, #111114);
-    --cc-cookie-category-block-border: light-dark(#e4e4e7, #1a1a1d);
-    --cc-cookie-category-block-hover-bg: light-dark(#e9e9ec, #161619);
-    --cc-cookie-category-block-hover-border: light-dark(#d4d4d8, #232328);
+    --cc-cookie-category-block-bg: var(--surface-raised);
+    --cc-cookie-category-block-border: var(--border);
+    --cc-cookie-category-block-hover-bg: var(--surface-high);
+    --cc-cookie-category-block-hover-border: var(--border-strong);
 
     /* Toggle */
-    --cc-toggle-enabled-bg: light-dark(#1a7f37, #39d353);
-    --cc-toggle-disabled-bg: light-dark(#d4d4d8, #2e2e33);
-    --cc-toggle-enabled-icon-bg: light-dark(#ffffff, #09090b);
-    --cc-toggle-disabled-icon-bg: light-dark(#ffffff, #09090b);
-    --cc-toggle-readonly-bg: light-dark(#e4e4e7, #1a1a1d);
-    --cc-toggle-knob-bg: light-dark(#ffffff, #09090b);
-    --cc-toggle-knob-icon-color: light-dark(#18181b, #f4f4f5);
+    --cc-toggle-enabled-bg: var(--accent);
+    --cc-toggle-disabled-bg: var(--text-faint);
+    --cc-toggle-enabled-icon-bg: var(--bg);
+    --cc-toggle-disabled-icon-bg: var(--bg);
+    --cc-toggle-readonly-bg: var(--border);
+    --cc-toggle-knob-bg: var(--bg);
+    --cc-toggle-knob-icon-color: var(--text);
 
     /* Table */
-    --cc-cookie-table-border: light-dark(#e4e4e7, #1a1a1d);
-    --cc-cookie-table-cell-bg: light-dark(#f4f4f5, #111114);
+    --cc-cookie-table-border: var(--border);
+    --cc-cookie-table-cell-bg: var(--surface-raised);
 
     /* Links */
-    --cc-link-color: light-dark(#1a7f37, #39d353);
+    --cc-link-color: var(--accent);
   }
 
-  /* Consent bar bottom spacing so it clears any bottom UI */
   #cc-main .cm--bar {
-    border-top: 1px solid light-dark(#e4e4e7, #1a1a1d);
+    border-top: 1px solid var(--border);
     box-shadow: none;
   }
 
   #cc-main .cm__btn--secondary:hover,
   #cc-main .pm__btn--secondary:hover {
-    color: light-dark(#18181b, #f4f4f5);
+    color: var(--text);
   }
 
-  /* Align font sizes with the site */
   #cc-main .cm__title {
     font-size: 14px;
     font-weight: 600;
@@ -257,14 +255,10 @@
   #cc-main .cm__desc,
   #cc-main .cm__footer {
     font-size: 13px;
-    color: light-dark(#52525a, #a1a1aa);
+    color: var(--text-dim);
   }
-  #cc-main .cm__footer a {
-    color: light-dark(#1a7f37, #39d353);
-  }
-
-  /* Preferences modal footer link */
+  #cc-main .cm__footer a,
   #cc-main .pm__section--toggle .pm__section-desc a {
-    color: light-dark(#1a7f37, #39d353);
+    color: var(--accent);
   }
 </style>
