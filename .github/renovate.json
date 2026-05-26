@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended",
     ":dependencyDashboard",
+    "customManagers:biomeVersions",
     ":enableVulnerabilityAlerts"
   ],
   "labels": ["dependencies", "renovate", "bot"],
