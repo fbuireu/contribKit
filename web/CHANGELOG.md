@@ -1,3 +1,11 @@
+# [contribkit-web-v1.1.0](https://github.com/fbuireu/contribKit/compare/web-v1.0.0...web-v1.1.0) (2026-05-26)
+
+
+### Features
+
+* web cookie + gradle ([a327a09](https://github.com/fbuireu/contribKit/commit/a327a091768f7fa1b11a866d6fd73b20394ba59e))
+* web cookie + gradle ([2ba11e4](https://github.com/fbuireu/contribKit/commit/2ba11e47d9b83889d98bf17903e98b452c3b811a))
+
 # contribkit-web-v1.0.0 (2026-05-25)
 
 
