@@ -15,9 +15,16 @@ class ContribKitSmallWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        appWidgetIds.forEach { widgetId ->
-            updateWidget(context, appWidgetManager, widgetId)
-        }
+        val pending = goAsync()
+        Thread {
+            try {
+                appWidgetIds.forEach { widgetId ->
+                    updateWidget(context, appWidgetManager, widgetId)
+                }
+            } finally {
+                pending.finish()
+            }
+        }.start()
     }
 
     private fun updateWidget(

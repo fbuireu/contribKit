@@ -1,22 +1,98 @@
 ---
 import BaseLayout from "../ui/components/layouts/BaseLayout.astro";
+import "../ui/components/legal-notice.css";
 
 const TITLE = "Legal Notice — ContribKit";
 const d = new Date();
 d.setDate(d.getDate() - 7);
 const EFFECTIVE_DATE = d.toISOString().slice(0, 10);
 
-function scramble(str: string): string {
-	const arr = Array.from(str).map((c, i) => ({ c, i }));
-	for (let k = arr.length - 1; k > 0; k--) {
-		const j = Math.floor(Math.random() * (k + 1));
-		[arr[k], arr[j]] = [arr[j], arr[k]];
-	}
-	return JSON.stringify(arr);
-}
+type ShuffledData = { letter: string; order: number };
 
-const scrambledNif = scramble(import.meta.env.PUBLIC_OWNER_NIF ?? "");
-const scrambledAddress = scramble(import.meta.env.PUBLIC_OWNER_ADDRESS ?? "");
+const OWNER_NAME: ShuffledData[] = [
+	{ letter: "u", order: 12 },
+	{ letter: "B", order: 7 },
+	{ letter: "r", order: 3 },
+	{ letter: "F", order: 0 },
+	{ letter: "e", order: 11 },
+	{ letter: " ", order: 6 },
+	{ letter: "r", order: 2 },
+	{ letter: "n", order: 5 },
+	{ letter: "i", order: 9 },
+	{ letter: "e", order: 1 },
+	{ letter: "r", order: 10 },
+	{ letter: "a", order: 4 },
+	{ letter: "u", order: 8 },
+];
+
+const OWNER_NIF: ShuffledData[] = [
+	{ letter: "9", order: 6 },
+	{ letter: "H", order: 8 },
+	{ letter: "7", order: 3 },
+	{ letter: "2", order: 4 },
+	{ letter: "4", order: 0 },
+	{ letter: "6", order: 1 },
+	{ letter: "9", order: 2 },
+	{ letter: "7", order: 7 },
+	{ letter: "2", order: 5 },
+];
+
+const OWNER_ADDRESS: ShuffledData[] = [
+	{ letter: "C", order: 0 },
+	{ letter: "d", order: 7 },
+	{ letter: "t", order: 14 },
+	{ letter: "5", order: 21 },
+	{ letter: "2", order: 28 },
+	{ letter: "c", order: 35 },
+	{ letter: " ", order: 42 },
+	{ letter: "a", order: 1 },
+	{ letter: "e", order: 8 },
+	{ letter: "o", order: 15 },
+	{ letter: "B", order: 22 },
+	{ letter: "9", order: 29 },
+	{ letter: "e", order: 36 },
+	{ letter: "S", order: 43 },
+	{ letter: "r", order: 2 },
+	{ letter: " ", order: 9 },
+	{ letter: " ", order: 16 },
+	{ letter: ",", order: 23 },
+	{ letter: ",", order: 30 },
+	{ letter: "l", order: 37 },
+	{ letter: "p", order: 44 },
+	{ letter: "r", order: 3 },
+	{ letter: "L", order: 10 },
+	{ letter: "3", order: 17 },
+	{ letter: " ", order: 24 },
+	{ letter: " ", order: 31 },
+	{ letter: "o", order: 38 },
+	{ letter: "a", order: 45 },
+	{ letter: "e", order: 4 },
+	{ letter: "o", order: 11 },
+	{ letter: "6", order: 18 },
+	{ letter: "0", order: 25 },
+	{ letter: "B", order: 32 },
+	{ letter: "n", order: 39 },
+	{ letter: "i", order: 46 },
+	{ letter: "r", order: 5 },
+	{ letter: "r", order: 12 },
+	{ letter: ",", order: 19 },
+	{ letter: "8", order: 26 },
+	{ letter: "a", order: 33 },
+	{ letter: "a", order: 40 },
+	{ letter: "n", order: 47 },
+	{ letter: " ", order: 6 },
+	{ letter: "e", order: 13 },
+	{ letter: " ", order: 20 },
+	{ letter: "0", order: 27 },
+	{ letter: "r", order: 34 },
+	{ letter: ",", order: 41 },
+];
+
+const resolve = (data: ShuffledData[]) =>
+	[...data]
+		.sort((a, b) => a.order - b.order)
+		.map((p) => p.letter)
+		.join("");
 ---
 
 <BaseLayout title={TITLE} robots="noindex, nofollow">
@@ -36,15 +112,15 @@ const scrambledAddress = scramble(import.meta.env.PUBLIC_OWNER_ADDRESS ?? "");
           <tbody>
             <tr>
               <th scope="row">Owner</th>
-              <td><span id="owner-name" class="protected" inert></span></td>
+              <td><span class="protected">{resolve(OWNER_NAME)}</span></td>
             </tr>
             <tr>
               <th scope="row">Tax ID (NIF)</th>
-              <td><span class="protected mono" data-o={scrambledNif} inert></span></td>
+              <td><span class="protected mono">{resolve(OWNER_NIF)}</span></td>
             </tr>
             <tr>
               <th scope="row">Address</th>
-              <td><span class="protected" data-o={scrambledAddress} inert></span></td>
+              <td><span class="protected">{resolve(OWNER_ADDRESS)}</span></td>
             </tr>
             <tr>
               <th scope="row">Contact</th>
@@ -78,48 +154,3 @@ const scrambledAddress = scramble(import.meta.env.PUBLIC_OWNER_ADDRESS ?? "");
   </div>
 </BaseLayout>
 
-<script>
-  const nameEl = document.getElementById('owner-name');
-  if (nameEl) nameEl.textContent = import.meta.env.PUBLIC_OWNER_NAME ?? '';
-
-  document.querySelectorAll<HTMLElement>('[data-o]').forEach(el => {
-    const parts: Array<{ c: string; i: number }> = JSON.parse(el.dataset.o!);
-    parts.sort((a, b) => a.i - b.i);
-    el.textContent = parts.map(p => p.c).join('');
-  });
-</script>
-
-<style>
-  .legal-page { padding: 64px 0 96px; }
-  .legal-header { margin-bottom: 48px; border-bottom: 1px solid var(--border); padding-bottom: 32px; }
-  .back-link { font-size: 13px; color: var(--text-dim); display: inline-block; margin-bottom: 20px; transition: color 100ms; }
-  .back-link:hover { color: var(--text); }
-  h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.03em; margin: 0 0 8px; }
-  .legal-body { max-width: 640px; }
-  .legal-body h2 { font-size: 15px; font-weight: 600; margin: 36px 0 8px; color: var(--text); }
-  .legal-body p { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0 0 8px; }
-  .legal-body code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-raised); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
-  .legal-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-
-  .id-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0 8px; }
-  .id-table th, .id-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
-  .id-table th { width: 120px; font-weight: 500; color: var(--text-dimmer); white-space: nowrap; }
-  .id-table td { color: var(--text-dim); }
-
-  .protected {
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  .inline-prefs-btn {
-    font: inherit;
-    font-size: 14px;
-    color: var(--accent);
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-</style>

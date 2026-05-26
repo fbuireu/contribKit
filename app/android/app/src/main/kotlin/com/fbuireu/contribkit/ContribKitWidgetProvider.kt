@@ -20,9 +20,16 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        appWidgetIds.forEach { widgetId ->
-            updateWidget(context, appWidgetManager, widgetId)
-        }
+        val pending = goAsync()
+        Thread {
+            try {
+                appWidgetIds.forEach { widgetId ->
+                    updateWidget(context, appWidgetManager, widgetId)
+                }
+            } finally {
+                pending.finish()
+            }
+        }.start()
     }
 
     override fun onAppWidgetOptionsChanged(
@@ -31,7 +38,14 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
         appWidgetId: Int,
         newOptions: android.os.Bundle,
     ) {
-        updateWidget(context, appWidgetManager, appWidgetId)
+        val pending = goAsync()
+        Thread {
+            try {
+                updateWidget(context, appWidgetManager, appWidgetId)
+            } finally {
+                pending.finish()
+            }
+        }.start()
     }
 
     private fun updateWidget(
