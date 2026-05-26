@@ -6,5 +6,7 @@ declare global {
 	interface Window {
 		__INITIAL_CELLS__?: ContributionDay[];
 		__INITIAL_USERNAME__?: string;
+		dataLayer: unknown[];
+		gtag: (...args: unknown[]) => void;
 	}
 }

@@ -30,6 +30,8 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/prepare-web-env
 
       - name: Install dependencies
@@ -53,6 +55,8 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/prepare-web-env
 
       - name: Install dependencies

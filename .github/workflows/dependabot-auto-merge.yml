@@ -23,8 +23,8 @@ jobs:
       - name: Check if should auto-merge
         id: auto-merge-check
         run: |
-          UPDATE_TYPE="${{ steps.metadata.outputs.update-type }}"
-          DEP_TYPE="${{ steps.metadata.outputs.dependency-type }}"
+          UPDATE_TYPE="${STEPS_METADATA_OUTPUTS_UPDATE_TYPE}"
+          DEP_TYPE="${STEPS_METADATA_OUTPUTS_DEPENDENCY_TYPE}"
 
           if [[ "$UPDATE_TYPE" == "version-update:semver-patch" ]] || \
              [[ "$UPDATE_TYPE" == "version-update:semver-minor" ]] || \
@@ -34,6 +34,9 @@ jobs:
           else
             echo "should-merge=false" >> $GITHUB_OUTPUT
           fi
+        env:
+          STEPS_METADATA_OUTPUTS_UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          STEPS_METADATA_OUTPUTS_DEPENDENCY_TYPE: ${{ steps.metadata.outputs.dependency-type }}
 
       - name: Approve and auto-merge
         if: steps.auto-merge-check.outputs.should-merge == 'true'
@@ -47,14 +50,15 @@ jobs:
       - name: Comment on major updates
         if: steps.metadata.outputs['update-type'] == 'version-update:semver-major'
         run: |
-          gh pr comment "$PR_URL" --body "🚨 **Major update detected** - Manual review required for ${{ steps.metadata.outputs.dependency-names }}"
+          gh pr comment "$PR_URL" --body "🚨 **Major update detected** - Manual review required for ${STEPS_METADATA_OUTPUTS_DEPENDENCY_NAMES}"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEPS_METADATA_OUTPUTS_DEPENDENCY_NAMES: ${{ steps.metadata.outputs.dependency-names }}
 
       - name: Label PRs by update type
         run: |
-          case "${{ steps.metadata.outputs['update-type'] }}" in
+          case "${STEPS_METADATA_OUTPUTS_UPDATE_TYPE}" in
             version-update:semver-patch)
               gh pr edit "$PR_URL" --add-label "patch-update,auto-merge"
               ;;
@@ -68,3 +72,4 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEPS_METADATA_OUTPUTS_UPDATE_TYPE: ${{ steps.metadata.outputs['update-type'] }}

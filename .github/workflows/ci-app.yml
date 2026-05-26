@@ -28,6 +28,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: subosito/flutter-action@v2
         with:
@@ -51,6 +53,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: subosito/flutter-action@v2
         with:
@@ -79,6 +83,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: subosito/flutter-action@v2
         with:

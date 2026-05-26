@@ -27,6 +27,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
+          persist-credentials: false
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
