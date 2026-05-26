@@ -20,7 +20,7 @@
     "labels": ["security", "vulnerability"]
   },
   "osvVulnerabilityAlerts": true,
-  "includePaths": ["app/**", "web/**", "*"],
+  "includePaths": ["app/**", "web/**", ".github/**", "*"],
   "packageRules": [
     {
       "matchManagers": ["pub"],

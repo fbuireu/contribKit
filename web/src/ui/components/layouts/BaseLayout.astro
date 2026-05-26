@@ -1,6 +1,7 @@
 ---
 import "../../styles/global.css";
 import Font from "astro/components/Font.astro";
+import CookieConsent from "../CookieConsent.astro";
 import SEO from "../core/SEO.astro";
 import Footer from "../Footer.astro";
 import TopNav from "../TopNav.astro";
@@ -50,5 +51,6 @@ const { title, description, url, image, robots } = Astro.props;
       <slot />
     </main>
     <Footer />
+    <CookieConsent />
   </body>
 </html>

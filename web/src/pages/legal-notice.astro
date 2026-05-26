@@ -1,0 +1,125 @@
+---
+import BaseLayout from "../ui/components/layouts/BaseLayout.astro";
+
+const TITLE = "Legal Notice — ContribKit";
+const d = new Date();
+d.setDate(d.getDate() - 7);
+const EFFECTIVE_DATE = d.toISOString().slice(0, 10);
+
+function scramble(str: string): string {
+	const arr = Array.from(str).map((c, i) => ({ c, i }));
+	for (let k = arr.length - 1; k > 0; k--) {
+		const j = Math.floor(Math.random() * (k + 1));
+		[arr[k], arr[j]] = [arr[j], arr[k]];
+	}
+	return JSON.stringify(arr);
+}
+
+const scrambledNif = scramble(import.meta.env.PUBLIC_OWNER_NIF ?? "");
+const scrambledAddress = scramble(import.meta.env.PUBLIC_OWNER_ADDRESS ?? "");
+---
+
+<BaseLayout title={TITLE} robots="noindex, nofollow">
+  <div class="legal-page">
+    <div class="wrap">
+      <div class="legal-header">
+        <a href="/" class="back-link mono">← back</a>
+        <h1>Legal Notice</h1>
+        <p class="dimmer mono">Effective date: {EFFECTIVE_DATE}</p>
+      </div>
+      <div class="legal-body">
+
+        <h2>Owner identification</h2>
+        <p>In compliance with Article 10 of Spanish Law 34/2002 on Information Society Services and Electronic Commerce (LSSI-CE), the following identification details of the website owner are made available:</p>
+
+        <table class="id-table">
+          <tbody>
+            <tr>
+              <th scope="row">Owner</th>
+              <td><span id="owner-name" class="protected" inert></span></td>
+            </tr>
+            <tr>
+              <th scope="row">Tax ID (NIF)</th>
+              <td><span class="protected mono" data-o={scrambledNif} inert></span></td>
+            </tr>
+            <tr>
+              <th scope="row">Address</th>
+              <td><span class="protected" data-o={scrambledAddress} inert></span></td>
+            </tr>
+            <tr>
+              <th scope="row">Contact</th>
+              <td><a href="mailto:contact@contribkit.app">contact@contribkit.app</a></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Scope</h2>
+        <p>This legal notice governs the use of <code>contribkit.app</code> (the "Site") and the ContribKit mobile app available on the App Store and Google Play. Accessing the Site or using the app constitutes full acceptance of this notice.</p>
+
+        <h2>Intellectual property</h2>
+        <p>The source code, design, logos, and original content of the Site and app are the property of the owner and are protected under Spanish and international intellectual property law. Reproduction, distribution, or public communication without express authorisation is prohibited, except as permitted by law.</p>
+        <p>Contribution data displayed by the app is sourced from public GitHub profiles and belongs to their respective owners. ContribKit is not a GitHub product and is not affiliated with GitHub, Inc.</p>
+
+        <h2>Liability</h2>
+        <p>The owner does not guarantee uninterrupted availability of the Site or app, nor the accuracy of the data displayed. Use of the Site and app is the sole responsibility of the user. The owner is not liable for any damages arising from use of or inability to use the service.</p>
+        <p>The Site may contain links to external sites (GitHub, App Store, Google Play). The owner assumes no responsibility for their content or privacy practices.</p>
+
+        <h2>Governing law and jurisdiction</h2>
+        <p>This legal notice is governed by Spanish law. Any disputes arising from use of the Site or app shall be submitted to the competent courts in accordance with applicable legislation.</p>
+
+        <h2>Privacy</h2>
+        <p>Information on personal data processing is available in the <a href="/privacy">Privacy Policy</a>.</p>
+
+        <h2>Cookies</h2>
+        <p>Information on cookies is available in the <a href="/privacy">Privacy Policy</a>. You can manage your preferences at any time via the <button type="button" data-cc="show-preferencesModal" class="inline-prefs-btn">cookie preferences</button> panel.</p>
+
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const nameEl = document.getElementById('owner-name');
+  if (nameEl) nameEl.textContent = import.meta.env.PUBLIC_OWNER_NAME ?? '';
+
+  document.querySelectorAll<HTMLElement>('[data-o]').forEach(el => {
+    const parts: Array<{ c: string; i: number }> = JSON.parse(el.dataset.o!);
+    parts.sort((a, b) => a.i - b.i);
+    el.textContent = parts.map(p => p.c).join('');
+  });
+</script>
+
+<style>
+  .legal-page { padding: 64px 0 96px; }
+  .legal-header { margin-bottom: 48px; border-bottom: 1px solid var(--border); padding-bottom: 32px; }
+  .back-link { font-size: 13px; color: var(--text-dim); display: inline-block; margin-bottom: 20px; transition: color 100ms; }
+  .back-link:hover { color: var(--text); }
+  h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.03em; margin: 0 0 8px; }
+  .legal-body { max-width: 640px; }
+  .legal-body h2 { font-size: 15px; font-weight: 600; margin: 36px 0 8px; color: var(--text); }
+  .legal-body p { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0 0 8px; }
+  .legal-body code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-raised); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  .legal-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+  .id-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0 8px; }
+  .id-table th, .id-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .id-table th { width: 120px; font-weight: 500; color: var(--text-dimmer); white-space: nowrap; }
+  .id-table td { color: var(--text-dim); }
+
+  .protected {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .inline-prefs-btn {
+    font: inherit;
+    font-size: 14px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

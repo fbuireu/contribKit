@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="contribkit"
+        android:label="ContribKit"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -35,6 +35,7 @@
         <!-- Home screen widget — medium (grid + streak) -->
         <receiver
             android:name=".ContribKitWidgetProvider"
+            android:label="@string/widget_name"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -47,6 +48,7 @@
         <!-- Home screen widget — small (streak counter only) -->
         <receiver
             android:name=".ContribKitSmallWidgetProvider"
+            android:label="@string/widget_small_name"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

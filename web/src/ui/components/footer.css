@@ -58,3 +58,9 @@
 .legal-link:hover {
 	color: var(--text);
 }
+.cookies-btn {
+	font-size: 11px;
+	font-family: var(--font-mono);
+	letter-spacing: inherit;
+	text-decoration: none;
+}

@@ -8,7 +8,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i \"s/^version: .*/version: ${nextRelease.version}+${GITHUB_RUN_NUMBER}/\" pubspec.yaml"
+        "prepareCmd": "sed -i \"s/^version: .*/version: ${nextRelease.version}+$GITHUB_RUN_NUMBER/\" pubspec.yaml"
       }
     ],
     [

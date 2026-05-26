@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ContribKit</string>
+    <string name="widget_name">Contribution Calendar</string>
+    <string name="widget_description">Visualize your GitHub contribution calendar on your home screen</string>
+    <string name="widget_small_name">ContribKit Streak</string>
+    <string name="widget_small_description">See your current GitHub contribution streak at a glance</string>
+</resources>

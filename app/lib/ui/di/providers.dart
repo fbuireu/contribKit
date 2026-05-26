@@ -78,7 +78,7 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   @override
   ThemeMode build() {
     _loadSaved();
-    return ThemeMode.system;
+    return ThemeMode.dark;
   }
 
   Future<void> _loadSaved() async {
@@ -87,24 +87,19 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   }
 
   Future<void> cycle() async {
-    final next = switch (state) {
-      ThemeMode.system => ThemeMode.light,
-      ThemeMode.light => ThemeMode.dark,
-      ThemeMode.dark => ThemeMode.system,
-    };
+    final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     state = next;
     await ref.read(settingsRepositoryProvider).saveThemeMode(_toDomain(next));
   }
 
   ThemeMode _toFlutter(AppThemeMode m) => switch (m) {
-    AppThemeMode.system => ThemeMode.system,
+    AppThemeMode.system => ThemeMode.dark,
     AppThemeMode.light => ThemeMode.light,
     AppThemeMode.dark => ThemeMode.dark,
   };
 
   AppThemeMode _toDomain(ThemeMode m) => switch (m) {
-    ThemeMode.system => AppThemeMode.system,
     ThemeMode.light => AppThemeMode.light,
-    ThemeMode.dark => AppThemeMode.dark,
+    ThemeMode.dark || ThemeMode.system => AppThemeMode.dark,
   };
 }

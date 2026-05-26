@@ -4,43 +4,56 @@ import BaseLayout from "../ui/components/layouts/BaseLayout.astro";
 const TITLE = "Privacy Policy — ContribKit";
 const d = new Date();
 d.setDate(d.getDate() - 7);
-const effectiveDate = d.toISOString().slice(0, 10);
+const EFFECTIVE_DATE = d.toISOString().slice(0, 10);
 ---
 
 <BaseLayout title={TITLE} robots="noindex, nofollow">
-  <main class="legal-page">
+  <div class="legal-page">
     <div class="wrap">
       <div class="legal-header">
         <a href="/" class="back-link mono">← back</a>
         <h1>Privacy Policy</h1>
-        <p class="dimmer mono">Effective date: {effectiveDate}</p>
+        <p class="dimmer mono">Effective date: {EFFECTIVE_DATE}</p>
       </div>
       <div class="legal-body">
 
-        <h2>What we collect</h2>
-        <p>ContribKit does not collect any personal data. The app fetches publicly available contribution data from GitHub's public profile pages using your username. No account, no token, no tracking.</p>
+        <h2>Overview</h2>
+        <p>ContribKit is a tool for visualising public GitHub contribution calendars. This policy explains what data we collect, why, and how you can control it — both in the mobile app and on this website.</p>
 
-        <h2>GitHub data</h2>
-        <p>Contribution data is fetched from <code>github.com/users/&#123;username&#125;/contributions</code> — the same page visible to anyone on GitHub. We only read data you have already made public on GitHub.</p>
+        <h2>The mobile app</h2>
+        <p>The ContribKit app (iOS &amp; Android) does not collect personal data. It fetches publicly available contribution data from <code>github.com/users/&#123;username&#125;/contributions</code> — the same page visible to anyone on GitHub — using only the username you provide. No account, no authentication token, no personal information is sent to us.</p>
+        <p>Your username, selected year, palette, and visual preferences are stored locally on your device and never leave it.</p>
 
-        <h2>Local storage</h2>
-        <p>The app stores your last-used username, year, palette, and visual preferences locally on your device using on-device storage. This data never leaves your device.</p>
+        <h2>This website</h2>
+        <p>The ContribKit website (<code>contribkit.app</code>) uses the following services to understand traffic and improve the site. These are loaded only after you give explicit consent via the cookie banner.</p>
 
-        <h2>Analytics</h2>
-        <p>We do not use any analytics, crash reporting, or third-party SDKs that collect personal data, except RevenueCat for in-app purchase processing. RevenueCat's privacy policy applies to purchase transactions.</p>
+        <h3>Google Analytics (GA4)</h3>
+        <p>We use Google Analytics 4 to measure page views, session duration, and navigation paths. IP addresses are anonymised before storage. Data is processed by Google LLC and subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>. Cookies set: <code>_ga</code>, <code>_ga_*</code> (expiry: 2 years).</p>
+
+        <h3>Better Stack Telemetry</h3>
+        <p>We use Better Stack to monitor site performance and catch front-end errors. Session data is anonymous and not linked to any individual. Data is processed by Better Stack, Inc. and subject to <a href="https://betterstack.com/privacy" target="_blank" rel="noopener">Better Stack's Privacy Policy</a>. Cookies set: <code>bs_*</code> (session cookies).</p>
+
+        <h2>Your choices</h2>
+        <p>You can accept or reject analytics cookies at any time using the cookie banner or the <button type="button" data-cc="show-preferencesModal" class="inline-prefs-btn">cookie preferences</button> link in the footer. Rejecting analytics means neither Google Analytics nor Better Stack will load.</p>
 
         <h2>In-app purchases</h2>
-        <p>Tip purchases are processed by Apple (App Store) or Google (Play Store) and RevenueCat. We receive no payment details. Refer to their respective privacy policies for purchase data handling.</p>
+        <p>Tip purchases are processed by Apple (App Store) or Google (Play Store) and RevenueCat. We receive no payment details. See their respective privacy policies for how purchase data is handled. RevenueCat's privacy policy is at <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">revenuecat.com/privacy</a>.</p>
+
+        <h2>Data retention</h2>
+        <p>Google Analytics data is retained for 14 months, after which it is automatically deleted. Better Stack telemetry data is retained for 30 days. No other personal data is retained by us.</p>
 
         <h2>Children</h2>
         <p>ContribKit is not directed at children under 13. We do not knowingly collect data from children.</p>
 
+        <h2>Changes</h2>
+        <p>We may update this policy to reflect changes in the services we use. The effective date above reflects the most recent revision. Continued use after an update constitutes acceptance.</p>
+
         <h2>Contact</h2>
-        <p>Questions? <a href="mailto:fbuireu@gmail.com">fbuireu@gmail.com</a></p>
+        <p>Questions about this policy? <a href="mailto:contact@contribkit.app">contact@contribkit.app</a></p>
 
       </div>
     </div>
-  </main>
+  </div>
 </BaseLayout>
 
 <style>
@@ -51,7 +64,19 @@ const effectiveDate = d.toISOString().slice(0, 10);
   h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.03em; margin: 0 0 8px; }
   .legal-body { max-width: 640px; }
   .legal-body h2 { font-size: 15px; font-weight: 600; margin: 36px 0 8px; color: var(--text); }
-  .legal-body p { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0; }
+  .legal-body h3 { font-size: 13px; font-weight: 600; margin: 24px 0 6px; color: var(--text); }
+  .legal-body p { font-size: 14px; color: var(--text-dim); line-height: 1.7; margin: 0 0 8px; }
   .legal-body code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-raised); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
-  .legal-body a { color: var(--contrib-peak); text-decoration: underline; text-underline-offset: 3px; }
+  .legal-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .inline-prefs-btn {
+    font: inherit;
+    font-size: 14px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 </style>

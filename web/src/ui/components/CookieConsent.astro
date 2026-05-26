@@ -1,0 +1,270 @@
+---
+// Analytics IDs are injected at build time via environment variables.
+// Set PUBLIC_GA_ID and PUBLIC_BS_TOKEN in .env or Cloudflare Pages settings.
+---
+
+<script>
+  import 'vanilla-cookieconsent/dist/cookieconsent.css';
+  import * as CookieConsent from 'vanilla-cookieconsent';
+
+  const GA_ID = import.meta.env.PUBLIC_GA_ID as string | undefined;
+  const BS_TOKEN = import.meta.env.PUBLIC_BS_TOKEN as string | undefined;
+
+  let analyticsLoaded = false;
+
+  function loadGA() {
+    if (!GA_ID || analyticsLoaded) return;
+
+    window.dataLayer = window.dataLayer || [];
+    // biome-ignore lint/suspicious/noExplicitAny: gtag uses arguments
+    function gtag(..._args: any[]) { window.dataLayer.push(arguments); }
+    window.gtag = gtag;
+
+    gtag('js', new Date());
+    gtag('config', GA_ID, { anonymize_ip: true });
+
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(s);
+  }
+
+  function loadBetterStack() {
+    if (!BS_TOKEN || analyticsLoaded) return;
+
+    // Better Stack Telemetry — https://betterstack.com/docs/telemetry
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://cdn.betterstack.com/js/telemetry.js';
+    s.setAttribute('data-token', BS_TOKEN);
+    document.head.appendChild(s);
+  }
+
+  function enableAnalytics() {
+    if (analyticsLoaded) return;
+    analyticsLoaded = true;
+    loadGA();
+    loadBetterStack();
+  }
+
+  CookieConsent.run({
+    guiOptions: {
+      consentModal: {
+        layout: 'bar',
+        position: 'bottom center',
+        equalWeightButtons: false,
+        flipButtons: false,
+      },
+      preferencesModal: {
+        layout: 'box',
+        equalWeightButtons: false,
+        flipButtons: false,
+      },
+    },
+
+    categories: {
+      necessary: {
+        enabled: true,
+        readOnly: true,
+      },
+      analytics: {
+        autoClear: {
+          cookies: [
+            { name: /^_ga/ },
+            { name: '_gid' },
+            { name: /^bs_/ },
+          ],
+        },
+      },
+    },
+
+    language: {
+      default: 'en',
+      translations: {
+        en: {
+          consentModal: {
+            title: 'We use cookies',
+            description:
+              'We use Google Analytics and Better Stack to understand how visitors use ContribKit. No personal data is sold or shared.',
+            acceptAllBtn: 'Accept all',
+            acceptNecessaryBtn: 'Reject all',
+            showPreferencesBtn: 'Manage',
+          },
+          preferencesModal: {
+            title: 'Privacy preferences',
+            acceptAllBtn: 'Accept all',
+            acceptNecessaryBtn: 'Reject all',
+            savePreferencesBtn: 'Save preferences',
+            closeIconLabel: 'Close',
+            serviceCounterLabel: 'Service|Services',
+            sections: [
+              {
+                title: 'Cookie usage',
+                description:
+                  'We use cookies to keep the site functional and to measure usage. Select which categories you allow. Your choice is stored in this browser for 6 months.',
+              },
+              {
+                title: 'Strictly necessary',
+                description:
+                  'Required for the site to work. These cannot be disabled.',
+                linkedCategory: 'necessary',
+                cookieTable: {
+                  headers: {
+                    name: 'Cookie',
+                    service: 'Service',
+                    description: 'Purpose',
+                    expiration: 'Expires',
+                  },
+                  body: [
+                    {
+                      name: 'cc_cookie',
+                      service: 'ContribKit',
+                      description: 'Stores your cookie consent preferences.',
+                      expiration: '6 months',
+                    },
+                  ],
+                },
+              },
+              {
+                title: 'Analytics',
+                description:
+                  'Help us understand traffic and usage patterns. All data is anonymous and never sold.',
+                linkedCategory: 'analytics',
+                cookieTable: {
+                  headers: {
+                    name: 'Cookie',
+                    service: 'Service',
+                    description: 'Purpose',
+                    expiration: 'Expires',
+                  },
+                  body: [
+                    {
+                      name: '_ga',
+                      service: 'Google Analytics',
+                      description: 'Distinguishes unique visitors.',
+                      expiration: '2 years',
+                    },
+                    {
+                      name: '_ga_*',
+                      service: 'Google Analytics',
+                      description: 'Persists session state.',
+                      expiration: '2 years',
+                    },
+                    {
+                      name: 'bs_*',
+                      service: 'Better Stack',
+                      description: 'Session telemetry.',
+                      expiration: 'Session',
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+
+    onConsent: () => {
+      if (CookieConsent.acceptedCategory('analytics')) {
+        enableAnalytics();
+      }
+    },
+
+    onChange: ({ changedCategories }) => {
+      if (!changedCategories.includes('analytics')) return;
+
+      if (CookieConsent.acceptedCategory('analytics')) {
+        enableAnalytics();
+      } else {
+        // Reload to purge active trackers; autoClear handles cookie deletion.
+        window.location.reload();
+      }
+    },
+  });
+</script>
+
+<style is:global>
+  /* ── Vanilla CookieConsent v3 theme override ──────────────────────────── */
+  #cc-main {
+    --cc-font-family: var(--font-ui);
+    --cc-modal-border-radius: 8px;
+    --cc-btn-border-radius: 6px;
+    --cc-z-index: 9000;
+
+    /* Surfaces */
+    --cc-bg: light-dark(#ffffff, #0d0d10);
+    --cc-overlay-bg: light-dark(rgba(0,0,0,0.15), rgba(0,0,0,0.5));
+    --cc-separator-bg: light-dark(#e4e4e7, #1a1a1d);
+
+    /* Text */
+    --cc-primary-color: light-dark(#18181b, #f4f4f5);
+    --cc-secondary-color: light-dark(#52525a, #a1a1aa);
+
+    /* Primary button — accept */
+    --cc-btn-primary-bg: light-dark(#1a7f37, #39d353);
+    --cc-btn-primary-color: light-dark(#ffffff, #09090b);
+    --cc-btn-primary-hover-bg: light-dark(#16692e, #2ab844);
+    --cc-btn-primary-border-color: light-dark(#1a7f37, #39d353);
+
+    /* Secondary button — reject / manage */
+    --cc-btn-secondary-bg: light-dark(#f4f4f5, #111114);
+    --cc-btn-secondary-color: light-dark(#18181b, #f4f4f5);
+    --cc-btn-secondary-hover-bg: light-dark(#e9e9ec, #161619);
+    --cc-btn-secondary-hover-color: light-dark(#18181b, #f4f4f5);
+    --cc-btn-secondary-border-color: light-dark(#e4e4e7, #1a1a1d);
+
+    /* Category blocks */
+    --cc-cookie-category-block-bg: light-dark(#f4f4f5, #111114);
+    --cc-cookie-category-block-border: light-dark(#e4e4e7, #1a1a1d);
+    --cc-cookie-category-block-hover-bg: light-dark(#e9e9ec, #161619);
+    --cc-cookie-category-block-hover-border: light-dark(#d4d4d8, #232328);
+
+    /* Toggle */
+    --cc-toggle-enabled-bg: light-dark(#1a7f37, #39d353);
+    --cc-toggle-disabled-bg: light-dark(#d4d4d8, #2e2e33);
+    --cc-toggle-enabled-icon-bg: light-dark(#ffffff, #09090b);
+    --cc-toggle-disabled-icon-bg: light-dark(#ffffff, #09090b);
+    --cc-toggle-readonly-bg: light-dark(#e4e4e7, #1a1a1d);
+    --cc-toggle-knob-bg: light-dark(#ffffff, #09090b);
+    --cc-toggle-knob-icon-color: light-dark(#18181b, #f4f4f5);
+
+    /* Table */
+    --cc-cookie-table-border: light-dark(#e4e4e7, #1a1a1d);
+    --cc-cookie-table-cell-bg: light-dark(#f4f4f5, #111114);
+
+    /* Links */
+    --cc-link-color: light-dark(#1a7f37, #39d353);
+  }
+
+  /* Consent bar bottom spacing so it clears any bottom UI */
+  #cc-main .cm--bar {
+    border-top: 1px solid light-dark(#e4e4e7, #1a1a1d);
+    box-shadow: none;
+  }
+
+  #cc-main .cm__btn--secondary:hover,
+  #cc-main .pm__btn--secondary:hover {
+    color: light-dark(#18181b, #f4f4f5);
+  }
+
+  /* Align font sizes with the site */
+  #cc-main .cm__title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  #cc-main .cm__desc,
+  #cc-main .cm__footer {
+    font-size: 13px;
+    color: light-dark(#52525a, #a1a1aa);
+  }
+  #cc-main .cm__footer a {
+    color: light-dark(#1a7f37, #39d353);
+  }
+
+  /* Preferences modal footer link */
+  #cc-main .pm__section--toggle .pm__section-desc a {
+    color: light-dark(#1a7f37, #39d353);
+  }
+</style>

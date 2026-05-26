@@ -25,6 +25,15 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: android.os.Bundle,
+    ) {
+        updateWidget(context, appWidgetManager, appWidgetId)
+    }
+
     private fun updateWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,

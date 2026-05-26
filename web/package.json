@@ -1,7 +1,7 @@
 {
 	"name": "contribkit-web",
 	"description": "ContribKit landing page",
-	"author": "Ferran Buireu <fbuireu@gmail.com>",
+	"author": "Ferran Buireu <contact@contribkit.app>",
 	"version": "1.0.0",
 	"type": "module",
 	"packageManager": "pnpm@11.3.0",
@@ -25,22 +25,23 @@
 		"lint:ts:typecheck": "tsc --project . --noEmit"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "^13.5.2",
-		"astro": "6.3.5"
+		"@astrojs/cloudflare": "13.5.4",
+		"astro": "6.3.7",
+		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
 		"@astrojs/check": "0.9.9",
 		"@astrojs/ts-plugin": "1.10.9",
 		"@biomejs/biome": "2.4.15",
-		"@types/node": "25.9.0",
-		"@semantic-release/changelog": "^6.0.3",
-		"@semantic-release/exec": "^7.1.0",
-		"@semantic-release/git": "^10.0.1",
-		"@semantic-release/github": "^12.0.8",
-		"semantic-release": "^25.0.3",
-		"semantic-release-monorepo": "^8.0.2",
+		"@semantic-release/changelog": "6.0.3",
+		"@semantic-release/exec": "7.1.0",
+		"@semantic-release/git": "10.0.1",
+		"@semantic-release/github": "12.0.8",
+		"@types/node": "25.9.1",
+		"semantic-release": "25.0.3",
+		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
-		"vitest": "4.1.6",
-		"wrangler": "4.92.0"
+		"vitest": "4.1.7",
+		"wrangler": "4.94.0"
 	}
 }

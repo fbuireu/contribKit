@@ -125,11 +125,9 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    final icon = switch (themeMode) {
-      ThemeMode.system => LucideIcons.monitor,
-      ThemeMode.light => LucideIcons.sun,
-      ThemeMode.dark => LucideIcons.moon,
-    };
+    final icon = themeMode == ThemeMode.light
+        ? LucideIcons.sun
+        : LucideIcons.moon;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -266,17 +264,63 @@ class _Suggestions extends StatelessWidget {
             ),
           ),
           for (final name in _kSuggestedUsernames)
-            GestureDetector(
-              onTap: enabled ? () => onSelect(name) : null,
-              child: Text(
-                name,
-                style: AppTextStyles.mono(
-                  fontSize: Tokens.textXs,
-                  color: enabled ? colors.accent : colors.mutedForeground,
-                ),
-              ),
+            _SuggestionChip(
+              name: name,
+              enabled: enabled,
+              onTap: () => onSelect(name),
+              colors: colors,
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _SuggestionChip extends StatefulWidget {
+  const _SuggestionChip({
+    required this.name,
+    required this.enabled,
+    required this.onTap,
+    required this.colors,
+  });
+
+  final String name;
+  final bool enabled;
+  final VoidCallback onTap;
+  final AppColors colors;
+
+  @override
+  State<_SuggestionChip> createState() => _SuggestionChipState();
+}
+
+class _SuggestionChipState extends State<_SuggestionChip> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = widget.enabled && !_pressed;
+    return GestureDetector(
+      onTap: widget.enabled ? widget.onTap : null,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: Tokens.durationFast,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(
+          color: _pressed ? widget.colors.border : widget.colors.muted,
+          border: Border.all(color: widget.colors.border),
+          borderRadius: BorderRadius.circular(Tokens.radiusFull),
+        ),
+        child: Text(
+          widget.name,
+          style: AppTextStyles.mono(
+            fontSize: Tokens.textXs,
+            color: active
+                ? widget.colors.foreground
+                : widget.colors.mutedForeground,
+          ),
+        ),
       ),
     );
   }

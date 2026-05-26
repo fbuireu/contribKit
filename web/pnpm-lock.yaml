@@ -9,11 +9,14 @@ importers:
   .:
     dependencies:
       '@astrojs/cloudflare':
-        specifier: ^13.5.2
+        specifier: 13.5.2
         version: 13.5.2(@types/node@25.9.0)(astro@6.3.5(@types/node@25.9.0)(rollup@4.60.4)(yaml@2.9.0))(workerd@1.20260515.1)(wrangler@4.92.0)(yaml@2.9.0)
       astro:
         specifier: 6.3.5
         version: 6.3.5(@types/node@25.9.0)(rollup@4.60.4)(yaml@2.9.0)
+      vanilla-cookieconsent:
+        specifier: 3.1.0
+        version: 3.1.0
     devDependencies:
       '@astrojs/check':
         specifier: 0.9.9
@@ -25,25 +28,25 @@ importers:
         specifier: 2.4.15
         version: 2.4.15
       '@semantic-release/changelog':
-        specifier: ^6.0.3
+        specifier: 6.0.3
         version: 6.0.3(semantic-release@25.0.3(typescript@6.0.3))
       '@semantic-release/exec':
-        specifier: ^7.1.0
+        specifier: 7.1.0
         version: 7.1.0(semantic-release@25.0.3(typescript@6.0.3))
       '@semantic-release/git':
-        specifier: ^10.0.1
+        specifier: 10.0.1
         version: 10.0.1(semantic-release@25.0.3(typescript@6.0.3))
       '@semantic-release/github':
-        specifier: ^12.0.8
+        specifier: 12.0.8
         version: 12.0.8(semantic-release@25.0.3(typescript@6.0.3))
       '@types/node':
         specifier: 25.9.0
         version: 25.9.0
       semantic-release:
-        specifier: ^25.0.3
+        specifier: 25.0.3
         version: 25.0.3(typescript@6.0.3)
       semantic-release-monorepo:
-        specifier: ^8.0.2
+        specifier: 8.0.2
         version: 8.0.2(semantic-release@25.0.3(typescript@6.0.3))
       typescript:
         specifier: 6.0.3
@@ -3298,6 +3301,9 @@ packages:
 
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
+
+  vanilla-cookieconsent@3.1.0:
+    resolution: {integrity: sha512-/McNRtm/3IXzb9dhqMIcbquoU45SzbN2VB+To4jxEPqMmp7uVniP6BhGLjU8MC7ZCDsNQVOp27fhQTM/ruIXAA==}
 
   vfile-location@5.0.3:
     resolution: {integrity: sha512-5yXvWDEgqeiYiBe1lbxYF7UMAIm/IcopxMHrMQDq3nvKcjPKIhZklUKL+AE7J7uApI4kwe2snsK+eI6UTj9EHg==}
@@ -7015,6 +7021,8 @@ snapshots:
     dependencies:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
+
+  vanilla-cookieconsent@3.1.0: {}
 
   vfile-location@5.0.3:
     dependencies:
