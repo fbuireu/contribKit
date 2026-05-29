@@ -1,3 +1,10 @@
+# [contribkit-web-v1.2.3](https://github.com/fbuireu/contribKit/compare/web-v1.2.2...web-v1.2.3) (2026-05-29)
+
+
+### Bug Fixes
+
+* wrangler ([2635113](https://github.com/fbuireu/contribKit/commit/26351138b624f8c8cedc55719c659183c1c4f6d5))
+
 # [contribkit-web-v1.2.2](https://github.com/fbuireu/contribKit/compare/web-v1.2.1...web-v1.2.2) (2026-05-29)
 
 
