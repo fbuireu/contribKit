@@ -40,9 +40,6 @@ jobs:
       - name: Lint
         run: pnpm lint:all
 
-      - name: Type check
-        run: pnpm lint:astro
-
       - name: Test
         run: pnpm test
 
@@ -64,3 +61,6 @@ jobs:
 
       - name: Build
         run: pnpm exec astro build
+
+      - name: Type check
+        run: pnpm lint:astro

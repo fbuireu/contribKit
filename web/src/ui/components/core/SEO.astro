@@ -6,11 +6,12 @@ interface Props {
 	description?: string;
 	url?: string;
 	image?: string;
+	imageAlt?: string;
 	robots?: RobotsDirective;
 	type?: "website" | "article";
 }
 
-const { title, description, url, image, robots = "index, follow", type = "website" } = Astro.props;
+const { title, description, url, image, imageAlt, robots = "index, follow", type = "website" } = Astro.props;
 ---
 
 <title>{title}</title>
@@ -19,15 +20,20 @@ const { title, description, url, image, robots = "index, follow", type = "websit
 {url && <link rel="canonical" href={url} />}
 
 <meta property="og:site_name" content="ContribKit" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:title" content={title} />
 {description && <meta property="og:description" content={description} />}
 <meta property="og:type" content={type} />
 {url && <meta property="og:url" content={url} />}
 {image && <meta property="og:image" content={image} />}
-{image && <meta property="og:image:width" content="1200" />}
-{image && <meta property="og:image:height" content="630" />}
+{image && <meta property="og:image:width" content="1024" />}
+{image && <meta property="og:image:height" content="500" />}
+{image && <meta property="og:image:type" content="image/png" />}
+{image && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
 
 <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+<meta name="twitter:site" content="@contribkit" />
 <meta name="twitter:title" content={title} />
 {description && <meta name="twitter:description" content={description} />}
 {image && <meta name="twitter:image" content={image} />}
+{image && imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}

@@ -18,6 +18,7 @@ import { renderCalendarString } from "../ui/lib/render-svg";
 const DEFAULT_USERNAME = "torvalds";
 const SITE_URL = "https://contribkit.app";
 const OG_IMAGE = `${SITE_URL}/og.png`;
+const OG_IMAGE_ALT = "ContribKit — GitHub contribution calendar with custom palette";
 const TITLE = "ContribKit — Your GitHub activity, your aesthetic.";
 const DESCRIPTION = "Visualize, customize, and export your GitHub contribution calendar — no token required.";
 
@@ -66,7 +67,7 @@ const initialCellsForClient = cells.map((cell) => ({
 Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
 ---
 
-<BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE}>
+<BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE} imageAlt={OG_IMAGE_ALT}>
   <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} />
   <HowItWorks />
   <Customize />
@@ -81,16 +82,39 @@ Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-r
 </script>
 
 <script type="application/ld+json" is:inline>
-{
-  "@context": "https://schema.org",
-  "@type": "MobileApplication",
-  "name": "ContribKit",
-  "description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
-  "operatingSystem": "iOS, Android",
-  "applicationCategory": "DeveloperApplication",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "url": "https://contribkit.app"
-}
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ContribKit",
+    "url": "https://contribkit.app",
+    "description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://contribkit.app/?u={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ContribKit",
+    "description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "iOS, Android, Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "url": "https://contribkit.app",
+    "image": "https://contribkit.app/og.png",
+    "author": {
+      "@type": "Person",
+      "name": "Ferran Buireu",
+      "url": "https://github.com/fbuireu"
+    }
+  }
+]
 </script>
 
 <script>

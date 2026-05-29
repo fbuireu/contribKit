@@ -13,10 +13,11 @@ interface Props {
 	description?: string;
 	url?: string;
 	image?: string;
+	imageAlt?: string;
 	robots?: RobotsDirective;
 }
 
-const { title, description, url, image, robots } = Astro.props;
+const { title, description, url, image, imageAlt, robots } = Astro.props;
 ---
 
 <!doctype html>
@@ -37,10 +38,11 @@ const { title, description, url, image, robots } = Astro.props;
         }
       }
     </script>
-    <SEO title={title} description={description} url={url} image={image} robots={robots} />
+    <SEO title={title} description={description} url={url} image={image} imageAlt={imageAlt} robots={robots} />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
     <link rel="sitemap" href="/sitemap.xml" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
