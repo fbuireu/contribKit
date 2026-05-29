@@ -85,9 +85,9 @@ jobs:
           PUBLIC_BS_TOKEN: ${{ secrets.PUBLIC_BS_TOKEN }}
         run: pnpm exec astro build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Workers
         working-directory: web
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm exec wrangler pages deploy dist --project-name=contribkit --branch=main
+        run: pnpm exec wrangler deploy

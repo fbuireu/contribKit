@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /user/
+
+Sitemap: https://contribkit.app/sitemap.xml

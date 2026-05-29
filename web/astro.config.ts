@@ -1,10 +1,16 @@
 import path from "node:path";
 import cloudflare from "@astrojs/cloudflare";
+import sitemap from "@astrojs/sitemap";
 import { defineConfig, envField, fontProviders } from "astro/config";
 
 export default defineConfig({
 	output: "server",
 	adapter: cloudflare(),
+	integrations: [
+		sitemap({
+			customPages: ["https://contribkit.app/"],
+		}),
+	],
 	trailingSlash: "never",
 	site: "https://contribkit.app",
 	prefetch: {

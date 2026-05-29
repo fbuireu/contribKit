@@ -1,4 +1,8 @@
 name = "contribkit"
+main = "dist/server/entry.mjs"
 compatibility_flags = ["nodejs_compat"]
 compatibility_date = "2026-01-01"
-pages_build_output_dir = "dist"
+
+[assets]
+directory = "dist/client"
+binding = "ASSETS"
