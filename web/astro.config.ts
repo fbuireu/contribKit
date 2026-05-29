@@ -1,6 +1,6 @@
 import path from "node:path";
 import cloudflare from "@astrojs/cloudflare";
-import { defineConfig, fontProviders } from "astro/config";
+import { defineConfig, envField, fontProviders } from "astro/config";
 
 export default defineConfig({
 	output: "server",
@@ -26,6 +26,12 @@ export default defineConfig({
 			display: "swap",
 		},
 	],
+	env: {
+		schema: {
+			PUBLIC_GA_ID: envField.string({ context: "client", access: "public", optional: true }),
+			PUBLIC_BS_TOKEN: envField.string({ context: "client", access: "public", optional: true }),
+		},
+	},
 	vite: {
 		build: {
 			target: "esnext",
