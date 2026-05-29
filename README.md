@@ -1,4 +1,4 @@
-# ContribKit
+# ContribKit 
 
 [![CI](https://github.com/fbuireu/contribkit/actions/workflows/ci.yml/badge.svg)](https://github.com/fbuireu/contribkit/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/fbuireu/contribkit/branch/main/graph/badge.svg)](https://codecov.io/gh/fbuireu/contribkit)
@@ -9,7 +9,7 @@ Visualize and export your GitHub contribution calendar with full visual customiz
 ## Running locally
 
 ```bash
-flutter run --dart-define=GITHUB_TOKEN=your_token_here
+flutter run --dart-define=REVENUE_CAT
 ```
 
 Generate a token at [github.com/settings/tokens](https://github.com/settings/tokens) with no scopes required (public data only).
