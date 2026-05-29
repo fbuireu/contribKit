@@ -26,6 +26,20 @@
 
 * add grid preview ([befaf07](https://github.com/fbuireu/contribKit/commit/befaf0725f0e3a5870b287387f0995721bc1b468))
 
+# [contribkit-web-v1.2.0](https://github.com/fbuireu/contribKit/compare/web-v1.1.0...web-v1.2.0) (2026-05-29)
+
+
+### Bug Fixes
+
+* add env vars ([635676e](https://github.com/fbuireu/contribKit/commit/635676ed916fc24af7bb335e42c96463189e572c))
+* add env vars ([17ca6b0](https://github.com/fbuireu/contribKit/commit/17ca6b006aca1a16ea0158a73d83877ba6bbee78))
+* duplicate colors cookie ([b29076f](https://github.com/fbuireu/contribKit/commit/b29076fd6c5fd0a0f504bcc767741a75ce4a0a21))
+
+
+### Features
+
+* add grid preview ([befaf07](https://github.com/fbuireu/contribKit/commit/befaf0725f0e3a5870b287387f0995721bc1b468))
+
 # [contribkit-web-v1.2.0](https://github.com/fbuireu/contribKit/compare/web-v1.1.0...web-v1.2.0) (2026-05-26)
 
 
