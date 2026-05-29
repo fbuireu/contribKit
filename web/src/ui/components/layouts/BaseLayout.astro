@@ -60,9 +60,9 @@ const GA_ID = import.meta.env.PUBLIC_GA_ID;
 
           gtag('consent', 'default', { analytics_storage: analyticsConsent });
           gtag('js', new Date());
-          gtag('config', GA_ID, { anonymize_ip: true });
+          gtag('config', GA_ID);
         </script>
-        <script is:inline type="text/partytown" async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
+        <script type="text/partytown" src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
       </>
     )}
     <Font cssVariable="--font-inter" preload />
