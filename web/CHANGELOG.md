@@ -1,3 +1,10 @@
+# [contribkit-web-v1.2.5](https://github.com/fbuireu/contribKit/compare/web-v1.2.4...web-v1.2.5) (2026-05-29)
+
+
+### Bug Fixes
+
+* add ga ([9d5757e](https://github.com/fbuireu/contribKit/commit/9d5757eba1e843df56eceb7867cc6a5071e7fdd4))
+
 # [contribkit-web-v1.2.4](https://github.com/fbuireu/contribKit/compare/web-v1.2.3...web-v1.2.4) (2026-05-29)
 
 
