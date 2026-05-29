@@ -1,3 +1,15 @@
+# [contribkit-web-v1.2.0](https://github.com/fbuireu/contribKit/compare/web-v1.1.0...web-v1.2.0) (2026-05-26)
+
+
+### Bug Fixes
+
+* duplicate colors cookie ([8d79b7d](https://github.com/fbuireu/contribKit/commit/8d79b7d8b36ffe9a99464bbbe42e9257bde843aa))
+
+
+### Features
+
+* add grid preview ([ebeb957](https://github.com/fbuireu/contribKit/commit/ebeb9577c8e694882eaa7630cd00b71b34dd36a0))
+
 # [contribkit-web-v1.1.0](https://github.com/fbuireu/contribKit/compare/web-v1.0.0...web-v1.1.0) (2026-05-26)
 
 
