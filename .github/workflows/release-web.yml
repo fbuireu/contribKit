@@ -80,6 +80,9 @@ jobs:
 
       - name: Build
         working-directory: web
+        env:
+          PUBLIC_GA_ID: ${{ secrets.PUBLIC_GA_ID }}
+          PUBLIC_BS_TOKEN: ${{ secrets.PUBLIC_BS_TOKEN }}
         run: pnpm exec astro build
 
       - name: Deploy to Cloudflare Pages

@@ -412,9 +412,6 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint(
-      '[Body] loadingSettings=${state.isLoadingSettings} loadingCalendar=${state.isLoadingCalendar} error=${state.error} username=${state.username?.value} calendar=${state.calendar != null} palette=${state.palette?.name}',
-    );
     if (state.isLoadingSettings || state.isLoadingCalendar) {
       return const _Loader();
     }
