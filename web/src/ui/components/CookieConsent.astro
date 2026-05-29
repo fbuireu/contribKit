@@ -5,43 +5,18 @@
   import 'vanilla-cookieconsent/dist/cookieconsent.css';
   import * as CookieConsent from 'vanilla-cookieconsent';
 
-  const GA_ID = import.meta.env.PUBLIC_GA_ID as string | undefined;
   const BS_TOKEN = import.meta.env.PUBLIC_BS_TOKEN as string | undefined;
 
-  let analyticsLoaded = false;
-
-  function loadGA() {
-    if (!GA_ID) return;
-
-    window.dataLayer = window.dataLayer || [];
-    // biome-ignore lint/suspicious/noExplicitAny: gtag uses arguments
-    function gtag(..._args: any[]) { window.dataLayer.push(arguments); }
-    window.gtag = gtag;
-
-    gtag('js', new Date());
-    gtag('config', GA_ID, { anonymize_ip: true });
-
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-    document.head.appendChild(s);
-  }
+  let betterStackLoaded = false;
 
   function loadBetterStack() {
-    if (!BS_TOKEN) return;
-
+    if (!BS_TOKEN || betterStackLoaded) return;
+    betterStackLoaded = true;
     const s = document.createElement('script');
     s.async = true;
     s.src = 'https://cdn.betterstack.com/js/telemetry.js';
     s.setAttribute('data-token', BS_TOKEN);
     document.head.appendChild(s);
-  }
-
-  function enableAnalytics() {
-    if (analyticsLoaded) return;
-    loadGA();
-    loadBetterStack();
-    analyticsLoaded = true;
   }
 
   CookieConsent.run({
@@ -164,7 +139,8 @@
 
     onConsent: () => {
       if (CookieConsent.acceptedCategory('analytics')) {
-        enableAnalytics();
+        window.gtag?.('consent', 'update', { analytics_storage: 'granted' });
+        loadBetterStack();
       }
     },
 
@@ -172,9 +148,10 @@
       if (!changedCategories.includes('analytics')) return;
 
       if (CookieConsent.acceptedCategory('analytics')) {
-        enableAnalytics();
+        window.gtag?.('consent', 'update', { analytics_storage: 'granted' });
+        loadBetterStack();
       } else {
-        // Reload to purge active trackers; autoClear handles cookie deletion.
+        window.gtag?.('consent', 'update', { analytics_storage: 'denied' });
         window.location.reload();
       }
     },
