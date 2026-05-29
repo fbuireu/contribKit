@@ -11,7 +11,7 @@
   let analyticsLoaded = false;
 
   function loadGA() {
-    if (!GA_ID || analyticsLoaded) return;
+    if (!GA_ID) return;
 
     window.dataLayer = window.dataLayer || [];
     // biome-ignore lint/suspicious/noExplicitAny: gtag uses arguments
@@ -28,9 +28,8 @@
   }
 
   function loadBetterStack() {
-    if (!BS_TOKEN || analyticsLoaded) return;
+    if (!BS_TOKEN) return;
 
-    // Better Stack Telemetry — https://betterstack.com/docs/telemetry
     const s = document.createElement('script');
     s.async = true;
     s.src = 'https://cdn.betterstack.com/js/telemetry.js';
@@ -40,9 +39,9 @@
 
   function enableAnalytics() {
     if (analyticsLoaded) return;
-    analyticsLoaded = true;
     loadGA();
     loadBetterStack();
+    analyticsLoaded = true;
   }
 
   CookieConsent.run({

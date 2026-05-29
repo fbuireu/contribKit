@@ -3,3 +3,9 @@ contact_links:
   - name: Ideas & backlog
     url: https://github.com/fbuireu/contribkit/blob/main/IDEAS.md
     about: Check the ideas backlog before requesting a feature.
+  - name: Question or Discussion
+    url: https://github.com/fbuireu/contribkit/discussions
+    about: Ask questions or discuss ideas with the community.
+  - name: Security Policy
+    url: https://github.com/fbuireu/contribkit/security/policy
+    about: Review our security policy and report vulnerabilities privately.

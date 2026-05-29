@@ -1,6 +1,7 @@
 name: Bug Report
 description: Report a bug or unexpected behavior
-labels: ["bug", "triage"]
+title: '[Bug]: '
+labels: ['bug', 'triage']
 assignees:
   - fbuireu
 body:
@@ -14,6 +15,7 @@ body:
     attributes:
       label: Description
       description: A clear description of what the bug is.
+      placeholder: What happened?
     validations:
       required: true
 
@@ -23,9 +25,10 @@ body:
       label: Steps to Reproduce
       description: Steps to reproduce the behavior.
       placeholder: |
-        1. Go to '...'
-        2. Enter username '...'
-        3. See error
+        1. Enter username '...'
+        2. Select palette '...'
+        3. Click export
+        4. See error
     validations:
       required: true
 
@@ -34,6 +37,7 @@ body:
     attributes:
       label: Expected Behavior
       description: What you expected to happen.
+      placeholder: The app should...
     validations:
       required: true
 
@@ -41,9 +45,25 @@ body:
     id: actual
     attributes:
       label: Actual Behavior
-      description: What actually happened. Include screenshots if applicable.
+      description: What actually happened.
+      placeholder: Instead, the app...
     validations:
       required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs or Errors
+      description: Paste any relevant console errors or messages.
+      placeholder: Paste logs here...
+      render: shell
+
+  - type: input
+    id: url
+    attributes:
+      label: URL
+      description: The URL where the bug occurred (web only).
+      placeholder: https://contribkit.app/...
 
   - type: dropdown
     id: platform
@@ -60,16 +80,47 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device Type
+      options:
+        - Desktop
+        - Mobile
+        - Tablet
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: Your operating system and version.
+      placeholder: e.g. Windows 11, macOS 15, iOS 18, Android 15
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser (web only)
+      options:
+        - N/A
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Other
+
   - type: input
     id: flutter_version
     attributes:
-      label: Flutter Version
+      label: Flutter Version (app only)
       placeholder: "e.g. 3.32.0 (run `flutter --version`)"
-    validations:
-      required: true
 
   - type: textarea
     id: additional
     attributes:
       label: Additional Context
-      description: Any other context about the problem.
+      description: Screenshots, screen recordings, or any other context.
+      placeholder: Any other relevant information...
