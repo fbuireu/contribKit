@@ -1,3 +1,10 @@
+# [contribkit-web-v1.2.7](https://github.com/fbuireu/contribKit/compare/web-v1.2.6...web-v1.2.7) (2026-05-30)
+
+
+### Bug Fixes
+
+* versioning ([c19fba2](https://github.com/fbuireu/contribKit/commit/c19fba2f85f732aba7fc6183a043974aa0b41c4a))
+
 # [contribkit-web-v1.2.6](https://github.com/fbuireu/contribKit/compare/web-v1.2.5...web-v1.2.6) (2026-05-29)
 
 

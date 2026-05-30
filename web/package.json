@@ -2,7 +2,7 @@
 	"name": "contribkit-web",
 	"description": "ContribKit landing page",
 	"author": "Ferran Buireu <contact@contribkit.app>",
-	"version": "1.2.6",
+	"version": "1.2.7",
 	"type": "module",
 	"packageManager": "pnpm@11.3.0",
 	"engines": {
