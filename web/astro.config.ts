@@ -1,6 +1,5 @@
 import path from "node:path";
 import cloudflare from "@astrojs/cloudflare";
-import partytown from "@astrojs/partytown";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, envField, fontProviders } from "astro/config";
 
@@ -10,11 +9,6 @@ export default defineConfig({
 	integrations: [
 		sitemap({
 			customPages: ["https://contribkit.app/"],
-		}),
-		partytown({
-			config: {
-				forward: ["dataLayer.push"],
-			},
 		}),
 	],
 	trailingSlash: "never",
