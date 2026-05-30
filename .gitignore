@@ -14,5 +14,5 @@ node_modules/
 # OS
 .DS_Store
 
-# Claude
+# AI
 .claude/

@@ -19,4 +19,4 @@ coverage/
 *.log
 
 # Secrets
-dart-defines.json
+dart-defines*.json

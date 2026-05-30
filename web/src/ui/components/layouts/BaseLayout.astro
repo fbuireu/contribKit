@@ -62,7 +62,7 @@ const GA_ID = import.meta.env.PUBLIC_GA_ID;
           gtag('js', new Date());
           gtag('config', GA_ID);
         </script>
-        <script type="text/partytown" src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
+        <script is:inline type="text/partytown" src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
       </>
     )}
     <Font cssVariable="--font-inter" preload />

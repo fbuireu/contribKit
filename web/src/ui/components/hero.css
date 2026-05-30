@@ -97,6 +97,11 @@
 .btn-store:hover {
 	background: #1a1a1a;
 }
+.btn-store--soon {
+	opacity: 0.45;
+	cursor: not-allowed;
+	pointer-events: none;
+}
 
 .username-strip {
 	display: inline-flex;

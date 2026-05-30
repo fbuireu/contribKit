@@ -37,6 +37,14 @@
 	background: var(--surface-raised);
 	color: var(--text);
 }
+.foot-link--soon {
+	opacity: 0.4;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+.foot-link--soon small {
+	font-size: 0.75em;
+}
 .foot-bot {
 	display: flex;
 	justify-content: space-between;
