@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.0](https://github.com/fbuireu/contribKit/compare/web-v1.2.7...web-v1.3.0) (2026-05-30)
+
+
+### Features
+
+* add fine-grain cookie acceptance ([e01405e](https://github.com/fbuireu/contribKit/commit/e01405e06d4670668b53fbb6fc431b0fbee53bd7))
+
 # [contribkit-web-v1.2.7](https://github.com/fbuireu/contribKit/compare/web-v1.2.6...web-v1.2.7) (2026-05-30)
 
 
