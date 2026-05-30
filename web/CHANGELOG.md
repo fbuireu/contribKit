@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.1](https://github.com/fbuireu/contribKit/compare/web-v1.3.0...web-v1.3.1) (2026-05-30)
+
+
+### Bug Fixes
+
+* test ga ([05aa08f](https://github.com/fbuireu/contribKit/commit/05aa08f27b687870a91322b1e7f346ae8cdfdd4f))
+
 # [contribkit-web-v1.3.0](https://github.com/fbuireu/contribKit/compare/web-v1.2.7...web-v1.3.0) (2026-05-30)
 
 
