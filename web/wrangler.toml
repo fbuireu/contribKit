@@ -10,3 +10,7 @@ binding = "ASSETS"
 [[routes]]
 pattern = "contribkit.app"
 custom_domain = true
+
+[[routes]]
+pattern = "www.contribkit.app"
+custom_domain = true

@@ -2,8 +2,81 @@
 ---
 
 <script>
+  import 'vanilla-cookieconsent/dist/cookieconsent.css';
   import { run } from 'vanilla-cookieconsent';
   import { config } from './config';
 
   run(config);
 </script>
+
+<style is:global>
+  #cc-main {
+    --cc-font-family: var(--font-ui);
+    --cc-modal-border-radius: 8px;
+    --cc-btn-border-radius: 6px;
+    --cc-z-index: 9000;
+
+    --cc-bg: var(--surface);
+    --cc-overlay-bg: var(--overlay-strong);
+    --cc-separator-bg: var(--border);
+
+    --cc-primary-color: var(--text);
+    --cc-secondary-color: var(--text-dim);
+
+    --cc-btn-primary-bg: var(--accent);
+    --cc-btn-primary-color: var(--bg);
+    --cc-btn-primary-hover-bg: var(--accent);
+    --cc-btn-primary-border-color: var(--accent);
+
+    --cc-btn-secondary-bg: var(--surface-raised);
+    --cc-btn-secondary-color: var(--text);
+    --cc-btn-secondary-hover-bg: var(--surface-high);
+    --cc-btn-secondary-hover-color: var(--text);
+    --cc-btn-secondary-border-color: var(--border);
+
+    --cc-cookie-category-block-bg: var(--surface-raised);
+    --cc-cookie-category-block-border: var(--border);
+    --cc-cookie-category-block-hover-bg: var(--surface-high);
+    --cc-cookie-category-block-hover-border: var(--border-strong);
+
+    --cc-toggle-enabled-bg: var(--accent);
+    --cc-toggle-disabled-bg: var(--text-faint);
+    --cc-toggle-enabled-icon-bg: var(--bg);
+    --cc-toggle-disabled-icon-bg: var(--bg);
+    --cc-toggle-readonly-bg: var(--border);
+    --cc-toggle-knob-bg: var(--bg);
+    --cc-toggle-knob-icon-color: var(--text);
+
+    --cc-cookie-table-border: var(--border);
+    --cc-cookie-table-cell-bg: var(--surface-raised);
+
+    --cc-link-color: var(--accent);
+  }
+
+  #cc-main .cm--bar {
+    border-top: 1px solid var(--border);
+    box-shadow: none;
+  }
+
+  #cc-main .cm__btn--secondary:hover,
+  #cc-main .pm__btn--secondary:hover {
+    color: var(--text);
+  }
+
+  #cc-main .cm__title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  #cc-main .cm__desc,
+  #cc-main .cm__footer {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  #cc-main .cm__footer a,
+  #cc-main .pm__section--toggle .pm__section-desc a {
+    color: var(--accent);
+  }
+</style>
