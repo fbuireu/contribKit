@@ -26,7 +26,7 @@
 		"build": "wrangler types && astro build",
 		"preview": "astro preview",
 		"sync": "astro sync",
-		"lint:astro": "astro check",
+		"lint:astro": "wrangler types && astro check",
 		"test": "vitest --passWithNoTests --logHeapUsage",
 		"test:changed": "pnpm test --bail --findRelatedTests",
 		"format": "biome check --write --no-errors-on-unmatched",
@@ -35,7 +35,7 @@
 		"lint": "biome lint --no-errors-on-unmatched",
 		"lint:all": "pnpm lint .",
 		"lint:changed": "pnpm lint --write --changed",
-		"lint:ts:typecheck": "tsc --project . --noEmit"
+		"lint:ts:typecheck": "wrangler types && tsc --project . --noEmit"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "13.5.5",
