@@ -13,6 +13,9 @@ pre-commit:
 
 commit-msg:
   parallel: false
+  skip:
+    - rebase
+    - merge
   commands:
     auto-scope:
       run: node scripts/auto-scope.mjs {1}
