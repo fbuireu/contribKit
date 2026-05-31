@@ -3,7 +3,7 @@
 	"include": [".astro/types.d.ts", "**/*"],
 	"exclude": ["dist"],
 	"compilerOptions": {
-		"types": ["vite/client"],
+		"types": [],
 		"paths": {
 			"@shared/*": ["../shared/*"],
 			"@domain/*": ["./src/domain/*"],

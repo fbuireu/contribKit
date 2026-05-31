@@ -17,3 +17,6 @@ node_modules/
 
 # AI
 .claude/
+
+# Cloudflare
+web/worker-configuration.d.ts

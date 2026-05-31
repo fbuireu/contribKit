@@ -1,4 +1,11 @@
 import type { ContributionDay } from "../../domain/entities/contribution-day";
+import type { ContributionLevel } from "../../domain/value-objects/contribution-level";
+
+interface ContributionsResponse {
+	cells: { date: string; level: ContributionLevel; count: number | null }[];
+	total: number;
+	error?: string;
+}
 import { DEFAULT_PALETTE_KEY, PALETTES } from "../../domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "../../domain/value-objects/shape";
 import { DEFAULT_USERNAME } from "../../domain/value-objects/username";
@@ -166,7 +173,7 @@ async function renderFromGitHub(username: string) {
 
 	try {
 		const response = await fetch(`/api/contributions?user=${encodeURIComponent(username)}${yearQuery}`);
-		const data = await response.json();
+		const data = await response.json() as ContributionsResponse;
 
 		if (!response.ok) {
 			setHeroError(ERRORS[response.status] ?? data.error ?? "something went wrong");
