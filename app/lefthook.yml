@@ -15,7 +15,7 @@ commit-msg:
   parallel: false
   commands:
     auto-scope:
-      run: node {root}/scripts/auto-scope.mjs {1}
+      run: node scripts/auto-scope.mjs {1}
     commitlint:
       run: pnpm exec commitlint --edit {1}
 
