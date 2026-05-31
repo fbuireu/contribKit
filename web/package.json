@@ -22,6 +22,7 @@
 	},
 	"scripts": {
 		"dev": "astro dev --open",
+		"wrangler:dev": "pnpm build && wrangler dev",
 		"build": "astro build",
 		"preview": "astro preview",
 		"sync": "astro sync",
