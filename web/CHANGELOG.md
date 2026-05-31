@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.8](https://github.com/fbuireu/contribKit/compare/web-v1.3.7...web-v1.3.8) (2026-05-31)
+
+
+### Bug Fixes
+
+* policies ([7711f29](https://github.com/fbuireu/contribKit/commit/7711f292df1ff21a27ff166878a09ddf3c96bc37))
+
 # [contribkit-web-v1.3.7](https://github.com/fbuireu/contribKit/compare/web-v1.3.6...web-v1.3.7) (2026-05-31)
 
 
