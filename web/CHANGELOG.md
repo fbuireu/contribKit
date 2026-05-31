@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.9](https://github.com/fbuireu/contribKit/compare/web-v1.3.8...web-v1.3.9) (2026-05-31)
+
+
+### Bug Fixes
+
+* middleware ([359970b](https://github.com/fbuireu/contribKit/commit/359970b8c368b2f59aae5eb8e2aca38cfdaf30e8))
+
 # [contribkit-web-v1.3.8](https://github.com/fbuireu/contribKit/compare/web-v1.3.7...web-v1.3.8) (2026-05-31)
 
 
