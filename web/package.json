@@ -21,12 +21,13 @@
 		"node": "v26.2.0"
 	},
 	"scripts": {
-		"dev": "wrangler types && astro dev --open",
-		"wrangler:dev": "wrangler types && pnpm build && wrangler dev",
-		"build": "wrangler types && astro build",
+		"types": "wrangler types",
+		"dev": "pnpm types && astro dev --open",
+		"wrangler:dev": "pnpm types && pnpm build && wrangler dev",
+		"build": "pnpm types && astro build",
 		"preview": "astro preview",
 		"sync": "astro sync",
-		"lint:astro": "wrangler types && astro check",
+		"lint:astro": "pnpm types && astro check",
 		"test": "vitest --passWithNoTests --logHeapUsage",
 		"test:changed": "pnpm test --bail --findRelatedTests",
 		"format": "biome check --write --no-errors-on-unmatched",
@@ -35,7 +36,7 @@
 		"lint": "biome lint --no-errors-on-unmatched",
 		"lint:all": "pnpm lint .",
 		"lint:changed": "pnpm lint --write --changed",
-		"lint:ts:typecheck": "wrangler types && tsc --project . --noEmit"
+		"lint:ts:typecheck": "pnpm types && tsc --project . --noEmit"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "13.5.5",
