@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.2](https://github.com/fbuireu/contribKit/compare/web-v1.3.1...web-v1.3.2) (2026-05-31)
+
+
+### Bug Fixes
+
+* add sec policy ([a53de5a](https://github.com/fbuireu/contribKit/commit/a53de5aca2df7fbf0bae9273fd032acd2488cb27))
+
 # [contribkit-web-v1.3.1](https://github.com/fbuireu/contribKit/compare/web-v1.3.0...web-v1.3.1) (2026-05-30)
 
 
