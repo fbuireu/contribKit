@@ -1,3 +1,37 @@
+# [contribkit-web-v1.2.0](https://github.com/fbuireu/contribKit/compare/web-v1.1.0...web-v1.2.0) (2026-05-31)
+
+
+### Bug Fixes
+
+* 502 ([c97256c](https://github.com/fbuireu/contribKit/commit/c97256ce0cbc9aad738d0075ed7ef10501c1c42c))
+* add env vars ([635676e](https://github.com/fbuireu/contribKit/commit/635676ed916fc24af7bb335e42c96463189e572c))
+* add env vars ([17ca6b0](https://github.com/fbuireu/contribKit/commit/17ca6b006aca1a16ea0158a73d83877ba6bbee78))
+* add ga ([cd394f8](https://github.com/fbuireu/contribKit/commit/cd394f8768818b62ba70ac10ce019ca0db7bfd15))
+* add ga ([9ca54ac](https://github.com/fbuireu/contribKit/commit/9ca54ac8a1b6d85d8caf0ca90013d28e13179fca))
+* add sec polic ([fd6b81f](https://github.com/fbuireu/contribKit/commit/fd6b81fff645c4f12e2c0a4a467afe31576c87c9))
+* add sec policy ([fe27313](https://github.com/fbuireu/contribKit/commit/fe2731389b58462b0832addcb55b7a505e03ad0b))
+* docs ([dbbc0a8](https://github.com/fbuireu/contribKit/commit/dbbc0a80f5fa9ca3fc0ca2876fff871313c10fa3))
+* duplicate colors cookie ([b29076f](https://github.com/fbuireu/contribKit/commit/b29076fd6c5fd0a0f504bcc767741a75ce4a0a21))
+* middleware ([3927d86](https://github.com/fbuireu/contribKit/commit/3927d86ecc3910162a9fe62f49ea79d125772fed))
+* object ([784907e](https://github.com/fbuireu/contribKit/commit/784907eb0095395dd29c875f2187282499ee2a5a))
+* object ([0b7e80a](https://github.com/fbuireu/contribKit/commit/0b7e80a35e0ea749b6337774a6cb34906eb6eccb))
+* object ([cfe9987](https://github.com/fbuireu/contribKit/commit/cfe99879700948fc8ae4c085e4dbe51fd194e376))
+* object ([cc4833d](https://github.com/fbuireu/contribKit/commit/cc4833de9d1fd86ea25b85fede3158e8153ad6bb))
+* policies ([a9a2ed8](https://github.com/fbuireu/contribKit/commit/a9a2ed80d01392514192667bbb5978b12d238edd))
+* test ga ([bdebb53](https://github.com/fbuireu/contribKit/commit/bdebb53d2023202e846d745c85a21ffa0ed5c27e))
+* versioning ([f04d57c](https://github.com/fbuireu/contribKit/commit/f04d57ca36d120532f9cfc17b709f212915e76c7))
+* wrangler ([ef6a7cb](https://github.com/fbuireu/contribKit/commit/ef6a7cb32ce45b9ebcb3c165dd26ce3d9cae1bb3))
+* wrangler ([ab437b2](https://github.com/fbuireu/contribKit/commit/ab437b200e2d5e33792286ca2c0346df9e3d2b29))
+* wrangler ([b892e51](https://github.com/fbuireu/contribKit/commit/b892e512c62b258828929cfe5c7addc8f2ce5a93))
+* wrangler ([867d5bc](https://github.com/fbuireu/contribKit/commit/867d5bcd7743eb806047fd33135ad82b9be00046))
+
+
+### Features
+
+* add fine-grain cookie acceptance ([1428f16](https://github.com/fbuireu/contribKit/commit/1428f16c289a34efc49208a7ffd73bb84b8d1c01))
+* add grid preview ([befaf07](https://github.com/fbuireu/contribKit/commit/befaf0725f0e3a5870b287387f0995721bc1b468))
+* add middleware headers ([419815b](https://github.com/fbuireu/contribKit/commit/419815bc160f5032cb8d1fbc5d3f06a355b78581))
+
 # [contribkit-web-v1.3.9](https://github.com/fbuireu/contribKit/compare/web-v1.3.8...web-v1.3.9) (2026-05-31)
 
 
