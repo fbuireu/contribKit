@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.3](https://github.com/fbuireu/contribKit/compare/web-v1.3.2...web-v1.3.3) (2026-05-31)
+
+
+### Bug Fixes
+
+* add sec polic ([c4dfa4e](https://github.com/fbuireu/contribKit/commit/c4dfa4e30e0c079ee89af88475e1f9254f3b6771))
+
 # [contribkit-web-v1.3.2](https://github.com/fbuireu/contribKit/compare/web-v1.3.1...web-v1.3.2) (2026-05-31)
 
 

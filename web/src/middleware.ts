@@ -20,11 +20,4 @@ const SECURITY_HEADERS: Record<string, string> = {
 	].join("; "),
 };
 
-export const onRequest = defineMiddleware(async (_ctx, next) => {
-	const response = await next();
-	const mutable = new Response(response.body, response);
-	for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
-		mutable.headers.set(header, value);
-	}
-	return mutable;
-});
+export const onRequest = defineMiddleware((_ctx, next) => next());
