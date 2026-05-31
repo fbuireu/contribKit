@@ -36,6 +36,12 @@ jobs:
           channel: stable
           cache: true
 
+      - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('app/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -60,6 +66,12 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('app/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-
 
       - name: Install dependencies
         run: flutter pub get
@@ -90,6 +102,12 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('app/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-
 
       - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4
         with:

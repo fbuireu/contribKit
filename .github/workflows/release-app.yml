@@ -1,10 +1,10 @@
 name: Release App
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI App"]
+    types: [completed]
     branches: [main]
-    paths:
-      - "app/**"
   workflow_dispatch:
 
 concurrency:
@@ -17,6 +17,7 @@ jobs:
   release:
     name: Semantic Release (App)
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       issues: write

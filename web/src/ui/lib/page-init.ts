@@ -1,6 +1,7 @@
 import type { ContributionDay } from "../../domain/entities/contribution-day";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "../../domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "../../domain/value-objects/shape";
+import { DEFAULT_USERNAME } from "../../domain/value-objects/username";
 import type { Cell, CellSummary } from "./calendar-utils";
 import { buildGridFromApi, generateData, rehydrateCells, summarize } from "./calendar-utils";
 import { buildCodeBlock, buildMdLines, SVG_LINES } from "./code-preview";
@@ -310,13 +311,13 @@ function initUsernameStrip() {
 
 	form?.addEventListener("submit", (event) => {
 		event.preventDefault();
-		renderFromGitHub(input.value.trim() || "torvalds");
+		renderFromGitHub(input.value.trim() || DEFAULT_USERNAME);
 	});
 	input.addEventListener("input", () => {
-		usernameDisplay.textContent = input.value.trim() || "torvalds";
+		usernameDisplay.textContent = input.value.trim() || DEFAULT_USERNAME;
 	});
 	renderButton.addEventListener("click", () => {
-		renderFromGitHub(input.value.trim() || "torvalds");
+		renderFromGitHub(input.value.trim() || DEFAULT_USERNAME);
 	});
 	document.querySelectorAll<HTMLElement>(".sug-btn").forEach((button) => {
 		button.addEventListener("click", () => {

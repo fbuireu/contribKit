@@ -1,10 +1,10 @@
 name: Release Web
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Web"]
+    types: [completed]
     branches: [main]
-    paths:
-      - "web/**"
   workflow_dispatch:
 
 concurrency:
@@ -17,6 +17,7 @@ jobs:
   release:
     name: Semantic Release (Web)
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       issues: write
@@ -74,15 +75,11 @@ jobs:
 
       - uses: ./.github/actions/prepare-web-env
 
-      - name: Install dependencies
-        working-directory: web
-        run: pnpm install --frozen-lockfile
-
       - name: Build
         working-directory: web
         env:
-          PUBLIC_GA_ID: ${{ secrets.PUBLIC_GA_ID }}
-          PUBLIC_BS_TOKEN: ${{ secrets.PUBLIC_BS_TOKEN }}
+          PUBLIC_GOOGLE_ANALYTICS_ID: ${{ secrets.PUBLIC_GOOGLE_ANALYTICS_ID }}
+          PUBLIC_BETTER_STACK_TOKEN: ${{ secrets.PUBLIC_BETTER_STACK_TOKEN }}
         run: pnpm exec astro build
 
       - name: Deploy to Cloudflare Workers

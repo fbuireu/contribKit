@@ -1,5 +1,5 @@
 name: 'Prepare Web Environment'
-description: 'Sets up Node.js and pnpm for the web project'
+description: 'Sets up Node.js, pnpm and installs web dependencies'
 runs:
   using: "composite"
   steps:
@@ -12,3 +12,8 @@ runs:
         node-version-file: web/.nvmrc
         cache: pnpm
         cache-dependency-path: web/pnpm-lock.yaml
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+      working-directory: web

@@ -34,14 +34,18 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/prepare-web-env
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
       - name: Lint
         run: pnpm lint:all
 
       - name: Test
-        run: pnpm test
+        run: pnpm test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./web/coverage/lcov.info
+          fail_ci_if_error: true
 
   web-build:
     name: Build (Web)
@@ -55,9 +59,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/prepare-web-env
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm exec astro build

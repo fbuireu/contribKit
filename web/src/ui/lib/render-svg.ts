@@ -1,7 +1,15 @@
+import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
 import { type Cell, DOW, MONTHS, type RenderCalendarParams } from "./calendar-utils";
 import { TOTALS_PER_LEVEL } from "./contribution";
 
-export function renderCalendarString({ cells, palette, shape, size, gap, showLabels }: RenderCalendarParams): string {
+export function renderCalendarString({
+	cells,
+	palette,
+	shape = DEFAULT_SHAPE_KIND,
+	size = 10,
+	gap = 2,
+	showLabels = true,
+}: RenderCalendarParams): string {
 	const weeks: Cell[][] = [];
 	for (let weekIndex = 0; weekIndex < 53; weekIndex++) weeks.push(cells.slice(weekIndex * 7, weekIndex * 7 + 7));
 

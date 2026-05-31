@@ -3,12 +3,15 @@ import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, envField, fontProviders } from "astro/config";
 
+const NOINDEX_SLUGS = ["legal-notice", "privacy", "terms"];
+
 export default defineConfig({
 	output: "server",
 	adapter: cloudflare(),
 	integrations: [
 		sitemap({
 			customPages: ["https://contribkit.app/"],
+			filter: (page) => !NOINDEX_SLUGS.some((slug) => page.includes(slug)),
 		}),
 	],
 	trailingSlash: "never",
@@ -21,7 +24,7 @@ export default defineConfig({
 			provider: fontProviders.google(),
 			name: "Inter",
 			cssVariable: "--font-inter",
-			weights: ["400", "500", "600", "700", "800"],
+			weights: ["400", "500", "600", "700"],
 			display: "swap",
 		},
 		{
@@ -34,8 +37,8 @@ export default defineConfig({
 	],
 	env: {
 		schema: {
-			PUBLIC_GA_ID: envField.string({ context: "client", access: "public", optional: true }),
-			PUBLIC_BS_TOKEN: envField.string({ context: "client", access: "public", optional: true }),
+			PUBLIC_GOOGLE_ANALYTICS_ID: envField.string({ context: "client", access: "public" }),
+			PUBLIC_BETTER_STACK_TOKEN: envField.string({ context: "client", access: "public" }),
 		},
 	},
 	vite: {

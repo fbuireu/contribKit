@@ -3,6 +3,11 @@ import type { Failure } from "../failures/failure";
 import type { Username } from "../value-objects/username";
 import type { Year } from "../value-objects/year";
 
+export interface FetchContributionsParams {
+	username: Username;
+	year: Year | null;
+}
+
 export interface ContributionsRepository {
-	fetch(username: Username, year: Year | null): Promise<ContributionCalendar | Failure>;
+	fetch(params: FetchContributionsParams): Promise<ContributionCalendar | Failure>;
 }

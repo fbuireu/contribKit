@@ -25,6 +25,12 @@ h1 {
 .legal-body {
 	max-width: 640px;
 }
+.legal-body h3 {
+	font-size: 13px;
+	font-weight: 600;
+	margin: 24px 0 6px;
+	color: var(--text);
+}
 .legal-body h2 {
 	font-size: 15px;
 	font-weight: 600;

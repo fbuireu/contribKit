@@ -1,58 +1,57 @@
 ---
-import { fetchContributions } from "../application/use-cases/fetch-contributions";
-import { PALETTES } from "../domain/value-objects/palette";
-import { parseUsername } from "../domain/value-objects/username";
-import { isYear, parseYear } from "../domain/value-objects/year";
-import { createGithubHtmlContributionsRepository } from "../infrastructure/github/github-html-contributions-repository";
-import CellTip from "../ui/components/CellTip.astro";
-import Customize from "../ui/components/Customize.astro";
-import Export from "../ui/components/Export.astro";
-import Hero from "../ui/components/Hero.astro";
-import HowItWorks from "../ui/components/HowItWorks.astro";
-import BaseLayout from "../ui/components/layouts/BaseLayout.astro";
-import Widget from "../ui/components/Widget.astro";
-import { buildGridFromApi, type Cell, generateData, summarize } from "../ui/lib/calendar-utils";
-import { isFailure } from "../ui/lib/failure-http";
-import { renderCalendarString } from "../ui/lib/render-svg";
+import { PALETTES } from "@domain/value-objects/palette";
+import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
+import { DEFAULT_USERNAME } from "@domain/value-objects/username";
+import CellTip from "@ui/components/CellTip.astro";
+import Customize from "@ui/components/Customize.astro";
+import Export from "@ui/components/Export.astro";
+import Hero from "@ui/components/Hero.astro";
+import HowItWorks from "@ui/components/HowItWorks.astro";
+import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
+import Widget from "@ui/components/Widget.astro";
+import { generateData, summarize } from "@ui/lib/calendar-utils";
+import { loadInitialContributions } from "@ui/lib/load-initial-contributions";
+import { renderCalendarString } from "@ui/lib/render-svg";
 
-const DEFAULT_USERNAME = "torvalds";
 const SITE_URL = "https://contribkit.app";
 const OG_IMAGE = `${SITE_URL}/og.png`;
 const OG_IMAGE_ALT = "ContribKit — GitHub contribution calendar with custom palette";
 const TITLE = "ContribKit — Your GitHub activity, your aesthetic.";
 const DESCRIPTION = "Visualize, customize, and export your GitHub contribution calendar — no token required.";
-
-async function loadInitialContributions(): Promise<{ cells: Cell[]; total: number | null; year: number } | null> {
-	const username = parseUsername(DEFAULT_USERNAME);
-	if (isFailure(username)) return null;
-	// TODO: migrate to Temporal once it's natively available in Node and all target browsers
-	const currentYear = new Date().getFullYear();
-	const year = parseYear(String(currentYear));
-	if (isFailure(year)) return null;
-	const yearValue = isYear(year) ? year : null;
-
-	const repo = createGithubHtmlContributionsRepository();
-	const result = await fetchContributions(repo)(username, yearValue);
-	if (isFailure(result)) return null;
-	return {
-		cells: buildGridFromApi(result.days, currentYear),
-		total: result.total,
-		year: currentYear,
-	};
-}
-
 const CLASSIC = [...PALETTES.github.colors];
 
+const SCHEMA = [
+	{
+		"@context": "https://schema.org",
+		"@type": "WebSite",
+		name: "ContribKit",
+		url: SITE_URL,
+		description: DESCRIPTION,
+	},
+	{
+		"@context": "https://schema.org",
+		"@type": "SoftwareApplication",
+		name: "ContribKit",
+		description: DESCRIPTION,
+		applicationCategory: "DeveloperApplication",
+		operatingSystem: "iOS, Android, Web",
+		offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+		url: SITE_URL,
+		image: OG_IMAGE,
+		author: { "@type": "Person", name: "Ferran Buireu", url: "https://github.com/fbuireu" },
+	},
+];
+
 const initial = await loadInitialContributions();
-const cells: Cell[] = initial?.cells ?? generateData(7);
+const cells = initial?.cells ?? generateData(7);
 const summary = summarize(cells);
-if (initial?.total != null) summary.count = initial.total;
+if (initial?.total) summary.count = initial.total;
 
 const heroSVG = renderCalendarString({ cells, palette: CLASSIC, shape: "rounded", size: 13, gap: 3, showLabels: true });
-const exportPNGSVG = renderCalendarString({
+const exportSvg = renderCalendarString({
 	cells,
 	palette: CLASSIC,
-	shape: "rounded",
+	shape: DEFAULT_SHAPE_KIND,
 	size: 10,
 	gap: 2,
 	showLabels: false,
@@ -71,7 +70,7 @@ Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-r
   <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} />
   <HowItWorks />
   <Customize />
-  <Export exportPNGSVG={exportPNGSVG} />
+  <Export exportSvg={exportSvg} />
   <Widget />
   <CellTip />
 </BaseLayout>
@@ -81,43 +80,9 @@ Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-r
   window.__INITIAL_USERNAME__ = initialUsername;
 </script>
 
-<script type="application/ld+json" is:inline>
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "ContribKit",
-    "url": "https://contribkit.app",
-    "description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": "https://contribkit.app/?u={search_term_string}"
-      },
-      "query-input": "required name=search_term_string"
-    }
-  },
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "ContribKit",
-    "description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
-    "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "iOS, Android, Web",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-    "url": "https://contribkit.app",
-    "image": "https://contribkit.app/og.png",
-    "author": {
-      "@type": "Person",
-      "name": "Ferran Buireu",
-      "url": "https://github.com/fbuireu"
-    }
-  }
-]
-</script>
+<script type="application/ld+json" set:html={JSON.stringify(SCHEMA)} />
 
 <script>
-import { initPage } from '../ui/lib/page-init';
+import { initPage } from '@ui/lib/page-init';
 initPage();
 </script>

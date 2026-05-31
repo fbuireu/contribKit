@@ -18,7 +18,7 @@ interface Props {
 }
 
 const { title, description, url, image, imageAlt, robots } = Astro.props;
-const GA_ID = import.meta.env.PUBLIC_GA_ID;
+const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 ---
 
 <!doctype html>
@@ -40,31 +40,27 @@ const GA_ID = import.meta.env.PUBLIC_GA_ID;
       }
     </script>
     <SEO title={title} description={description} url={url} image={image} imageAlt={imageAlt} robots={robots} />
-    {GA_ID && (
-      <>
-        <script is:inline define:vars={{ GA_ID }}>
-          window.dataLayer = window.dataLayer || [];
-          function gtag() { dataLayer.push(arguments); }
-          window.gtag = gtag;
+    <script is:inline define:vars={{ GA_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
 
-          const analyticsConsent = (() => {
-            try {
-              const match = document.cookie.match(/(^| )cc_cookie=([^;]+)/);
-              if (match) {
-                const data = JSON.parse(decodeURIComponent(match[2]));
-                return Array.isArray(data.categories) && data.categories.includes('analytics') ? 'granted' : 'denied';
-              }
-            } catch {}
-            return 'denied';
-          })();
+      const analyticsConsent = (() => {
+        try {
+          const match = document.cookie.match(/(^| )cc_cookie=([^;]+)/);
+          if (match) {
+            const data = JSON.parse(decodeURIComponent(match[2]));
+            return Array.isArray(data.categories) && data.categories.includes('analytics') ? 'granted' : 'denied';
+          }
+        } catch {}
+        return 'denied';
+      })();
 
-          gtag('consent', 'default', { analytics_storage: analyticsConsent });
-          gtag('js', new Date());
-          gtag('config', GA_ID);
-        </script>
-        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
-      </>
-    )}
+      gtag('consent', 'default', { analytics_storage: analyticsConsent });
+      gtag('js', new Date());
+      gtag('config', GA_ID);
+    </script>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
     <link rel="sitemap" href="/sitemap-index.xml" />

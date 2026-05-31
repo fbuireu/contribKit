@@ -15,5 +15,7 @@ export const parseUsername = (input: string): Username | Failure => {
 	return { _tag: "Username", value: trimmed };
 };
 
+export const DEFAULT_USERNAME = "torvalds";
+
 export const isUsername = (value: unknown): value is Username =>
 	typeof value === "object" && value !== null && (value as { _tag?: unknown })._tag === "Username";

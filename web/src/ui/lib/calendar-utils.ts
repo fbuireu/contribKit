@@ -23,14 +23,14 @@ function getWeekday(iso: string): number {
 	return new Date(`${iso}T12:00:00`).getDay(); // 0=Sun, 1=Mon … 6=Sat
 }
 
-export type RenderCalendarParams = {
+export interface RenderCalendarParams {
 	cells: Cell[];
 	palette: readonly string[];
-	shape: string;
-	size: number;
-	gap: number;
-	showLabels: boolean;
-};
+	shape?: string;
+	size?: number;
+	gap?: number;
+	showLabels?: boolean;
+}
 
 export type CellSummary = { count: number; streak: number; longest: number };
 

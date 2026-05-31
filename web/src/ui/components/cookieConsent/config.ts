@@ -8,7 +8,7 @@ export const config: CookieConsentConfig = {
 		const analyticsChanged = changedCategories.includes("analytics") || Object.hasOwn(changedServices, "analytics");
 		if (!analyticsChanged) return;
 		updatePreferences();
-		if (!acceptedCategory("analytics")) window.location.reload();
+		if (!acceptedCategory("analytics")) globalThis.location.reload();
 	},
 
 	guiOptions: {

@@ -3,7 +3,20 @@
   "private": true,
   "version": "0.0.0",
   "author": "Ferran Buireu <contact@contribkit.app>",
-  "description": "Repo-level dev tooling: commitlint. App and web each have their own toolchains.",
+  "description": "Visualize and export your GitHub contribution calendar — web app & Android & iOS app",
+  "keywords": [
+    "github",
+    "contributions",
+    "calendar",
+    "svg",
+    "astro",
+    "flutter",
+    "android",
+    "ios",
+    "open-source",
+    "developer-tools",
+    "github-stats"
+  ],
   "packageManager": "pnpm@11.3.0",
   "engines": {
     "node": "v26.2.0"

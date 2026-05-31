@@ -1,13 +1,16 @@
 ---
-import BaseLayout from "../ui/components/layouts/BaseLayout.astro";
-import "../ui/components/legal-notice.css";
+import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
+import "@ui/components/legal.css";
 
 const TITLE = "Legal Notice — ContribKit";
-const d = new Date();
-d.setDate(d.getDate() - 7);
-const EFFECTIVE_DATE = d.toISOString().slice(0, 10);
+const today = new Date();
+today.setDate(today.getDate() - 7);
+const EFFECTIVE_DATE = today.toISOString().slice(0, 10);
 
-type ShuffledData = { letter: string; order: number };
+interface ShuffledData {
+	letter: string;
+	order: number;
+}
 
 const OWNER_NAME: ShuffledData[] = [
 	{ letter: "u", order: 12 },
@@ -88,7 +91,7 @@ const OWNER_ADDRESS: ShuffledData[] = [
 	{ letter: ",", order: 41 },
 ];
 
-const resolve = (data: ShuffledData[]) =>
+const decrypt = (data: ShuffledData[]) =>
 	[...data]
 		.sort((a, b) => a.order - b.order)
 		.map((p) => p.letter)
@@ -112,15 +115,15 @@ const resolve = (data: ShuffledData[]) =>
           <tbody>
             <tr>
               <th scope="row">Owner</th>
-              <td><span class="protected">{resolve(OWNER_NAME)}</span></td>
+              <td><span class="protected">{decrypt(OWNER_NAME)}</span></td>
             </tr>
             <tr>
               <th scope="row">Tax ID (NIF)</th>
-              <td><span class="protected mono">{resolve(OWNER_NIF)}</span></td>
+              <td><span class="protected mono">{decrypt(OWNER_NIF)}</span></td>
             </tr>
             <tr>
               <th scope="row">Address</th>
-              <td><span class="protected">{resolve(OWNER_ADDRESS)}</span></td>
+              <td><span class="protected">{decrypt(OWNER_ADDRESS)}</span></td>
             </tr>
             <tr>
               <th scope="row">Contact</th>

@@ -1,10 +1,10 @@
-import type { ContributionCalendar } from "../../domain/entities/contribution-calendar";
-import type { ContributionDay } from "../../domain/entities/contribution-day";
-import { type Failure, network, notFound, parse } from "../../domain/failures/failure";
-import type { ContributionsRepository } from "../../domain/repositories/contributions-repository";
-import { clampLevel } from "../../domain/value-objects/contribution-level";
-import type { Username } from "../../domain/value-objects/username";
-import type { Year } from "../../domain/value-objects/year";
+import type { ContributionCalendar } from "@domain/entities/contribution-calendar";
+import type { ContributionDay } from "@domain/entities/contribution-day";
+import { type Failure, network, notFound, parse } from "@domain/failures/failure";
+import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/contributions-repository";
+import { clampLevel } from "@domain/value-objects/contribution-level";
+import type { Username } from "@domain/value-objects/username";
+import type { Year } from "@domain/value-objects/year";
 
 const USER_AGENT =
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -14,7 +14,12 @@ const LEVEL_REGEX = /data-level="(\d)"/;
 const ID_REGEX = /\bid="([^"]+)"/;
 const TIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
 
-const buildUrl = (username: string, year: Year | null): string => {
+interface BuildUrlParams {
+	username: string;
+	year: Year | null;
+}
+
+const buildUrl = ({ username, year }: BuildUrlParams): string => {
 	const url = new URL(`https://github.com/users/${encodeURIComponent(username)}/contributions`);
 	if (year) {
 		const now = new Date().getFullYear();
@@ -24,8 +29,19 @@ const buildUrl = (username: string, year: Year | null): string => {
 	return String(url);
 };
 
-const parseHtml = (html: string): { days: ContributionDay[]; total: number | null } => {
-	const days: { date: string; level: number; id: string | null }[] = [];
+interface RawDay {
+	date: string;
+	level: number;
+	id: string | null;
+}
+interface ParseHtmlReturnType {
+	days: ContributionDay[];
+	total: number | null;
+}
+
+const parseHtml = (html: string): ParseHtmlReturnType => {
+	const days: RawDay[] = [];
+	const idToCount = new Map<string, number>();
 
 	for (const match of html.matchAll(TD_REGEX)) {
 		const attrs = match[1];
@@ -37,7 +53,6 @@ const parseHtml = (html: string): { days: ContributionDay[]; total: number | nul
 		}
 	}
 
-	const idToCount = new Map<string, number>();
 	for (const match of html.matchAll(TIP_REGEX)) {
 		idToCount.set(match[1], Number.parseInt(match[2], 10));
 	}
@@ -45,16 +60,16 @@ const parseHtml = (html: string): { days: ContributionDay[]; total: number | nul
 	const enriched: ContributionDay[] = days.map(({ date, level, id }) => ({
 		date,
 		level: clampLevel(level),
-		count: id !== null ? (idToCount.get(id) ?? null) : null,
+		count: id === null ? null : (idToCount.get(id) ?? null),
 	}));
 
 	const total = idToCount.size > 0 ? enriched.reduce((sum, day) => sum + (day.count ?? 0), 0) : null;
 	return { days: enriched, total };
 };
 
-export const createGithubHtmlContributionsRepository = (): ContributionsRepository => ({
-	async fetch(username: Username, year: Year | null): Promise<ContributionCalendar | Failure> {
-		const url = buildUrl(username.value, year);
+export const githubHtmlContributionsRepository: ContributionsRepository = {
+	async fetch({ username, year }: FetchContributionsParams): Promise<ContributionCalendar | Failure> {
+		const url = buildUrl({ username: username.value, year });
 
 		let response: Response;
 		try {
@@ -81,4 +96,4 @@ export const createGithubHtmlContributionsRepository = (): ContributionsReposito
 
 		return { username: username.value, days, total };
 	},
-});
+};

@@ -3,7 +3,7 @@ import { acceptedService } from "vanilla-cookieconsent";
 let betterStackLoaded = false;
 
 function loadBetterStack(): void {
-	const token = import.meta.env.PUBLIC_BS_TOKEN as string | undefined;
+	const token = import.meta.env.PUBLIC_BETTER_STACK_TOKEN as string | undefined;
 	if (!token || betterStackLoaded) return;
 	betterStackLoaded = true;
 	const s = document.createElement("script");

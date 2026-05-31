@@ -11,4 +11,9 @@ export interface SvgRenderOptions {
 	readonly showLabels?: boolean;
 }
 
-export type SvgRenderer = (calendar: ContributionCalendar, options: SvgRenderOptions) => string;
+export interface SvgRendererParams {
+	readonly calendar: ContributionCalendar;
+	readonly options: SvgRenderOptions;
+}
+
+export type SvgRenderer = (params: SvgRendererParams) => string;
