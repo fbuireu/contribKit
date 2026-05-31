@@ -1,15 +1,6 @@
 /// <reference types="astro/client" />
 import type { ContributionDay } from "@domain/entities/contribution-day";
 
-interface Env {
-	API_RATE_LIMITER: {
-		limit: (opts: { key: string }) => Promise<{ success: boolean }>;
-	};
-}
-
-declare module "cloudflare:workers" {
-	export const env: Env;
-}
 
 interface ImportMetaEnv {
 	readonly PUBLIC_GOOGLE_ANALYTICS_ID: string;

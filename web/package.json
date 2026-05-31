@@ -21,9 +21,9 @@
 		"node": "v26.2.0"
 	},
 	"scripts": {
-		"dev": "astro dev --open",
-		"wrangler:dev": "pnpm build && wrangler dev",
-		"build": "astro build",
+		"dev": "wrangler types && astro dev --open",
+		"wrangler:dev": "wrangler types && pnpm build && wrangler dev",
+		"build": "wrangler types && astro build",
 		"preview": "astro preview",
 		"sync": "astro sync",
 		"lint:astro": "astro check",
