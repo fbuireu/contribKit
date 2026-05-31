@@ -19,28 +19,6 @@ interface Props {
 
 const { title, description, url, image, imageAlt, robots } = Astro.props;
 const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
-
-Astro.response.headers.set("X-Frame-Options", "DENY");
-Astro.response.headers.set("X-Content-Type-Options", "nosniff");
-Astro.response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
-Astro.response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
-Astro.response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
-Astro.response.headers.set("Cross-Origin-Embedder-Policy", "unsafe-none");
-Astro.response.headers.set(
-	"Content-Security-Policy",
-	[
-		"default-src 'self'",
-		"script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.betterstack.com",
-		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-		"font-src 'self' https://fonts.gstatic.com",
-		"img-src 'self' data:",
-		"connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://cdn.betterstack.com",
-		"frame-ancestors 'none'",
-		"base-uri 'self'",
-		"form-action 'self'",
-	].join("; "),
-);
 ---
 
 <!doctype html>

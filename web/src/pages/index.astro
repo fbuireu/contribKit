@@ -63,7 +63,7 @@ const initialCellsForClient = cells.map((cell) => ({
 	count: cell.count ?? null,
 }));
 
-Astro.response.headers.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+Astro.response.headers.set("Cache-Control", "private, max-age=3600, stale-while-revalidate=86400");
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE} imageAlt={OG_IMAGE_ALT}>

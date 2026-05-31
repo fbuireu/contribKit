@@ -58,6 +58,12 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+	.foot-disclaimer {
+		flex-basis: 100%;
+	}
 }
 .legal-link {
 	color: var(--text-dimmer);
