@@ -1,3 +1,10 @@
+# [contribkit-app-v1.1.0](https://github.com/fbuireu/contribKit/compare/app-v1.0.2...app-v1.1.0) (2026-05-31)
+
+
+### Features
+
+* add self in user list ([c09848b](https://github.com/fbuireu/contribKit/commit/c09848ba41a8851433be54bdb0f54d0297e156f8))
+
 # [contribkit-app-v1.0.2](https://github.com/fbuireu/contribKit/compare/app-v1.0.1...app-v1.0.2) (2026-05-31)
 
 
