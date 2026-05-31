@@ -18,10 +18,10 @@ import PlayStore from "./icons/PlayStore.astro";
           <GitHub />
           github
         </a>
-        <span class="foot-link foot-link--soon">
+        <button type="button" class="foot-link foot-link--soon" disabled aria-disabled="true" aria-label="App Store, coming soon">
           <Apple />
-          app store <small>(soon)</small>
-        </span>
+          app store <small aria-hidden="true">(soon)</small>
+        </button>
         <button type="button" class="foot-link">
           <PlayStore />
           play store
@@ -33,14 +33,14 @@ import PlayStore from "./icons/PlayStore.astro";
       <span class="mono dimmer">crafted commit by commit by <a href="https://github.com/fbuireu" class="legal-link mono" target="_blank" rel="noopener noreferrer">Ferran Buireu</a></span>
       <div class="foot-legal">
         <a href="/legal-notice" class="legal-link mono">legal notice</a>
-        <span class="dimmer">·</span>
+        <span class="dimmer" aria-hidden="true">·</span>
         <a href="/privacy" class="legal-link mono">privacy</a>
-        <span class="dimmer">·</span>
+        <span class="dimmer" aria-hidden="true">·</span>
         <a href="/terms" class="legal-link mono">terms</a>
-        <span class="dimmer">·</span>
+        <span class="dimmer" aria-hidden="true">·</span>
         <button type="button" data-cc="show-preferencesModal" class="legal-link mono cookies-btn">cookies</button>
-        <span class="dimmer">·</span>
-        <span class="mono dimmer">not affiliated with github, inc.</span>
+        <span class="dimmer" aria-hidden="true">·</span>
+        <span class="mono dimmer" aria-hidden="true">not affiliated with github, inc.</span>
       </div>
     </div>
   </div>

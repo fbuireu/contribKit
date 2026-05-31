@@ -16,7 +16,10 @@ export function initThemeToggle(): void {
 		document.documentElement.classList.toggle("theme-light", pinnedScheme === "light");
 		document.documentElement.classList.toggle("theme-dark", pinnedScheme === "dark");
 		if (meta) meta.content = pinnedScheme ?? "light dark";
+		const isDark = effective() === "dark";
 		(button as HTMLElement).dataset.effective = effective();
+		(button as HTMLElement).setAttribute("aria-pressed", String(isDark));
+		(button as HTMLElement).setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
 	}
 
 	apply();

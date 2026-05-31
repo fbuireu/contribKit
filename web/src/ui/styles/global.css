@@ -9,7 +9,7 @@
 	--border-strong: light-dark(#d4d4d8, #232328);
 	--text: light-dark(#18181b, #f4f4f5);
 	--text-dim: light-dark(#52525a, #a1a1aa);
-	--text-dimmer: light-dark(#a1a1aa, #52525a);
+	--text-dimmer: light-dark(#757575, #737373);
 	--text-faint: light-dark(#d4d4d8, #2e2e33);
 	--overlay: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.04));
 	--overlay-strong: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
