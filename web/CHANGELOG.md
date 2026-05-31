@@ -1,3 +1,16 @@
+# [contribkit-web-v1.4.0](https://github.com/fbuireu/contribKit/compare/web-v1.3.9...web-v1.4.0) (2026-05-31)
+
+
+### Bug Fixes
+
+* a11y ([9296ec7](https://github.com/fbuireu/contribKit/commit/9296ec79f96a76a3c7fd3c95493cd88881e4c8b4))
+* a11y ([c68251c](https://github.com/fbuireu/contribKit/commit/c68251cabf72c85049ee142991da96fef7a28cda))
+
+
+### Features
+
+* add middleware headers ([419815b](https://github.com/fbuireu/contribKit/commit/419815bc160f5032cb8d1fbc5d3f06a355b78581))
+
 # [contribkit-web-v1.2.0](https://github.com/fbuireu/contribKit/compare/web-v1.1.0...web-v1.2.0) (2026-05-31)
 
 
