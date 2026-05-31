@@ -1,6 +1,6 @@
-@layer vendor {
-	@import "vanilla-cookieconsent/dist/cookieconsent.css";
+@import "vanilla-cookieconsent/dist/cookieconsent.css" layer(vendor);
 
+@layer vendor {
 	#cc-main {
 		--cc-font-family: var(--font-ui);
 		--cc-modal-border-radius: 8px;
