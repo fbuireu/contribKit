@@ -7,6 +7,10 @@ interface Env {
 	};
 }
 
+declare module "cloudflare:workers" {
+	export const env: Env;
+}
+
 interface ImportMetaEnv {
 	readonly PUBLIC_GOOGLE_ANALYTICS_ID: string;
 	readonly PUBLIC_BETTER_STACK_TOKEN: string;
