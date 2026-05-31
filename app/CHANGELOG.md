@@ -1,0 +1,17 @@
+# contribkit-app-v1.0.0 (2026-05-31)
+
+
+### Bug Fixes
+
+* add env vars ([17ca6b0](https://github.com/fbuireu/contribKit/commit/17ca6b006aca1a16ea0158a73d83877ba6bbee78))
+* remove duplicate palette ([5cb6c3a](https://github.com/fbuireu/contribKit/commit/5cb6c3a51ee00a673f68580f204428ce2396dd45))
+* stuff ([629e269](https://github.com/fbuireu/contribKit/commit/629e2691a0df1e566043aaeb00cfe209f437dc84))
+* versioning ([c19fba2](https://github.com/fbuireu/contribKit/commit/c19fba2f85f732aba7fc6183a043974aa0b41c4a))
+
+
+### Features
+
+* add grid preview ([befaf07](https://github.com/fbuireu/contribKit/commit/befaf0725f0e3a5870b287387f0995721bc1b468))
+* add monorepo web v1 ([e57e519](https://github.com/fbuireu/contribKit/commit/e57e519d5a8255638f55e03dde4b230ffe194d8c))
+* add widget size ([b0c873a](https://github.com/fbuireu/contribKit/commit/b0c873a18badbf5ab0b13239882e1dbda04225a7))
+* web cookie + gradle ([2ba11e4](https://github.com/fbuireu/contribKit/commit/2ba11e47d9b83889d98bf17903e98b452c3b811a))
