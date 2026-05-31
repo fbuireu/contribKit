@@ -12,9 +12,12 @@ pre-commit:
       run: flutter analyze --fatal-infos
 
 commit-msg:
+  parallel: false
   commands:
+    auto-scope:
+      run: node {root}/scripts/auto-scope.mjs {1}
     commitlint:
-      run: pnpm exec commitlint --edit "{1}"
+      run: pnpm exec commitlint --edit {1}
 
 pre-push:
   commands:

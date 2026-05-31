@@ -12,6 +12,4 @@
 ### Features
 
 * add grid preview ([befaf07](https://github.com/fbuireu/contribKit/commit/befaf0725f0e3a5870b287387f0995721bc1b468))
-* add monorepo web v1 ([e57e519](https://github.com/fbuireu/contribKit/commit/e57e519d5a8255638f55e03dde4b230ffe194d8c))
 * add widget size ([b0c873a](https://github.com/fbuireu/contribKit/commit/b0c873a18badbf5ab0b13239882e1dbda04225a7))
-* web cookie + gradle ([2ba11e4](https://github.com/fbuireu/contribKit/commit/2ba11e47d9b83889d98bf17903e98b452c3b811a))
