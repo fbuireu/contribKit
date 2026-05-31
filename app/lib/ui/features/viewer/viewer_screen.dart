@@ -172,6 +172,7 @@ const _kSuggestedUsernames = [
   'yyx990803',
   'sindresorhus',
   'antirez',
+  'fbuireu',
 ];
 
 class _UsernameInput extends StatelessWidget {
