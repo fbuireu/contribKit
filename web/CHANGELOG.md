@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.7](https://github.com/fbuireu/contribKit/compare/web-v1.3.6...web-v1.3.7) (2026-05-31)
+
+
+### Bug Fixes
+
+* object ([9581e94](https://github.com/fbuireu/contribKit/commit/9581e946ac272352afd70225c0446076928d4f8f))
+
 # [contribkit-web-v1.3.6](https://github.com/fbuireu/contribKit/compare/web-v1.3.5...web-v1.3.6) (2026-05-31)
 
 
