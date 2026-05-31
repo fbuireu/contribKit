@@ -2,7 +2,6 @@ packages:
   - web
   - app
 minimumReleaseAge: 4320 # 3 days
-trustPolicy: "no-downgrade"
 blockExoticSubdeps: true
 allowBuilds:
   "@astrojs/compiler-rs": true
@@ -10,7 +9,3 @@ allowBuilds:
   esbuild: true
   sharp: true
   workerd: true
-overrides:
-  chokidar: "^5.0.0"
-  semver: "^7.0.0"
-  yaml: ">=2.8.3"
