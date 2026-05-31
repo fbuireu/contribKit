@@ -1,3 +1,10 @@
+# [contribkit-web-v1.5.1](https://github.com/fbuireu/contribKit/compare/web-v1.5.0...web-v1.5.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* update disable_nodejs_process_v2 by adding new date ([ff9f3f0](https://github.com/fbuireu/contribKit/commit/ff9f3f04ec9f7a49032360050178936150fcc0ba))
+
 # [contribkit-web-v1.5.0](https://github.com/fbuireu/contribKit/compare/web-v1.4.1...web-v1.5.0) (2026-05-31)
 
 
