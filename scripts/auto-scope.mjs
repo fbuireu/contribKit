@@ -1,20 +1,9 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+// Blocks commits that touch more than one package at once.
+// Reason: semantic-release-monorepo includes a commit in every package changelog whose files it touched,
+// so mixed commits cause web changes to appear in the app changelog and vice versa.
 import { execSync } from 'node:child_process';
 
-const CONVENTIONAL_WITH_SCOPE = /^[a-zA-Z]+\([^)]+\)!?:/;
-const CONVENTIONAL_WITHOUT_SCOPE = /^[a-zA-Z]+!?:/;
-const INJECT_SCOPE = /^([a-zA-Z]+)(!?):/;
-
 const PACKAGES = ['app', 'web'];
-
-const msgFile = process.argv[2];
-if (!msgFile) process.exit(0);
-
-const content = readFileSync(msgFile, 'utf8');
-const firstLine = content.split('\n')[0];
-
-if (CONVENTIONAL_WITH_SCOPE.test(firstLine)) process.exit(0);
-if (!CONVENTIONAL_WITHOUT_SCOPE.test(firstLine)) process.exit(0);
 
 let staged;
 try {
@@ -30,9 +19,3 @@ if (touchedPackages.length > 1) {
   process.stderr.write(`\nCommit touches ${touchedPackages.join(' and ')} — split into separate commits.\n\n`);
   process.exit(1);
 }
-
-const [scope] = touchedPackages;
-if (!scope) process.exit(0);
-
-const newFirstLine = firstLine.replace(INJECT_SCOPE, `$1(${scope})$2:`);
-writeFileSync(msgFile, content.replace(firstLine, newFirstLine));

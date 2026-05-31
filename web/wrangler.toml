@@ -8,9 +8,9 @@ directory = "dist"
 binding = "ASSETS"
 
 [[routes]]
-pattern = "contribkit.app/*"
-zone_name = "contribkit.app"
+pattern = "contribkit.app"
+custom_domain = true
 
 [[routes]]
-pattern = "contribkit.app"
+pattern = "www.contribkit.app"
 custom_domain = true

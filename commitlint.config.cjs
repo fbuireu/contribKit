@@ -1,6 +1,6 @@
 /** @type {import('@commitlint/types').UserConfig} */
 module.exports = {
-  extends: ['@commitlint/config-conventional'],
+  extends: ['@commitlint/config-conventional', '@commitlint/config-pnpm-scopes'],
   formatter: '@commitlint/format',
   rules: {
     'scope-case': [2, 'always', ['lower-case', 'pascal-case', 'camel-case']],
