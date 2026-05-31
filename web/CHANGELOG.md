@@ -1,3 +1,10 @@
+# [contribkit-web-v1.4.1](https://github.com/fbuireu/contribKit/compare/web-v1.4.0...web-v1.4.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* a11y audit ([520f437](https://github.com/fbuireu/contribKit/commit/520f437f09baf098d1d7a337af1b397a6cdc6234))
+
 # [contribkit-web-v1.4.0](https://github.com/fbuireu/contribKit/compare/web-v1.3.9...web-v1.4.0) (2026-05-31)
 
 
