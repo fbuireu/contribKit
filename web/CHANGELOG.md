@@ -1,3 +1,19 @@
+# [contribkit-web-v1.5.0](https://github.com/fbuireu/contribKit/compare/web-v1.4.1...web-v1.5.0) (2026-05-31)
+
+
+### Bug Fixes
+
+* add worker type ([c6adc77](https://github.com/fbuireu/contribKit/commit/c6adc776bb128eb049610f37011592bdecc5d635))
+* add worker types ([85ca5bf](https://github.com/fbuireu/contribKit/commit/85ca5bf1c199e525656cc2432a2ed96df5d9cc05))
+* env rate ([4148cb6](https://github.com/fbuireu/contribKit/commit/4148cb643e2645cf0f0dd078eb30f726183e74e6))
+* update ci types ([1be58f2](https://github.com/fbuireu/contribKit/commit/1be58f24e3d6658d239871bd8e48aa524517ad7c))
+* update ignore track ([180f69e](https://github.com/fbuireu/contribKit/commit/180f69e9e9caeac49a74235d626ddf849d09a48b))
+
+
+### Features
+
+* add rate limit + middleware ([6f35cf6](https://github.com/fbuireu/contribKit/commit/6f35cf6e90b35fd9d0b8d335644567e189e2f1a2))
+
 # [contribkit-web-v1.4.1](https://github.com/fbuireu/contribKit/compare/web-v1.4.0...web-v1.4.1) (2026-05-31)
 
 
