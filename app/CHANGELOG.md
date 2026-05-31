@@ -1,3 +1,10 @@
+# [contribkit-app-v1.0.1](https://github.com/fbuireu/contribKit/compare/app-v1.0.0...app-v1.0.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* 502 ([0e7cb9a](https://github.com/fbuireu/contribKit/commit/0e7cb9afd1c594efec101ebb142817c56b27eef4))
+
 # contribkit-app-v1.0.0 (2026-05-31)
 
 
