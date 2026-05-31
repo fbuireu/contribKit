@@ -83,9 +83,9 @@ export function renderCalendarString({
 export function shapePreviewSVG(kind: string): string {
 	const fill = "#39D353";
 	if (kind === "dot")
-		return `<svg viewBox="0 0 20 20" width="20" height="20"><circle cx="10" cy="10" r="3.2" fill="${fill}"/></svg>`;
+		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="3.2" fill="${fill}"/></svg>`;
 	if (kind === "circle")
-		return `<svg viewBox="0 0 20 20" width="20" height="20"><circle cx="10" cy="10" r="6.5" fill="${fill}"/></svg>`;
+		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="${fill}"/></svg>`;
 	if (kind === "hex") {
 		const hexSize = 7;
 		const pts: string[] = [];
@@ -93,8 +93,8 @@ export function shapePreviewSVG(kind: string): string {
 			const a = (Math.PI / 3) * i + Math.PI / 6;
 			pts.push(`${(10 + hexSize * Math.cos(a)).toFixed(2)},${(10 + hexSize * Math.sin(a)).toFixed(2)}`);
 		}
-		return `<svg viewBox="0 0 20 20" width="20" height="20"><polygon points="${pts.join(" ")}" fill="${fill}"/></svg>`;
+		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><polygon points="${pts.join(" ")}" fill="${fill}"/></svg>`;
 	}
 	const borderRadius = kind === "rounded" ? 2.5 : 0;
-	return `<svg viewBox="0 0 20 20" width="20" height="20"><rect x="3" y="3" width="14" height="14" rx="${borderRadius}" fill="${fill}"/></svg>`;
+	return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="${borderRadius}" fill="${fill}"/></svg>`;
 }

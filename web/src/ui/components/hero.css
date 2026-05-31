@@ -75,7 +75,7 @@
 		border-color 120ms,
 		transform 120ms;
 }
-.btn:hover {
+.btn:hover:not(:disabled) {
 	transform: translateY(-1px);
 }
 .btn span {

@@ -38,7 +38,7 @@ export function generateMiniGrid(palette: readonly string[], liveCells?: Cell[])
 	const svgWidth = cols * STEP;
 	const svgHeight = ROWS * STEP;
 	const sizeAttrs = responsive ? `width="100%"` : `width="${svgWidth}" height="${svgHeight}"`;
-	let svg = `<svg ${sizeAttrs} viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
+	let svg = `<svg ${sizeAttrs} viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">`;
 	for (let columnIndex = 0; columnIndex < cols; columnIndex++) {
 		for (let rowIndex = 0; rowIndex < ROWS; rowIndex++) {
 			const level = cells[columnIndex * ROWS + rowIndex];

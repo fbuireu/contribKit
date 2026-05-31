@@ -16,7 +16,7 @@ interface Props {
 const { heroSVG, summary, palette } = Astro.props;
 ---
 
-<section class="hero">
+<section class="hero" aria-label="Hero">
   <div class="hero-grain" aria-hidden="true"></div>
   <div class="wrap">
 
@@ -36,27 +36,27 @@ const { heroSVG, summary, palette } = Astro.props;
     </p>
 
     <div class="cta-row">
-      <span class="btn btn-store btn-store--soon" aria-label="App Store — coming soon">
+      <button type="button" class="btn btn-store btn-store--soon" aria-label="App Store — coming soon" disabled aria-disabled="true">
         <AppStore />
         <span>
           <small>Coming soon to the</small>
           App Store
         </span>
-      </span>
-      <a href="#" class="btn btn-store" aria-label="Get it on Google Play">
+      </button>
+      <button type="button" class="btn btn-store" aria-label="Get it on Google Play">
         <GooglePlay />
         <span>
           <small>Get it on</small>
           Google Play
         </span>
-      </a>
+      </button>
     </div>
 
     <form id="username-form" role="search" aria-label="Render GitHub contributions">
       <div class="username-strip">
         <label for="hero-username" class="us-label sr-only">GitHub username</label>
         <span class="us-label" aria-hidden="true">github.com/</span>
-        <input class="us-input" id="hero-username" value="torvalds" spellcheck="false" autocomplete="off" />
+        <input class="us-input" id="hero-username" type="search" value="torvalds" spellcheck="false" autocomplete="off" />
         <div class="us-year-wrap">
           <select class="us-year" id="hero-year" aria-label="Year">
             {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
