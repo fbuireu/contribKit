@@ -1,4 +1,5 @@
-<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny">
+  <title>ContribKit</title>
   <rect x="96" y="96" width="832" height="832" rx="208" fill="#09090B"/>
   <rect x="160" y="264" width="80" height="80" rx="16" fill="#1A1A1D"/>
   <rect x="264" y="264" width="80" height="80" rx="16" fill="#1A1A1D"/>
