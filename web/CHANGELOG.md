@@ -1,3 +1,10 @@
+# [contribkit-web-v1.3.4](https://github.com/fbuireu/contribKit/compare/web-v1.3.3...web-v1.3.4) (2026-05-31)
+
+
+### Bug Fixes
+
+* 502 ([0e7cb9a](https://github.com/fbuireu/contribKit/commit/0e7cb9afd1c594efec101ebb142817c56b27eef4))
+
 # [contribkit-web-v1.3.3](https://github.com/fbuireu/contribKit/compare/web-v1.3.2...web-v1.3.3) (2026-05-31)
 
 
