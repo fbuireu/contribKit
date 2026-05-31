@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { defineMiddleware } from "astro:middleware";
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -22,10 +23,10 @@ const SECURITY_HEADERS: Record<string, string> = {
 };
 
 export const onRequest = defineMiddleware(async (context, next) => {
-	const { request, url, locals } = context;
+	const { request, url } = context;
 
 	if (url.pathname.startsWith("/api/")) {
-		const rateLimiter = locals.runtime?.env?.API_RATE_LIMITER;
+		const rateLimiter = env.API_RATE_LIMITER;
 
 		if (rateLimiter) {
 			const key = request.headers.get("CF-Connecting-IP") ?? "unknown";

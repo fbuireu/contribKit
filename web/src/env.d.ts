@@ -1,16 +1,10 @@
 /// <reference types="astro/client" />
 import type { ContributionDay } from "@domain/entities/contribution-day";
 
-interface CloudflareEnv {
+interface Env {
 	API_RATE_LIMITER: {
 		limit: (opts: { key: string }) => Promise<{ success: boolean }>;
 	};
-}
-
-type Runtime = import("@astrojs/cloudflare").Runtime<CloudflareEnv>;
-
-declare namespace App {
-	interface Locals extends Runtime {}
 }
 
 interface ImportMetaEnv {
