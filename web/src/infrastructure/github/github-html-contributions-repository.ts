@@ -3,7 +3,6 @@ import type { ContributionDay } from "@domain/entities/contribution-day";
 import { type Failure, network, notFound, parse } from "@domain/failures/failure";
 import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/contributions-repository";
 import { clampLevel } from "@domain/value-objects/contribution-level";
-import type { Username } from "@domain/value-objects/username";
 import type { Year } from "@domain/value-objects/year";
 
 const USER_AGENT =
