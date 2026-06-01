@@ -39,9 +39,9 @@
 		"lint:ts:typecheck": "pnpm types && tsc --project . --noEmit"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "13.5.5",
+		"@astrojs/cloudflare": "13.6.0",
 		"@astrojs/sitemap": "3.7.3",
-		"astro": "6.3.8",
+		"astro": "6.4.2",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
