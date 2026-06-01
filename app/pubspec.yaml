@@ -4,71 +4,71 @@ publish_to: none
 version: 1.1.0+18
 
 environment:
-  sdk: ">=3.8.0 <4.0.0"
+  sdk: "3.12.1"
 
 dependencies:
   flutter:
     sdk: flutter
 
   # State management
-  flutter_riverpod: ^3.1.0
-  riverpod_annotation: ^4.0.0
+  flutter_riverpod: 3.3.1
+  riverpod_annotation: 4.0.2
 
   # Serialization / freezed
-  freezed_annotation: ^3.1.0
-  json_annotation: ^4.9.0
+  freezed_annotation: 3.1.0
+  json_annotation: 4.12.0
 
   # Networking
-  http: ^1.6.0
+  http: 1.6.0
 
   # Persistence
-  hive_flutter: ^1.1.0
+  hive_flutter: 1.1.0
 
   # Sharing / export
-  share_plus: ^13.1.0
+  share_plus: 13.1.0
 
   # Home screen widget + background refresh
-  home_widget: ^0.7.0
-  workmanager: ^0.9.0
-  path_provider: ^2.1.0
+  home_widget: 0.7.0
+  workmanager: 0.9.0
+  path_provider: 2.1.5
 
   # UI primitives
-  shadcn_ui: ^0.54.0
-  flutter_animate: ^4.5.0
+  shadcn_ui: 0.54.0
+  flutter_animate: 4.5.2
 
   # Splash screen
-  flutter_native_splash: ^2.4.0
+  flutter_native_splash: 2.4.8
 
   # In-app purchases
-  purchases_flutter: ^10.1.0
-  purchases_ui_flutter: ^10.1.0
+  purchases_flutter: 10.2.0
+  purchases_ui_flutter: 10.2.0
 
   # Fonts
-  google_fonts: ^8.1.0
+  google_fonts: 8.1.0
 
   # Internationalisation
-  intl: ^0.20.0
+  intl: 0.20.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   # App icon generation
-  flutter_launcher_icons: ^0.14.0
+  flutter_launcher_icons: 0.14.4
 
   # Code generation
-  build_runner: ^2.15.0
-  riverpod_generator: ^4.0.0
-  freezed: ^3.2.0
-  json_serializable: ^6.11.0
+  build_runner: 2.15.0
+  riverpod_generator: 4.0.3
+  freezed: 3.2.5
+  json_serializable: 6.14.0
 
   # Linting
-  flutter_lints: ^6.0.0
-  riverpod_lint: ^3.1.0
-  custom_lint: ^0.8.0
+  flutter_lints: 6.0.0
+  riverpod_lint: 3.1.3
+  custom_lint: 0.8.1
 
   # Testing
-  mocktail: ^1.0.0
+  mocktail: 1.0.5
 
 flutter_launcher_icons:
   android: true

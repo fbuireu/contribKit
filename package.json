@@ -24,7 +24,7 @@
   "devDependencies": {
     "@commitlint/cli": "21.0.1",
     "@commitlint/config-conventional": "21.0.1",
-    "@commitlint/config-pnpm-scopes": "^21.0.1",
+    "@commitlint/config-pnpm-scopes": "21.0.1",
     "@commitlint/format": "21.0.1"
   }
 }
