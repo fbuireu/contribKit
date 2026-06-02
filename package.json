@@ -22,9 +22,9 @@
     "node": "v26.2.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "21.0.1",
-    "@commitlint/config-conventional": "21.0.1",
-    "@commitlint/config-pnpm-scopes": "21.0.1",
+    "@commitlint/cli": "21.0.2",
+    "@commitlint/config-conventional": "21.0.2",
+    "@commitlint/config-pnpm-scopes": "21.0.2",
     "@commitlint/format": "21.0.1"
   }
 }
