@@ -23,6 +23,14 @@
   "includePaths": ["app/**", "web/**", ".github/**", "*"],
   "packageRules": [
     {
+      "matchFiles": ["web/**"],
+      "addLabels": ["web"]
+    },
+    {
+      "matchFiles": ["app/**"],
+      "addLabels": ["app"]
+    },
+    {
       "matchManagers": ["pub"],
       "matchUpdateTypes": ["pin", "pinDigest"],
       "automerge": true,
