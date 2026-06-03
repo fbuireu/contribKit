@@ -12,8 +12,10 @@ interface Props {
 	heroSVG: string;
 	summary: { count: number; streak: number; longest: number };
 	palette: string[];
+	username: string;
+	error?: string | null;
 }
-const { heroSVG, summary, palette } = Astro.props;
+const { heroSVG, summary, palette, username, error = null } = Astro.props;
 ---
 
 <section class="hero" aria-label="Hero">
@@ -56,7 +58,7 @@ const { heroSVG, summary, palette } = Astro.props;
       <div class="username-strip">
         <label for="hero-username" class="us-label sr-only">GitHub username</label>
         <span class="us-label" aria-hidden="true">github.com/</span>
-        <input class="us-input" id="hero-username" type="search" value="torvalds" spellcheck="false" autocomplete="off" />
+        <input class="us-input" id="hero-username" type="search" value={username} spellcheck="false" autocomplete="off" />
         <div class="us-year-wrap">
           <select class="us-year" id="hero-year" aria-label="Year">
             {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
@@ -84,7 +86,7 @@ const { heroSVG, summary, palette } = Astro.props;
       <button class="sug-btn mono" data-username="fbuireu">fbuireu</button>
     </div>
 
-    <p class="hero-error" id="hero-error" aria-live="polite" hidden></p>
+    <p class="hero-error" id="hero-error" aria-live="polite" hidden={!error}>{error ? `↳ ${error}` : ""}</p>
 
     <div class="hero-stage">
       <div class="hero-card">
@@ -93,7 +95,7 @@ const { heroSVG, summary, palette } = Astro.props;
             <span></span><span></span><span></span>
           </div>
           <div class="bar-title">
-            <span class="mono dim" id="hero-username-display">torvalds</span>
+            <span class="mono dim" id="hero-username-display">{username}</span>
             <span class="mono dimmer" aria-hidden="true">·</span>
             <span class="mono dim" id="hero-year-range">last year</span>
           </div>
@@ -108,7 +110,7 @@ const { heroSVG, summary, palette } = Astro.props;
           <div class="legend" role="img" aria-label="Contribution level: less to more">
             <span class="mono dimmer" aria-hidden="true">less</span>
             {palette.map((c) => (
-              <span class="legend-sq" style={`background:${c};border-radius:2px`} aria-hidden="true"></span>
+              <span class="legend-sq" style={`background:${c};border-radius:0.125rem`} aria-hidden="true"></span>
             ))}
             <span class="mono dimmer" aria-hidden="true">more</span>
           </div>

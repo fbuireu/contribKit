@@ -1,0 +1,98 @@
+---
+import "./contribution-code.css";
+
+interface Props {
+	digits: string;
+	seed?: number;
+}
+
+const { digits, seed = 3 } = Astro.props;
+
+const GLYPHS: Record<string, string[]> = {
+	"0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
+	"1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+	"2": ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
+	"3": ["11111", "00010", "00100", "00010", "00001", "10001", "01110"],
+	"4": ["00011", "00101", "01001", "10001", "11111", "00001", "00001"],
+	"5": ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+	"6": ["00110", "01000", "10000", "11110", "10001", "10001", "01110"],
+	"7": ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+	"8": ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
+	"9": ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
+};
+
+const ROWS = 7;
+const COLS_PER_GLYPH = 5;
+const DIGIT_GAP = 2;
+
+function digitsToMatrix(value: string): number[][] {
+	const matrix: number[][] = Array.from({ length: ROWS }, () => []);
+	const chars = value.split("");
+	chars.forEach((char, index) => {
+		const glyph = GLYPHS[char];
+		for (let r = 0; r < ROWS; r++) {
+			for (let c = 0; c < COLS_PER_GLYPH; c++) {
+				matrix[r].push(glyph && glyph[r][c] === "1" ? 1 : 0);
+			}
+			if (index < chars.length - 1) {
+				for (let g = 0; g < DIGIT_GAP; g++) matrix[r].push(0);
+			}
+		}
+	});
+	return matrix;
+}
+
+function noiseLevel(r: number, c: number): number {
+	const v = Math.sin((r * 12.9898 + c * 78.233 + seed) * 43758.5453);
+	const f = v - Math.floor(v);
+	if (f < 0.86) return 0;
+	if (f < 0.96) return 1;
+	return 2;
+}
+
+const matrix = digitsToMatrix(digits);
+const cols = matrix[0]?.length ?? 0;
+const SIZE = 18;
+const GAP = 5;
+const CELL = SIZE + GAP;
+const width = cols * CELL - GAP;
+const height = ROWS * CELL - GAP;
+
+interface Square {
+	x: number;
+	y: number;
+	cls: string;
+}
+
+const background: Square[] = [];
+const glyph: Square[] = [];
+matrix.forEach((row, r) => {
+	row.forEach((on, c) => {
+		const square = { x: c * CELL, y: r * CELL, cls: "" };
+		if (on) {
+			glyph.push(square);
+		} else {
+			const level = noiseLevel(r, c);
+			square.cls = level === 0 ? "cc-empty" : level === 1 ? "cc-spark-1" : "cc-spark-2";
+			background.push(square);
+		}
+	});
+});
+---
+
+<svg
+  class="contribution-code"
+  viewBox={`0 0 ${width} ${height}`}
+  width="100%"
+  role="img"
+  aria-label={`Status code ${digits}, drawn as an empty contribution grid`}
+>
+  {
+    background.map((square) => (
+      <rect class={square.cls} x={square.x} y={square.y} width={SIZE} height={SIZE} rx="4" />
+    ))
+  }
+  <g class="cc-glyph">
+    {glyph.map((square) => <rect x={square.x} y={square.y} width={SIZE} height={SIZE} rx="4" />)}
+  </g>
+</svg>

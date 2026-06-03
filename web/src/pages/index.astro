@@ -9,7 +9,8 @@ import Hero from "@ui/components/Hero.astro";
 import HowItWorks from "@ui/components/HowItWorks.astro";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import Widget from "@ui/components/Widget.astro";
-import { generateData, summarize } from "@ui/lib/calendar-utils";
+import { buildGridFromApi, type Cell, generateData, summarize } from "@ui/lib/calendar-utils";
+import { contributionError } from "@ui/lib/contribution-errors";
 import { loadInitialContributions } from "@ui/lib/load-initial-contributions";
 import { renderCalendarString } from "@ui/lib/render-svg";
 
@@ -42,10 +43,28 @@ const SCHEMA = [
 	},
 ];
 
-const initial = await loadInitialContributions();
-const cells = initial?.cells ?? generateData(7);
+if (Astro.url.searchParams.has("boom")) throw new Error("boom");
+
+const requestedUsername = Astro.url.searchParams.get("user")?.trim();
+const username = requestedUsername || DEFAULT_USERNAME;
+const isExplicit = Boolean(requestedUsername);
+const currentYear = new Date().getFullYear();
+
+const initial = await loadInitialContributions(username);
+
+let cells: Cell[];
+let heroError: string | null = null;
+if (initial.ok) {
+	cells = initial.data.cells;
+} else if (isExplicit) {
+	cells = buildGridFromApi([], currentYear);
+	heroError = contributionError(initial.status);
+} else {
+	cells = generateData(7);
+}
+
 const summary = summarize(cells);
-if (initial?.total) summary.count = initial.total;
+if (initial.ok && initial.data.total) summary.count = initial.data.total;
 
 const heroSVG = renderCalendarString({ cells, palette: CLASSIC, shape: "rounded", size: 13, gap: 3, showLabels: true });
 const exportSvg = renderCalendarString({
@@ -67,7 +86,7 @@ Astro.response.headers.set("Cache-Control", "private, max-age=3600, stale-while-
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE} imageAlt={OG_IMAGE_ALT}>
-  <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} />
+  <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} username={username} error={heroError} />
   <HowItWorks />
   <Customize />
   <Export exportSvg={exportSvg} />
@@ -75,7 +94,7 @@ Astro.response.headers.set("Cache-Control", "private, max-age=3600, stale-while-
   <CellTip />
 </BaseLayout>
 
-<script is:inline define:vars={{ initialCellsForClient, initialUsername: DEFAULT_USERNAME }}>
+<script is:inline define:vars={{ initialCellsForClient, initialUsername: username }}>
   window.__INITIAL_CELLS__ = initialCellsForClient;
   window.__INITIAL_USERNAME__ = initialUsername;
 </script>

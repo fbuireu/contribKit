@@ -1,5 +1,5 @@
-import { env } from "cloudflare:workers";
 import { defineMiddleware } from "astro:middleware";
+import { env } from "cloudflare:workers";
 
 const SECURITY_HEADERS: Record<string, string> = {
 	"X-Frame-Options": "DENY",

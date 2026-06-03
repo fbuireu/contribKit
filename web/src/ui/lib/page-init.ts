@@ -6,6 +6,7 @@ interface ContributionsResponse {
 	total: number;
 	error?: string;
 }
+
 import { DEFAULT_PALETTE_KEY, PALETTES } from "../../domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "../../domain/value-objects/shape";
 import { DEFAULT_USERNAME } from "../../domain/value-objects/username";
@@ -13,6 +14,7 @@ import type { Cell, CellSummary } from "./calendar-utils";
 import { buildGridFromApi, generateData, rehydrateCells, summarize } from "./calendar-utils";
 import { buildCodeBlock, buildMdLines, SVG_LINES } from "./code-preview";
 import { formatContribLabel } from "./contribution";
+import { CONTRIBUTION_ERRORS } from "./contribution-errors";
 import { generateMiniGrid } from "./mini-grid";
 import { renderCalendarString } from "./render-svg";
 
@@ -21,11 +23,7 @@ const CELLS =
 		? rehydrateCells(window.__INITIAL_CELLS__)
 		: generateData(7);
 
-const ERRORS: Record<number, string> = {
-	404: "user not found — check the username and try again",
-	400: "invalid username",
-	502: "could not reach github, try again in a moment",
-};
+const ERRORS = CONTRIBUTION_ERRORS;
 
 let liveCells = CELLS;
 let liveUsername = window.__INITIAL_USERNAME__ ?? "";
@@ -173,11 +171,12 @@ async function renderFromGitHub(username: string) {
 
 	try {
 		const response = await fetch(`/api/contributions?user=${encodeURIComponent(username)}${yearQuery}`);
-		const data = await response.json() as ContributionsResponse;
+		const data = (await response.json()) as ContributionsResponse;
 
 		if (!response.ok) {
 			setHeroError(ERRORS[response.status] ?? data.error ?? "something went wrong");
 			liveCells = buildGridFromApi([], selectedYear || new Date().getFullYear());
+			liveUsername = username;
 			renderCustomize();
 			updateHeroStats({ count: 0, streak: 0, longest: 0 });
 		} else {
@@ -203,6 +202,7 @@ async function renderFromGitHub(username: string) {
 	} catch {
 		setHeroError("could not reach the server, try again");
 		liveCells = buildGridFromApi([], selectedYear || new Date().getFullYear());
+		liveUsername = username;
 		renderCustomize();
 		updateHeroStats({ count: 0, streak: 0, longest: 0 });
 	}

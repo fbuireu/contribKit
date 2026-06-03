@@ -1,0 +1,30 @@
+---
+import ErrorView, { type TerminalLine } from "@ui/components/error/ErrorView.astro";
+import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
+
+const path = Astro.url.pathname || "/";
+
+const terminal: TerminalLine[] = [
+	{ kind: "cmd", text: `contribkit open ${path}` },
+	{ kind: "err", text: "error: 404 — nothing committed at this path" },
+	{ kind: "out", text: "hint: this page ghosted us 👻" },
+];
+
+Astro.response.status = 404;
+---
+
+<BaseLayout
+  title="404 — page not found · ContribKit"
+  description="The page you requested doesn't exist."
+  robots="noindex, nofollow"
+>
+  <ErrorView
+    code={404}
+    tone="accent"
+    eyebrow={`GET ${path} → 404`}
+    title="This page ghosted you."
+    message="The page you’re after doesn’t exist — like a contribution square that never lit up. It may have moved, or it was never here at all."
+    terminal={terminal}
+    primary={{ href: "/", label: "Back to home", icon: "back" }}
+  />
+</BaseLayout>

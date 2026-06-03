@@ -1,0 +1,30 @@
+---
+import ErrorView, { type TerminalLine } from "@ui/components/error/ErrorView.astro";
+import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
+
+const path = Astro.url.pathname || "/";
+
+const terminal: TerminalLine[] = [
+	{ kind: "cmd", text: `contribkit render ${path}` },
+	{ kind: "err", text: "error: 500 — render pipeline crashed (E_RENDER)" },
+	{ kind: "out", text: "trace: 8f3c1a · reported automatically" },
+];
+
+Astro.response.status = 500;
+---
+
+<BaseLayout
+  title="500 — something broke · ContribKit"
+  description="Something went wrong on our end."
+  robots="noindex, nofollow"
+>
+  <ErrorView
+    code={500}
+    tone="danger"
+    eyebrow={`GET ${path} → 500`}
+    title="Something broke on our end."
+    message="The renderer hit an exception. It’s not you — your calendar is fine. We’ve logged it and we’re already looking."
+    terminal={terminal}
+    primary={{ href: "/", label: "Try again", icon: "reload" }}
+  />
+</BaseLayout>

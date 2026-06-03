@@ -1,7 +1,6 @@
 /// <reference types="astro/client" />
 import type { ContributionDay } from "@domain/entities/contribution-day";
 
-
 interface ImportMetaEnv {
 	readonly PUBLIC_GOOGLE_ANALYTICS_ID: string;
 	readonly PUBLIC_BETTER_STACK_TOKEN: string;
