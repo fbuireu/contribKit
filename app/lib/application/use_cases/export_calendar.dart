@@ -6,8 +6,7 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 /// The caller selects which [ExportRepository] implementation to pass
 /// (SVG, PNG, Markdown), keeping this use case format-agnostic.
 final class ExportCalendar {
-  const ExportCalendar({required ExportRepository repository})
-    : _repository = repository;
+  const ExportCalendar({required this._repository});
 
   final ExportRepository _repository;
 

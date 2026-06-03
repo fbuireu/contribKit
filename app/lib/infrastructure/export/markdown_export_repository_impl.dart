@@ -9,8 +9,7 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 /// The output embeds an SVG image as a data URI — renders correctly in
 /// GitHub README files and most Markdown-aware tools.
 final class MarkdownExportRepository implements ExportRepository {
-  MarkdownExportRepository({required ExportRepository svgRepository})
-    : _svgRepository = svgRepository;
+  MarkdownExportRepository({required this._svgRepository});
 
   final ExportRepository _svgRepository;
 
