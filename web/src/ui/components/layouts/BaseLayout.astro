@@ -18,7 +18,7 @@ interface Props {
 }
 
 const { title, description, url, image, imageAlt, robots } = Astro.props;
-const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
+const GOOGLE_ANALYTICS_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 ---
 
 <!doctype html>
@@ -39,7 +39,7 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
       }
     </script>
     <SEO title={title} description={description} url={url} image={image} imageAlt={imageAlt} robots={robots} />
-    <script is:inline define:vars={{ GA_ID }}>
+    <script is:inline define:vars={{ GOOGLE_ANALYTICS_ID }}>
       window.dataLayer = window.dataLayer || [];
       function gtag() { dataLayer.push(arguments); }
       window.gtag = gtag;
@@ -57,9 +57,9 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 
       gtag('consent', 'default', { analytics_storage: analyticsConsent });
       gtag('js', new Date());
-      gtag('config', GA_ID);
+      gtag('config', GOOGLE_ANALYTICS_ID);
     </script>
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`} />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
     <link rel="sitemap" href="/sitemap-index.xml" />
