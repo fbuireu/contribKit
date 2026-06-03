@@ -1,3 +1,10 @@
+# [contribkit-web-v1.6.3](https://github.com/fbuireu/contribKit/compare/web-v1.6.2...web-v1.6.3) (2026-06-03)
+
+
+### Bug Fixes
+
+* remove boom ([afad0c7](https://github.com/fbuireu/contribKit/commit/afad0c7214b1daeed0e5374e0027f4ddd8e291d6))
+
 # [contribkit-web-v1.6.2](https://github.com/fbuireu/contribKit/compare/web-v1.6.1...web-v1.6.2) (2026-06-03)
 
 
