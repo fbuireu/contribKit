@@ -43,8 +43,6 @@ const SCHEMA = [
 	},
 ];
 
-if (Astro.url.searchParams.has("boom")) throw new Error("boom");
-
 const requestedUsername = Astro.url.searchParams.get("user")?.trim();
 const username = requestedUsername || DEFAULT_USERNAME;
 const isExplicit = Boolean(requestedUsername);
