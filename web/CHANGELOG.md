@@ -1,3 +1,10 @@
+# [contribkit-web-v1.6.2](https://github.com/fbuireu/contribKit/compare/web-v1.6.1...web-v1.6.2) (2026-06-03)
+
+
+### Bug Fixes
+
+* ga id ([b0ef93f](https://github.com/fbuireu/contribKit/commit/b0ef93ff2311e9bb4930506cfdd17b3217a7aa36))
+
 # [contribkit-web-v1.6.1](https://github.com/fbuireu/contribKit/compare/web-v1.6.0...web-v1.6.1) (2026-06-03)
 
 
