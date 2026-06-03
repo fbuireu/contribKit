@@ -1,3 +1,15 @@
+# [contribkit-web-v1.6.0](https://github.com/fbuireu/contribKit/compare/web-v1.5.1...web-v1.6.0) (2026-06-03)
+
+
+### Bug Fixes
+
+* sync username and year ([966b3cf](https://github.com/fbuireu/contribKit/commit/966b3cf6e3d495d2a9268f7e52fcd2363efdaef6))
+
+
+### Features
+
+* add error pages ([186d4cd](https://github.com/fbuireu/contribKit/commit/186d4cd0eb8a6044fe30176e20231f2d4fd79bf4))
+
 # [contribkit-web-v1.5.1](https://github.com/fbuireu/contribKit/compare/web-v1.5.0...web-v1.5.1) (2026-05-31)
 
 
