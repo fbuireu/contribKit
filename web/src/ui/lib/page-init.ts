@@ -31,13 +31,18 @@ function readUsernameFromUrl(): string {
 	return new URLSearchParams(window.location.search).get("user")?.trim() || DEFAULT_USERNAME;
 }
 
+function readYearFromUrl(): number {
+	const year = Number(new URLSearchParams(window.location.search).get("year"));
+	return year && year <= CURRENT_YEAR ? year : CURRENT_YEAR;
+}
+
 function syncUrl(username: string, year: number) {
 	const url = new URL(window.location.href);
 	if (username && username !== DEFAULT_USERNAME) url.searchParams.set("user", username);
 	else url.searchParams.delete("user");
 	if (year && year !== CURRENT_YEAR) url.searchParams.set("year", String(year));
 	else url.searchParams.delete("year");
-	window.history.replaceState(null, "", url);
+	if (url.href !== window.location.href) window.history.pushState(null, "", url);
 }
 
 let liveCells = CELLS;
@@ -169,7 +174,7 @@ function setHeroError(message: string | null) {
 	}
 }
 
-async function renderFromGitHub(username: string) {
+async function renderFromGitHub(username: string, { updateHistory = true }: { updateHistory?: boolean } = {}) {
 	const renderButton = document.getElementById("hero-render-btn") as HTMLButtonElement | null;
 	const renderLabel = document.getElementById("hero-render-label");
 	const gridContainer = document.getElementById("hero-grid-container");
@@ -180,7 +185,7 @@ async function renderFromGitHub(username: string) {
 	const selectedYear = Number(yearSelect?.value ?? 0);
 	const yearQuery = selectedYear && selectedYear <= CURRENT_YEAR ? `&year=${selectedYear}` : "";
 
-	syncUrl(username, selectedYear);
+	if (updateHistory) syncUrl(username, selectedYear);
 
 	setHeroError(null);
 	renderButton.disabled = true;
@@ -333,16 +338,26 @@ function initUsernameStrip() {
 	const usernameDisplay = document.getElementById("hero-username-display");
 	if (!input || !renderButton || !usernameDisplay) return;
 
+	const submitRender = () => {
+		const username = input.value.trim();
+		if (!username) {
+			setHeroError("enter a GitHub username");
+			input.focus();
+			return;
+		}
+		renderFromGitHub(username);
+	};
+
 	form?.addEventListener("submit", (event) => {
 		event.preventDefault();
-		renderFromGitHub(input.value.trim() || DEFAULT_USERNAME);
+		submitRender();
 	});
 	input.addEventListener("input", () => {
-		usernameDisplay.textContent = input.value.trim() || DEFAULT_USERNAME;
+		const value = input.value.trim();
+		usernameDisplay.textContent = value || "username";
+		if (value) setHeroError(null);
 	});
-	renderButton.addEventListener("click", () => {
-		renderFromGitHub(input.value.trim() || DEFAULT_USERNAME);
-	});
+	renderButton.addEventListener("click", submitRender);
 	document.querySelectorAll<HTMLElement>(".sug-btn").forEach((button) => {
 		button.addEventListener("click", () => {
 			const username = button.dataset.username;
@@ -351,6 +366,19 @@ function initUsernameStrip() {
 			usernameDisplay.textContent = username;
 			renderFromGitHub(username);
 		});
+	});
+}
+
+function initHistoryNav() {
+	window.addEventListener("popstate", () => {
+		const username = readUsernameFromUrl();
+		const input = document.getElementById("hero-username") as HTMLInputElement | null;
+		const yearSelect = document.getElementById("hero-year") as HTMLSelectElement | null;
+		const usernameDisplay = document.getElementById("hero-username-display");
+		if (input) input.value = username;
+		if (usernameDisplay) usernameDisplay.textContent = username;
+		if (yearSelect) yearSelect.value = String(readYearFromUrl());
+		renderFromGitHub(username, { updateHistory: false });
 	});
 }
 
@@ -414,6 +442,7 @@ export function initPage() {
 	initShapeList();
 	initExportTabs();
 	initUsernameStrip();
+	initHistoryNav();
 	updateYearRange(CELLS);
 	initCellTooltip();
 }
