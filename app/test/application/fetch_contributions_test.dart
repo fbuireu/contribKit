@@ -8,9 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 // Hand-written fake — no mock framework in unit tests.
 final class _FakeContributionRepository implements ContributionRepository {
   _FakeContributionRepository({
-    required ContributionCalendar calendar,
+    required this._calendar,
     this.fromCache = false,
-  }) : _calendar = calendar;
+  });
 
   final ContributionCalendar _calendar;
   final bool fromCache;

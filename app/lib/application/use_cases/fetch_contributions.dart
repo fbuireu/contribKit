@@ -8,8 +8,7 @@ import 'package:contribkit/domain/value_objects/year.dart';
 /// This is the primary use case for the viewer screen. Delegates to
 /// [ContributionRepository] which handles caching and API calls.
 final class FetchContributions {
-  const FetchContributions({required ContributionRepository repository})
-    : _repository = repository;
+  const FetchContributions({required this._repository});
 
   final ContributionRepository _repository;
 
