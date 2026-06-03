@@ -1,3 +1,10 @@
+# [contribkit-web-v1.6.1](https://github.com/fbuireu/contribKit/compare/web-v1.6.0...web-v1.6.1) (2026-06-03)
+
+
+### Bug Fixes
+
+* empty input ([183197a](https://github.com/fbuireu/contribKit/commit/183197aefd1d3bdfadcbd922df3df56455826a1a))
+
 # [contribkit-web-v1.6.0](https://github.com/fbuireu/contribKit/compare/web-v1.5.1...web-v1.6.0) (2026-06-03)
 
 
