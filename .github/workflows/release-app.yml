@@ -1,11 +1,17 @@
 name: Release App
 
 on:
-  workflow_run:
-    workflows: ["CI App"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      track:
+        description: "Google Play track to publish to"
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+        default: internal
 
 concurrency:
   group: release-app
@@ -17,11 +23,13 @@ jobs:
   release:
     name: Semantic Release (App)
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       issues: write
       pull-requests: write
+    outputs:
+      published: ${{ steps.detect.outputs.published }}
+      version: ${{ steps.detect.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -52,8 +60,21 @@ jobs:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: pnpm run release
 
+      - name: Detect release
+        id: detect
+        run: |
+          if git log -1 --pretty=%s | grep -q '^chore(release): app'; then
+            VERSION=$(grep '^version:' app/pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/\+.*//')
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "Released app v$VERSION"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "No releasable changes — nothing to publish."
+          fi
+
       - name: Update major version tag
-        if: success()
+        if: steps.detect.outputs.published == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
@@ -71,3 +92,74 @@ jobs:
           git tag -fa "$MAJOR_VERSION" -m "Update $MAJOR_VERSION to $LATEST_TAG"
 
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git "$MAJOR_VERSION" --force
+
+  deliver:
+    name: Deliver to Google Play
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: needs.release.outputs.published == 'true'
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          cache: true
+
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f # v1.310.0
+        with:
+          ruby-version: "3.3"
+
+      - name: Install fastlane
+        working-directory: app/android
+        run: bundle install
+
+      - name: Decode upload keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+
+      - name: Write signing config
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cat > android/key.properties <<EOF
+          storeFile=$RUNNER_TEMP/upload-keystore.jks
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          keyPassword=$ANDROID_KEY_PASSWORD
+          EOF
+
+      - name: Write Play service account
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: echo "$PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/play-service-account.json"
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build release AAB
+        run: flutter build appbundle --release
+
+      - name: Upload to Google Play
+        working-directory: app/android
+        env:
+          PLAY_JSON_KEY_PATH: ${{ runner.temp }}/play-service-account.json
+        run: bundle exec fastlane deploy track:"${{ inputs.track }}"

@@ -1,0 +1,19 @@
+default_platform(:android)
+
+platform :android do
+  desc "Upload the release App Bundle (built by Flutter) to a Google Play track"
+  lane :deploy do |options|
+    track = options[:track] || "internal"
+
+    upload_to_play_store(
+      track: track,
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key: ENV["PLAY_JSON_KEY_PATH"],
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "completed"
+    )
+  end
+end
