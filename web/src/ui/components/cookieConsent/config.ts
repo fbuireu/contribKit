@@ -55,7 +55,7 @@ export const config: CookieConsentConfig = {
 				consentModal: {
 					title: "We use cookies",
 					description:
-						"We use Google Analytics and Better Stack to understand how visitors use ContribKit. No personal data is sold or shared.",
+						"We use analytics and performance-monitoring tools to understand how visitors use ContribKit. You can manage your choices anytime. No personal data is sold or shared.",
 					acceptAllBtn: "Accept all",
 					acceptNecessaryBtn: "Reject all",
 					showPreferencesBtn: "Manage",

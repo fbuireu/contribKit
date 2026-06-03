@@ -43,6 +43,16 @@ h1 {
 	line-height: 1.7;
 	margin: 0 0 0.5rem;
 }
+.legal-body ul {
+	margin: 0 0 0.5rem;
+	padding-left: 1.25rem;
+}
+.legal-body li {
+	font-size: 0.875rem;
+	color: var(--text-dim);
+	line-height: 1.7;
+	margin: 0 0 0.25rem;
+}
 .legal-body code {
 	font-family: var(--font-mono);
 	font-size: 0.75rem;

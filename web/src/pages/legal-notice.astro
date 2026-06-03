@@ -3,9 +3,7 @@ import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import "@ui/components/legal.css";
 
 const TITLE = "Legal Notice — ContribKit";
-const today = new Date();
-today.setDate(today.getDate() - 7);
-const EFFECTIVE_DATE = today.toISOString().slice(0, 10);
+const EFFECTIVE_DATE = "2026-06-03";
 
 interface ShuffledData {
 	letter: string;

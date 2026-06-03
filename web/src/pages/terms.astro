@@ -3,9 +3,7 @@ import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import "@ui/components/legal.css";
 
 const TITLE = "Terms of Use — ContribKit";
-const today = new Date();
-today.setDate(today.getDate() - 7);
-const EFFECTIVE_DATE = today.toISOString().slice(0, 10);
+const EFFECTIVE_DATE = "2026-06-03";
 ---
 
 <BaseLayout title={TITLE} robots="noindex, nofollow">
@@ -34,7 +32,7 @@ const EFFECTIVE_DATE = today.toISOString().slice(0, 10);
         <p>This website uses Google Analytics and Better Stack to understand traffic and site performance. These services are loaded only with your consent, which you can manage at any time via the <button type="button" data-cc="show-preferencesModal" class="inline-prefs-btn">cookie preferences</button> panel. See the <a href="/privacy">Privacy Policy</a> for full details on the data collected.</p>
 
         <h2>In-app purchases</h2>
-        <p>Tips are voluntary, one-time, non-refundable purchases that support the developer. They do not unlock features — ContribKit is fully functional without purchasing anything. Purchases are processed by Apple (App Store) or Google (Play Store).</p>
+        <p>Tips are voluntary purchases that support the developer, and you may tip as often as you like. They do not unlock features — ContribKit is fully functional without purchasing anything. Payments are processed by Apple (App Store) or Google (Play Store), and any refunds are handled by those platforms under their refund policies and applicable consumer law.</p>
 
         <h2>Disclaimer</h2>
         <p>ContribKit is provided "as is" without warranties of any kind. We are not liable for any damages arising from use of the app or reliance on data it displays.</p>
