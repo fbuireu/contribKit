@@ -98,6 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release]
     if: needs.release.outputs.published == 'true'
+    environment: ${{ inputs.track == 'production' && 'production' || 'testing' }}
     permissions:
       contents: read
     defaults:
@@ -156,7 +157,11 @@ jobs:
         run: flutter pub get
 
       - name: Build release AAB
-        run: flutter build appbundle --release
+        env:
+          REVENUECAT_KEY: ${{ secrets.REVENUECAT_KEY }}
+        run: |
+          printf '{"REVENUECAT_KEY":"%s"}' "$REVENUECAT_KEY" > dart-defines.json
+          flutter build appbundle --release --dart-define-from-file=dart-defines.json
 
       - name: Upload to Google Play
         working-directory: app/android
