@@ -13,9 +13,10 @@ interface Props {
 	summary: { count: number; streak: number; longest: number };
 	palette: string[];
 	username: string;
+	year?: number;
 	error?: string | null;
 }
-const { heroSVG, summary, palette, username, error = null } = Astro.props;
+const { heroSVG, summary, palette, username, year = currentYear, error = null } = Astro.props;
 ---
 
 <section class="hero" aria-label="Hero">
@@ -62,7 +63,7 @@ const { heroSVG, summary, palette, username, error = null } = Astro.props;
         <div class="us-year-wrap">
           <select class="us-year" id="hero-year" aria-label="Year">
             {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
-              <option value={y}>{y}</option>
+              <option value={y} selected={y === year}>{y}</option>
             ))}
           </select>
           <span class="us-year-chevron" aria-hidden="true">

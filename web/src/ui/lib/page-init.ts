@@ -25,8 +25,23 @@ const CELLS =
 
 const ERRORS = CONTRIBUTION_ERRORS;
 
+const CURRENT_YEAR = new Date().getFullYear();
+
+function readUsernameFromUrl(): string {
+	return new URLSearchParams(window.location.search).get("user")?.trim() || DEFAULT_USERNAME;
+}
+
+function syncUrl(username: string, year: number) {
+	const url = new URL(window.location.href);
+	if (username && username !== DEFAULT_USERNAME) url.searchParams.set("user", username);
+	else url.searchParams.delete("user");
+	if (year && year !== CURRENT_YEAR) url.searchParams.set("year", String(year));
+	else url.searchParams.delete("year");
+	window.history.replaceState(null, "", url);
+}
+
 let liveCells = CELLS;
-let liveUsername = window.__INITIAL_USERNAME__ ?? "";
+let liveUsername = readUsernameFromUrl();
 
 const getActivePalette = () =>
 	document.querySelector<HTMLElement>("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY;
@@ -163,7 +178,9 @@ async function renderFromGitHub(username: string) {
 	if (!renderButton || !gridContainer) return;
 
 	const selectedYear = Number(yearSelect?.value ?? 0);
-	const yearQuery = selectedYear && selectedYear <= new Date().getFullYear() ? `&year=${selectedYear}` : "";
+	const yearQuery = selectedYear && selectedYear <= CURRENT_YEAR ? `&year=${selectedYear}` : "";
+
+	syncUrl(username, selectedYear);
 
 	setHeroError(null);
 	renderButton.disabled = true;

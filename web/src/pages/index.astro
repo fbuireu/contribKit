@@ -49,8 +49,10 @@ const requestedUsername = Astro.url.searchParams.get("user")?.trim();
 const username = requestedUsername || DEFAULT_USERNAME;
 const isExplicit = Boolean(requestedUsername);
 const currentYear = new Date().getFullYear();
+const requestedYear = Astro.url.searchParams.get("year");
 
-const initial = await loadInitialContributions(username);
+const initial = await loadInitialContributions(username, requestedYear);
+const resolvedYear = initial.ok ? initial.data.year : currentYear;
 
 let cells: Cell[];
 let heroError: string | null = null;
@@ -86,7 +88,7 @@ Astro.response.headers.set("Cache-Control", "private, max-age=3600, stale-while-
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE} imageAlt={OG_IMAGE_ALT}>
-  <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} username={username} error={heroError} />
+  <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} username={username} year={resolvedYear} error={heroError} />
   <HowItWorks />
   <Customize />
   <Export exportSvg={exportSvg} />
@@ -94,9 +96,8 @@ Astro.response.headers.set("Cache-Control", "private, max-age=3600, stale-while-
   <CellTip />
 </BaseLayout>
 
-<script is:inline define:vars={{ initialCellsForClient, initialUsername: username }}>
+<script is:inline define:vars={{ initialCellsForClient }}>
   window.__INITIAL_CELLS__ = initialCellsForClient;
-  window.__INITIAL_USERNAME__ = initialUsername;
 </script>
 
 <script is:inline type="application/ld+json" set:html={JSON.stringify(SCHEMA)} />

@@ -20,12 +20,15 @@ const loadContributions = fetchContributions(repo);
 
 export async function loadInitialContributions(
 	requestedUsername: string = DEFAULT_USERNAME,
+	requestedYear?: number | string | null,
 ): Promise<LoadContributionsResult> {
 	const username = parseUsername(requestedUsername);
 	if (isFailure(username)) return { ok: false, status: statusFor(username), message: messageFor(username) };
 	// TODO: migrate to Temporal once it's natively available in Node and all target browsers
 	const currentYear = new Date().getFullYear();
-	const year = parseYear(String(currentYear));
+	const requested = parseYear(requestedYear);
+	const resolvedYear = !isFailure(requested) && isYear(requested) ? requested.value : currentYear;
+	const year = parseYear(String(resolvedYear));
 	const yearValue = !isFailure(year) && isYear(year) ? year : null;
 
 	const result = await loadContributions(username, yearValue);
@@ -33,9 +36,9 @@ export async function loadInitialContributions(
 	return {
 		ok: true,
 		data: {
-			cells: buildGridFromApi(result.days, currentYear),
+			cells: buildGridFromApi(result.days, resolvedYear),
 			total: result.total,
-			year: currentYear,
+			year: resolvedYear,
 		},
 	};
 }
