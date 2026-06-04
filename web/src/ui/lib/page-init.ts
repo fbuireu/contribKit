@@ -38,7 +38,7 @@ function readYearFromUrl(): number {
 
 function syncUrl(username: string, year: number) {
 	const url = new URL(window.location.href);
-	if (username && username !== DEFAULT_USERNAME) url.searchParams.set("user", username);
+	if (username) url.searchParams.set("user", username);
 	else url.searchParams.delete("user");
 	if (year && year !== CURRENT_YEAR) url.searchParams.set("year", String(year));
 	else url.searchParams.delete("year");

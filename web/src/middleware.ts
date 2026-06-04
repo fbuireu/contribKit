@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
+import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 
 const SECURITY_HEADERS: Record<string, string> = {
 	"X-Frame-Options": "DENY",
@@ -24,6 +25,11 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 export const onRequest = defineMiddleware(async (context, next) => {
 	const { request, url } = context;
+
+	if (request.method === "GET" && url.pathname === "/" && !url.searchParams.has("user")) {
+		url.searchParams.set("user", DEFAULT_USERNAME);
+		return context.redirect(url.pathname + url.search, 302);
+	}
 
 	if (url.pathname.startsWith("/api/")) {
 		const rateLimiter = env.API_RATE_LIMITER;
