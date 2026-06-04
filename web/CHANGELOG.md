@@ -1,3 +1,11 @@
+# [contribkit-web-v1.6.4](https://github.com/fbuireu/contribKit/compare/web-v1.6.3...web-v1.6.4) (2026-06-04)
+
+
+### Bug Fixes
+
+* lowercase username input ([7a750e8](https://github.com/fbuireu/contribKit/commit/7a750e8a4f753852cbdedfa8ca961bbbf12f757d))
+* url as state manager ([0f890c4](https://github.com/fbuireu/contribKit/commit/0f890c462f2d0fb8297caa5e8f18441706115947))
+
 # [contribkit-web-v1.6.3](https://github.com/fbuireu/contribKit/compare/web-v1.6.2...web-v1.6.3) (2026-06-03)
 
 
