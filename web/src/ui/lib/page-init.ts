@@ -339,7 +339,7 @@ function initUsernameStrip() {
 	if (!input || !renderButton || !usernameDisplay) return;
 
 	const submitRender = () => {
-		const username = input.value.trim();
+		const username = input.value.trim().toLowerCase();
 		if (!username) {
 			setHeroError("enter a GitHub username");
 			input.focus();
@@ -353,7 +353,13 @@ function initUsernameStrip() {
 		submitRender();
 	});
 	input.addEventListener("input", () => {
-		const value = input.value.trim();
+		const lowered = input.value.toLowerCase();
+		if (lowered !== input.value) {
+			const caret = input.selectionStart;
+			input.value = lowered;
+			if (caret !== null) input.setSelectionRange(caret, caret);
+		}
+		const value = lowered.trim();
 		usernameDisplay.textContent = value || "username";
 		if (value) setHeroError(null);
 	});

@@ -59,7 +59,7 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
       <div class="username-strip">
         <label for="hero-username" class="us-label sr-only">GitHub username</label>
         <span class="us-label" aria-hidden="true">github.com/</span>
-        <input class="us-input" id="hero-username" type="search" value={username} spellcheck="false" autocomplete="off" />
+        <input class="us-input" id="hero-username" type="search" value={username} spellcheck="false" autocomplete="off" autocapitalize="none" autocorrect="off" />
         <div class="us-year-wrap">
           <select class="us-year" id="hero-year" aria-label="Year">
             {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
