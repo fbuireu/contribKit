@@ -4,6 +4,7 @@ import { DEFAULT_BACKGROUND_COLOR, DEFAULT_PALETTE_KEY, paletteByKey } from "@do
 import { DEFAULT_SHAPE_KIND, isShapeKind, type ShapeKind } from "@domain/value-objects/shape";
 import { parseUsername } from "@domain/value-objects/username";
 import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
+import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import { svgStringRenderer } from "@infrastructure/rendering/svg-string-renderer";
 import { isFailure, messageFor, statusFor } from "@ui/lib/failure-http";
 import type { APIRoute } from "astro";
@@ -23,7 +24,7 @@ const repository = createGithubHtmlContributionsRepository();
 const loadContributions = fetchContributions(repository);
 const renderSvg = renderCalendarSvg(svgStringRenderer);
 
-export const GET: APIRoute = async ({ params, url }) => {
+export const GET: APIRoute = async ({ params, url, locals }) => {
 	const username = parseUsername(params.username ?? "");
 	if (isFailure(username)) {
 		return new Response(messageFor(username), {
@@ -33,11 +34,23 @@ export const GET: APIRoute = async ({ params, url }) => {
 	}
 
 	const calendar = await loadContributions(username, null);
-	if (isFailure(calendar))
+	if (isFailure(calendar)) {
+		const status = statusFor(calendar);
+		if (status >= 500) {
+			const executionContext = (locals as { cfContext?: ExecutionContext }).cfContext;
+			getLogger(executionContext).error("GitHub contributions fetch failed", {
+				username: username.value,
+				kind: calendar.kind,
+				reason: messageFor(calendar),
+				status,
+				endpoint: "svg",
+			});
+		}
 		return new Response(messageFor(calendar), {
-			status: statusFor(calendar),
+			status,
 			headers: { "Content-Type": "text/plain" },
 		});
+	}
 
 	const {
 		palette: paletteKey,

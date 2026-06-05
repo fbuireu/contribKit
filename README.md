@@ -54,8 +54,10 @@ The component-scoped configs do **not** repeat the prefix: wrangler uses `[env.p
 
 Both deploys run from `ci-web.yml` and only after `web-check` (lint + test) and `web-build` (build + typecheck) pass:
 
-- **Production**: every push to `main` touching `web/**` runs `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. Decoupled from semantic-release (which only versions).
-- **Development**: every PR touching `web/**` deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
+- **Production**: every push to `main` touching `web/**` builds with `CLOUDFLARE_ENV=production` then `wrangler deploy` → worker `contribkit` on `contribkit.app`. Decoupled from semantic-release (which only versions).
+- **Development**: every PR touching `web/**` builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` (`wrangler deploy --name …`) on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
+
+> **Important — how environments work with `@astrojs/cloudflare`:** the adapter resolves the `wrangler.toml` `[env.NAME]` block **at build time** into `dist/server/wrangler.json`. You select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (and `--name` for previews). **Do not** use `wrangler deploy --env <env>` — the adapter-generated config is already flattened, so `--env` is ignored and per-env routes/ratelimits/observability are silently dropped.
 
 ### Environment variables
 

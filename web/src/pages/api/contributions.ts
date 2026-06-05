@@ -43,6 +43,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
 				kind: result.kind,
 				reason: messageFor(result),
 				status,
+				endpoint: "api",
 			});
 		}
 		return Response.json({ error: messageFor(result) }, { status });
