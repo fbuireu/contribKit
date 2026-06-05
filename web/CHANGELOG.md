@@ -1,3 +1,10 @@
+# [contribkit-web-v1.8.1](https://github.com/fbuireu/contribKit/compare/web-v1.8.0...web-v1.8.1) (2026-06-05)
+
+
+### Bug Fixes
+
+* cf env ([5607fc8](https://github.com/fbuireu/contribKit/commit/5607fc8c8cbcf83e9eb0500a89420f33d2fd452f))
+
 # [contribkit-web-v1.8.0](https://github.com/fbuireu/contribKit/compare/web-v1.7.0...web-v1.8.0) (2026-06-05)
 
 
