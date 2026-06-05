@@ -1,6 +1,7 @@
 ---
 import "../../styles/global.css";
 import Font from "astro/components/Font.astro";
+import Analytics from "../Analytics.astro";
 import CookieConsent from "../cookieConsent/CookieConsent.astro";
 import SEO from "../core/SEO.astro";
 import Footer from "../Footer.astro";
@@ -18,7 +19,6 @@ interface Props {
 }
 
 const { title, description, url, image, imageAlt, robots } = Astro.props;
-const GOOGLE_ANALYTICS_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 ---
 
 <!doctype html>
@@ -39,27 +39,7 @@ const GOOGLE_ANALYTICS_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
       }
     </script>
     <SEO title={title} description={description} url={url} image={image} imageAlt={imageAlt} robots={robots} />
-    <script is:inline define:vars={{ GOOGLE_ANALYTICS_ID }}>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
-      window.gtag = gtag;
-
-      const analyticsConsent = (() => {
-        try {
-          const match = document.cookie.match(/(^| )cc_cookie=([^;]+)/);
-          if (match) {
-            const data = JSON.parse(decodeURIComponent(match[2]));
-            return Array.isArray(data.categories) && data.categories.includes('analytics') ? 'granted' : 'denied';
-          }
-        } catch {}
-        return 'denied';
-      })();
-
-      gtag('consent', 'default', { analytics_storage: analyticsConsent });
-      gtag('js', new Date());
-      gtag('config', GOOGLE_ANALYTICS_ID);
-    </script>
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`} />
+    <Analytics />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
     <link rel="sitemap" href="/sitemap-index.xml" />

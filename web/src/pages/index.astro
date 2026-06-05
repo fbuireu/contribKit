@@ -1,7 +1,9 @@
 ---
+import { fetchContributions } from "@application/use-cases/fetch-contributions";
 import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
 import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
+import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
 import CellTip from "@ui/components/CellTip.astro";
 import Customize from "@ui/components/Customize.astro";
 import Export from "@ui/components/Export.astro";
@@ -51,7 +53,8 @@ const isExplicit = Boolean(requestedUsername || savedUsername);
 const currentYear = new Date().getFullYear();
 const requestedYear = Astro.url.searchParams.get("year");
 
-const initial = await loadInitialContributions(username, requestedYear);
+const loadContributions = fetchContributions(createGithubHtmlContributionsRepository());
+const initial = await loadInitialContributions({ loadContributions, username, year: requestedYear });
 const resolvedYear = initial.ok ? initial.data.year : currentYear;
 
 let cells: Cell[];

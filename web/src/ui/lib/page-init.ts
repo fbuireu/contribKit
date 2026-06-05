@@ -37,7 +37,7 @@ function readYearFromUrl(): number {
 }
 
 const USERNAME_COOKIE = "ck_user";
-const ONE_YEAR = 60 * 60 * 24 * 365;
+const ONE_WEEK = 60 * 60 * 24 * 7;
 
 async function readUsernameCookie(): Promise<string | null> {
 	try {
@@ -53,13 +53,11 @@ async function writeUsernameCookie(username: string): Promise<void> {
 		await cookieStore.set({
 			name: USERNAME_COOKIE,
 			value: username,
-			expires: Date.now() + ONE_YEAR * 1000,
+			expires: Date.now() + ONE_WEEK * 1000,
 			path: "/",
 			sameSite: "lax",
 		});
-	} catch {
-		// CookieStore unavailable (older browser / insecure context) — non-fatal
-	}
+	} catch {}
 }
 
 async function seedUsernameCookie(username: string): Promise<void> {

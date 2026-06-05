@@ -1,9 +1,16 @@
-import { fetchContributions } from "@application/use-cases/fetch-contributions";
+import type { fetchContributions } from "@application/use-cases/fetch-contributions";
 import { DEFAULT_USERNAME, parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
-import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
-import { buildGridFromApi, type Cell } from "@ui/lib/calendar-utils";
-import { isFailure, messageFor, statusFor } from "@ui/lib/failure-http";
+import { buildGridFromApi, type Cell } from "./calendar-utils";
+import { isFailure, messageFor, statusFor } from "./failure-http";
+
+type LoadContributions = ReturnType<typeof fetchContributions>;
+
+export interface LoadInitialContributionsParams {
+	loadContributions: LoadContributions;
+	username?: string;
+	year?: number | string | null;
+}
 
 export interface InitialContributions {
 	cells: Cell[];
@@ -15,23 +22,21 @@ export type LoadContributionsResult =
 	| { ok: true; data: InitialContributions }
 	| { ok: false; status: number; message: string };
 
-const repo = createGithubHtmlContributionsRepository();
-const loadContributions = fetchContributions(repo);
-
-export async function loadInitialContributions(
-	requestedUsername: string = DEFAULT_USERNAME,
-	requestedYear?: number | string | null,
-): Promise<LoadContributionsResult> {
-	const username = parseUsername(requestedUsername);
-	if (isFailure(username)) return { ok: false, status: statusFor(username), message: messageFor(username) };
-	// TODO: migrate to Temporal once it's natively available in Node and all target browsers
+export async function loadInitialContributions({
+	loadContributions,
+	username = DEFAULT_USERNAME,
+	year: requestedYear,
+}: LoadInitialContributionsParams): Promise<LoadContributionsResult> {
+	const parsedUsername = parseUsername(username);
+	if (isFailure(parsedUsername))
+		return { ok: false, status: statusFor(parsedUsername), message: messageFor(parsedUsername) };
 	const currentYear = new Date().getFullYear();
 	const requested = parseYear(requestedYear);
 	const resolvedYear = !isFailure(requested) && isYear(requested) ? requested.value : currentYear;
 	const year = parseYear(String(resolvedYear));
 	const yearValue = !isFailure(year) && isYear(year) ? year : null;
 
-	const result = await loadContributions(username, yearValue);
+	const result = await loadContributions(parsedUsername, yearValue);
 	if (isFailure(result)) return { ok: false, status: statusFor(result), message: messageFor(result) };
 	return {
 		ok: true,

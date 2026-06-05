@@ -1,13 +1,10 @@
 import type { CookieConsentConfig } from "vanilla-cookieconsent";
 import { acceptedCategory } from "vanilla-cookieconsent";
-import { updatePreferences } from "./utils/updatePreferences";
 
 export const config: CookieConsentConfig = {
-	onConsent: () => updatePreferences(),
 	onChange: ({ changedCategories, changedServices }) => {
 		const analyticsChanged = changedCategories.includes("analytics") || Object.hasOwn(changedServices, "analytics");
 		if (!analyticsChanged) return;
-		updatePreferences();
 		if (!acceptedCategory("analytics")) globalThis.location.reload();
 	},
 
@@ -95,7 +92,7 @@ export const config: CookieConsentConfig = {
 										name: "ck_user",
 										service: "ContribKit",
 										description: "Remembers the last GitHub username you viewed.",
-										expiration: "1 year",
+										expiration: "1 week",
 									},
 								],
 							},

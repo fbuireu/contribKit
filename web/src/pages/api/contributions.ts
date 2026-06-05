@@ -2,6 +2,7 @@ import { fetchContributions } from "@application/use-cases/fetch-contributions";
 import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
 import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
+import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import { isFailure, messageFor, statusFor } from "@ui/lib/failure-http";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
@@ -16,7 +17,7 @@ const querySchema = z.object({
 const repository = createGithubHtmlContributionsRepository();
 const loadContributions = fetchContributions(repository);
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, locals }) => {
 	const data = querySchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!data.success) {
 		return Response.json({ error: "Missing required parameter: user" }, { status: 400 });
@@ -34,7 +35,17 @@ export const GET: APIRoute = async ({ url }) => {
 
 	const result = await loadContributions(username, isYear(year) ? year : null);
 	if (isFailure(result)) {
-		return Response.json({ error: messageFor(result) }, { status: statusFor(result) });
+		const status = statusFor(result);
+		if (status >= 500) {
+			const executionContext = (locals as { cfContext?: ExecutionContext }).cfContext;
+			getLogger(executionContext).error("GitHub contributions fetch failed", {
+				username: username.value,
+				kind: result.kind,
+				reason: messageFor(result),
+				status,
+			});
+		}
+		return Response.json({ error: messageFor(result) }, { status });
 	}
 
 	return Response.json(
