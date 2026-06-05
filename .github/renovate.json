@@ -93,7 +93,7 @@
       "matchUpdateTypes": ["digest", "pinDigest", "patch", "minor"],
       "automerge": true,
       "automergeType": "pr",
-      "addLabels": ["ci-update"]
+      "addLabels": ["ci"]
     },
     {
       "matchManagers": ["github-actions"],
