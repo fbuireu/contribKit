@@ -173,3 +173,38 @@ jobs:
             | **URL** | ${{ env.PREVIEW_URL }} |
             | **Branch** | `${{ github.head_ref }}` |
             | **Commit** | `${{ github.event.pull_request.head.sha }}` |
+
+  e2e:
+    name: E2E (preview)
+    needs: [deploy-development]
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    environment: web-development
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/prepare-web-env
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        env:
+          BASE_URL: https://pr-${{ github.event.pull_request.number }}-contribkit-development.fbuireu.workers.dev
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 7

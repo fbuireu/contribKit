@@ -14,7 +14,7 @@ let logtail: Logtail | null | undefined;
 
 function resolveLogtail(): Logtail | null {
 	if (logtail !== undefined) return logtail;
-	const sourceToken = import.meta.env.PUBLIC_BETTER_STACK_TOKEN;
+	const sourceToken = import.meta.env.PUBLIC_BETTER_STACK_SOURCE_TOKEN;
 	const endpoint = import.meta.env.PUBLIC_BETTER_STACK_INGESTING_URL;
 	logtail =
 		sourceToken && endpoint ? new Logtail(sourceToken, { endpoint, warnAboutMissingExecutionContext: false }) : null;

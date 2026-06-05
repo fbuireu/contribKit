@@ -64,7 +64,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined). The Be
 | Variable | Type | Used by | Where it lives |
 |---|---|---|---|
 | `PUBLIC_GOOGLE_ANALYTICS_ID` | build-time | GA (browser) | GitHub Environment **variable** |
-| `PUBLIC_BETTER_STACK_TOKEN` | build-time | BetterStack RUM (browser) + logger (server) | GitHub Environment **variable** |
+| `PUBLIC_BETTER_STACK_SOURCE_TOKEN` | build-time | BetterStack RUM (browser) + logger (server) | GitHub Environment **variable** |
 | `PUBLIC_BETTER_STACK_INGESTING_URL` | build-time | BetterStack logger endpoint (server) | GitHub Environment **variable** |
 | `API_RATE_LIMITER` | runtime binding | rate limiter | `wrangler.toml` per env |
 

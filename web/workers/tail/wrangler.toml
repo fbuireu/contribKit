@@ -1,0 +1,6 @@
+name = "contribkit-tail"
+main = "index.ts"
+compatibility_date = "2026-05-31"
+
+[vars]
+BETTER_STACK_INGESTING_URL = "https://s2496146.eu-fsn-3.betterstackdata.com"

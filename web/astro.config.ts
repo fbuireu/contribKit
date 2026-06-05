@@ -38,7 +38,7 @@ export default defineConfig({
 	env: {
 		schema: {
 			PUBLIC_GOOGLE_ANALYTICS_ID: envField.string({ context: "client", access: "public" }),
-			PUBLIC_BETTER_STACK_TOKEN: envField.string({ context: "client", access: "public" }),
+			PUBLIC_BETTER_STACK_SOURCE_TOKEN: envField.string({ context: "client", access: "public" }),
 			PUBLIC_BETTER_STACK_INGESTING_URL: envField.string({ context: "client", access: "public" }),
 		},
 	},

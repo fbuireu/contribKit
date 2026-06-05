@@ -49,7 +49,7 @@ jobs:
       - name: Build
         env:
           PUBLIC_GOOGLE_ANALYTICS_ID: ${{ vars.PUBLIC_GOOGLE_ANALYTICS_ID }}
-          PUBLIC_BETTER_STACK_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_TOKEN }}
+          PUBLIC_BETTER_STACK_SOURCE_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_SOURCE_TOKEN }}
           PUBLIC_BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}
         run: pnpm exec astro build
 

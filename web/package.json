@@ -30,6 +30,8 @@
 		"lint:astro": "pnpm types && astro check",
 		"test": "vitest --passWithNoTests --logHeapUsage",
 		"test:changed": "pnpm test --bail --findRelatedTests",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "pnpm test:e2e --ui",
 		"format": "biome check --write --no-errors-on-unmatched",
 		"format:changed": "pnpm format --changed",
 		"format:all": "pnpm format .",
@@ -49,16 +51,17 @@
 		"@astrojs/check": "0.9.9",
 		"@astrojs/ts-plugin": "1.10.9",
 		"@biomejs/biome": "2.4.16",
+		"@playwright/test": "1.60.0",
 		"@semantic-release/changelog": "6.0.3",
 		"@semantic-release/exec": "7.1.0",
 		"@semantic-release/git": "10.0.1",
 		"@semantic-release/github": "12.0.8",
 		"@types/node": "25.9.1",
-		"@vitest/coverage-istanbul": "4.1.7",
+		"@vitest/coverage-istanbul": "4.1.8",
 		"semantic-release": "25.0.3",
 		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
-		"vitest": "4.1.7",
-		"wrangler": "4.95.0"
+		"vitest": "4.1.8",
+		"wrangler": "4.96.0"
 	}
 }
