@@ -3,6 +3,7 @@ import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import type { Metadata } from "@ui/components/core/metadata";
 import ErrorView, { type TerminalLine } from "@ui/components/error/ErrorView.astro";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
+import { logServerError } from "@ui/lib/log-server-error";
 
 const path = Astro.url.pathname || "/";
 
@@ -14,13 +15,7 @@ const metadata: Metadata = {
 
 const error = (Astro.props as { error?: unknown }).error;
 const executionContext = (Astro.locals as { cfContext?: ExecutionContext }).cfContext;
-getLogger(executionContext).error({
-	message: "Unhandled server error (500)",
-	context: {
-		path,
-		reason: error instanceof Error ? error.message : error ? String(error) : "unknown",
-	},
-});
+logServerError({ logger: getLogger(executionContext), error, path });
 
 const terminal: TerminalLine[] = [
 	{ kind: "cmd", text: `contribkit render ${path}` },

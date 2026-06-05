@@ -86,3 +86,45 @@
 		display: none;
 	}
 }
+
+@keyframes nav-section-active {
+	0%,
+	100% {
+		background: var(--surface-raised);
+		color: var(--text);
+	}
+}
+
+@supports (animation-timeline: view()) {
+	html {
+		timeline-scope: --sec-how, --sec-custom, --sec-export, --sec-widget;
+	}
+	#how {
+		view-timeline-name: --sec-how;
+	}
+	#custom {
+		view-timeline-name: --sec-custom;
+	}
+	#export {
+		view-timeline-name: --sec-export;
+	}
+	#widget {
+		view-timeline-name: --sec-widget;
+	}
+	.nav-links a[data-section] {
+		animation: nav-section-active linear;
+		animation-range: cover 25% cover 75%;
+	}
+	.nav-links a[data-section="how"] {
+		animation-timeline: --sec-how;
+	}
+	.nav-links a[data-section="custom"] {
+		animation-timeline: --sec-custom;
+	}
+	.nav-links a[data-section="export"] {
+		animation-timeline: --sec-export;
+	}
+	.nav-links a[data-section="widget"] {
+		animation-timeline: --sec-widget;
+	}
+}

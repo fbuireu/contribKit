@@ -17,9 +17,9 @@
     "developer-tools",
     "github-stats"
   ],
-  "packageManager": "pnpm@11.3.0",
+  "packageManager": "pnpm@11.5.1",
   "engines": {
-    "node": "v26.2.0"
+    "node": "v26.3.0"
   },
   "devDependencies": {
     "@commitlint/cli": "21.0.2",

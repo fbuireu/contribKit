@@ -3,6 +3,8 @@ import "./top-nav.css";
 import Download from "./icons/Download.astro";
 import Moon from "./icons/Moon.astro";
 import Sun from "./icons/Sun.astro";
+
+const base = Astro.url.pathname === "/" ? "" : "/";
 ---
 
 <nav class="topnav">
@@ -12,10 +14,10 @@ import Sun from "./icons/Sun.astro";
       <span class="brand-name">ContribKit</span>
     </a>
     <div class="nav-links">
-      <a href="/#how">how it works</a>
-      <a href="/#custom">customize</a>
-      <a href="/#export">export</a>
-      <a href="/#widget">widget</a>
+      <a href={`${base}#how`} data-section="how" data-astro-prefetch="false">how it works</a>
+      <a href={`${base}#custom`} data-section="custom" data-astro-prefetch="false">customize</a>
+      <a href={`${base}#export`} data-section="export" data-astro-prefetch="false">export</a>
+      <a href={`${base}#widget`} data-section="widget" data-astro-prefetch="false">widget</a>
       <button
         type="button"
         class="theme-toggle"
