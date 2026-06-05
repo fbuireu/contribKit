@@ -1,3 +1,10 @@
+# [contribkit-web-v1.9.0](https://github.com/fbuireu/contribKit/compare/web-v1.8.1...web-v1.9.0) (2026-06-05)
+
+
+### Features
+
+* add tests + metadata ([76b18e6](https://github.com/fbuireu/contribKit/commit/76b18e648d56f677661eaf1e205a36ce714f0a09))
+
 # [contribkit-web-v1.8.1](https://github.com/fbuireu/contribKit/compare/web-v1.8.0...web-v1.8.1) (2026-06-05)
 
 
