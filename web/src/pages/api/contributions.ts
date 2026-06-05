@@ -33,17 +33,20 @@ export const GET: APIRoute = async ({ url, locals }) => {
 		return Response.json({ error: messageFor(year) }, { status: statusFor(year) });
 	}
 
-	const result = await loadContributions(username, isYear(year) ? year : null);
+	const result = await loadContributions({ username, year: isYear(year) ? year : null });
 	if (isFailure(result)) {
 		const status = statusFor(result);
 		if (status >= 500) {
 			const executionContext = (locals as { cfContext?: ExecutionContext }).cfContext;
-			getLogger(executionContext).error("GitHub contributions fetch failed", {
-				username: username.value,
-				kind: result.kind,
-				reason: messageFor(result),
-				status,
-				endpoint: "api",
+			getLogger(executionContext).error({
+				message: "GitHub contributions fetch failed",
+				context: {
+					username: username.value,
+					kind: result.kind,
+					reason: messageFor(result),
+					status,
+					endpoint: "api",
+				},
 			});
 		}
 		return Response.json({ error: messageFor(result) }, { status });

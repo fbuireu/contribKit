@@ -1,8 +1,15 @@
 ---
+import type { Metadata } from "@ui/components/core/metadata";
 import ErrorView, { type TerminalLine } from "@ui/components/error/ErrorView.astro";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 
 const path = Astro.url.pathname || "/";
+
+const metadata: Metadata = {
+	title: "404 — page not found · ContribKit",
+	description: "The page you requested doesn't exist.",
+	robots: "noindex, nofollow",
+};
 
 const terminal: TerminalLine[] = [
 	{ kind: "cmd", text: `contribkit open ${path}` },
@@ -13,11 +20,7 @@ const terminal: TerminalLine[] = [
 Astro.response.status = 404;
 ---
 
-<BaseLayout
-  title="404 — page not found · ContribKit"
-  description="The page you requested doesn't exist."
-  robots="noindex, nofollow"
->
+<BaseLayout metadata={metadata}>
   <ErrorView
     code={404}
     tone="accent"

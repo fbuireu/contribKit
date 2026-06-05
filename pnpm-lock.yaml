@@ -46,7 +46,7 @@ importers:
     dependencies:
       '@astrojs/cloudflare':
         specifier: 13.6.0
-        version: 13.6.0(@types/node@25.9.1)(astro@6.4.2(@types/node@25.9.1)(jiti@2.6.1)(rollup@4.60.4)(yaml@2.9.0))(jiti@2.6.1)(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))(yaml@2.9.0)
+        version: 13.6.0(@types/node@25.9.1)(astro@6.4.2(@types/node@25.9.1)(rollup@4.60.4)(yaml@2.9.0))(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))(yaml@2.9.0)
       '@astrojs/sitemap':
         specifier: 3.7.3
         version: 3.7.3
@@ -55,7 +55,7 @@ importers:
         version: 0.5.8(@cloudflare/workers-types@4.20260602.1)
       astro:
         specifier: 6.4.2
-        version: 6.4.2(@types/node@25.9.1)(jiti@2.6.1)(rollup@4.60.4)(yaml@2.9.0)
+        version: 6.4.2(@types/node@25.9.1)(rollup@4.60.4)(yaml@2.9.0)
       vanilla-cookieconsent:
         specifier: 3.1.0
         version: 3.1.0
@@ -101,7 +101,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 4.1.8
-        version: 4.1.8(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.8)(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0))
+        version: 4.1.8(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.8)(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0))
       wrangler:
         specifier: 4.96.0
         version: 4.96.0(@cloudflare/workers-types@4.20260602.1)
@@ -4187,15 +4187,15 @@ snapshots:
       - prettier
       - prettier-plugin-astro
 
-  '@astrojs/cloudflare@13.6.0(@types/node@25.9.1)(astro@6.4.2(@types/node@25.9.1)(jiti@2.6.1)(rollup@4.60.4)(yaml@2.9.0))(jiti@2.6.1)(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))(yaml@2.9.0)':
+  '@astrojs/cloudflare@13.6.0(@types/node@25.9.1)(astro@6.4.2(@types/node@25.9.1)(rollup@4.60.4)(yaml@2.9.0))(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))(yaml@2.9.0)':
     dependencies:
       '@astrojs/internal-helpers': 0.10.0
       '@astrojs/underscore-redirects': 1.0.3
-      '@cloudflare/vite-plugin': 1.39.0(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0))(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))
-      astro: 6.4.2(@types/node@25.9.1)(jiti@2.6.1)(rollup@4.60.4)(yaml@2.9.0)
+      '@cloudflare/vite-plugin': 1.39.0(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0))(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))
+      astro: 6.4.2(@types/node@25.9.1)(rollup@4.60.4)(yaml@2.9.0)
       piccolore: 0.1.3
       tinyglobby: 0.2.16
-      vite: 7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 7.3.3(@types/node@25.9.1)(yaml@2.9.0)
       wrangler: 4.96.0(@cloudflare/workers-types@4.20260602.1)
     transitivePeerDependencies:
       - '@types/node'
@@ -4476,12 +4476,12 @@ snapshots:
     optionalDependencies:
       workerd: 1.20260529.1
 
-  '@cloudflare/vite-plugin@1.39.0(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0))(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))':
+  '@cloudflare/vite-plugin@1.39.0(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0))(workerd@1.20260529.1)(wrangler@4.96.0(@cloudflare/workers-types@4.20260602.1))':
     dependencies:
       '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260529.1)
       miniflare: 4.20260526.0
       unenv: 2.0.0-rc.24
-      vite: 7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 7.3.3(@types/node@25.9.1)(yaml@2.9.0)
       wrangler: 4.96.0(@cloudflare/workers-types@4.20260602.1)
       ws: 8.20.1
     transitivePeerDependencies:
@@ -5436,7 +5436,7 @@ snapshots:
       magicast: 0.5.3
       obug: 2.1.1
       tinyrainbow: 3.1.0
-      vitest: 4.1.8(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.8)(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0))
+      vitest: 4.1.8(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.8)(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -5449,13 +5449,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.8(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0))':
+  '@vitest/mocker@4.1.8(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0))':
     dependencies:
       '@vitest/spy': 4.1.8
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 7.3.3(@types/node@25.9.1)(yaml@2.9.0)
 
   '@vitest/pretty-format@4.1.8':
     dependencies:
@@ -5595,7 +5595,7 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
-  astro@6.4.2(@types/node@25.9.1)(jiti@2.6.1)(rollup@4.60.4)(yaml@2.9.0):
+  astro@6.4.2(@types/node@25.9.1)(rollup@4.60.4)(yaml@2.9.0):
     dependencies:
       '@astrojs/compiler': 4.0.0
       '@astrojs/internal-helpers': 0.10.0
@@ -5647,8 +5647,8 @@ snapshots:
       unist-util-visit: 5.1.0
       unstorage: 1.17.5
       vfile: 6.0.3
-      vite: 7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)
-      vitefu: 1.1.3(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0))
+      vite: 7.3.3(@types/node@25.9.1)(yaml@2.9.0)
+      vitefu: 1.1.3(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.4.3
@@ -8096,7 +8096,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0):
+  vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0):
     dependencies:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.4)
@@ -8107,17 +8107,16 @@ snapshots:
     optionalDependencies:
       '@types/node': 25.9.1
       fsevents: 2.3.3
-      jiti: 2.6.1
       yaml: 2.9.0
 
-  vitefu@1.1.3(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)):
+  vitefu@1.1.3(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0)):
     optionalDependencies:
-      vite: 7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 7.3.3(@types/node@25.9.1)(yaml@2.9.0)
 
-  vitest@4.1.8(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.8)(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)):
+  vitest@4.1.8(@types/node@25.9.1)(@vitest/coverage-istanbul@4.1.8)(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.8
-      '@vitest/mocker': 4.1.8(vite@7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0))
+      '@vitest/mocker': 4.1.8(vite@7.3.3(@types/node@25.9.1)(yaml@2.9.0))
       '@vitest/pretty-format': 4.1.8
       '@vitest/runner': 4.1.8
       '@vitest/snapshot': 4.1.8
@@ -8134,7 +8133,7 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 7.3.3(@types/node@25.9.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 7.3.3(@types/node@25.9.1)(yaml@2.9.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.9.1

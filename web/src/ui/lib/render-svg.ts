@@ -39,7 +39,7 @@ export function renderCalendarString({
 	});
 
 	const { cellWidth, labelWidth, labelHeight, totalWidth, totalHeight } = calendarDimensions({ size, gap, showLabels });
-	const radius = radiusFor(shape, size);
+	const radius = radiusFor({ shape, size });
 
 	const parts: string[] = [];
 	parts.push(

@@ -54,7 +54,7 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 	const gap = options.cellGap ?? SVG_DEFAULT_CELL_GAP;
 	const showLabels = options.showLabels ?? true;
 	const { cellWidth, labelWidth, labelHeight, totalWidth, totalHeight } = calendarDimensions({ size, gap, showLabels });
-	const radius = radiusFor(shape, size);
+	const radius = radiusFor({ shape, size });
 
 	const weeks = Array.from({ length: SVG_WEEKS }, (_, i) =>
 		calendar.days.slice(i * SVG_DAYS_PER_WEEK, i * SVG_DAYS_PER_WEEK + SVG_DAYS_PER_WEEK),

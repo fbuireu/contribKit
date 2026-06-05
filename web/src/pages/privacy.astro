@@ -1,12 +1,15 @@
 ---
+import type { Metadata } from "@ui/components/core/metadata";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import "@ui/components/legal.css";
 
 const TITLE = "Privacy Policy — ContribKit";
 const EFFECTIVE_DATE = "2026-06-04";
+
+const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
 ---
 
-<BaseLayout title={TITLE} robots="noindex, nofollow">
+<BaseLayout metadata={metadata}>
   <div class="legal-page">
     <div class="wrap">
       <div class="legal-header">

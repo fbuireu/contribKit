@@ -14,9 +14,8 @@ test.describe("api", () => {
 		expect(Array.isArray(body.cells)).toBe(true);
 	});
 
-	test("GET /user/<name>.svg returns an SVG", async ({ request }) => {
-		const response = await request.get("/user/torvalds.svg");
-		expect(response.status()).toBe(200);
-		expect(response.headers()["content-type"]).toContain("svg");
+	test("GET /api/contributions without a user returns 400", async ({ request }) => {
+		const response = await request.get("/api/contributions");
+		expect(response.status()).toBe(400);
 	});
 });

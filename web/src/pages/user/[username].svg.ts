@@ -33,17 +33,20 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 		});
 	}
 
-	const calendar = await loadContributions(username, null);
+	const calendar = await loadContributions({ username, year: null });
 	if (isFailure(calendar)) {
 		const status = statusFor(calendar);
 		if (status >= 500) {
 			const executionContext = (locals as { cfContext?: ExecutionContext }).cfContext;
-			getLogger(executionContext).error("GitHub contributions fetch failed", {
-				username: username.value,
-				kind: calendar.kind,
-				reason: messageFor(calendar),
-				status,
-				endpoint: "svg",
+			getLogger(executionContext).error({
+				message: "GitHub contributions fetch failed",
+				context: {
+					username: username.value,
+					kind: calendar.kind,
+					reason: messageFor(calendar),
+					status,
+					endpoint: "svg",
+				},
 			});
 		}
 		return new Response(messageFor(calendar), {

@@ -2,10 +2,19 @@ import { Logtail } from "@logtail/edge";
 
 type LogContext = Record<string, unknown>;
 
+export interface LogParams {
+	message: string;
+	context?: LogContext;
+}
+
+interface WriteParams extends LogParams {
+	level: "info" | "warn" | "error";
+}
+
 export interface Logger {
-	info(message: string, context?: LogContext): void;
-	warn(message: string, context?: LogContext): void;
-	error(message: string, context?: LogContext): void;
+	info(params: LogParams): void;
+	warn(params: LogParams): void;
+	error(params: LogParams): void;
 }
 
 const SERVICE = "contribkit-web";
@@ -25,7 +34,7 @@ export function getLogger(executionContext?: ExecutionContext): Logger {
 	const client = resolveLogtail();
 	const writer = client && executionContext ? client.withExecutionContext(executionContext) : client;
 
-	const write = (level: "info" | "warn" | "error", message: string, context?: LogContext): void => {
+	const write = ({ level, message, context }: WriteParams): void => {
 		if (!writer) return;
 		const payload = { service: SERVICE, ...context };
 		if (level === "info") void writer.info(message, payload);
@@ -34,8 +43,8 @@ export function getLogger(executionContext?: ExecutionContext): Logger {
 	};
 
 	return {
-		info: (message, context) => write("info", message, context),
-		warn: (message, context) => write("warn", message, context),
-		error: (message, context) => write("error", message, context),
+		info: (params) => write({ level: "info", ...params }),
+		warn: (params) => write({ level: "warn", ...params }),
+		error: (params) => write({ level: "error", ...params }),
 	};
 }

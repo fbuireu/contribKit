@@ -12,7 +12,12 @@ export const SVG_MONTH_LABEL_MAX_DAY = 7;
 
 const RADIUS_BY_SHAPE: Record<string, number> = { rounded: 2.5, square: 0 };
 
-export const radiusFor = (shape: string, size: number): number => RADIUS_BY_SHAPE[shape] ?? size / 2;
+export interface RadiusForParams {
+	shape: string;
+	size: number;
+}
+
+export const radiusFor = ({ shape, size }: RadiusForParams): number => RADIUS_BY_SHAPE[shape] ?? size / 2;
 
 export const dotRadius = (level: number): number => (level === 0 ? 1.4 : 1.4 + level);
 

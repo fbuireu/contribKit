@@ -6,6 +6,7 @@ import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objec
 import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
 import CellTip from "@ui/components/CellTip.astro";
 import Customize from "@ui/components/Customize.astro";
+import type { Metadata } from "@ui/components/core/metadata";
 import Export from "@ui/components/Export.astro";
 import Hero from "@ui/components/Hero.astro";
 import HowItWorks from "@ui/components/HowItWorks.astro";
@@ -22,6 +23,14 @@ const OG_IMAGE_ALT = "ContribKit — GitHub contribution calendar with custom pa
 const TITLE = "ContribKit — Your GitHub activity, your aesthetic.";
 const DESCRIPTION = "Visualize, customize, and export your GitHub contribution calendar — no token required.";
 const CLASSIC = [...PALETTES.github.colors];
+
+const metadata: Metadata = {
+	title: TITLE,
+	description: DESCRIPTION,
+	url: SITE_URL,
+	image: OG_IMAGE,
+	imageAlt: OG_IMAGE_ALT,
+};
 
 const SCHEMA = [
 	{
@@ -93,7 +102,7 @@ Astro.response.headers.set(
 );
 ---
 
-<BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE} imageAlt={OG_IMAGE_ALT}>
+<BaseLayout metadata={metadata}>
   <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} username={username} year={resolvedYear} error={heroError} />
   <HowItWorks />
   <Customize />

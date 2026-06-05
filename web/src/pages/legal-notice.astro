@@ -1,9 +1,12 @@
 ---
+import type { Metadata } from "@ui/components/core/metadata";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import "@ui/components/legal.css";
 
 const TITLE = "Legal Notice — ContribKit";
 const EFFECTIVE_DATE = "2026-06-03";
+
+const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
 
 interface ShuffledData {
 	letter: string;
@@ -96,7 +99,7 @@ const decrypt = (data: ShuffledData[]) =>
 		.join("");
 ---
 
-<BaseLayout title={TITLE} robots="noindex, nofollow">
+<BaseLayout metadata={metadata}>
   <div class="legal-page">
     <div class="wrap">
       <div class="legal-header">

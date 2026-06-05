@@ -3,22 +3,16 @@ import "../../styles/global.css";
 import Font from "astro/components/Font.astro";
 import Analytics from "../Analytics.astro";
 import CookieConsent from "../cookieConsent/CookieConsent.astro";
+import type { Metadata } from "../core/metadata";
 import SEO from "../core/SEO.astro";
 import Footer from "../Footer.astro";
 import TopNav from "../TopNav.astro";
 
-type RobotsDirective = "index, follow" | "noindex" | "noindex, nofollow" | "nofollow";
-
 interface Props {
-	title: string;
-	description?: string;
-	url?: string;
-	image?: string;
-	imageAlt?: string;
-	robots?: RobotsDirective;
+	metadata: Metadata;
 }
 
-const { title, description, url, image, imageAlt, robots } = Astro.props;
+const { metadata } = Astro.props;
 ---
 
 <!doctype html>
@@ -38,7 +32,7 @@ const { title, description, url, image, imageAlt, robots } = Astro.props;
         }
       }
     </script>
-    <SEO title={title} description={description} url={url} image={image} imageAlt={imageAlt} robots={robots} />
+    <SEO metadata={metadata} />
     <Analytics />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />

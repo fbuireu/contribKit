@@ -36,7 +36,7 @@ export async function loadInitialContributions({
 	const year = parseYear(String(resolvedYear));
 	const yearValue = !isFailure(year) && isYear(year) ? year : null;
 
-	const result = await loadContributions(parsedUsername, yearValue);
+	const result = await loadContributions({ username: parsedUsername, year: yearValue });
 	if (isFailure(result)) return { ok: false, status: statusFor(result), message: messageFor(result) };
 	return {
 		ok: true,

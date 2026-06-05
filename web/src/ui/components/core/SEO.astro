@@ -1,17 +1,12 @@
 ---
-type RobotsDirective = "index, follow" | "noindex" | "noindex, nofollow" | "nofollow";
+import type { Metadata } from "./metadata";
 
 interface Props {
-	title: string;
-	description?: string;
-	url?: string;
-	image?: string;
-	imageAlt?: string;
-	robots?: RobotsDirective;
-	type?: "website" | "article";
+	metadata: Metadata;
 }
 
-const { title, description, url, image, imageAlt, robots = "index, follow", type = "website" } = Astro.props;
+const { metadata } = Astro.props;
+const { title, description, url, image, imageAlt, robots = "index, follow", type = "website" } = metadata;
 ---
 
 <title>{title}</title>

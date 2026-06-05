@@ -1,8 +1,26 @@
 ---
+import { getLogger } from "@infrastructure/logging/better-stack-logger";
+import type { Metadata } from "@ui/components/core/metadata";
 import ErrorView, { type TerminalLine } from "@ui/components/error/ErrorView.astro";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 
 const path = Astro.url.pathname || "/";
+
+const metadata: Metadata = {
+	title: "500 — something broke · ContribKit",
+	description: "Something went wrong on our end.",
+	robots: "noindex, nofollow",
+};
+
+const error = (Astro.props as { error?: unknown }).error;
+const executionContext = (Astro.locals as { cfContext?: ExecutionContext }).cfContext;
+getLogger(executionContext).error({
+	message: "Unhandled server error (500)",
+	context: {
+		path,
+		reason: error instanceof Error ? error.message : error ? String(error) : "unknown",
+	},
+});
 
 const terminal: TerminalLine[] = [
 	{ kind: "cmd", text: `contribkit render ${path}` },
@@ -13,11 +31,7 @@ const terminal: TerminalLine[] = [
 Astro.response.status = 500;
 ---
 
-<BaseLayout
-  title="500 — something broke · ContribKit"
-  description="Something went wrong on our end."
-  robots="noindex, nofollow"
->
+<BaseLayout metadata={metadata}>
   <ErrorView
     code={500}
     tone="danger"
