@@ -1,3 +1,10 @@
+# [contribkit-web-v1.9.1](https://github.com/fbuireu/contribKit/compare/web-v1.9.0...web-v1.9.1) (2026-06-05)
+
+
+### Bug Fixes
+
+* add tests + minor fixes ([39c296a](https://github.com/fbuireu/contribKit/commit/39c296afcc885b7cdd0b6d431359ab0b0915e141))
+
 # [contribkit-web-v1.9.0](https://github.com/fbuireu/contribKit/compare/web-v1.8.1...web-v1.9.0) (2026-06-05)
 
 
