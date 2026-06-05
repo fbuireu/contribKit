@@ -1,3 +1,10 @@
+# [contribkit-web-v1.8.0](https://github.com/fbuireu/contribKit/compare/web-v1.7.0...web-v1.8.0) (2026-06-05)
+
+
+### Features
+
+* add ci cf ([a74673d](https://github.com/fbuireu/contribKit/commit/a74673d98d8721a7a5412d8817d313d2740d4438))
+
 # [contribkit-web-v1.7.0](https://github.com/fbuireu/contribKit/compare/web-v1.6.5...web-v1.7.0) (2026-06-05)
 
 
