@@ -1,3 +1,10 @@
+# [contribkit-web-v1.7.0](https://github.com/fbuireu/contribKit/compare/web-v1.6.5...web-v1.7.0) (2026-06-05)
+
+
+### Features
+
+* layer concern ([9729284](https://github.com/fbuireu/contribKit/commit/97292847a8824f680d5dcc2baf0f5534a507c232))
+
 # [contribkit-web-v1.6.5](https://github.com/fbuireu/contribKit/compare/web-v1.6.4...web-v1.6.5) (2026-06-05)
 
 
