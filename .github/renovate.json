@@ -12,7 +12,6 @@
   "rangeStrategy": "pin",
   "pinDigests": true,
   "automergeStrategy": "squash",
-  "commitMessagePrefix": "chore(deps):",
   "assigneesFromCodeOwners": true,
   "reviewersFromCodeOwners": true,
   "vulnerabilityAlerts": {
@@ -23,11 +22,11 @@
   "includePaths": ["app/**", "web/**", ".github/**", "*"],
   "packageRules": [
     {
-      "matchFiles": ["web/**"],
+      "matchFileNames": ["web/**"],
       "addLabels": ["web"]
     },
     {
-      "matchFiles": ["app/**"],
+      "matchFileNames": ["app/**"],
       "addLabels": ["app"]
     },
     {
@@ -85,6 +84,19 @@
     },
     {
       "matchManagers": ["npm"],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major-update", "review-required"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["digest", "pinDigest", "patch", "minor"],
+      "automerge": true,
+      "automergeType": "pr",
+      "addLabels": ["ci-update"]
+    },
+    {
+      "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
       "addLabels": ["major-update", "review-required"],
       "automerge": false
