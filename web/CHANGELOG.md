@@ -1,3 +1,10 @@
+# [contribkit-web-v1.6.5](https://github.com/fbuireu/contribKit/compare/web-v1.6.4...web-v1.6.5) (2026-06-05)
+
+
+### Bug Fixes
+
+* add cookie username ([6fb49de](https://github.com/fbuireu/contribKit/commit/6fb49de138696f35d27247c7ad1c41c97a283c24))
+
 # [contribkit-web-v1.6.4](https://github.com/fbuireu/contribKit/compare/web-v1.6.3...web-v1.6.4) (2026-06-04)
 
 
