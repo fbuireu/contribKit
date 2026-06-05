@@ -91,6 +91,12 @@ export const config: CookieConsentConfig = {
 										description: "Stores your cookie consent preferences.",
 										expiration: "6 months",
 									},
+									{
+										name: "ck_user",
+										service: "ContribKit",
+										description: "Remembers the last GitHub username you viewed.",
+										expiration: "1 year",
+									},
 								],
 							},
 						},

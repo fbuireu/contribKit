@@ -388,6 +388,11 @@
 	color: var(--text);
 	border-color: var(--border);
 }
+.sug-btn.selected {
+	color: var(--accent);
+	background: color-mix(in srgb, var(--accent) 14%, transparent);
+	border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+}
 
 .hero-error {
 	font-family: var(--font-mono);

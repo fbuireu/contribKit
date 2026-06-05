@@ -1,7 +1,7 @@
 ---
 import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
-import { DEFAULT_USERNAME } from "@domain/value-objects/username";
+import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
 import CellTip from "@ui/components/CellTip.astro";
 import Customize from "@ui/components/Customize.astro";
 import Export from "@ui/components/Export.astro";
@@ -44,8 +44,10 @@ const SCHEMA = [
 ];
 
 const requestedUsername = Astro.url.searchParams.get("user")?.trim();
-const username = requestedUsername || DEFAULT_USERNAME;
-const isExplicit = Boolean(requestedUsername);
+const savedRaw = Astro.cookies.get("ck_user")?.value?.trim();
+const savedUsername = savedRaw && isUsername(parseUsername(savedRaw)) ? savedRaw : undefined;
+const username = requestedUsername || savedUsername || DEFAULT_USERNAME;
+const isExplicit = Boolean(requestedUsername || savedUsername);
 const currentYear = new Date().getFullYear();
 const requestedYear = Astro.url.searchParams.get("year");
 
@@ -82,7 +84,10 @@ const initialCellsForClient = cells.map((cell) => ({
 	count: cell.count ?? null,
 }));
 
-Astro.response.headers.set("Cache-Control", "private, max-age=3600, stale-while-revalidate=86400");
+Astro.response.headers.set(
+	"Cache-Control",
+	requestedUsername ? "private, max-age=3600, stale-while-revalidate=86400" : "private, no-store",
+);
 ---
 
 <BaseLayout title={TITLE} description={DESCRIPTION} url={SITE_URL} image={OG_IMAGE} imageAlt={OG_IMAGE_ALT}>

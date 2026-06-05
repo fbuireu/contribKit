@@ -3,14 +3,14 @@ import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import "@ui/components/legal.css";
 
 const TITLE = "Privacy Policy — ContribKit";
-const EFFECTIVE_DATE = "2026-06-03";
+const EFFECTIVE_DATE = "2026-06-04";
 ---
 
 <BaseLayout title={TITLE} robots="noindex, nofollow">
   <div class="legal-page">
     <div class="wrap">
       <div class="legal-header">
-        <a href="/" class="back-link mono">← back</a>
+        <a href="/" data-astro-prefetch="false" class="back-link mono">← back</a>
         <h1>Privacy Policy</h1>
         <p class="dimmer mono">Effective date: {EFFECTIVE_DATE}</p>
       </div>
@@ -29,7 +29,10 @@ const EFFECTIVE_DATE = "2026-06-03";
         <p>The app contains no advertising and bundles no analytics or crash-reporting SDKs. We do not track you across other apps or websites, and we do not use advertising identifiers (such as Apple's IDFA or the Android Advertising ID).</p>
 
         <h2>This website</h2>
-        <p>The ContribKit website (<code>contribkit.app</code>) uses the following services to understand traffic and improve the site. These are loaded only after you give explicit consent via the cookie banner.</p>
+        <p>The ContribKit website (<code>contribkit.app</code>) uses the following services to understand traffic and improve the site. The analytics services below are loaded only after you give explicit consent via the cookie banner.</p>
+
+        <h3>Site preferences (strictly necessary)</h3>
+        <p>To remember the last GitHub username you viewed between visits, we store it in a first-party cookie (<code>ck_user</code>, expiry: 1 year) in your own browser. It holds only the username you entered, is never sent to any third party, and is not used for tracking or advertising. Because it is essential to providing this feature, it does not require consent; you can remove it at any time by clearing your browser's cookies.</p>
 
         <h3>Google Analytics (GA4)</h3>
         <p>We use Google Analytics 4 to measure page views, session duration, and navigation paths. IP addresses are anonymised before storage. Data is processed by Google LLC and subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>. Cookies set: <code>_ga</code>, <code>_ga_*</code> (expiry: 2 years).</p>

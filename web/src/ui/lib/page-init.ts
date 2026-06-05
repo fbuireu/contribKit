@@ -36,6 +36,36 @@ function readYearFromUrl(): number {
 	return year && year <= CURRENT_YEAR ? year : CURRENT_YEAR;
 }
 
+const USERNAME_COOKIE = "ck_user";
+const ONE_YEAR = 60 * 60 * 24 * 365;
+
+async function readUsernameCookie(): Promise<string | null> {
+	try {
+		const cookie = await cookieStore.get(USERNAME_COOKIE);
+		return cookie?.value?.trim() || null;
+	} catch {
+		return null;
+	}
+}
+
+async function writeUsernameCookie(username: string): Promise<void> {
+	try {
+		await cookieStore.set({
+			name: USERNAME_COOKIE,
+			value: username,
+			expires: Date.now() + ONE_YEAR * 1000,
+			path: "/",
+			sameSite: "lax",
+		});
+	} catch {
+		// CookieStore unavailable (older browser / insecure context) — non-fatal
+	}
+}
+
+async function seedUsernameCookie(username: string): Promise<void> {
+	if (!(await readUsernameCookie())) await writeUsernameCookie(username);
+}
+
 function syncUrl(username: string, year: number) {
 	const url = new URL(window.location.href);
 	if (username) url.searchParams.set("user", username);
@@ -186,6 +216,8 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 	const yearQuery = selectedYear && selectedYear <= CURRENT_YEAR ? `&year=${selectedYear}` : "";
 
 	if (updateHistory) syncUrl(username, selectedYear);
+	void writeUsernameCookie(username);
+	syncSuggestionSelection(username);
 
 	setHeroError(null);
 	renderButton.disabled = true;
@@ -331,6 +363,16 @@ function initExportTabs() {
 	});
 }
 
+function syncSuggestionSelection(username?: string) {
+	const input = document.getElementById("hero-username") as HTMLInputElement | null;
+	const normalized = (username ?? input?.value ?? "").trim().toLowerCase();
+	document.querySelectorAll<HTMLElement>(".sug-btn").forEach((button) => {
+		const isMatch = !!normalized && button.dataset.username === normalized;
+		button.classList.toggle("selected", isMatch);
+		button.setAttribute("aria-pressed", String(isMatch));
+	});
+}
+
 function initUsernameStrip() {
 	const form = document.getElementById("username-form") as HTMLFormElement | null;
 	const input = document.getElementById("hero-username") as HTMLInputElement | null;
@@ -361,6 +403,7 @@ function initUsernameStrip() {
 		}
 		const value = lowered.trim();
 		usernameDisplay.textContent = value || "username";
+		syncSuggestionSelection(value);
 		if (value) setHeroError(null);
 	});
 	renderButton.addEventListener("click", submitRender);
@@ -440,7 +483,25 @@ function initCellTooltip() {
 	window.addEventListener("resize", positionTooltip);
 }
 
+function initUsernameState() {
+	const input = document.getElementById("hero-username") as HTMLInputElement | null;
+	const ssrUsername = input?.value.trim() || DEFAULT_USERNAME;
+	liveUsername = ssrUsername;
+
+	const urlUser = new URLSearchParams(window.location.search).get("user")?.trim();
+	if (!urlUser) void seedUsernameCookie(ssrUsername);
+
+	if (urlUser !== ssrUsername) {
+		const url = new URL(window.location.href);
+		url.searchParams.set("user", ssrUsername);
+		window.history.replaceState(null, "", url);
+	}
+
+	syncSuggestionSelection(ssrUsername);
+}
+
 export function initPage() {
+	initUsernameState();
 	renderCustomize();
 	renderWidget();
 	renderExportPreview();
