@@ -1,3 +1,10 @@
+# [contribkit-web-v1.9.5](https://github.com/fbuireu/contribKit/compare/web-v1.9.4...web-v1.9.5) (2026-06-06)
+
+
+### Bug Fixes
+
+* css link style ([f01737c](https://github.com/fbuireu/contribKit/commit/f01737c89a01ef148f8cb41d1124615dfd1cca7a))
+
 # [contribkit-web-v1.9.4](https://github.com/fbuireu/contribKit/compare/web-v1.9.3...web-v1.9.4) (2026-06-06)
 
 
