@@ -32,14 +32,6 @@
 }
 .nav-links a {
 	padding: 0.5rem 0.75rem;
-	border-radius: 0.375rem;
-	transition:
-		background 120ms,
-		color 120ms;
-}
-.nav-links a:hover {
-	background: var(--surface-raised);
-	color: var(--text);
 }
 .theme-toggle {
 	display: inline-flex;
@@ -84,14 +76,6 @@
 @media (max-width: 45rem) {
 	.nav-links a:not(.nav-cta) {
 		display: none;
-	}
-}
-
-@keyframes nav-section-active {
-	0%,
-	100% {
-		background: var(--surface-raised);
-		color: var(--text);
 	}
 }
 

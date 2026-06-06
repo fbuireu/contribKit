@@ -1,0 +1,334 @@
+@layer theme {
+	:root {
+		color-scheme: light;
+		--white: oklch(100% 0 0);
+		--black: oklch(0% 0 0);
+		--background: oklch(98.51% 0 0);
+		--surface: oklch(100% 0 0);
+		--surface-raised: oklch(96.74% 0.0013 286.38);
+		--surface-high: color-mix(in oklch, var(--surface), var(--text) 7%);
+		--border: oklch(91.97% 0.004 286.32);
+		--border-strong: color-mix(in oklch, var(--border), var(--text) 6%);
+		--text: oklch(21.03% 0.0059 285.89);
+		--text-dim: oklch(44.15% 0.013 285.86);
+		--text-dimmer: color-mix(in oklch, var(--text), var(--background) 47%);
+		--text-faint: color-mix(in oklch, var(--text), var(--background) 83%);
+		--overlay: oklch(0% 0 0 / 0.04);
+		--overlay-strong: oklch(0% 0 0 / 0.08);
+		--shadow: oklch(17.08% 0.0103 285.25 / 0.08);
+		--tag-background: oklch(100% 0 0 / 0.7);
+		--topnav-background: oklch(100% 0 0 / 0.75);
+		--contrib-none: oklch(94.54% 0.0046 258.32);
+		--contrib-low: oklch(86.66% 0.1182 148.74);
+		--contrib-mid: oklch(72.67% 0.1781 148.54);
+		--contrib-high: oklch(62.7% 0.157 148.35);
+		--contrib-peak: oklch(47.79% 0.1122 150.02);
+		--accent: oklch(52.44% 0.1401 148.04);
+		--danger: oklch(55.67% 0.2056 24.61);
+		--link: oklch(54.61% 0.2152 262.88);
+		--grid-on: var(--contrib-peak);
+		--grid-spark-1: var(--contrib-low);
+		--grid-spark-2: var(--contrib-mid);
+		--grid-spark-1-danger: oklch(83.4% 0.0713 11.07);
+		--grid-spark-2-danger: oklch(69.65% 0.1268 12.19);
+		--grid-empty: oklch(0% 0 0 / 0.05);
+		--error-button-foreground-accent: oklch(98.96% 0.0156 154.48);
+		--error-button-foreground-danger: oklch(97.82% 0.0108 10.33);
+		--error-accent: var(--accent);
+		--error-glow: color-mix(in srgb, var(--accent) 55%, transparent);
+		--error-button-foreground: var(--error-button-foreground-accent);
+		--terminal-background: oklch(97.64% 0.0013 286.38);
+		--terminal-red: oklch(69.36% 0.1964 26.36);
+		--terminal-yellow: oklch(83.48% 0.1612 80.91);
+		--terminal-green: oklch(72.8% 0.2173 144.71);
+		--device-frame: oklch(16.05% 0.0063 285.67);
+		--device-screen-top: oklch(18.29% 0.0127 270.63);
+		--device-screen-bottom: oklch(14.92% 0.0093 263.97);
+		--max-width: 75rem;
+		--page-padding: 1.5rem;
+		--font-ui: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+		--font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+		accent-color: var(--accent);
+		scrollbar-color: var(--text-faint) transparent;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root:not(.theme-light) {
+			color-scheme: dark;
+			--background: oklch(14.08% 0.0044 285.82);
+			--surface: oklch(16.05% 0.0063 285.67);
+			--surface-raised: oklch(17.9% 0.0061 285.77);
+			--border: oklch(21.91% 0.0058 285.91);
+			--text: oklch(96.74% 0.0013 286.38);
+			--text-dim: oklch(71.18% 0.0129 286.07);
+			--overlay: oklch(100% 0 0 / 0.04);
+			--overlay-strong: oklch(100% 0 0 / 0.08);
+			--shadow: oklch(0% 0 0 / 0.55);
+			--tag-background: oklch(14.08% 0.0044 285.82 / 0.7);
+			--topnav-background: oklch(14.08% 0.0044 285.82 / 0.7);
+			--contrib-none: oklch(22.02% 0.0157 256.82);
+			--contrib-low: oklch(34.42% 0.073 156.73);
+			--contrib-mid: oklch(46.78% 0.1263 150.86);
+			--contrib-high: oklch(63.65% 0.1777 146.24);
+			--contrib-peak: oklch(76.19% 0.2121 145.62);
+			--accent: oklch(76.19% 0.2121 145.62);
+			--danger: oklch(73.45% 0.1626 25.78);
+			--link: oklch(75.48% 0.1261 259.64);
+			--grid-spark-1-danger: oklch(26% 0.0595 5.16);
+			--grid-spark-2-danger: oklch(39.54% 0.1212 15.59);
+			--grid-empty: oklch(100% 0 0 / 0.028);
+			--error-button-foreground-accent: oklch(17.54% 0.0252 161.41);
+			--error-button-foreground-danger: oklch(16.58% 0.0377 15.52);
+			--terminal-background: oklch(15.58% 0.0063 285.64);
+		}
+	}
+
+	:root.theme-dark {
+		color-scheme: dark;
+		--background: oklch(14.08% 0.0044 285.82);
+		--surface: oklch(16.05% 0.0063 285.67);
+		--surface-raised: oklch(17.9% 0.0061 285.77);
+		--border: oklch(21.91% 0.0058 285.91);
+		--text: oklch(96.74% 0.0013 286.38);
+		--text-dim: oklch(71.18% 0.0129 286.07);
+		--overlay: oklch(100% 0 0 / 0.04);
+		--overlay-strong: oklch(100% 0 0 / 0.08);
+		--shadow: oklch(0% 0 0 / 0.55);
+		--tag-background: oklch(14.08% 0.0044 285.82 / 0.7);
+		--topnav-background: oklch(14.08% 0.0044 285.82 / 0.7);
+		--contrib-none: oklch(22.02% 0.0157 256.82);
+		--contrib-low: oklch(34.42% 0.073 156.73);
+		--contrib-mid: oklch(46.78% 0.1263 150.86);
+		--contrib-high: oklch(63.65% 0.1777 146.24);
+		--contrib-peak: oklch(76.19% 0.2121 145.62);
+		--accent: oklch(76.19% 0.2121 145.62);
+		--danger: oklch(73.45% 0.1626 25.78);
+		--link: oklch(75.48% 0.1261 259.64);
+		--grid-spark-1-danger: oklch(26% 0.0595 5.16);
+		--grid-spark-2-danger: oklch(39.54% 0.1212 15.59);
+		--grid-empty: oklch(100% 0 0 / 0.028);
+		--error-button-foreground-accent: oklch(17.54% 0.0252 161.41);
+		--error-button-foreground-danger: oklch(16.58% 0.0377 15.52);
+		--terminal-background: oklch(15.58% 0.0063 285.64);
+	}
+
+	:root.theme-light {
+		color-scheme: light;
+	}
+
+	@property --white {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --black {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --background {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --surface {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --surface-raised {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --surface-high {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --border {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --border-strong {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --text {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --text-dim {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --text-dimmer {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --text-faint {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --overlay {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --overlay-strong {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --shadow {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --tag-background {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --topnav-background {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --contrib-none {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --contrib-low {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --contrib-mid {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --contrib-high {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --contrib-peak {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --accent {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --danger {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --link {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --grid-on {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --grid-spark-1 {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --grid-spark-2 {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --grid-spark-1-danger {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --grid-spark-2-danger {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --grid-empty {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --error-button-foreground-accent {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --error-button-foreground-danger {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --error-accent {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --error-glow {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --error-button-foreground {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --terminal-background {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --terminal-red {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --terminal-yellow {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --terminal-green {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --device-frame {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --device-screen-top {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+	@property --device-screen-bottom {
+		syntax: "<color>";
+		inherits: true;
+		initial-value: transparent;
+	}
+}

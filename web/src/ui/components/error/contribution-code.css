@@ -1,28 +1,30 @@
-.contribution-code {
-	display: block;
-	width: 100%;
-	height: auto;
-	overflow: visible;
-}
-.contribution-code .cc-glyph {
-	filter: drop-shadow(0 0 6px var(--error-glow));
-}
-.contribution-code .cc-glyph rect {
-	fill: var(--grid-on);
-}
-.contribution-code .cc-empty {
-	fill: var(--grid-empty);
-}
-.contribution-code .cc-spark-1 {
-	fill: var(--grid-spark-1);
-	opacity: 0.5;
-}
-.contribution-code .cc-spark-2 {
-	fill: var(--grid-spark-2);
-	opacity: 0.5;
-}
-@media (prefers-reduced-motion: reduce) {
-	.contribution-code .cc-glyph {
-		filter: none;
+@scope (.contribution-code) {
+	:scope {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+	}
+	:scope .cc-glyph {
+		filter: drop-shadow(0 0 6px var(--error-glow));
+	}
+	:scope .cc-glyph rect {
+		fill: var(--grid-on);
+	}
+	:scope .cc-empty {
+		fill: var(--grid-empty);
+	}
+	:scope .cc-spark-1 {
+		fill: var(--grid-spark-1);
+		opacity: 0.5;
+	}
+	:scope .cc-spark-2 {
+		fill: var(--grid-spark-2);
+		opacity: 0.5;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		:scope .cc-glyph {
+			filter: none;
+		}
 	}
 }

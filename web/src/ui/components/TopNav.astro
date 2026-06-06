@@ -14,10 +14,10 @@ const base = Astro.url.pathname === "/" ? "" : "/";
       <span class="brand-name">ContribKit</span>
     </a>
     <div class="nav-links">
-      <a href={`${base}#how`} data-section="how" data-astro-prefetch="false">how it works</a>
-      <a href={`${base}#custom`} data-section="custom" data-astro-prefetch="false">customize</a>
-      <a href={`${base}#export`} data-section="export" data-astro-prefetch="false">export</a>
-      <a href={`${base}#widget`} data-section="widget" data-astro-prefetch="false">widget</a>
+      <a class="link-action" href={`${base}#how`} data-section="how" data-astro-prefetch="false">how it works</a>
+      <a class="link-action" href={`${base}#custom`} data-section="custom" data-astro-prefetch="false">customize</a>
+      <a class="link-action" href={`${base}#export`} data-section="export" data-astro-prefetch="false">export</a>
+      <a class="link-action" href={`${base}#widget`} data-section="widget" data-astro-prefetch="false">widget</a>
       <button
         type="button"
         class="theme-toggle"
