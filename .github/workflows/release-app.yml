@@ -23,6 +23,7 @@ jobs:
   release:
     name: Semantic Release (App)
     runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
     permissions:
       contents: write
       issues: write
