@@ -177,7 +177,6 @@ function renderExportPreview() {
 function updateYearRange(cells: Cell[]) {
 	const el = document.getElementById("hero-year-range");
 	if (!el || cells.length < 8) return;
-	// cells[0] may be late December of the previous year; cells[7] is always in the target year
 	el.textContent = cells[7].date.slice(0, 4);
 }
 

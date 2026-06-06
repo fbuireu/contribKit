@@ -59,12 +59,12 @@
 			flex-basis: 100%;
 		}
 	}
-	.legal-link {
-		color: var(--text-dimmer);
-		transition: color 100ms;
+	.foot-legal .link-action {
+		padding: 0.25rem 0.5rem;
 	}
-	.legal-link:hover {
-		color: var(--text);
+	.foot-bot span .link-action {
+		padding: 0.125rem 0.375rem;
+		margin-inline: -0.375rem;
 	}
 	.cookies-btn {
 		font-size: 0.6875rem;

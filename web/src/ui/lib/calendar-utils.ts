@@ -5,8 +5,6 @@ import { mulberry32 } from "./mulberry";
 
 export { DOW, MONTHS };
 
-// TODO: migrate to Temporal once it's natively available in all target browsers
-
 export interface Cell {
 	date: string;
 	level: number;
@@ -20,7 +18,7 @@ function addDays(iso: string, n: number): string {
 }
 
 function getWeekday(iso: string): number {
-	return new Date(`${iso}T12:00:00`).getDay(); // 0=Sun, 1=Mon … 6=Sat
+	return new Date(`${iso}T12:00:00`).getDay();
 }
 
 export interface RenderCalendarParams {
@@ -66,7 +64,7 @@ export function summarize(cells: Cell[]): CellSummary {
 
 export function buildCalendarGrid(map: Map<string, { level: number; count: number | null }>, year: number): Cell[] {
 	const jan1 = `${year}-01-01`;
-	const start = addDays(jan1, -getWeekday(jan1)); // back to Sunday
+	const start = addDays(jan1, -getWeekday(jan1));
 	const cells: Cell[] = [];
 	for (let i = 0; i < 53 * 7; i++) {
 		const date = addDays(start, i);
@@ -80,7 +78,7 @@ export function generateData(seed = 7): Cell[] {
 	const rand = mulberry32(seed);
 	const cells: Cell[] = [];
 	const today = "2026-05-17";
-	const end = addDays(today, 6 - getWeekday(today)); // forward to Saturday
+	const end = addDays(today, 6 - getWeekday(today));
 	const totalDays = 53 * 7;
 	const start = addDays(end, -(totalDays - 1));
 

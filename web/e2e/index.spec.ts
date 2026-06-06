@@ -26,4 +26,9 @@ test.describe("homepage", () => {
 		await page.goto("/");
 		await expect(page.locator("#hero-grid-container svg")).toBeVisible();
 	});
+
+	test("shows the cookie consent banner when no consent cookie is set", async ({ page }) => {
+		await page.goto("/");
+		await expect(page.getByRole("button", { name: "Accept all" })).toBeVisible();
+	});
 });
