@@ -1,5 +1,5 @@
-import type { ContributionCalendar } from "@domain/entities/contribution-calendar";
-import type { SvgRenderer, SvgRendererParams } from "@domain/services/svg-renderer";
+import type { ContributionCalendar } from "@domain/entities/types";
+import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
 import { DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
 import { describe, expect, it, vi } from "vitest";
 import { renderCalendarSvg } from "./render-calendar-svg";

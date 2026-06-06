@@ -1,4 +1,4 @@
-import type { ContributionCalendar } from "../entities/contribution-calendar";
+import type { ContributionCalendar } from "../entities/types";
 import type { Palette } from "../value-objects/palette";
 import type { ShapeKind } from "../value-objects/shape";
 

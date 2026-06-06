@@ -1,4 +1,4 @@
-import type { SvgRenderer, SvgRendererParams } from "@domain/services/svg-renderer";
+import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
 
 export const renderCalendarSvg =
 	(renderer: SvgRenderer) =>

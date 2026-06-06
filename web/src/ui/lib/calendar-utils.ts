@@ -1,4 +1,4 @@
-import type { ContributionDay } from "../../domain/entities/contribution-day";
+import type { ContributionDay } from "../../domain/entities/types";
 import { DOW, MONTHS } from "../../domain/value-objects/calendar-labels";
 import { TOTALS_PER_LEVEL } from "./contribution";
 import { mulberry32 } from "./mulberry";

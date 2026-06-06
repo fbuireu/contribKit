@@ -1,6 +1,6 @@
-import type { ContributionCalendar } from "@domain/entities/contribution-calendar";
+import type { ContributionCalendar } from "@domain/entities/types";
 import { notFound } from "@domain/failures/failure";
-import type { ContributionsRepository } from "@domain/repositories/contributions-repository";
+import type { ContributionsRepository } from "@domain/repositories/types";
 import type { Username } from "@domain/value-objects/username";
 import { describe, expect, it, vi } from "vitest";
 import { fetchContributions } from "./fetch-contributions";

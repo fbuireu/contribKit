@@ -1,7 +1,6 @@
-import type { ContributionCalendar } from "@domain/entities/contribution-calendar";
-import type { ContributionDay } from "@domain/entities/contribution-day";
+import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
 import { type Failure, network, notFound, parse } from "@domain/failures/failure";
-import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/contributions-repository";
+import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/types";
 import { clampLevel } from "@domain/value-objects/contribution-level";
 import type { Year } from "@domain/value-objects/year";
 

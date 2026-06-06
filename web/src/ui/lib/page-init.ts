@@ -1,4 +1,4 @@
-import type { ContributionDay } from "../../domain/entities/contribution-day";
+import type { ContributionDay } from "../../domain/entities/types";
 import type { ContributionLevel } from "../../domain/value-objects/contribution-level";
 
 interface ContributionsResponse {

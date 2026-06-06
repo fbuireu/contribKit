@@ -1,5 +1,5 @@
 ---
-import { type Metadata, OgType } from "./metadata";
+import { type Metadata, OgType } from "./types";
 
 interface Props {
 	metadata: Metadata;
@@ -13,7 +13,6 @@ const { title, description, url, image, imageAlt, robots = "index, follow", type
 {description && <meta name="description" content={description} />}
 <meta name="robots" content={robots} />
 {url && <link rel="canonical" href={url} />}
-
 <meta property="og:site_name" content="ContribKit" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:title" content={title} />
@@ -26,7 +25,6 @@ const { title, description, url, image, imageAlt, robots = "index, follow", type
 {image && <meta property="og:image:height" content="630" />}
 {image && <meta property="og:image:type" content="image/png" />}
 {image && imageAlt && <meta property="og:image:alt" content={imageAlt} />}
-
 <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
 <meta name="twitter:site" content="@contribkit" />
 <meta name="twitter:creator" content="@fbuireu" />

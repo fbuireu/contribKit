@@ -13,7 +13,7 @@ import {
 	SVG_PAD_Y,
 	SVG_WEEKS,
 } from "@domain/services/svg-geometry";
-import type { SvgRenderer, SvgRendererParams } from "@domain/services/svg-renderer";
+import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
 import { DOW, MONTHS } from "@domain/value-objects/calendar-labels";
 import type { ShapeKind } from "@domain/value-objects/shape";
 

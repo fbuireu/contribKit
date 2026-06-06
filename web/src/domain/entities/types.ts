@@ -5,3 +5,9 @@ export interface ContributionDay {
 	readonly level: ContributionLevel;
 	readonly count: number | null;
 }
+
+export interface ContributionCalendar {
+	readonly username: string;
+	readonly days: readonly ContributionDay[];
+	readonly total: number | null;
+}
