@@ -1,3 +1,10 @@
+# [contribkit-web-v1.9.3](https://github.com/fbuireu/contribKit/compare/web-v1.9.2...web-v1.9.3) (2026-06-06)
+
+
+### Bug Fixes
+
+* css structure ([e3ceca0](https://github.com/fbuireu/contribKit/commit/e3ceca0818c55509a29c1d7e840d4ad4bb65368b))
+
 # [contribkit-web-v1.9.2](https://github.com/fbuireu/contribKit/compare/web-v1.9.1...web-v1.9.2) (2026-06-06)
 
 
