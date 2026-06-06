@@ -1,4 +1,4 @@
-import { type Failure, invalidInput } from "../failures/failure";
+import { type Failure, FailureField, invalidInput } from "../failures/failure";
 
 const GITHUB_LAUNCH_YEAR = 2005;
 
@@ -10,10 +10,10 @@ export interface Year {
 export const parseYear = (input: number | string | null | undefined): Year | null | Failure => {
 	if (input == null || input === "") return null;
 	const year = typeof input === "number" ? input : Number.parseInt(input, 10);
-	if (!Number.isInteger(year)) return invalidInput("year", "Year must be an integer");
+	if (!Number.isInteger(year)) return invalidInput(FailureField.Year, "Year must be an integer");
 	const current = new Date().getFullYear();
 	if (year < GITHUB_LAUNCH_YEAR || year > current) {
-		return invalidInput("year", `Year must be between ${GITHUB_LAUNCH_YEAR} and ${current}`);
+		return invalidInput(FailureField.Year, `Year must be between ${GITHUB_LAUNCH_YEAR} and ${current}`);
 	}
 	return { _tag: "Year", value: year };
 };

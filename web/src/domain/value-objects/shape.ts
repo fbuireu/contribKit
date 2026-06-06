@@ -1,6 +1,14 @@
 import shapes from "@shared/shapes.json" with { type: "json" };
 
-export type ShapeKind = "rounded" | "square" | "circle" | "dot" | "hex";
+export const ShapeKind = {
+	Rounded: "rounded",
+	Square: "square",
+	Circle: "circle",
+	Dot: "dot",
+	Hex: "hex",
+} as const;
+
+export type ShapeKind = (typeof ShapeKind)[keyof typeof ShapeKind];
 
 export const SHAPE_KINDS: readonly ShapeKind[] = shapes.map((s) => s.key) as ShapeKind[];
 

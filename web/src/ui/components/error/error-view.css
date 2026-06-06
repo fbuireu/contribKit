@@ -1,12 +1,4 @@
 .error-page {
-	--grid-on: var(--contrib-peak);
-	--grid-spark-1: var(--contrib-low);
-	--grid-spark-2: var(--contrib-mid);
-	--grid-empty: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.028));
-	--err-accent: var(--accent);
-	--err-glow: color-mix(in srgb, var(--accent) 55%, transparent);
-	--err-btn-fg: light-dark(#f4fff7, #06140d);
-
 	position: relative;
 	display: flex;
 	flex-direction: column;
@@ -18,11 +10,11 @@
 }
 .error-page.is-danger {
 	--grid-on: var(--danger);
-	--grid-spark-1: light-dark(#f3b6bd, #3b1620);
-	--grid-spark-2: light-dark(#e07a88, #7a2230);
-	--err-accent: var(--danger);
-	--err-glow: color-mix(in srgb, var(--danger) 55%, transparent);
-	--err-btn-fg: light-dark(#fff5f6, #1c0709);
+	--grid-spark-1: var(--grid-spark-1-danger);
+	--grid-spark-2: var(--grid-spark-2-danger);
+	--error-accent: var(--danger);
+	--error-glow: color-mix(in srgb, var(--danger) 55%, transparent);
+	--error-button-foreground: var(--error-button-foreground-danger);
 }
 
 .error-glow {
@@ -30,7 +22,7 @@
 	inset: 0;
 	z-index: 0;
 	pointer-events: none;
-	background: radial-gradient(ellipse 47.5rem 32.5rem at 50% 34%, var(--err-glow), transparent 64%);
+	background: radial-gradient(ellipse 47.5rem 32.5rem at 50% 34%, var(--error-glow), transparent 64%);
 	opacity: 0.4;
 }
 .error-texture {
@@ -42,8 +34,7 @@
 		linear-gradient(var(--overlay) 0.0625rem, transparent 0.0625rem),
 		linear-gradient(90deg, var(--overlay) 0.0625rem, transparent 0.0625rem);
 	background-size: 2rem 2rem;
-	-webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 80%);
-	mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 80%);
+	mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, var(--black) 20%, transparent 80%);
 }
 
 .error-main {
@@ -71,7 +62,7 @@
 	margin: 0 0 1rem;
 	font-size: 0.75rem;
 	letter-spacing: 0.04em;
-	color: var(--err-accent);
+	color: var(--error-accent);
 	white-space: nowrap;
 	max-width: 100%;
 	overflow: hidden;
@@ -99,7 +90,7 @@
 	margin-bottom: 2rem;
 	border: 0.0625rem solid var(--border);
 	border-radius: 0.75rem;
-	background: light-dark(#f7f7f8, #0c0c0f);
+	background: var(--terminal-background);
 	overflow: hidden;
 	text-align: left;
 }
@@ -117,13 +108,13 @@
 	border-radius: 50%;
 }
 .error-term-dot:nth-child(1) {
-	background: #ff5f57;
+	background: var(--terminal-red);
 }
 .error-term-dot:nth-child(2) {
-	background: #febc2e;
+	background: var(--terminal-yellow);
 }
 .error-term-dot:nth-child(3) {
-	background: #28c840;
+	background: var(--terminal-green);
 }
 .error-term-path {
 	margin-left: 0.5rem;
@@ -151,7 +142,7 @@
 	color: var(--text);
 }
 .error-term-text.is-err {
-	color: var(--err-accent);
+	color: var(--error-accent);
 	font-weight: 500;
 }
 .error-term-text.is-out {
@@ -162,7 +153,7 @@
 	width: 0.4375rem;
 	height: 0.875rem;
 	transform: translateY(0.125rem);
-	background: var(--err-accent);
+	background: var(--error-accent);
 	animation: blink 1.1s steps(2) infinite;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -202,9 +193,9 @@
 	transform: translateY(-0.0625rem);
 }
 .error-btn-primary {
-	background: var(--err-accent);
-	border-color: var(--err-accent);
-	color: var(--err-btn-fg);
+	background: var(--error-accent);
+	border-color: var(--error-accent);
+	color: var(--error-button-foreground);
 	font-weight: 600;
 }
 .error-btn-ghost {

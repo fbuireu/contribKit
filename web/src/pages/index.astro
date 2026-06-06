@@ -1,7 +1,7 @@
 ---
 import { fetchContributions } from "@application/use-cases/fetch-contributions";
 import { PALETTES } from "@domain/value-objects/palette";
-import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
+import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
 import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
 import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
 import CellTip from "@ui/components/CellTip.astro";
@@ -80,7 +80,14 @@ if (initial.ok) {
 const summary = summarize(cells);
 if (initial.ok && initial.data.total) summary.count = initial.data.total;
 
-const heroSVG = renderCalendarString({ cells, palette: CLASSIC, shape: "rounded", size: 13, gap: 3, showLabels: true });
+const heroSVG = renderCalendarString({
+	cells,
+	palette: CLASSIC,
+	shape: ShapeKind.Rounded,
+	size: 13,
+	gap: 3,
+	showLabels: true,
+});
 const exportSvg = renderCalendarString({
 	cells,
 	palette: CLASSIC,

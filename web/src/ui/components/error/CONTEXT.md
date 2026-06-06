@@ -17,8 +17,8 @@ the Astro port of the `claude.ai/design` handoff (`ErrorPage` + `ErrorGrid`).
   eyebrow/terminal copy from `Astro.url.pathname`, never fetched here.
 - `ErrorView`/`ContributionCode` are generic over the code + tone; `404.astro` and
   `500.astro` reuse the exact same components — do not fork a second copy.
-- Tone switching is token-only: `.error-page.is-danger` remaps `--grid-*`/`--err-accent`
-  to the red ramp. Green path uses the `--contrib-*` + `--accent` tokens. Never inline hex
-  in the components.
+- Tone switching is token-only: the base `--grid-*`/`--error-*` tokens live in global
+  `:root`, and `.error-page.is-danger` remaps them to the red ramp. Green path uses the
+  `--contrib-*` + `--accent` tokens. Never inline hex in the components.
 - Report link deep-links to the **bug** template (`/issues/new?template=bug_report.yml`),
   pre-selecting it instead of landing on the chooser.

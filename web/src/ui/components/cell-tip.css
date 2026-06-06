@@ -14,8 +14,8 @@
 	letter-spacing: 0.01em;
 	white-space: nowrap;
 	box-shadow:
-		0 0.25rem 0.75rem rgba(0, 0, 0, 0.18),
-		0 0.75rem 2rem rgba(0, 0, 0, 0.28);
+		0 0.25rem 0.75rem color-mix(in srgb, var(--black), transparent 82%),
+		0 0.75rem 2rem color-mix(in srgb, var(--black), transparent 72%);
 	pointer-events: none;
 	opacity: 0;
 	transform: translateY(0.125rem);

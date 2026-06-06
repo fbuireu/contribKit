@@ -154,7 +154,7 @@
 	color: var(--text-dimmer);
 }
 .c-attr {
-	color: light-dark(#2563eb, #7fb0ff);
+	color: var(--link);
 }
 .c-str {
 	color: var(--accent);

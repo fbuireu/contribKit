@@ -8,8 +8,16 @@
 	position: absolute;
 	inset: 0;
 	background:
-		radial-gradient(ellipse 50rem 25rem at 50% -10%, rgba(57, 211, 83, 0.1), transparent 60%),
-		radial-gradient(ellipse 37.5rem 18.75rem at 50% 100%, rgba(57, 211, 83, 0.04), transparent 60%);
+		radial-gradient(
+			ellipse 50rem 25rem at 50% -10%,
+			color-mix(in srgb, var(--accent) 10%, transparent),
+			transparent 60%
+		),
+		radial-gradient(
+			ellipse 37.5rem 18.75rem at 50% 100%,
+			color-mix(in srgb, var(--accent) 4%, transparent),
+			transparent 60%
+		);
 	pointer-events: none;
 }
 .meta {
@@ -90,12 +98,12 @@
 	font-weight: 400;
 }
 .btn-store {
-	background: #000;
-	color: #fff;
-	border-color: #333;
+	background: var(--black);
+	color: var(--white);
+	border-color: color-mix(in oklch, var(--black), var(--white) 32%);
 }
 .btn-store:hover {
-	background: #1a1a1a;
+	background: color-mix(in oklch, var(--black), var(--white) 22%);
 }
 .btn-store--soon {
 	opacity: 0.45;
@@ -260,7 +268,7 @@
 }
 .hero-card {
 	position: relative;
-	background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+	background: linear-gradient(180deg, var(--surface) 0%, var(--background) 100%);
 	border: 0.0625rem solid var(--border);
 	border-radius: 0.875rem;
 	padding: 1rem 1.125rem 0.875rem;
@@ -297,13 +305,13 @@
 	border-radius: 50%;
 }
 .bar-dots span:nth-child(1) {
-	background: #ff5f57;
+	background: var(--terminal-red);
 }
 .bar-dots span:nth-child(2) {
-	background: #febc2e;
+	background: var(--terminal-yellow);
 }
 .bar-dots span:nth-child(3) {
-	background: #28c840;
+	background: var(--terminal-green);
 }
 .bar-title {
 	font-size: 0.75rem;
@@ -397,7 +405,7 @@
 .hero-error {
 	font-family: var(--font-mono);
 	font-size: 0.75rem;
-	color: light-dark(#b91c1c, #f87171);
+	color: var(--danger);
 	margin: 0 0 1.25rem;
 }
 @media (max-width: 37.5rem) {

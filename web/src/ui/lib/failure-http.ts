@@ -1,10 +1,10 @@
-import type { Failure } from "@domain/failures/failure";
+import { type Failure, FailureKind } from "@domain/failures/failure";
 
 const STATUS_BY_KIND: Record<Failure["kind"], number> = {
-	NotFound: 404,
-	InvalidInput: 400,
-	Network: 502,
-	Parse: 502,
+	[FailureKind.NotFound]: 404,
+	[FailureKind.InvalidInput]: 400,
+	[FailureKind.Network]: 502,
+	[FailureKind.Parse]: 502,
 };
 
 export const isFailure = (value: unknown): value is Failure =>
@@ -13,4 +13,4 @@ export const isFailure = (value: unknown): value is Failure =>
 export const statusFor = (failure: Failure): number => STATUS_BY_KIND[failure.kind];
 
 export const messageFor = (failure: Failure): string =>
-	failure.kind === "NotFound" ? "User not found" : failure.message;
+	failure.kind === FailureKind.NotFound ? "User not found" : failure.message;

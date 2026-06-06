@@ -11,7 +11,7 @@ import {
 	SVG_PAD_Y,
 	SVG_WEEKS,
 } from "@domain/services/svg-geometry";
-import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
+import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
 import { type Cell, DOW, MONTHS, type RenderCalendarParams } from "./calendar-utils";
 import { TOTALS_PER_LEVEL } from "./contribution";
 
@@ -66,9 +66,9 @@ export function renderCalendarString({
 			const y = dayIndex * cellWidth;
 			const count = cell.count ?? TOTALS_PER_LEVEL[level];
 			const data = ` data-date="${cell.date}" data-count="${count}"`;
-			if (shape === "dot") {
+			if (shape === ShapeKind.Dot) {
 				parts.push(`<circle cx="${x + size / 2}" cy="${y + size / 2}" r="${dotRadius(level)}" fill="${fill}"${data}/>`);
-			} else if (shape === "hex") {
+			} else if (shape === ShapeKind.Hex) {
 				const points = hexPoints({ cx: x + size / 2, cy: y + size / 2, radius: size / 2 });
 				parts.push(`<polygon points="${points}" fill="${fill}"${data}/>`);
 			} else {
@@ -82,14 +82,14 @@ export function renderCalendarString({
 
 export function shapePreviewSVG(kind: string): string {
 	const fill = "#39D353";
-	if (kind === "dot")
+	if (kind === ShapeKind.Dot)
 		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="3.2" fill="${fill}"/></svg>`;
-	if (kind === "circle")
+	if (kind === ShapeKind.Circle)
 		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="${fill}"/></svg>`;
-	if (kind === "hex") {
+	if (kind === ShapeKind.Hex) {
 		const points = hexPoints({ cx: 10, cy: 10, radius: 7 });
 		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><polygon points="${points}" fill="${fill}"/></svg>`;
 	}
-	const borderRadius = kind === "rounded" ? 2.5 : 0;
+	const borderRadius = kind === ShapeKind.Rounded ? 2.5 : 0;
 	return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="${borderRadius}" fill="${fill}"/></svg>`;
 }

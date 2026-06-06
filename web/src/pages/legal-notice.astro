@@ -2,16 +2,12 @@
 import type { Metadata } from "@ui/components/core/metadata";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import "@ui/components/legal.css";
+import { decrypt, type ShuffledData } from "@ui/lib/crypto";
 
 const TITLE = "Legal Notice — ContribKit";
 const EFFECTIVE_DATE = "2026-06-03";
 
 const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
-
-interface ShuffledData {
-	letter: string;
-	order: number;
-}
 
 const OWNER_NAME: ShuffledData[] = [
 	{ letter: "u", order: 12 },
@@ -91,12 +87,6 @@ const OWNER_ADDRESS: ShuffledData[] = [
 	{ letter: "r", order: 34 },
 	{ letter: ",", order: 41 },
 ];
-
-const decrypt = (data: ShuffledData[]) =>
-	[...data]
-		.sort((a, b) => a.order - b.order)
-		.map((p) => p.letter)
-		.join("");
 ---
 
 <BaseLayout metadata={metadata}>

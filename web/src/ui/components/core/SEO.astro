@@ -1,12 +1,12 @@
 ---
-import type { Metadata } from "./metadata";
+import { type Metadata, OgType } from "./metadata";
 
 interface Props {
 	metadata: Metadata;
 }
 
 const { metadata } = Astro.props;
-const { title, description, url, image, imageAlt, robots = "index, follow", type = "website" } = metadata;
+const { title, description, url, image, imageAlt, robots = "index, follow", type = OgType.Website } = metadata;
 ---
 
 <title>{title}</title>

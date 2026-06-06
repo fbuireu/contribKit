@@ -1,7 +1,8 @@
 ---
 import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import type { Metadata } from "@ui/components/core/metadata";
-import ErrorView, { type TerminalLine } from "@ui/components/error/ErrorView.astro";
+import ErrorView from "@ui/components/error/ErrorView.astro";
+import { type TerminalLine, TerminalLineKind } from "@ui/components/error/terminal-line";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 import { logServerError } from "@ui/lib/log-server-error";
 
@@ -18,9 +19,9 @@ const executionContext = (Astro.locals as { cfContext?: ExecutionContext }).cfCo
 logServerError({ logger: getLogger(executionContext), error, path });
 
 const terminal: TerminalLine[] = [
-	{ kind: "cmd", text: `contribkit render ${path}` },
-	{ kind: "err", text: "error: 500 — render pipeline crashed (E_RENDER)" },
-	{ kind: "out", text: "trace: 8f3c1a · reported automatically" },
+	{ kind: TerminalLineKind.Command, text: `contribkit render ${path}` },
+	{ kind: TerminalLineKind.Error, text: "error: 500 — render pipeline crashed (E_RENDER)" },
+	{ kind: TerminalLineKind.Output, text: "trace: 8f3c1a · reported automatically" },
 ];
 
 Astro.response.status = 500;

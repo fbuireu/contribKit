@@ -1,29 +1,53 @@
 :root {
 	color-scheme: light dark;
 
-	--bg: light-dark(#fafafa, #09090b);
-	--surface: light-dark(#ffffff, #0d0d10);
-	--surface-raised: light-dark(#f4f4f5, #111114);
-	--surface-high: light-dark(#e9e9ec, #161619);
-	--border: light-dark(#e4e4e7, #1a1a1d);
-	--border-strong: light-dark(#d4d4d8, #232328);
-	--text: light-dark(#18181b, #f4f4f5);
-	--text-dim: light-dark(#52525a, #a1a1aa);
-	--text-dimmer: light-dark(#757575, #737373);
-	--text-faint: light-dark(#d4d4d8, #2e2e33);
-	--overlay: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.04));
-	--overlay-strong: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
-	--shadow: light-dark(rgba(15, 15, 20, 0.08), rgba(0, 0, 0, 0.55));
-	--tag-background: light-dark(rgba(255, 255, 255, 0.7), rgba(9, 9, 11, 0.7));
-	--topnav-background: light-dark(rgba(255, 255, 255, 0.75), rgba(9, 9, 11, 0.7));
+	--white: oklch(100% 0 0);
+	--black: oklch(0% 0 0);
 
-	--contrib-none: light-dark(#ebedf0, #161b22);
-	--contrib-low: light-dark(#9be9a8, #0e4429);
-	--contrib-mid: light-dark(#40c463, #006d32);
-	--contrib-high: light-dark(#30a14e, #26a641);
-	--contrib-peak: light-dark(#216e39, #39d353);
-	--accent: light-dark(#1a7f37, #39d353);
-	--danger: light-dark(#d1242f, #ff7b72);
+	--background: light-dark(oklch(98.51% 0 0), oklch(14.08% 0.0044 285.82));
+	--surface: light-dark(oklch(100% 0 0), oklch(16.05% 0.0063 285.67));
+	--surface-raised: light-dark(oklch(96.74% 0.0013 286.38), oklch(17.9% 0.0061 285.77));
+	--surface-high: color-mix(in oklch, var(--surface), var(--text) 7%);
+	--border: light-dark(oklch(91.97% 0.004 286.32), oklch(21.91% 0.0058 285.91));
+	--border-strong: color-mix(in oklch, var(--border), var(--text) 6%);
+	--text: light-dark(oklch(21.03% 0.0059 285.89), oklch(96.74% 0.0013 286.38));
+	--text-dim: light-dark(oklch(44.15% 0.013 285.86), oklch(71.18% 0.0129 286.07));
+	--text-dimmer: color-mix(in oklch, var(--text), var(--background) 47%);
+	--text-faint: color-mix(in oklch, var(--text), var(--background) 83%);
+	--overlay: light-dark(oklch(0% 0 0 / 0.04), oklch(100% 0 0 / 0.04));
+	--overlay-strong: light-dark(oklch(0% 0 0 / 0.08), oklch(100% 0 0 / 0.08));
+	--shadow: light-dark(oklch(17.08% 0.0103 285.25 / 0.08), oklch(0% 0 0 / 0.55));
+	--tag-background: light-dark(oklch(100% 0 0 / 0.7), oklch(14.08% 0.0044 285.82 / 0.7));
+	--topnav-background: light-dark(oklch(100% 0 0 / 0.75), oklch(14.08% 0.0044 285.82 / 0.7));
+
+	--contrib-none: light-dark(oklch(94.54% 0.0046 258.32), oklch(22.02% 0.0157 256.82));
+	--contrib-low: light-dark(oklch(86.66% 0.1182 148.74), oklch(34.42% 0.073 156.73));
+	--contrib-mid: light-dark(oklch(72.67% 0.1781 148.54), oklch(46.78% 0.1263 150.86));
+	--contrib-high: light-dark(oklch(62.7% 0.157 148.35), oklch(63.65% 0.1777 146.24));
+	--contrib-peak: light-dark(oklch(47.79% 0.1122 150.02), oklch(76.19% 0.2121 145.62));
+	--accent: light-dark(oklch(52.44% 0.1401 148.04), oklch(76.19% 0.2121 145.62));
+	--danger: light-dark(oklch(55.67% 0.2056 24.61), oklch(73.45% 0.1626 25.78));
+	--link: light-dark(oklch(54.61% 0.2152 262.88), oklch(75.48% 0.1261 259.64));
+
+	--grid-on: var(--contrib-peak);
+	--grid-spark-1: var(--contrib-low);
+	--grid-spark-2: var(--contrib-mid);
+	--grid-spark-1-danger: light-dark(oklch(83.4% 0.0713 11.07), oklch(26% 0.0595 5.16));
+	--grid-spark-2-danger: light-dark(oklch(69.65% 0.1268 12.19), oklch(39.54% 0.1212 15.59));
+	--grid-empty: light-dark(oklch(0% 0 0 / 0.05), oklch(100% 0 0 / 0.028));
+	--error-button-foreground-accent: light-dark(oklch(98.96% 0.0156 154.48), oklch(17.54% 0.0252 161.41));
+	--error-button-foreground-danger: light-dark(oklch(97.82% 0.0108 10.33), oklch(16.58% 0.0377 15.52));
+	--error-accent: var(--accent);
+	--error-glow: color-mix(in srgb, var(--accent) 55%, transparent);
+	--error-button-foreground: var(--error-button-foreground-accent);
+
+	--terminal-background: light-dark(oklch(97.64% 0.0013 286.38), oklch(15.58% 0.0063 285.64));
+	--terminal-red: oklch(69.36% 0.1964 26.36);
+	--terminal-yellow: oklch(83.48% 0.1612 80.91);
+	--terminal-green: oklch(72.8% 0.2173 144.71);
+	--device-frame: oklch(16.05% 0.0063 285.67);
+	--device-screen-top: oklch(18.29% 0.0127 270.63);
+	--device-screen-bottom: oklch(14.92% 0.0093 263.97);
 
 	accent-color: var(--accent);
 	scrollbar-color: var(--text-faint) transparent;
@@ -54,10 +78,11 @@ body {
 }
 html {
 	scroll-behavior: smooth;
+	scrollbar-gutter: stable;
 }
 
 body {
-	background: var(--bg);
+	background: var(--background);
 	color: var(--text);
 	font-family: var(--font-ui);
 	font-feature-settings: "ss01", "cv11";

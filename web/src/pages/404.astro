@@ -1,6 +1,7 @@
 ---
 import type { Metadata } from "@ui/components/core/metadata";
-import ErrorView, { type TerminalLine } from "@ui/components/error/ErrorView.astro";
+import ErrorView from "@ui/components/error/ErrorView.astro";
+import { type TerminalLine, TerminalLineKind } from "@ui/components/error/terminal-line";
 import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
 
 const path = Astro.url.pathname || "/";
@@ -12,9 +13,9 @@ const metadata: Metadata = {
 };
 
 const terminal: TerminalLine[] = [
-	{ kind: "cmd", text: `contribkit open ${path}` },
-	{ kind: "err", text: "error: 404 — nothing committed at this path" },
-	{ kind: "out", text: "hint: this page ghosted us 👻" },
+	{ kind: TerminalLineKind.Command, text: `contribkit open ${path}` },
+	{ kind: TerminalLineKind.Error, text: "error: 404 — nothing committed at this path" },
+	{ kind: TerminalLineKind.Output, text: "hint: this page ghosted us 👻" },
 ];
 
 Astro.response.status = 404;

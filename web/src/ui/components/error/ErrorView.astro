@@ -1,11 +1,7 @@
 ---
 import "./error-view.css";
 import ContributionCode from "./ContributionCode.astro";
-
-export interface TerminalLine {
-	kind: "cmd" | "err" | "out";
-	text: string;
-}
+import { type TerminalLine, TerminalLineKind } from "./terminal-line";
 
 interface Props {
 	code: number;
@@ -56,7 +52,7 @@ const seed = code === 500 ? 7 : 3;
         {
           terminal.map((line) => (
             <p class="error-term-line">
-              <span class="error-term-prompt" aria-hidden="true">{line.kind === "cmd" ? "$" : " "}</span>
+              <span class="error-term-prompt" aria-hidden="true">{line.kind === TerminalLineKind.Command ? "$" : " "}</span>
               <span class:list={["error-term-text", `is-${line.kind}`]}>{line.text}</span>
             </p>
           ))
