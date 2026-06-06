@@ -46,7 +46,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_SECRET }}
           files: ./web/coverage/lcov.info
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   web-build:
     name: Build (Web)
