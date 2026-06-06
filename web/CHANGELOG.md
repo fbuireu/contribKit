@@ -1,3 +1,10 @@
+# [contribkit-web-v1.9.2](https://github.com/fbuireu/contribKit/compare/web-v1.9.1...web-v1.9.2) (2026-06-06)
+
+
+### Bug Fixes
+
+* css normalization ([22d5b87](https://github.com/fbuireu/contribKit/commit/22d5b8755bb5a9ee8a54401e36cc04e159480963))
+
 # [contribkit-web-v1.9.1](https://github.com/fbuireu/contribKit/compare/web-v1.9.0...web-v1.9.1) (2026-06-05)
 
 
