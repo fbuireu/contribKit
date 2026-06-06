@@ -1,3 +1,10 @@
+# [contribkit-web-v1.9.4](https://github.com/fbuireu/contribKit/compare/web-v1.9.3...web-v1.9.4) (2026-06-06)
+
+
+### Bug Fixes
+
+* folder struct + tests ([e46ab90](https://github.com/fbuireu/contribKit/commit/e46ab9062a5f12a396f1eb3371f03d4869711cce))
+
 # [contribkit-web-v1.9.3](https://github.com/fbuireu/contribKit/compare/web-v1.9.2...web-v1.9.3) (2026-06-06)
 
 
