@@ -1,3 +1,10 @@
+# [contribkit-web-v1.10.2](https://github.com/fbuireu/contribKit/compare/web-v1.10.1...web-v1.10.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* add store link ([95e6bb8](https://github.com/fbuireu/contribKit/commit/95e6bb807deca70d366316eea26ef5806770f8d1))
+
 # [contribkit-web-v1.10.1](https://github.com/fbuireu/contribKit/compare/web-v1.10.0...web-v1.10.1) (2026-06-07)
 
 
