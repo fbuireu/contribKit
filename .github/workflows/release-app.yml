@@ -204,7 +204,7 @@ jobs:
           echo "Release notes for versionCode ${VERSION_CODE}:"
           cat "$DEST/${VERSION_CODE}.txt"
           {
-            echo "### 📝 Play release notes — versionCode ${VERSION_CODE}"
+            echo "### 📝 Google Play release notes — versionCode ${VERSION_CODE}"
             echo '```text'
             cat "$DEST/${VERSION_CODE}.txt"
             echo '```'
