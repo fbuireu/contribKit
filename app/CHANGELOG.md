@@ -1,3 +1,10 @@
+# [contribkit-app-v1.2.1](https://github.com/fbuireu/contribKit/compare/app-v1.2.0...app-v1.2.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* add multi_json ci ([5cd2cff](https://github.com/fbuireu/contribKit/commit/5cd2cff0cdfdd25f161e9172bf2d92a52df1d542))
+
 # [contribkit-app-v1.2.0](https://github.com/fbuireu/contribKit/compare/app-v1.1.0...app-v1.2.0) (2026-06-07)
 
 
