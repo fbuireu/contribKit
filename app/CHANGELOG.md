@@ -1,3 +1,10 @@
+# [contribkit-app-v1.2.2](https://github.com/fbuireu/contribKit/compare/app-v1.2.1...app-v1.2.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* minor rename ([b09517f](https://github.com/fbuireu/contribKit/commit/b09517f3a1442bb86957fd5f9f07fab23d1fda6d))
+
 # [contribkit-app-v1.2.1](https://github.com/fbuireu/contribKit/compare/app-v1.2.0...app-v1.2.1) (2026-06-07)
 
 
