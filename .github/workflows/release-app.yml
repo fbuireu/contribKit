@@ -182,7 +182,7 @@ jobs:
         run: |
           VERSION_CODE=$(grep '^version:' pubspec.yaml | sed -E "$EXTRACT_VERSION_CODE")
           if [ -z "$VERSION_CODE" ] || [ ! -f CHANGELOG.md ]; then
-            echo "No version code or CHANGELOG.md found; leaving release notes untouched."
+            echo "No version code or CHANGELOG.md found; leaving release notes untouched." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           NOTES=$(awk "$KEEP_LATEST_SECTION" CHANGELOG.md \
@@ -195,7 +195,7 @@ jobs:
             | sed -E "$DROP_BLANK_LINES")
           NOTES=$(printf '%s' "$NOTES" | head -c "$GOOGLE_PLAY_NOTES_MAX_CHARS")
           if [ -z "$NOTES" ]; then
-            echo "Empty notes after parsing; leaving release notes untouched."
+            echo "Empty notes after parsing; leaving release notes untouched." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           DEST=android/fastlane/metadata/android/en-US/changelogs
@@ -203,6 +203,12 @@ jobs:
           printf '%s\n' "$NOTES" > "$DEST/${VERSION_CODE}.txt"
           echo "Release notes for versionCode ${VERSION_CODE}:"
           cat "$DEST/${VERSION_CODE}.txt"
+          {
+            echo "### 📝 Play release notes — versionCode ${VERSION_CODE}"
+            echo '```text'
+            cat "$DEST/${VERSION_CODE}.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload to Google Play
         working-directory: app/android
