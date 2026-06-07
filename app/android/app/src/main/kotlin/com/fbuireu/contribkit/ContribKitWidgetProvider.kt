@@ -7,6 +7,7 @@ import android.content.Intent
 import android.app.PendingIntent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
@@ -90,7 +91,7 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             if (imagePath != null) {
                 val raw = BitmapFactory.decodeFile(imagePath)
                 if (raw != null) {
-                    val bitmap = scaleBitmapForWidget(context, appWidgetManager, widgetId, raw)
+                    val bitmap = fitGridToWidget(context, appWidgetManager, widgetId, raw)
                     views.setImageViewBitmap(R.id.widget_image, bitmap)
                     views.setViewVisibility(R.id.widget_image, View.VISIBLE)
                     views.setViewVisibility(R.id.widget_placeholder, View.GONE)
@@ -120,27 +121,34 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun scaleBitmapForWidget(
+    private fun fitGridToWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         widgetId: Int,
         src: Bitmap,
     ): Bitmap {
         val opts = appWidgetManager.getAppWidgetOptions(widgetId)
-        val widgetWDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 0)
+        val wDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+        val hDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
         val density = context.resources.displayMetrics.density
 
         val horzInsetDp = (8 + 12) * 2
+        val vertInsetDp = (8 + 12) * 2 + 16 + 14 + 14
 
-        val targetW = if (widgetWDp > 0)
-            ((widgetWDp - horzInsetDp) * density).roundToInt().coerceIn(80, 1600)
-        else 1000
+        val areaW = if (wDp > 0)
+            ((wDp - horzInsetDp) * density).roundToInt().coerceIn(1, 2000)
+        else src.width.coerceAtMost(1000)
+        val areaH = if (hDp > 0)
+            ((hDp - vertInsetDp) * density).roundToInt().coerceIn(1, 2000)
+        else (areaW * src.height / src.width).coerceAtLeast(1)
 
-        if (src.width <= targetW) return src
+        val scale = areaH.toFloat() / src.height
+        val scaledW = (src.width * scale).roundToInt().coerceAtLeast(1)
+        val scaled = Bitmap.createScaledBitmap(src, scaledW, areaH, true)
 
-        val scale = targetW.toFloat() / src.width
-        val targetH = (src.height * scale).roundToInt().coerceAtLeast(1)
-
-        return Bitmap.createScaledBitmap(src, targetW, targetH, true)
+        val out = Bitmap.createBitmap(areaW, areaH, Bitmap.Config.ARGB_8888)
+        Canvas(out).drawBitmap(scaled, (areaW - scaledW).toFloat(), 0f, null)
+        if (scaled !== src) scaled.recycle()
+        return out
     }
 }
