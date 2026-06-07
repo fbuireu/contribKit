@@ -24,6 +24,7 @@ interface Square {
 	cls: string;
 }
 
+const random = mulberry32(seed);
 const background: Square[] = [];
 const glyph: Square[] = [];
 matrix.forEach((cells, rowIndex) => {
@@ -32,7 +33,7 @@ matrix.forEach((cells, rowIndex) => {
 		if (isFilled) {
 			glyph.push(square);
 		} else {
-			const level = noiseLevel(mulberry32(seed)());
+			const level = noiseLevel(random());
 			square.cls = level === 0 ? "cc-empty" : level === 1 ? "cc-spark-1" : "cc-spark-2";
 			background.push(square);
 		}
