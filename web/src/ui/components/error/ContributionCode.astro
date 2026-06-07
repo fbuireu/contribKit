@@ -11,17 +11,17 @@ interface Props {
 const { digits, seed = 3 } = Astro.props;
 
 const matrix = digitsToMatrix(digits);
-const cols = matrix[0]?.length ?? 0;
-const SIZE = 18;
-const GAP = 5;
-const CELL = SIZE + GAP;
-const width = cols * CELL - GAP;
-const height = matrix.length * CELL - GAP;
+const columns = matrix[0]?.length ?? 0;
+const CELL_SIZE = 18;
+const CELL_GAP = 5;
+const CELL_STEP = CELL_SIZE + CELL_GAP;
+const width = columns * CELL_STEP - CELL_GAP;
+const height = matrix.length * CELL_STEP - CELL_GAP;
 
 interface Square {
 	x: number;
 	y: number;
-	cls: string;
+	className: string;
 }
 
 const random = mulberry32(seed);
@@ -29,12 +29,12 @@ const background: Square[] = [];
 const glyph: Square[] = [];
 matrix.forEach((cells, rowIndex) => {
 	cells.forEach((isFilled, colIndex) => {
-		const square = { x: colIndex * CELL, y: rowIndex * CELL, cls: "" };
+		const square = { x: colIndex * CELL_STEP, y: rowIndex * CELL_STEP, className: "" };
 		if (isFilled) {
 			glyph.push(square);
 		} else {
 			const level = noiseLevel(random());
-			square.cls = level === 0 ? "cc-empty" : level === 1 ? "cc-spark-1" : "cc-spark-2";
+			square.className = level === 0 ? "cc-empty" : level === 1 ? "cc-spark-1" : "cc-spark-2";
 			background.push(square);
 		}
 	});
@@ -50,10 +50,10 @@ matrix.forEach((cells, rowIndex) => {
 >
   {
     background.map((square) => (
-      <rect class={square.cls} x={square.x} y={square.y} width={SIZE} height={SIZE} rx="4" />
+      <rect class={square.className} x={square.x} y={square.y} width={CELL_SIZE} height={CELL_SIZE} rx="4" />
     ))
   }
   <g class="cc-glyph">
-    {glyph.map((square) => <rect x={square.x} y={square.y} width={SIZE} height={SIZE} rx="4" />)}
+    {glyph.map((square) => <rect x={square.x} y={square.y} width={CELL_SIZE} height={CELL_SIZE} rx="4" />)}
   </g>
 </svg>

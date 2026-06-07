@@ -110,8 +110,8 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
         <div class="hero-card-foot">
           <div class="legend" role="img" aria-label="Contribution level: less to more">
             <span class="mono dimmer" aria-hidden="true">less</span>
-            {palette.map((c) => (
-              <span class="legend-sq" style={`background:${c};border-radius:0.125rem`} aria-hidden="true"></span>
+            {palette.map((color) => (
+              <span class="legend-sq" style={`background:${color};border-radius:0.125rem`} aria-hidden="true"></span>
             ))}
             <span class="mono dimmer" aria-hidden="true">more</span>
           </div>

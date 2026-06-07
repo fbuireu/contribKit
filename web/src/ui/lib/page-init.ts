@@ -263,9 +263,9 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 }
 
 function activateRadio(buttons: NodeListOf<HTMLElement>, target: HTMLElement) {
-	buttons.forEach((b) => {
-		b.classList.remove("active");
-		b.setAttribute("aria-checked", "false");
+	buttons.forEach((button) => {
+		button.classList.remove("active");
+		button.setAttribute("aria-checked", "false");
 	});
 	target.classList.add("active");
 	target.setAttribute("aria-checked", "true");
@@ -319,9 +319,9 @@ function initShapeList() {
 }
 
 function activateTab(tabs: NodeListOf<HTMLElement>, target: HTMLElement) {
-	tabs.forEach((t) => {
-		t.classList.remove("active");
-		t.setAttribute("aria-selected", "false");
+	tabs.forEach((tab) => {
+		tab.classList.remove("active");
+		tab.setAttribute("aria-selected", "false");
 	});
 	target.classList.add("active");
 	target.setAttribute("aria-selected", "true");

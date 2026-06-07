@@ -10,9 +10,9 @@ export const mulberry32 = (seed: number): (() => number) => {
 	let state = seed;
 	return () => {
 		state += WEYL_INCREMENT;
-		let t = state;
-		t = Math.imul(t ^ (t >>> FIRST_MIX_SHIFT), t | FIRST_ODD_MASK);
-		t ^= t + Math.imul(t ^ (t >>> SECOND_MIX_SHIFT), t | SECOND_ODD_MASK);
-		return ((t ^ (t >>> FINAL_MIX_SHIFT)) >>> 0) / UINT32_RANGE;
+		let hash = state;
+		hash = Math.imul(hash ^ (hash >>> FIRST_MIX_SHIFT), hash | FIRST_ODD_MASK);
+		hash ^= hash + Math.imul(hash ^ (hash >>> SECOND_MIX_SHIFT), hash | SECOND_ODD_MASK);
+		return ((hash ^ (hash >>> FINAL_MIX_SHIFT)) >>> 0) / UINT32_RANGE;
 	};
 };

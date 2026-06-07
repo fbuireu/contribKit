@@ -56,8 +56,8 @@ export interface HexPointsParams {
 
 export const hexPoints = ({ cx, cy, radius }: HexPointsParams): string => {
 	const points: string[] = [];
-	for (let i = 0; i < 6; i++) {
-		const angle = (Math.PI / 3) * i + Math.PI / 6;
+	for (let vertex = 0; vertex < 6; vertex++) {
+		const angle = (Math.PI / 3) * vertex + Math.PI / 6;
 		points.push(`${(cx + radius * Math.cos(angle)).toFixed(2)},${(cy + radius * Math.sin(angle)).toFixed(2)}`);
 	}
 	return points.join(" ");
