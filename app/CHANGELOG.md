@@ -1,3 +1,11 @@
+# [contribkit-app-v1.2.5](https://github.com/fbuireu/contribKit/compare/app-v1.2.4...app-v1.2.5) (2026-06-07)
+
+
+### Bug Fixes
+
+* grid positioning ([8b1af32](https://github.com/fbuireu/contribKit/commit/8b1af3211007ccea43c71d819c44361dfd6d27ec))
+* ternary ([52e226c](https://github.com/fbuireu/contribKit/commit/52e226cc22fa4887dd332283867789cdc0c71d1d))
+
 # [contribkit-app-v1.2.4](https://github.com/fbuireu/contribKit/compare/app-v1.2.3...app-v1.2.4) (2026-06-07)
 
 
