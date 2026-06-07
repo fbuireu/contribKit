@@ -21,6 +21,9 @@
   "engines": {
     "node": "v26.3.0"
   },
+  "scripts": {
+    "sync:assets": "node scripts/sync-shared-assets.mjs"
+  },
   "devDependencies": {
     "@commitlint/cli": "21.0.2",
     "@commitlint/config-conventional": "21.0.2",

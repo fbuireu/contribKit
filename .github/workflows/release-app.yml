@@ -157,12 +157,52 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
+      - name: Sync shared assets
+        run: cp ../shared/*.json assets/
+
       - name: Build release AAB
         env:
           REVENUECAT_KEY: ${{ secrets.REVENUECAT_KEY }}
         run: |
           printf '{"REVENUECAT_KEY":"%s"}' "$REVENUECAT_KEY" > dart-defines.json
           flutter build appbundle --release --dart-define-from-file=dart-defines.json
+
+      - name: Generate Play release notes from changelog
+        env:
+          EXTRACT_VERSION_CODE: 's/.*\+([0-9]+).*/\1/'
+          KEEP_LATEST_SECTION: '/^# / || /^## / { version_headers++; if (version_headers > 1) exit } { print }'
+          DROP_VERSION_HEADER: '1d'
+          FLATTEN_SUBHEADINGS: 's/^### +//'
+          UNWRAP_MARKDOWN_LINKS: 's/\[([^]]+)\]\([^)]+\)/\1/g'
+          STRIP_BOLD_MARKERS: 's/\*\*([^*]+)\*\*/\1/g'
+          BULLETIZE_LIST_ITEMS: 's/^\* /• /'
+          STRIP_COMMIT_HASHES: 's/ \([0-9a-f]{7,}\)//g'
+          DROP_BLANK_LINES: '/^[[:space:]]*$/d'
+          GOOGLE_PLAY_NOTES_MAX_CHARS: "500"
+        run: |
+          VERSION_CODE=$(grep '^version:' pubspec.yaml | sed -E "$EXTRACT_VERSION_CODE")
+          if [ -z "$VERSION_CODE" ] || [ ! -f CHANGELOG.md ]; then
+            echo "No version code or CHANGELOG.md found; leaving release notes untouched."
+            exit 0
+          fi
+          NOTES=$(awk "$KEEP_LATEST_SECTION" CHANGELOG.md \
+            | sed -E "$DROP_VERSION_HEADER" \
+            | sed -E "$FLATTEN_SUBHEADINGS" \
+            | sed -E "$UNWRAP_MARKDOWN_LINKS" \
+            | sed -E "$STRIP_BOLD_MARKERS" \
+            | sed -E "$BULLETIZE_LIST_ITEMS" \
+            | sed -E "$STRIP_COMMIT_HASHES" \
+            | sed -E "$DROP_BLANK_LINES")
+          NOTES=$(printf '%s' "$NOTES" | head -c "$GOOGLE_PLAY_NOTES_MAX_CHARS")
+          if [ -z "$NOTES" ]; then
+            echo "Empty notes after parsing; leaving release notes untouched."
+            exit 0
+          fi
+          DEST=android/fastlane/metadata/android/en-US/changelogs
+          mkdir -p "$DEST"
+          printf '%s\n' "$NOTES" > "$DEST/${VERSION_CODE}.txt"
+          echo "Release notes for versionCode ${VERSION_CODE}:"
+          cat "$DEST/${VERSION_CODE}.txt"
 
       - name: Upload to Google Play
         working-directory: app/android

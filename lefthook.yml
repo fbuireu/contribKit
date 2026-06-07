@@ -1,3 +1,9 @@
 extends:
   - app/lefthook.yml
   - web/lefthook.yml
+
+pre-commit:
+  commands:
+    sync-shared-assets:
+      glob: "shared/*.json"
+      run: node scripts/sync-shared-assets.mjs --stage
