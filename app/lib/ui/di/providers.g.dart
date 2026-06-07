@@ -95,6 +95,95 @@ final class PalettesProvider
 
 String _$palettesHash() => r'5c1d8546050d32d64065c0ac6bd3eced1f5d7c15';
 
+@ProviderFor(suggestedUsernameRepository)
+final suggestedUsernameRepositoryProvider =
+    SuggestedUsernameRepositoryProvider._();
+
+final class SuggestedUsernameRepositoryProvider
+    extends
+        $FunctionalProvider<
+          SuggestedUsernameRepository,
+          SuggestedUsernameRepository,
+          SuggestedUsernameRepository
+        >
+    with $Provider<SuggestedUsernameRepository> {
+  SuggestedUsernameRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'suggestedUsernameRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$suggestedUsernameRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<SuggestedUsernameRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SuggestedUsernameRepository create(Ref ref) {
+    return suggestedUsernameRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SuggestedUsernameRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SuggestedUsernameRepository>(value),
+    );
+  }
+}
+
+String _$suggestedUsernameRepositoryHash() =>
+    r'581e0e4b9b92c62accc3f753cb157199ea359fbe';
+
+@ProviderFor(suggestedUsernames)
+final suggestedUsernamesProvider = SuggestedUsernamesProvider._();
+
+final class SuggestedUsernamesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<String>>,
+          List<String>,
+          FutureOr<List<String>>
+        >
+    with $FutureModifier<List<String>>, $FutureProvider<List<String>> {
+  SuggestedUsernamesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'suggestedUsernamesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$suggestedUsernamesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<String>> create(Ref ref) {
+    return suggestedUsernames(ref);
+  }
+}
+
+String _$suggestedUsernamesHash() =>
+    r'8cd0577ae742835a2089269eeacc59846e42fc7d';
+
 @ProviderFor(contributionRepository)
 final contributionRepositoryProvider = ContributionRepositoryProvider._();
 
@@ -671,7 +760,7 @@ final class ThemeModeNotifierProvider
   }
 }
 
-String _$themeModeNotifierHash() => r'a16b06aeb9449284499cc96cf64a0affff3437d4';
+String _$themeModeNotifierHash() => r'62e68a3cf625f24b2313f05c3049b4d4b8430b78';
 
 abstract class _$ThemeModeNotifier extends $Notifier<ThemeMode> {
   ThemeMode build();

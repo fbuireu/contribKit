@@ -9,6 +9,7 @@ import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -82,6 +83,7 @@ void callbackDispatcher() {
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await Hive.initFlutter();
 
   await Workmanager().initialize(callbackDispatcher);

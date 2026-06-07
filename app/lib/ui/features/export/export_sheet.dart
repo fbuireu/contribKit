@@ -223,11 +223,14 @@ class _ExportPreview extends StatelessWidget {
                 ),
               ),
             ),
-            ContributionGrid(
-              calendar: calendar,
-              palette: palette,
-              shape: cellShape,
-              cellSize: CellSize.compact,
+            Padding(
+              padding: const EdgeInsets.only(top: Tokens.space8),
+              child: ContributionGrid(
+                calendar: calendar,
+                palette: palette,
+                shape: cellShape,
+                cellSize: CellSize.compact,
+              ),
             ),
             Positioned(
               top: Tokens.space2,

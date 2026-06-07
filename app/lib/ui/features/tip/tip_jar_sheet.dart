@@ -28,10 +28,18 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
   String? _errorId;
 
   static const _meta = {
-    'tip_coffee': (emoji: '☕', label: 'Coffee'),
-    'tip_croissant': (emoji: '🥐', label: 'Croissant'),
-    'tip_lunch': (emoji: '🍱', label: 'Lunch'),
+    'coffee': (emoji: '☕', label: 'Coffee'),
+    'croissant': (emoji: '🥐', label: 'Croissant'),
+    'lunch': (emoji: '🍱', label: 'Lunch'),
   };
+
+  static ({String emoji, String label}) _metaFor(String id) {
+    final key = id.toLowerCase();
+    for (final entry in _meta.entries) {
+      if (key.contains(entry.key)) return entry.value;
+    }
+    return (emoji: '🎁', label: 'Tip');
+  }
 
   @override
   void initState() {
@@ -130,8 +138,8 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
       for (final p in _products!)
         _TierCard(
           product: p,
-          emoji: _meta[p.id]?.emoji ?? '🎁',
-          label: _meta[p.id]?.label ?? p.title,
+          emoji: _metaFor(p.id).emoji,
+          label: _metaFor(p.id).label,
           isPurchasing: _purchasingId == p.id,
           isSuccess: _successId == p.id,
           isError: _errorId == p.id,
@@ -198,8 +206,8 @@ class _TierCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 22)),
-            const SizedBox(width: Tokens.space3),
+            Text(emoji, style: const TextStyle(fontSize: 22, height: 1)),
+            const SizedBox(width: Tokens.space2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

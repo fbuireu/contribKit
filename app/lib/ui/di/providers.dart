@@ -7,8 +7,10 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/purchase_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
+import 'package:contribkit/domain/repositories/suggested_username_repository.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
+import 'package:contribkit/infrastructure/assets/asset_suggested_username_repository.dart';
 import 'package:contribkit/infrastructure/export/markdown_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/export/png_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/export/svg_export_repository_impl.dart';
@@ -26,6 +28,14 @@ PaletteRepository paletteRepository(Ref ref) => AssetPaletteRepository();
 @riverpod
 Future<List<Palette>> palettes(Ref ref) =>
     ref.watch(paletteRepositoryProvider).loadAll();
+
+@riverpod
+SuggestedUsernameRepository suggestedUsernameRepository(Ref ref) =>
+    AssetSuggestedUsernameRepository();
+
+@riverpod
+Future<List<String>> suggestedUsernames(Ref ref) =>
+    ref.watch(suggestedUsernameRepositoryProvider).loadAll();
 
 @riverpod
 ContributionRepository contributionRepository(Ref ref) =>

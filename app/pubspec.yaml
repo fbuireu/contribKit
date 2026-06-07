@@ -83,3 +83,4 @@ flutter:
     - assets/images/
     - assets/palettes.json
     - assets/shapes.json
+    - assets/usernames.json

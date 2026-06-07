@@ -166,15 +166,6 @@ class _Header extends ConsumerWidget {
 
 // ─── Username input ───────────────────────────────────────────────────────────
 
-const _kSuggestedUsernames = [
-  'torvalds',
-  'gaearon',
-  'yyx990803',
-  'sindresorhus',
-  'antirez',
-  'fbuireu',
-];
-
 class _UsernameInput extends StatelessWidget {
   const _UsernameInput({
     required this.controller,
@@ -243,35 +234,41 @@ class _UsernameInput extends StatelessWidget {
   }
 }
 
-class _Suggestions extends StatelessWidget {
+class _Suggestions extends ConsumerWidget {
   const _Suggestions({required this.onSelect, required this.enabled});
 
   final ValueChanged<String> onSelect;
   final bool enabled;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        spacing: Tokens.space2,
-        children: [
-          Text(
-            'try:',
-            style: AppTextStyles.mono(
-              fontSize: Tokens.textXs,
-              color: colors.mutedForeground,
+    final suggestionsAsync = ref.watch(suggestedUsernamesProvider);
+
+    return suggestionsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (names) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          spacing: Tokens.space2,
+          children: [
+            Text(
+              'try:',
+              style: AppTextStyles.mono(
+                fontSize: Tokens.textXs,
+                color: colors.mutedForeground,
+              ),
             ),
-          ),
-          for (final name in _kSuggestedUsernames)
-            _SuggestionChip(
-              name: name,
-              enabled: enabled,
-              onTap: () => onSelect(name),
-              colors: colors,
-            ),
-        ],
+            for (final name in names)
+              _SuggestionChip(
+                name: name,
+                enabled: enabled,
+                onTap: () => onSelect(name),
+                colors: colors,
+              ),
+          ],
+        ),
       ),
     );
   }
