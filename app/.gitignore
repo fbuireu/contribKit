@@ -11,7 +11,7 @@ build/
 .vscode/
 .history/
 
-# Coverage
+# Tests
 coverage/
 *.lcov
 
