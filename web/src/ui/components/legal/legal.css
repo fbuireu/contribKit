@@ -8,14 +8,14 @@
 		padding-bottom: 2rem;
 	}
 	.back-link {
-		font-size: 0.8125rem;
+		font-size: var(--size-base);
 		display: inline-block;
 		margin-bottom: 1.25rem;
 		padding: 0.375rem 0.625rem;
 		margin-left: -0.625rem;
 	}
 	h1 {
-		font-size: clamp(1.75rem, 4vw, 2.5rem);
+		font-size: var(--size-fluid-page-title);
 		font-weight: 700;
 		letter-spacing: -0.03em;
 		margin: 0 0 0.5rem;
@@ -24,20 +24,20 @@
 		max-width: 40rem;
 	}
 	.legal-body h2 {
-		font-size: 1.375rem;
+		font-size: var(--size-2xl);
 		font-weight: 700;
 		letter-spacing: -0.01em;
 		margin: 2.5rem 0 0.75rem;
 		color: var(--text);
 	}
 	.legal-body h3 {
-		font-size: 1.125rem;
+		font-size: var(--size-xl);
 		font-weight: 600;
 		margin: 1.75rem 0 0.5rem;
 		color: var(--text);
 	}
 	.legal-body p {
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		color: var(--text-dim);
 		line-height: 1.7;
 		margin: 0 0 0.5rem;
@@ -47,14 +47,14 @@
 		padding-left: 1.25rem;
 	}
 	.legal-body li {
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		color: var(--text-dim);
 		line-height: 1.7;
 		margin: 0 0 0.25rem;
 	}
 	.legal-body code {
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--size-sm);
 		background: var(--surface-raised);
 		padding: 0.125rem 0.375rem;
 		border-radius: 0.25rem;
@@ -69,7 +69,7 @@
 	.id-table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		margin: 1rem 0 0.5rem;
 	}
 	.id-table th,
@@ -96,7 +96,7 @@
 
 	.inline-prefs-btn {
 		font: inherit;
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		color: var(--accent);
 		background: none;
 		border: none;

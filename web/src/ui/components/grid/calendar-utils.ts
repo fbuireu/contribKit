@@ -1,21 +1,23 @@
 import type { ContributionDay } from "@domain/entities/types";
+import { addDays, getWeekday } from "@ui/utils/dates";
 import { mulberry32 } from "@ui/utils/mulberry";
 import { TOTALS_PER_LEVEL } from "./contribution";
+
+const GRID_WEEKS = 53;
+const DAYS_PER_WEEK = 7;
+const GRID_CELL_COUNT = GRID_WEEKS * DAYS_PER_WEEK;
+
+const LEVEL_THRESHOLDS = [
+	{ minScore: 0.95, level: 4 },
+	{ minScore: 0.7, level: 3 },
+	{ minScore: 0.45, level: 2 },
+	{ minScore: 0.2, level: 1 },
+] as const;
 
 export interface Cell {
 	date: string;
 	level: number;
 	count?: number | null;
-}
-
-function addDays(iso: string, days: number): string {
-	const date = new Date(`${iso}T12:00:00`);
-	date.setDate(date.getDate() + days);
-	return date.toISOString().slice(0, 10);
-}
-
-function getWeekday(iso: string): number {
-	return new Date(`${iso}T12:00:00`).getDay();
 }
 
 export interface RenderCalendarParams {
@@ -29,7 +31,12 @@ export interface RenderCalendarParams {
 
 export type CellSummary = { count: number; streak: number; longest: number };
 
-export function buildGridFromApi(days: readonly ContributionDay[], year: number): Cell[] {
+export interface BuildGridFromApiParams {
+	days: readonly ContributionDay[];
+	year: number;
+}
+
+export function buildGridFromApi({ days, year }: BuildGridFromApiParams): Cell[] {
 	const map = new Map<string, { level: number; count: number | null }>();
 	for (const day of days) map.set(day.date, { level: day.level, count: day.count });
 	return buildCalendarGrid(map, year);
@@ -63,7 +70,7 @@ export function buildCalendarGrid(map: Map<string, { level: number; count: numbe
 	const jan1 = `${year}-01-01`;
 	const start = addDays(jan1, -getWeekday(jan1));
 	const cells: Cell[] = [];
-	for (let dayOffset = 0; dayOffset < 53 * 7; dayOffset++) {
+	for (let dayOffset = 0; dayOffset < GRID_CELL_COUNT; dayOffset++) {
 		const date = addDays(start, dayOffset);
 		const entry = map.get(date);
 		cells.push({ date, level: entry?.level ?? 0, count: entry?.count ?? null });
@@ -76,7 +83,7 @@ export function generateData(seed = 7): Cell[] {
 	const cells: Cell[] = [];
 	const today = "2026-05-17";
 	const end = addDays(today, 6 - getWeekday(today));
-	const totalDays = 53 * 7;
+	const totalDays = GRID_CELL_COUNT;
 	const start = addDays(end, -(totalDays - 1));
 
 	for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
@@ -89,11 +96,7 @@ export function generateData(seed = 7): Cell[] {
 		const randomValue = random();
 		let score = base + cluster + (randomValue - 0.5) * 0.6;
 		if (random() < 0.08) score -= 0.6;
-		let level = 0;
-		if (score >= 0.2) level = 1;
-		if (score >= 0.45) level = 2;
-		if (score >= 0.7) level = 3;
-		if (score >= 0.95) level = 4;
+		const level = LEVEL_THRESHOLDS.find(({ minScore }) => score >= minScore)?.level ?? 0;
 		cells.push({ date, level });
 	}
 	return cells;

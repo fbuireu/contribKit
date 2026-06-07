@@ -45,14 +45,14 @@
 	}
 
 	#cc-main .cm__title {
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		font-weight: 600;
 		letter-spacing: -0.01em;
 	}
 
 	#cc-main .cm__desc,
 	#cc-main .cm__footer {
-		font-size: 0.8125rem;
+		font-size: var(--size-base);
 		color: var(--text-dim);
 	}
 

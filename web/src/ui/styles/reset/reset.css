@@ -17,7 +17,7 @@
 		color: var(--text);
 		font-family: var(--font-ui);
 		font-feature-settings: "ss01", "cv11";
-		font-size: 0.9375rem;
+		font-size: var(--size-lg);
 		line-height: 1.5;
 		text-wrap: pretty;
 		-webkit-font-smoothing: antialiased;
@@ -62,7 +62,7 @@
 		border: 0.0625rem solid var(--border-strong);
 		border-radius: 0 0 0.375rem 0;
 		color: var(--text);
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		font-weight: 500;
 		text-decoration: none;
 		z-index: 9999;

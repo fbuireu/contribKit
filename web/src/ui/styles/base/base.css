@@ -46,7 +46,7 @@
 		border-bottom: 0.0625rem solid var(--border);
 		position: relative;
 	}
-	@media (max-width: 37.5rem) {
+	@media (max-width: 600px) {
 		.section {
 			padding: 3.5rem 0;
 		}
@@ -59,7 +59,7 @@
 	.eyebrow {
 		display: inline-block;
 		margin-bottom: 1rem;
-		font-size: 0.6875rem;
+		font-size: var(--size-xs);
 		color: var(--accent);
 		letter-spacing: 0.04em;
 		counter-increment: section;
@@ -68,7 +68,7 @@
 		content: counter(section, decimal-leading-zero) " — ";
 	}
 	.section-title {
-		font-size: clamp(1.75rem, 4.2vw, 2.75rem);
+		font-size: var(--size-fluid-h1);
 		line-height: 1.08;
 		letter-spacing: -0.03em;
 		font-weight: 700;

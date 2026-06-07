@@ -9,6 +9,13 @@ const GAP = 1;
 const STEP = CELL_SIZE + GAP;
 const SEED = 99;
 
+const LEVEL_THRESHOLDS = [
+	{ min: 0.92, level: 4 },
+	{ min: 0.78, level: 3 },
+	{ min: 0.62, level: 2 },
+	{ min: 0.42, level: 1 },
+] as const;
+
 export function generateMiniGrid(palette: readonly string[], liveCells?: Cell[]): string {
 	let cells: number[];
 	let cols: number;
@@ -27,11 +34,7 @@ export function generateMiniGrid(palette: readonly string[], liveCells?: Cell[])
 			const randomValue = rand();
 			const progress = Math.floor(i / ROWS) / cols;
 			const boosted = randomValue + progress * 0.3 + Math.sin(i / 8) * 0.15;
-			if (boosted > 0.92) return 4;
-			if (boosted > 0.78) return 3;
-			if (boosted > 0.62) return 2;
-			if (boosted > 0.42) return 1;
-			return 0;
+			return LEVEL_THRESHOLDS.find(({ min }) => boosted > min)?.level ?? 0;
 		});
 	}
 

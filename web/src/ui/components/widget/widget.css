@@ -5,7 +5,7 @@
 		gap: 3.5rem;
 		align-items: center;
 	}
-	@media (max-width: 56.25rem) {
+	@media (max-width: 900px) {
 		.widget-layout {
 			grid-template-columns: 1fr;
 			gap: 2.5rem;
@@ -97,7 +97,7 @@
 		justify-content: space-between;
 	}
 	.w-name {
-		font-size: 0.59375rem;
+		font-size: var(--size-2xs);
 		color: color-mix(in srgb, var(--white), transparent 65%);
 	}
 	.w-streak {
@@ -109,7 +109,7 @@
 		background: color-mix(in srgb, var(--wp-peak, var(--accent)) 12%, transparent);
 		border: 0.0625rem solid color-mix(in srgb, var(--wp-peak, var(--accent)) 18%, transparent);
 		color: var(--wp-peak, var(--contrib-peak));
-		font-size: 0.59375rem;
+		font-size: var(--size-2xs);
 	}
 	.w-grid {
 		line-height: 0;
@@ -121,7 +121,7 @@
 		display: block;
 	}
 	.w-foot {
-		font-size: 0.53125rem;
+		font-size: var(--size-3xs);
 		color: color-mix(in srgb, var(--white), transparent 75%);
 	}
 
@@ -141,13 +141,13 @@
 		gap: 0.125rem;
 	}
 	.ws-count {
-		font-size: 1.5rem;
+		font-size: var(--size-3xl);
 		font-weight: 700;
 		color: var(--wp-peak, var(--contrib-peak));
 		line-height: 1;
 	}
 	.ws-label {
-		font-size: 0.5rem;
+		font-size: var(--size-3xs);
 		color: color-mix(in srgb, var(--white), transparent 70%);
 	}
 
@@ -196,14 +196,14 @@
 		margin-top: 0.0625rem;
 	}
 	.feat-title {
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		font-weight: 600;
 		letter-spacing: -0.01em;
 		margin-bottom: 0.25rem;
 	}
 	.feat-body {
 		margin: 0;
-		font-size: 0.8125rem;
+		font-size: var(--size-base);
 		color: var(--text-dim);
 		line-height: 1.55;
 	}

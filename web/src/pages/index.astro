@@ -71,7 +71,7 @@ let heroError: string | null = null;
 if (initial.ok) {
 	cells = initial.data.cells;
 } else if (isExplicit) {
-	cells = buildGridFromApi([], currentYear);
+	cells = buildGridFromApi({ days: [], year: currentYear });
 	heroError = contributionError(initial.status);
 } else {
 	cells = generateData(7);

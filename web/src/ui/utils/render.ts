@@ -4,7 +4,7 @@ import { buildCodeBlock, buildMdLines, SVG_LINES } from "@ui/components/export/c
 import type { Cell, CellSummary } from "@ui/components/grid/calendar-utils";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
-import { getCells, getUsername } from "./home-state";
+import { getCells, getUsername } from "./state";
 
 export const getActivePalette = (): string =>
 	document.querySelector<HTMLElement>("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY;

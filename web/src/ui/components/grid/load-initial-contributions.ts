@@ -41,7 +41,7 @@ export async function loadInitialContributions({
 	return {
 		ok: true,
 		data: {
-			cells: buildGridFromApi(result.days, resolvedYear),
+			cells: buildGridFromApi({ days: result.days, year: resolvedYear }),
 			total: result.total,
 			year: resolvedYear,
 		},

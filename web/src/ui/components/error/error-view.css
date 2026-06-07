@@ -52,7 +52,7 @@
 		max-width: 28.75rem;
 		margin: 0.5rem 0 2.5rem;
 	}
-	@media (max-width: 32.5rem) {
+	@media (max-width: 520px) {
 		.error-gridwrap {
 			max-width: 20rem;
 			margin: 0.25rem 0 2rem;
@@ -61,7 +61,7 @@
 
 	.error-eyebrow {
 		margin: 0 0 1rem;
-		font-size: 0.75rem;
+		font-size: var(--size-sm);
 		letter-spacing: 0.04em;
 		color: var(--error-accent);
 		white-space: nowrap;
@@ -71,7 +71,7 @@
 	}
 	.error-title {
 		margin: 0 0 0.875rem;
-		font-size: clamp(1.625rem, 5.4vw, 2.375rem);
+		font-size: var(--size-fluid-error-title);
 		line-height: 1.08;
 		letter-spacing: -0.03em;
 		font-weight: 700;
@@ -80,7 +80,7 @@
 	.error-msg {
 		margin: 0 0 2rem;
 		max-width: 27.5rem;
-		font-size: 0.96875rem;
+		font-size: var(--size-lg);
 		line-height: 1.55;
 		text-wrap: pretty;
 	}
@@ -119,12 +119,12 @@
 	}
 	.error-term-path {
 		margin-left: 0.5rem;
-		font-size: 0.6875rem;
+		font-size: var(--size-xs);
 		color: var(--text-dimmer);
 	}
 	.error-term-body {
 		padding: 0.875rem 1rem;
-		font-size: 0.75rem;
+		font-size: var(--size-sm);
 		line-height: 1.7;
 	}
 	.error-term-line {
@@ -172,7 +172,7 @@
 		height: 2.625rem;
 		padding: 0 1.125rem;
 		border-radius: 0.5625rem;
-		font-size: 0.875rem;
+		font-size: var(--size-md);
 		font-weight: 500;
 		line-height: 1;
 		border: 0.0625rem solid transparent;

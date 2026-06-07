@@ -5,7 +5,7 @@
 		gap: 1.5rem;
 		align-items: stretch;
 	}
-	@media (max-width: 56.25rem) {
+	@media (max-width: 900px) {
 		.custom-grid {
 			grid-template-columns: 1fr;
 		}
@@ -33,7 +33,7 @@
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
-		font-size: 0.6875rem;
+		font-size: var(--size-xs);
 		padding-top: 0.25rem;
 		flex-wrap: wrap;
 	}
@@ -56,7 +56,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		font-size: 0.6875rem;
+		font-size: var(--size-xs);
 		padding: 0 0.25rem 0.25rem;
 	}
 
@@ -96,7 +96,7 @@
 		display: inline-block;
 	}
 	.palette-name {
-		font-size: 0.75rem;
+		font-size: var(--size-sm);
 		color: var(--text);
 	}
 	.palette-check {
@@ -127,7 +127,7 @@
 		cursor: pointer;
 	}
 	.shape-btn .mono {
-		font-size: 0.625rem;
+		font-size: var(--size-2xs);
 		color: var(--text-dim);
 	}
 	.shape-btn:hover {

@@ -5,7 +5,6 @@ import { buildGridFromApi, generateData, rehydrateCells, summarize } from "@ui/c
 import { CONTRIBUTION_ERRORS } from "@ui/utils/contribution-errors";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
-import { getCells, setCells, setUsername } from "./home-state";
 import {
 	renderCustomize,
 	renderExportPreview,
@@ -15,6 +14,7 @@ import {
 	updateYearRange,
 } from "./render";
 import { activateRadio, activateTab, addRadioKeyboard } from "./roving";
+import { getCells, setCells, setUsername } from "./state";
 import { readUsernameFromUrl, readYearFromUrl, syncUrl } from "./url";
 
 interface ContributionsResponse {
@@ -59,13 +59,13 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 
 		if (!response.ok) {
 			setHeroError(ERRORS[response.status] ?? data.error ?? "something went wrong");
-			setCells(buildGridFromApi([], selectedYear || new Date().getFullYear()));
+			setCells(buildGridFromApi({ days: [], year: selectedYear || new Date().getFullYear() }));
 			setUsername(username);
 			renderCustomize();
 			updateHeroStats({ count: 0, streak: 0, longest: 0 });
 		} else {
 			const year = parseInt(data.cells[0]?.date ?? String(new Date().getFullYear()), 10);
-			setCells(buildGridFromApi(data.cells, year));
+			setCells(buildGridFromApi({ days: data.cells, year }));
 			setUsername(username);
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
@@ -81,7 +81,7 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 		}
 	} catch {
 		setHeroError("could not reach the server, try again");
-		setCells(buildGridFromApi([], selectedYear || new Date().getFullYear()));
+		setCells(buildGridFromApi({ days: [], year: selectedYear || new Date().getFullYear() }));
 		setUsername(username);
 		renderCustomize();
 		updateHeroStats({ count: 0, streak: 0, longest: 0 });

@@ -13,6 +13,7 @@ import {
 } from "@domain/services/svg-geometry";
 import { DOW, MONTHS } from "@domain/value-objects/calendar-labels";
 import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
+import { cssVar } from "@ui/utils/css";
 import type { Cell, RenderCalendarParams } from "./calendar-utils";
 import { TOTALS_PER_LEVEL } from "./contribution";
 
@@ -82,15 +83,15 @@ export function renderCalendarString({
 }
 
 export function shapePreviewSVG(kind: string): string {
-	const fill = "#39D353";
+	const fill = cssVar("--contrib-peak");
 	if (kind === ShapeKind.Dot)
-		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="3.2" fill="${fill}"/></svg>`;
+		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="3.2" style="fill:${fill}"/></svg>`;
 	if (kind === ShapeKind.Circle)
-		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="${fill}"/></svg>`;
+		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" style="fill:${fill}"/></svg>`;
 	if (kind === ShapeKind.Hex) {
 		const points = hexPoints({ cx: 10, cy: 10, radius: 7 });
-		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><polygon points="${points}" fill="${fill}"/></svg>`;
+		return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><polygon points="${points}" style="fill:${fill}"/></svg>`;
 	}
 	const borderRadius = kind === ShapeKind.Rounded ? 2.5 : 0;
-	return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="${borderRadius}" fill="${fill}"/></svg>`;
+	return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="${borderRadius}" style="fill:${fill}"/></svg>`;
 }

@@ -13,7 +13,7 @@ function createAnalytics(): Analytics {
 			});
 		},
 		loadBetterStack() {
-			const token = import.meta.env.PUBLIC_BETTER_STACK_SOURCE_TOKEN as string | undefined;
+			const token = import.meta.env.PUBLIC_BETTER_STACK_SOURCE_TOKEN;
 			if (!token || betterStackLoaded) return;
 			betterStackLoaded = true;
 			const script = document.createElement("script");

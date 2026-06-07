@@ -21,13 +21,13 @@
 	letter-spacing: -0.01em;
 }
 .brand-name {
-	font-size: 0.9375rem;
+	font-size: var(--size-lg);
 }
 .nav-links {
 	display: flex;
 	align-items: center;
 	gap: 0.25rem;
-	font-size: 0.8125rem;
+	font-size: var(--size-base);
 	color: var(--text-dim);
 }
 .nav-links a {
@@ -73,7 +73,7 @@
 .nav-cta:hover {
 	background: var(--surface-high);
 }
-@media (max-width: 45rem) {
+@media (max-width: 720px) {
 	.nav-links a:not(.nav-cta) {
 		display: none;
 	}

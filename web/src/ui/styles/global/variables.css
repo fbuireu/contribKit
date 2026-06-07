@@ -48,6 +48,21 @@
 		--page-padding: 1.5rem;
 		--font-ui: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
 		--font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+		--size-3xs: 0.5rem;
+		--size-2xs: 0.625rem;
+		--size-xs: 0.6875rem;
+		--size-sm: 0.75rem;
+		--size-base: 0.8125rem;
+		--size-md: 0.875rem;
+		--size-lg: 0.9375rem;
+		--size-xl: 1.125rem;
+		--size-2xl: 1.375rem;
+		--size-3xl: 1.5rem;
+		--size-fluid-lede: clamp(0.9375rem, 1.8vw, 1.125rem);
+		--size-fluid-error-title: clamp(1.625rem, 5.4vw, 2.375rem);
+		--size-fluid-page-title: clamp(1.75rem, 4vw, 2.5rem);
+		--size-fluid-h1: clamp(1.75rem, 4.2vw, 2.75rem);
+		--size-fluid-display: clamp(2.25rem, 6.5vw, 4.5rem);
 		accent-color: var(--accent);
 		scrollbar-color: var(--text-faint) transparent;
 	}

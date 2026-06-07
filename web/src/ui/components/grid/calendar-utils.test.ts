@@ -15,7 +15,7 @@ describe("buildCalendarGrid", () => {
 
 describe("buildGridFromApi", () => {
 	it("maps api days into the grid", () => {
-		const grid = buildGridFromApi([{ date: "2024-06-15", level: 4, count: 16 }], 2024);
+		const grid = buildGridFromApi({ days: [{ date: "2024-06-15", level: 4, count: 16 }], year: 2024 });
 		expect(grid).toHaveLength(53 * 7);
 		expect(grid.find((cell) => cell.date === "2024-06-15")?.level).toBe(4);
 	});
