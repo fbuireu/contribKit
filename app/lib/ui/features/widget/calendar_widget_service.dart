@@ -29,9 +29,7 @@ abstract final class CalendarWidgetService {
       final levels = StringBuffer();
       for (final week in calendar.weeks) {
         for (var i = 0; i < 7; i++) {
-          levels.write(
-            i < week.days.length ? week.days[i].level.index : 0,
-          );
+          levels.write(i < week.days.length ? week.days[i].level.index : 0);
         }
       }
 
