@@ -3,6 +3,7 @@ import "./footer.css";
 import Apple from "@ui/components/icons/Apple.astro";
 import GitHub from "@ui/components/icons/GitHub.astro";
 import PlayStore from "@ui/components/icons/PlayStore.astro";
+import { PLAY_STORE_URL } from "@ui/utils/app-links";
 import pkg from "../../../../../package.json";
 ---
 
@@ -22,10 +23,10 @@ import pkg from "../../../../../package.json";
           <Apple />
           app store <small aria-hidden="true">(soon)</small>
         </button>
-        <button type="button" class="foot-link link-action">
+        <a href={PLAY_STORE_URL} class="foot-link link-action" target="_blank" rel="noopener noreferrer">
           <PlayStore />
           play store
-        </button>
+        </a>
       </div>
     </div>
     <div class="foot-bot">

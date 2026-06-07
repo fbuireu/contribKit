@@ -6,6 +6,7 @@ import AppStore from "@ui/components/icons/AppStore.astro";
 import ArrowRight from "@ui/components/icons/ArrowRight.astro";
 import ChevronDown from "@ui/components/icons/ChevronDown.astro";
 import GooglePlay from "@ui/components/icons/GooglePlay.astro";
+import { PLAY_STORE_URL } from "@ui/utils/app-links";
 
 const currentYear = new Date().getFullYear();
 const appVersion = __APP_VERSION__;
@@ -48,13 +49,13 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
           App Store
         </span>
       </button>
-      <button type="button" class="btn btn-store" aria-label="Get it on Google Play">
+      <a href={PLAY_STORE_URL} class="btn btn-store" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">
         <GooglePlay />
         <span>
           <small>Get it on</small>
           Google Play
         </span>
-      </button>
+      </a>
     </div>
 
     <form id="username-form" role="search" aria-label="Render GitHub contributions">
