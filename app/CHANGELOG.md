@@ -1,3 +1,15 @@
+# [contribkit-app-v1.2.0](https://github.com/fbuireu/contribKit/compare/app-v1.1.0...app-v1.2.0) (2026-06-07)
+
+
+### Bug Fixes
+
+* widget alignment ([d0dc1eb](https://github.com/fbuireu/contribKit/commit/d0dc1eb924ced453bb4bf014d0fc2bcd185e7374))
+
+
+### Features
+
+* add fastlane ([0db007c](https://github.com/fbuireu/contribKit/commit/0db007c0b24f86a98cf74e16f53cd291c094f1fb))
+
 # [contribkit-app-v1.1.0](https://github.com/fbuireu/contribKit/compare/app-v1.0.2...app-v1.1.0) (2026-05-31)
 
 
