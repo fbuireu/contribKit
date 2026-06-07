@@ -10,4 +10,11 @@ test.describe("privacy", () => {
 		await page.goto("/privacy");
 		await expect(page.locator("h1")).toBeVisible();
 	});
+
+	test("is noindex with a summary card and no og:image", async ({ page }) => {
+		await page.goto("/privacy");
+		await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
+		await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary");
+		await expect(page.locator('meta[property="og:image"]')).toHaveCount(0);
+	});
 });

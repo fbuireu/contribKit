@@ -31,4 +31,14 @@ test.describe("homepage", () => {
 		await page.goto("/");
 		await expect(page.getByRole("button", { name: "Accept all" })).toBeVisible();
 	});
+
+	test("renders indexable SEO meta tags with a large-image card", async ({ page }) => {
+		await page.goto("/");
+		await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "ContribKit");
+		await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "website");
+		await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
+		await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+		await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
+		expect(await page.locator('meta[property="og:title"]').getAttribute("content")).toBe(await page.title());
+	});
 });
