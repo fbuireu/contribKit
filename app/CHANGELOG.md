@@ -1,3 +1,11 @@
+# [contribkit-app-v1.2.3](https://github.com/fbuireu/contribKit/compare/app-v1.2.2...app-v1.2.3) (2026-06-07)
+
+
+### Bug Fixes
+
+* add state to customization opts ([2f2b205](https://github.com/fbuireu/contribKit/commit/2f2b2056a0ffb50b77cb828a152264d4c80f32ba))
+* android store warnings + shared ([e195bec](https://github.com/fbuireu/contribKit/commit/e195bec880e2645ef1b360b9e0806c4663d63216))
+
 # [contribkit-app-v1.2.2](https://github.com/fbuireu/contribKit/compare/app-v1.2.1...app-v1.2.2) (2026-06-07)
 
 
