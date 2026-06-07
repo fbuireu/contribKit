@@ -6,12 +6,15 @@ import android.content.Context
 import android.content.Intent
 import android.app.PendingIntent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
-import kotlin.math.roundToInt
+import kotlin.math.cos
+import kotlin.math.sin
 
 class ContribKitWidgetProvider : AppWidgetProvider() {
 
@@ -57,7 +60,6 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.contribkit_widget)
 
             val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
-            val imagePath = prefs.getString("calendar_image_path", null)
             val username = prefs.getString("widget_username", null)
             val streak = prefs.getAll()["widget_streak"]
             val totalContributions = prefs.getAll()["widget_total_contributions"]
@@ -83,20 +85,32 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_contributions, formatted)
             }
 
-            // Track bitmaps for recycling AFTER updateAppWidget to avoid
+            val levels = prefs.getString("widget_levels", null)
+            val weeksRaw = prefs.getAll()["widget_weeks"]
+            val weeks = when (weeksRaw) {
+                is Int -> weeksRaw
+                is Long -> weeksRaw.toInt()
+                else -> 0
+            }
+            val colorsStr = prefs.getString("widget_colors", null)
+            val shape = prefs.getString("widget_shape", "rounded") ?: "rounded"
+
+            // Track the bitmap for recycling AFTER updateAppWidget to avoid
             // IllegalStateException when RemoteViews parcels the bitmap.
             var bitmapRef: Bitmap? = null
-            var rawRef: Bitmap? = null
 
-            if (imagePath != null) {
-                val raw = BitmapFactory.decodeFile(imagePath)
-                if (raw != null) {
-                    val bitmap = fitGridToWidget(context, appWidgetManager, widgetId, raw)
+            if (levels != null && weeks > 0 && colorsStr != null) {
+                val colors = colorsStr.split(",")
+                    .mapNotNull { it.trim().toLongOrNull()?.toInt() }
+                    .toIntArray()
+                if (colors.isNotEmpty()) {
+                    val bitmap = renderGrid(
+                        appWidgetManager, widgetId, levels, weeks, colors, shape,
+                    )
                     views.setImageViewBitmap(R.id.widget_image, bitmap)
                     views.setViewVisibility(R.id.widget_image, View.VISIBLE)
                     views.setViewVisibility(R.id.widget_placeholder, View.GONE)
                     bitmapRef = bitmap
-                    rawRef = raw
                 }
             }
 
@@ -112,43 +126,106 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(widgetId, views)
 
             // Recycle only after the Binder parcel is done.
-            bitmapRef?.let { b ->
-                rawRef?.let { r -> if (r !== b) r.recycle() }
-                b.recycle()
-            }
+            bitmapRef?.recycle()
         } catch (e: Exception) {
             Log.e("ContribKitWidget", "updateWidget failed for id=$widgetId", e)
         }
     }
 
-    private fun fitGridToWidget(
-        context: Context,
+    /**
+     * Draws the contribution grid natively, adapting the number of columns to
+     * the widget's real size. Weeks are merged into as many columns as fit at a
+     * comfortable cell size (max level per group), so the full year is always
+     * visible without distortion.
+     */
+    private fun renderGrid(
         appWidgetManager: AppWidgetManager,
         widgetId: Int,
-        src: Bitmap,
+        levels: String,
+        weeks: Int,
+        colors: IntArray,
+        shape: String,
     ): Bitmap {
         val opts = appWidgetManager.getAppWidgetOptions(widgetId)
         val wDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
         val hDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
-        val density = context.resources.displayMetrics.density
 
-        val horzInsetDp = (8 + 12) * 2
-        val vertInsetDp = (8 + 12) * 2 + 16 + 14 + 14
+        val areaAspect = if (wDp > 0 && hDp > 0)
+            ((wDp - 40).toFloat() / (hDp - 84).coerceAtLeast(1))
+                .coerceIn(0.5f, 12f)
+        else 3.0f
 
-        val areaW = if (wDp > 0)
-            ((wDp - horzInsetDp) * density).roundToInt().coerceIn(1, 2000)
-        else src.width.coerceAtMost(1000)
-        val areaH = if (hDp > 0)
-            ((hDp - vertInsetDp) * density).roundToInt().coerceIn(1, 2000)
-        else (areaW * src.height / src.width).coerceAtLeast(1)
+        val rows = 7
+        val cell = 20
+        val gap = 3
+        val bmpH = rows * cell + (rows - 1) * gap
 
-        val scale = areaH.toFloat() / src.height
-        val scaledW = (src.width * scale).roundToInt().coerceAtLeast(1)
-        val scaled = Bitmap.createScaledBitmap(src, scaledW, areaH, true)
+        val targetW = areaAspect * bmpH
+        val colsThatFit = (((targetW + gap) / (cell + gap)).toInt()).coerceAtLeast(1)
+        val outCols = minOf(colsThatFit, weeks).coerceAtLeast(1)
+        val bmpW = outCols * cell + (outCols - 1) * gap
 
-        val out = Bitmap.createBitmap(areaW, areaH, Bitmap.Config.ARGB_8888)
-        Canvas(out).drawBitmap(scaled, (areaW - scaledW).toFloat(), 0f, null)
-        if (scaled !== src) scaled.recycle()
-        return out
+        val bmp = Bitmap.createBitmap(bmpW, bmpH, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        for (j in 0 until outCols) {
+            val start = (j.toLong() * weeks / outCols).toInt()
+            val end = (((j + 1).toLong() * weeks / outCols).toInt())
+                .coerceIn(start + 1, weeks)
+            for (r in 0 until rows) {
+                var level = 0
+                for (w in start until end) {
+                    val idx = w * 7 + r
+                    if (idx < levels.length) {
+                        val c = levels[idx] - '0'
+                        if (c > level) level = c
+                    }
+                }
+                paint.color = colors[level.coerceIn(0, colors.size - 1)]
+                val x = (j * (cell + gap)).toFloat()
+                val y = (r * (cell + gap)).toFloat()
+                drawCell(canvas, paint, shape, x, y, cell.toFloat(), level)
+            }
+        }
+
+        return bmp
+    }
+
+    private fun drawCell(
+        canvas: Canvas,
+        paint: Paint,
+        shape: String,
+        x: Float,
+        y: Float,
+        size: Float,
+        level: Int,
+    ) {
+        val cx = x + size / 2
+        val cy = y + size / 2
+        when (shape) {
+            "square" -> canvas.drawRect(x, y, x + size, y + size, paint)
+            "circle" -> canvas.drawCircle(cx, cy, size / 2, paint)
+            "dot" -> {
+                val r = (if (level == 0) 1.4f else 1.4f + level) * (size / 10f)
+                canvas.drawCircle(cx, cy, r, paint)
+            }
+            "hex" -> canvas.drawPath(hexPath(cx, cy, size / 2), paint)
+            else -> canvas.drawRoundRect(
+                x, y, x + size, y + size, size * 0.2f, size * 0.2f, paint,
+            )
+        }
+    }
+
+    private fun hexPath(cx: Float, cy: Float, r: Float): Path {
+        val path = Path()
+        for (i in 0 until 6) {
+            val angle = (Math.PI / 3) * i + Math.PI / 6
+            val px = cx + r * cos(angle).toFloat()
+            val py = cy + r * sin(angle).toFloat()
+            if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
+        }
+        path.close()
+        return path
     }
 }

@@ -1,16 +1,15 @@
-import 'dart:io';
-
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
-import 'package:contribkit/infrastructure/export/png_export_repository_impl.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:path_provider/path_provider.dart';
 
 abstract final class CalendarWidgetService {
-  static const _imagePathKey = 'calendar_image_path';
+  static const _levelsKey = 'widget_levels';
+  static const _weeksKey = 'widget_weeks';
+  static const _colorsKey = 'widget_colors';
+  static const _shapeKey = 'widget_shape';
   static const _usernameKey = 'widget_username';
   static const _streakKey = 'widget_streak';
   static const _totalContributionsKey = 'widget_total_contributions';
@@ -27,22 +26,25 @@ abstract final class CalendarWidgetService {
     CellSize cellSize = CellSize.normal,
   }) async {
     try {
-      final pngBytes = await PngExportRepository().export(
-        calendar: calendar,
-        options: RenderOptions(
-          palette: palette,
-          shape: cellShape,
-          cellSize: cellSize.pixels,
-          gap: cellSize.gap,
-        ),
-      );
+      final levels = StringBuffer();
+      for (final week in calendar.weeks) {
+        for (var i = 0; i < 7; i++) {
+          levels.write(
+            i < week.days.length ? week.days[i].level.index : 0,
+          );
+        }
+      }
 
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/widget_calendar.png');
-      await file.writeAsBytes(pngBytes);
+      final colors = [
+        for (final level in ContributionLevel.values)
+          palette.colorFor(level).argb,
+      ].join(',');
 
       await Future.wait([
-        HomeWidget.saveWidgetData<String>(_imagePathKey, file.path),
+        HomeWidget.saveWidgetData<String>(_levelsKey, levels.toString()),
+        HomeWidget.saveWidgetData<int>(_weeksKey, calendar.weeks.length),
+        HomeWidget.saveWidgetData<String>(_colorsKey, colors),
+        HomeWidget.saveWidgetData<String>(_shapeKey, cellShape.name),
         HomeWidget.saveWidgetData<String>(
           _usernameKey,
           calendar.username.value,
