@@ -55,4 +55,39 @@ test.describe("homepage", () => {
 		await expect(page.locator('footer a[href*="github.com/fbuireu/contribkit"] svg')).toBeVisible();
 		await expect(page.locator("footer button svg").first()).toBeVisible();
 	});
+
+	test("renders every home section", async ({ page }) => {
+		await page.goto("/");
+		await expect(page.locator("#how")).toBeVisible();
+		await expect(page.locator("#custom")).toBeVisible();
+		await expect(page.locator("#export")).toBeVisible();
+		await expect(page.locator("#widget")).toBeVisible();
+	});
+
+	test("switching the palette moves the active state", async ({ page }) => {
+		await page.goto("/");
+		const rows = page.locator("#palette-list .palette-row");
+		await rows.nth(1).click();
+		await expect(rows.nth(1)).toHaveClass(/active/);
+		await expect(rows.nth(0)).not.toHaveClass(/active/);
+	});
+
+	test("switching the export tab to SVG shows the code preview", async ({ page }) => {
+		await page.goto("/");
+		await page.locator('#export-tabs [data-key="svg"]').click();
+		await expect(page.locator("#export-preview .code-preview")).toBeVisible();
+		await expect(page.locator("#export-preview .copy-btn")).toBeVisible();
+	});
+
+	test("clicking a suggestion fills the username input", async ({ page }) => {
+		await page.goto("/");
+		await page.locator('.sug-btn[data-username="gaearon"]').click();
+		await expect(page.locator("#hero-username")).toHaveValue("gaearon");
+	});
+
+	test("the header theme toggle pins a theme", async ({ page }) => {
+		await page.goto("/");
+		await page.locator(".theme-toggle").click();
+		await expect(page.locator("html")).toHaveClass(/theme-(light|dark)/);
+	});
 });
