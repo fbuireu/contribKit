@@ -1,3 +1,11 @@
+# [contribkit-app-v1.2.4](https://github.com/fbuireu/contribKit/compare/app-v1.2.3...app-v1.2.4) (2026-06-07)
+
+
+### Bug Fixes
+
+* crop widget ([6be6e04](https://github.com/fbuireu/contribKit/commit/6be6e04e2cd693a936b51b2b91c9b8f66042da5c))
+* flutter warning sdk ([151d356](https://github.com/fbuireu/contribKit/commit/151d3563033cad45a9fb15cb75471540fabb7243))
+
 # [contribkit-app-v1.2.3](https://github.com/fbuireu/contribKit/compare/app-v1.2.2...app-v1.2.3) (2026-06-07)
 
 
