@@ -1,5 +1,5 @@
+import { mulberry32 } from "@ui/utils/mulberry";
 import type { Cell } from "./calendar-utils";
-import { mulberry32 } from "./mulberry";
 
 const DEMO_COLS = 26;
 const LIVE_COLS = 53;

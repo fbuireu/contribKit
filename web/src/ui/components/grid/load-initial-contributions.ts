@@ -1,8 +1,8 @@
 import type { fetchContributions } from "@application/use-cases/fetch-contributions";
 import { DEFAULT_USERNAME, parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
+import { isFailure, messageFor, statusFor } from "@ui/utils/failure-http";
 import { buildGridFromApi, type Cell } from "./calendar-utils";
-import { isFailure, messageFor, statusFor } from "./failure-http";
 
 type LoadContributions = ReturnType<typeof fetchContributions>;
 

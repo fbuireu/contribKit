@@ -5,25 +5,25 @@
 		height: auto;
 		overflow: visible;
 	}
-	:scope .cc-glyph {
+	.cc-glyph {
 		filter: drop-shadow(0 0 6px var(--error-glow));
 	}
-	:scope .cc-glyph rect {
+	.cc-glyph rect {
 		fill: var(--grid-on);
 	}
-	:scope .cc-empty {
+	.cc-empty {
 		fill: var(--grid-empty);
 	}
-	:scope .cc-spark-1 {
+	.cc-spark-1 {
 		fill: var(--grid-spark-1);
 		opacity: 0.5;
 	}
-	:scope .cc-spark-2 {
+	.cc-spark-2 {
 		fill: var(--grid-spark-2);
 		opacity: 0.5;
 	}
 	@media (prefers-reduced-motion: reduce) {
-		:scope .cc-glyph {
+		.cc-glyph {
 			filter: none;
 		}
 	}

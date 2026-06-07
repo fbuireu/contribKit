@@ -1,9 +1,13 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, envField, fontProviders } from "astro/config";
 
 const NOINDEX_SLUGS = ["legal-notice", "privacy", "terms"];
+
+const APP_VERSION =
+	readFileSync(new URL("../app/pubspec.yaml", import.meta.url), "utf8").match(/^version:\s*([\d.]+)/m)?.[1] ?? "0.0.0";
 
 export default defineConfig({
 	output: "server",
@@ -43,6 +47,9 @@ export default defineConfig({
 		},
 	},
 	vite: {
+		define: {
+			__APP_VERSION__: JSON.stringify(APP_VERSION),
+		},
 		build: {
 			target: "esnext",
 		},

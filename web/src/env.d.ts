@@ -12,6 +12,7 @@ interface ImportMeta {
 }
 
 declare global {
+	const __APP_VERSION__: string;
 	interface Window {
 		__INITIAL_CELLS__?: ContributionDay[];
 		dataLayer: unknown[];

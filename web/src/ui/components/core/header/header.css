@@ -1,13 +1,13 @@
-.topnav {
+.header {
 	position: sticky;
 	top: 0;
 	z-index: 100;
-	background: var(--topnav-background);
+	background: var(--header-background);
 	backdrop-filter: saturate(160%) blur(0.75rem);
 	-webkit-backdrop-filter: saturate(160%) blur(0.75rem);
 	border-bottom: 0.0625rem solid var(--border);
 }
-.topnav-wrap {
+.header-wrap {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;

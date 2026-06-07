@@ -1,12 +1,12 @@
 ---
 import "./widget.css";
-import { PALETTES } from "../../domain/value-objects/palette";
-import { generateMiniGrid } from "../lib/mini-grid";
-import Clock from "./icons/Clock.astro";
-import Flame from "./icons/Flame.astro";
-import Grid from "./icons/Grid.astro";
-import Palette from "./icons/Palette.astro";
-import Phone from "./icons/Phone.astro";
+import { PALETTES } from "@domain/value-objects/palette";
+import { generateMiniGrid } from "@ui/components/grid/mini-grid";
+import Clock from "@ui/components/icons/Clock.astro";
+import Flame from "@ui/components/icons/Flame.astro";
+import Grid from "@ui/components/icons/Grid.astro";
+import Palette from "@ui/components/icons/Palette.astro";
+import Phone from "@ui/components/icons/Phone.astro";
 
 const miniGrid = generateMiniGrid(PALETTES.github.colors);
 ---

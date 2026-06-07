@@ -1,10 +1,10 @@
 ---
 import { getLogger } from "@infrastructure/logging/better-stack-logger";
+import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import ErrorView from "@ui/components/error/ErrorView.astro";
-import { type TerminalLine, TerminalLineKind } from "@ui/components/error/terminal-line";
-import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
-import { logServerError } from "@ui/lib/log-server-error";
+import { type TerminalLine, TerminalLineKind } from "@ui/components/error/types";
+import { logServerError } from "@ui/utils/log-server-error";
 
 const path = Astro.url.pathname || "/";
 

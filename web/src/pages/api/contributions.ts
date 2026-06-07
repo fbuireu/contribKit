@@ -3,7 +3,7 @@ import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
 import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
 import { getLogger } from "@infrastructure/logging/better-stack-logger";
-import { isFailure, messageFor, statusFor } from "@ui/lib/failure-http";
+import { isFailure, messageFor, statusFor } from "@ui/utils/failure-http";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
 

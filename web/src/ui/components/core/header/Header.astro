@@ -1,14 +1,14 @@
 ---
-import "./top-nav.css";
-import Download from "./icons/Download.astro";
-import Moon from "./icons/Moon.astro";
-import Sun from "./icons/Sun.astro";
+import "./header.css";
+import Download from "@ui/components/icons/Download.astro";
+import Moon from "@ui/components/icons/Moon.astro";
+import Sun from "@ui/components/icons/Sun.astro";
 
 const base = Astro.url.pathname === "/" ? "" : "/";
 ---
 
-<nav class="topnav">
-  <div class="wrap topnav-wrap">
+<nav class="header">
+  <div class="wrap header-wrap">
     <a class="brand" href="/" data-astro-prefetch="false" aria-label="ContribKit home">
       <img src="/logo.svg" width="28" height="28" alt="" aria-hidden="true" style="border-radius:0.375rem" />
       <span class="brand-name">ContribKit</span>
@@ -38,6 +38,6 @@ const base = Astro.url.pathname === "/" ? "" : "/";
 </nav>
 
 <script>
-  import { initThemeToggle } from '../lib/theme-toggle';
+  import { initThemeToggle } from './theme-toggle';
   initThemeToggle();
 </script>

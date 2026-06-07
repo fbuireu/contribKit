@@ -1,6 +1,6 @@
 import { type Failure, FailureField, invalidInput } from "../failures/failure";
 
-const GITHUB_LAUNCH_YEAR = 2005;
+export const GITHUB_LAUNCH_YEAR = 2005;
 
 export interface Year {
 	readonly _tag: "Year";

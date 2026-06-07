@@ -1,8 +1,8 @@
 ---
+import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
-import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
-import "@ui/components/legal.css";
-import { decrypt, type ShuffledData } from "@ui/lib/crypto";
+import "@ui/components/legal/legal.css";
+import { decrypt, type ShuffledData } from "@ui/utils/crypto";
 
 const TITLE = "Legal Notice — ContribKit";
 const EFFECTIVE_DATE = "2026-06-03";

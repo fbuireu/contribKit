@@ -7,16 +7,16 @@ interface ContributionsResponse {
 	error?: string;
 }
 
+import { buildCodeBlock, buildMdLines, SVG_LINES } from "@ui/components/export/code-preview";
+import type { Cell, CellSummary } from "@ui/components/grid/calendar-utils";
+import { buildGridFromApi, generateData, rehydrateCells, summarize } from "@ui/components/grid/calendar-utils";
+import { formatContribLabel } from "@ui/components/grid/contribution";
+import { generateMiniGrid } from "@ui/components/grid/mini-grid";
+import { renderCalendarString } from "@ui/components/grid/render-svg";
+import { CONTRIBUTION_ERRORS } from "@ui/utils/contribution-errors";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "../../domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "../../domain/value-objects/shape";
 import { DEFAULT_USERNAME } from "../../domain/value-objects/username";
-import type { Cell, CellSummary } from "./calendar-utils";
-import { buildGridFromApi, generateData, rehydrateCells, summarize } from "./calendar-utils";
-import { buildCodeBlock, buildMdLines, SVG_LINES } from "./code-preview";
-import { formatContribLabel } from "./contribution";
-import { CONTRIBUTION_ERRORS } from "./contribution-errors";
-import { generateMiniGrid } from "./mini-grid";
-import { renderCalendarString } from "./render-svg";
 
 const CELLS =
 	Array.isArray(window.__INITIAL_CELLS__) && window.__INITIAL_CELLS__.length

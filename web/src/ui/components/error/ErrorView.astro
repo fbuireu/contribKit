@@ -1,22 +1,22 @@
 ---
 import "./error-view.css";
 import ContributionCode from "./ContributionCode.astro";
-import { type TerminalLine, TerminalLineKind } from "./terminal-line";
+import { type ErrorAction, ErrorActionIcon, type TerminalLine, TerminalLineKind, Tone } from "./types";
 
 interface Props {
 	code: number;
-	tone?: "accent" | "danger";
+	tone?: Tone;
 	eyebrow: string;
 	title: string;
 	message: string;
 	terminal: TerminalLine[];
-	primary: { href: string; label: string; icon: "back" | "reload" };
+	primary: ErrorAction;
 	reportUrl?: string;
 }
 
 const {
 	code,
-	tone = "accent",
+	tone = Tone.Accent,
 	eyebrow,
 	title,
 	message,
@@ -28,7 +28,7 @@ const {
 const seed = code === 500 ? 7 : 3;
 ---
 
-<section class:list={["error-page", { "is-danger": tone === "danger" }]} aria-labelledby="error-title">
+<section class:list={["error-page", { "is-danger": tone === Tone.Danger }]} aria-labelledby="error-title">
   <div class="error-glow" aria-hidden="true"></div>
   <div class="error-texture" aria-hidden="true"></div>
 
@@ -67,7 +67,7 @@ const seed = code === 500 ? 7 : 3;
     <div class="error-actions">
       <a class="error-btn error-btn-primary" href={primary.href}>
         {
-          primary.icon === "reload" ? (
+          primary.icon === ErrorActionIcon.Reload ? (
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M13.6 8a5.6 5.6 0 1 1-1.7-4" />
               <path d="M12.5 1.5v3h-3" />

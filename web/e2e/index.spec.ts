@@ -41,4 +41,18 @@ test.describe("homepage", () => {
 		await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
 		expect(await page.locator('meta[property="og:title"]').getAttribute("content")).toBe(await page.title());
 	});
+
+	test("BaseLayout renders the page shell (lang, skip link, main, footer)", async ({ page }) => {
+		await page.goto("/");
+		await expect(page.locator("html")).toHaveAttribute("lang", "en");
+		await expect(page.locator("a.skip-link")).toHaveAttribute("href", "#main-content");
+		await expect(page.locator("main#main-content")).toBeVisible();
+		await expect(page.locator("footer.footer")).toBeVisible();
+	});
+
+	test("renders the footer store/link icons (svgs)", async ({ page }) => {
+		await page.goto("/");
+		await expect(page.locator('footer a[href*="github.com/fbuireu/contribkit"] svg')).toBeVisible();
+		await expect(page.locator("footer button svg").first()).toBeVisible();
+	});
 });

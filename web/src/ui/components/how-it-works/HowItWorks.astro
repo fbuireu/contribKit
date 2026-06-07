@@ -2,8 +2,8 @@
 import "./how-it-works.css";
 import palettes from "@shared/palettes.json" with { type: "json" };
 import shapes from "@shared/shapes.json" with { type: "json" };
-import Copy from "./icons/Copy.astro";
-import Download from "./icons/Download.astro";
+import Copy from "@ui/components/icons/Copy.astro";
+import Download from "@ui/components/icons/Download.astro";
 
 const WIDGET_DEMO_LEVELS = [
 	0, 0, 1, 0, 2, 1, 0, 3, 1, 0, 2, 4, 1, 0, 1, 2, 0, 3, 1, 0, 1, 0, 2, 1, 3, 2, 0, 1, 0, 0, 2, 0, 1, 3, 2, 1, 0, 1, 0,
@@ -84,8 +84,8 @@ const WIDGET_DEMO_LEVELS = [
               <span class="wm-user mono" id="how-widget-username">torvalds</span>
             </div>
             <div class="wm-cells">
-              {WIDGET_DEMO_LEVELS.map((lvl) => (
-                <span class="wm-cell" data-level={lvl}></span>
+              {WIDGET_DEMO_LEVELS.map((level) => (
+                <span class="wm-cell" data-level={level}></span>
               ))}
             </div>
             <div class="wm-foot mono">42 day streak</div>

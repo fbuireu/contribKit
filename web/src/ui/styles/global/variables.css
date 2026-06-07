@@ -17,7 +17,7 @@
 		--overlay-strong: oklch(0% 0 0 / 0.08);
 		--shadow: oklch(17.08% 0.0103 285.25 / 0.08);
 		--tag-background: oklch(100% 0 0 / 0.7);
-		--topnav-background: oklch(100% 0 0 / 0.75);
+		--header-background: oklch(100% 0 0 / 0.75);
 		--contrib-none: oklch(94.54% 0.0046 258.32);
 		--contrib-low: oklch(86.66% 0.1182 148.74);
 		--contrib-mid: oklch(72.67% 0.1781 148.54);
@@ -65,7 +65,7 @@
 			--overlay-strong: oklch(100% 0 0 / 0.08);
 			--shadow: oklch(0% 0 0 / 0.55);
 			--tag-background: oklch(14.08% 0.0044 285.82 / 0.7);
-			--topnav-background: oklch(14.08% 0.0044 285.82 / 0.7);
+			--header-background: oklch(14.08% 0.0044 285.82 / 0.7);
 			--contrib-none: oklch(22.02% 0.0157 256.82);
 			--contrib-low: oklch(34.42% 0.073 156.73);
 			--contrib-mid: oklch(46.78% 0.1263 150.86);
@@ -95,7 +95,7 @@
 		--overlay-strong: oklch(100% 0 0 / 0.08);
 		--shadow: oklch(0% 0 0 / 0.55);
 		--tag-background: oklch(14.08% 0.0044 285.82 / 0.7);
-		--topnav-background: oklch(14.08% 0.0044 285.82 / 0.7);
+		--header-background: oklch(14.08% 0.0044 285.82 / 0.7);
 		--contrib-none: oklch(22.02% 0.0157 256.82);
 		--contrib-low: oklch(34.42% 0.073 156.73);
 		--contrib-mid: oklch(46.78% 0.1263 150.86);
@@ -196,7 +196,7 @@
 		inherits: true;
 		initial-value: transparent;
 	}
-	@property --topnav-background {
+	@property --header-background {
 		syntax: "<color>";
 		inherits: true;
 		initial-value: transparent;

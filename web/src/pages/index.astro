@@ -4,18 +4,18 @@ import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
 import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
 import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
-import CellTip from "@ui/components/CellTip.astro";
-import Customize from "@ui/components/Customize.astro";
+import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
-import Export from "@ui/components/Export.astro";
-import Hero from "@ui/components/Hero.astro";
-import HowItWorks from "@ui/components/HowItWorks.astro";
-import BaseLayout from "@ui/components/layouts/BaseLayout.astro";
-import Widget from "@ui/components/Widget.astro";
-import { buildGridFromApi, type Cell, generateData, summarize } from "@ui/lib/calendar-utils";
-import { contributionError } from "@ui/lib/contribution-errors";
-import { loadInitialContributions } from "@ui/lib/load-initial-contributions";
-import { renderCalendarString } from "@ui/lib/render-svg";
+import Customize from "@ui/components/customize/Customize.astro";
+import Export from "@ui/components/export/Export.astro";
+import CellTip from "@ui/components/grid/CellTip.astro";
+import { buildGridFromApi, type Cell, generateData, summarize } from "@ui/components/grid/calendar-utils";
+import { loadInitialContributions } from "@ui/components/grid/load-initial-contributions";
+import { renderCalendarString } from "@ui/components/grid/render-svg";
+import Hero from "@ui/components/hero/Hero.astro";
+import HowItWorks from "@ui/components/how-it-works/HowItWorks.astro";
+import Widget from "@ui/components/widget/Widget.astro";
+import { contributionError } from "@ui/utils/contribution-errors";
 
 const SITE_URL = "https://contribkit.app";
 const OG_IMAGE = `${SITE_URL}/og.png`;
@@ -125,6 +125,6 @@ Astro.response.headers.set(
 <script is:inline type="application/ld+json" set:html={JSON.stringify(SCHEMA)} />
 
 <script>
-import { initPage } from '@ui/lib/page-init';
+import { initPage } from '@ui/utils/page-init';
 initPage();
 </script>

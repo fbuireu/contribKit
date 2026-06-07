@@ -6,10 +6,16 @@ interface Props {
 }
 const { exportSvg } = Astro.props;
 
+const ExportFormatKey = {
+	Png: "png",
+	Svg: "svg",
+	Md: "md",
+} as const;
+
 const EXPORT_FORMATS = [
-	{ key: "png", label: "PNG", detail: "2880×720 · transparent", size: "186 KB" },
-	{ key: "svg", label: "SVG", detail: "Vector · 53×7 grid", size: "24 KB" },
-	{ key: "md", label: "MD", detail: "GitHub-flavored embed", size: "410 B" },
+	{ key: ExportFormatKey.Png, detail: "2880×720 · transparent", size: "186 KB" },
+	{ key: ExportFormatKey.Svg, detail: "Vector · 53×7 grid", size: "24 KB" },
+	{ key: ExportFormatKey.Md, detail: "GitHub-flavored embed", size: "410 B" },
 ] as const;
 ---
 
@@ -22,7 +28,7 @@ const EXPORT_FORMATS = [
     </h2>
     <div class="export-grid">
       <div class="export-tabs" id="export-tabs" role="tablist" aria-label="Export format">
-        {EXPORT_FORMATS.map(({ key, label, detail, size }, i) => (
+        {EXPORT_FORMATS.map(({ key, detail, size }, i) => (
           <button
             class:list={['export-tab', { active: i === 0 }]}
             role="tab"
@@ -32,7 +38,7 @@ const EXPORT_FORMATS = [
             data-key={key}
           >
             <span class="mono tab-key">.{key}</span>
-            <span class="tab-label">{label}</span>
+            <span class="tab-label">{key.toUpperCase()}</span>
             <span class="tab-detail">{detail}</span>
             <span class="mono dimmer tab-size">{size}</span>
           </button>

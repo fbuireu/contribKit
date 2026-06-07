@@ -157,11 +157,6 @@
 		background: var(--error-accent);
 		animation: blink 1.1s steps(2) infinite;
 	}
-	@media (prefers-reduced-motion: reduce) {
-		.error-term-cursor {
-			animation: none;
-		}
-	}
 
 	.error-actions {
 		display: flex;

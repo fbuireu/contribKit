@@ -1,12 +1,14 @@
 ---
+import { SUGGESTED_USERNAMES } from "@domain/value-objects/username";
+import { GITHUB_LAUNCH_YEAR } from "@domain/value-objects/year";
 import "./hero.css";
-import AppStore from "./icons/AppStore.astro";
-import ArrowRight from "./icons/ArrowRight.astro";
-import ChevronDown from "./icons/ChevronDown.astro";
-import GooglePlay from "./icons/GooglePlay.astro";
+import AppStore from "@ui/components/icons/AppStore.astro";
+import ArrowRight from "@ui/components/icons/ArrowRight.astro";
+import ChevronDown from "@ui/components/icons/ChevronDown.astro";
+import GooglePlay from "@ui/components/icons/GooglePlay.astro";
 
-const GITHUB_START = 2005;
 const currentYear = new Date().getFullYear();
+const appVersion = __APP_VERSION__;
 
 interface Props {
 	heroSVG: string;
@@ -26,7 +28,7 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
     <div class="meta">
       <span class="badge">
         <span class="badge-dot" aria-hidden="true"></span>
-        v1.0 · available on iOS &amp; Android
+        v{appVersion} · available on iOS &amp; Android
       </span>
     </div>
 
@@ -62,7 +64,7 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
         <input class="us-input" id="hero-username" type="search" value={username} spellcheck="false" autocomplete="off" autocapitalize="none" autocorrect="off" />
         <div class="us-year-wrap">
           <select class="us-year" id="hero-year" aria-label="Year">
-            {Array.from({ length: currentYear - GITHUB_START + 1 }, (_, i) => currentYear - i).map(y => (
+            {Array.from({ length: currentYear - GITHUB_LAUNCH_YEAR + 1 }, (_, i) => currentYear - i).map(y => (
               <option value={y} selected={y === year}>{y}</option>
             ))}
           </select>
@@ -79,12 +81,9 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
 
     <div class="suggestions" role="group" aria-label="Try a famous GitHub profile">
       <span class="mono sug-label" aria-hidden="true">try:</span>
-      <button class="sug-btn mono" data-username="torvalds">torvalds</button>
-      <button class="sug-btn mono" data-username="gaearon">gaearon</button>
-      <button class="sug-btn mono" data-username="yyx990803">yyx990803</button>
-      <button class="sug-btn mono" data-username="sindresorhus">sindresorhus</button>
-      <button class="sug-btn mono" data-username="antirez">antirez</button>
-      <button class="sug-btn mono" data-username="fbuireu">fbuireu</button>
+      {SUGGESTED_USERNAMES.map((handle) => (
+        <button class="sug-btn mono" data-username={handle}>{handle}</button>
+      ))}
     </div>
 
     <p class="hero-error" id="hero-error" aria-live="polite" hidden={!error}>{error ? `↳ ${error}` : ""}</p>

@@ -44,6 +44,16 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": ["**/styles/reset/reset.css"],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noImportantStyles": "off"
+					}
+				}
+			}
 		}
 	]
 }
