@@ -1,3 +1,16 @@
+# [contribkit-web-v1.10.0](https://github.com/fbuireu/contribKit/compare/web-v1.9.5...web-v1.10.0) (2026-06-07)
+
+
+### Bug Fixes
+
+* hoist mulberry ([0903f0e](https://github.com/fbuireu/contribKit/commit/0903f0edd6584b3059667a3ce1473f683190da1f))
+* reuse mulberry ([043436e](https://github.com/fbuireu/contribKit/commit/043436e120449b951fa289459a44c694b573a457))
+
+
+### Features
+
+* add tests + refactor utils ([16da976](https://github.com/fbuireu/contribKit/commit/16da976b78e797af20c1a39bb3a212ca8aa2854a))
+
 # [contribkit-web-v1.9.5](https://github.com/fbuireu/contribKit/compare/web-v1.9.4...web-v1.9.5) (2026-06-06)
 
 
