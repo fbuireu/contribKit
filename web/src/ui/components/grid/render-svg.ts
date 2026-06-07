@@ -11,8 +11,9 @@ import {
 	SVG_PAD_Y,
 	SVG_WEEKS,
 } from "@domain/services/svg-geometry";
+import { DOW, MONTHS } from "@domain/value-objects/calendar-labels";
 import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
-import { type Cell, DOW, MONTHS, type RenderCalendarParams } from "./calendar-utils";
+import type { Cell, RenderCalendarParams } from "./calendar-utils";
 import { TOTALS_PER_LEVEL } from "./contribution";
 
 export function renderCalendarString({

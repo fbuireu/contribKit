@@ -16,6 +16,7 @@ pnpm-debug.log*
 # Test
 test-results/
 playwright-report/
+coverage/
 
 # Secrets
 .env*
