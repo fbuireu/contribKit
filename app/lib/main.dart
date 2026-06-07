@@ -8,7 +8,7 @@ import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
-import 'package:flutter/material.dart' show Material;
+import 'package:flutter/material.dart' show Material, ThemeMode;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -148,7 +148,18 @@ class ContribKitApp extends ConsumerWidget {
         textTheme: googleFontTextTheme,
       ),
       themeMode: themeMode,
-      home: const Material(color: Color(0x00000000), child: ViewerScreen()),
+      home: AnnotatedRegion<SystemUiOverlayStyle>(
+        value:
+            (themeMode == ThemeMode.light
+                    ? SystemUiOverlayStyle.dark
+                    : SystemUiOverlayStyle.light)
+                .copyWith(
+                  statusBarColor: const Color(0x00000000),
+                  systemNavigationBarColor: const Color(0x00000000),
+                  systemNavigationBarContrastEnforced: false,
+                ),
+        child: const Material(color: Color(0x00000000), child: ViewerScreen()),
+      ),
     );
   }
 }
