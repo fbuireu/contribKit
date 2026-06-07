@@ -30,31 +30,18 @@ describe("digitsToMatrix", () => {
 });
 
 describe("noiseLevel", () => {
-	it("is deterministic for the same inputs", () => {
-		expect(noiseLevel({ row: 1, col: 2, seed: 3 })).toBe(noiseLevel({ row: 1, col: 2, seed: 3 }));
+	it("buckets low values as empty (0)", () => {
+		expect(noiseLevel(0)).toBe(0);
+		expect(noiseLevel(0.8599)).toBe(0);
 	});
 
-	it("only ever returns 0, 1, or 2", () => {
-		for (let row = 0; row < 7; row++) {
-			for (let col = 0; col < 20; col++) {
-				expect([0, 1, 2]).toContain(noiseLevel({ row, col, seed: 3 }));
-			}
-		}
+	it("buckets mid values as a faint spark (1)", () => {
+		expect(noiseLevel(0.86)).toBe(1);
+		expect(noiseLevel(0.9599)).toBe(1);
 	});
 
-	it("returns level 0 at the origin with seed 0", () => {
-		expect(noiseLevel({ row: 0, col: 0, seed: 0 })).toBe(0);
-	});
-
-	it("returns mostly empty cells, matching the 0.86 threshold", () => {
-		const counts = [0, 0, 0];
-		for (let row = 0; row < 7; row++) {
-			for (let col = 0; col < 100; col++) {
-				counts[noiseLevel({ row, col, seed: 3 })]++;
-			}
-		}
-		const total = counts[0] + counts[1] + counts[2];
-		expect(counts[0] / total).toBeGreaterThan(0.7);
-		expect(counts[2]).toBeLessThan(counts[0]);
+	it("buckets high values as a bright spark (2)", () => {
+		expect(noiseLevel(0.96)).toBe(2);
+		expect(noiseLevel(0.999)).toBe(2);
 	});
 });

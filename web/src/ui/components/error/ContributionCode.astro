@@ -1,4 +1,5 @@
 ---
+import { mulberry32 } from "@ui/lib/mulberry";
 import "./contribution-code.css";
 import { digitsToMatrix, noiseLevel } from "./glyph-utils";
 
@@ -31,7 +32,7 @@ matrix.forEach((cells, rowIndex) => {
 		if (isFilled) {
 			glyph.push(square);
 		} else {
-			const level = noiseLevel({ row: rowIndex, col: colIndex, seed });
+			const level = noiseLevel(mulberry32(seed)());
 			square.cls = level === 0 ? "cc-empty" : level === 1 ? "cc-spark-1" : "cc-spark-2";
 			background.push(square);
 		}

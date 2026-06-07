@@ -17,9 +17,6 @@ const GLYPHS: Record<string, string[]> = {
 
 const NOISE_EMPTY_MAX = 0.86;
 const NOISE_SPARK_LOW_MAX = 0.96;
-const HASH_ROW_FACTOR = 12.9898;
-const HASH_COL_FACTOR = 78.233;
-const HASH_SCALE = 43758.5453;
 
 export function digitsToMatrix(value: string): number[][] {
 	const matrix: number[][] = Array.from({ length: ROWS }, () => []);
@@ -43,17 +40,8 @@ export function digitsToMatrix(value: string): number[][] {
 	return matrix;
 }
 
-interface NoiseLevelParams {
-	row: number;
-	col: number;
-	seed: number;
-}
-
-export function noiseLevel({ row, col, seed }: NoiseLevelParams): number {
-	const sine = Math.sin((row * HASH_ROW_FACTOR + col * HASH_COL_FACTOR + seed) * HASH_SCALE);
-	const pseudoRandom = sine - Math.floor(sine);
-
-	if (pseudoRandom < NOISE_EMPTY_MAX) return 0;
-	if (pseudoRandom < NOISE_SPARK_LOW_MAX) return 1;
+export function noiseLevel(value: number): number {
+	if (value < NOISE_EMPTY_MAX) return 0;
+	if (value < NOISE_SPARK_LOW_MAX) return 1;
 	return 2;
 }
