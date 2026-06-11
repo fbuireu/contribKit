@@ -1,3 +1,15 @@
+# [contribkit-web-v1.11.0](https://github.com/fbuireu/contribKit/compare/web-v1.10.2...web-v1.11.0) (2026-06-11)
+
+
+### Bug Fixes
+
+* ddd layers ([040c895](https://github.com/fbuireu/contribKit/commit/040c895fcff856886db7e09c8f035cd12b1a73f6))
+
+
+### Features
+
+* add tests + chore ([c46d504](https://github.com/fbuireu/contribKit/commit/c46d504c4cd0ad643c06a2f5d8ae988886b4d51e))
+
 # [contribkit-web-v1.10.2](https://github.com/fbuireu/contribKit/compare/web-v1.10.1...web-v1.10.2) (2026-06-07)
 
 
