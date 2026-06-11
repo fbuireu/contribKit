@@ -1,5 +1,8 @@
 ---
 import { fetchContributions } from "@application/use-cases/fetch-contributions";
+import { loadInitialContributions } from "@application/use-cases/load-initial-contributions";
+import type { ContributionDay } from "@domain/entities/types";
+import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
 import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
@@ -9,8 +12,7 @@ import type { Metadata } from "@ui/components/core/seo/types";
 import Customize from "@ui/components/customize/Customize.astro";
 import Export from "@ui/components/export/Export.astro";
 import CellTip from "@ui/components/grid/CellTip.astro";
-import { buildGridFromApi, type Cell, generateData, summarize } from "@ui/components/grid/calendar-utils";
-import { loadInitialContributions } from "@ui/components/grid/load-initial-contributions";
+import { generateData, summarize } from "@ui/components/grid/calendar";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import Hero from "@ui/components/hero/Hero.astro";
 import HowItWorks from "@ui/components/how-it-works/HowItWorks.astro";
@@ -63,10 +65,10 @@ const currentYear = new Date().getFullYear();
 const requestedYear = Astro.url.searchParams.get("year");
 
 const loadContributions = fetchContributions(createGithubHtmlContributionsRepository());
-const initial = await loadInitialContributions({ loadContributions, username, year: requestedYear });
+const initial = await loadInitialContributions(loadContributions)({ username, year: requestedYear });
 const resolvedYear = initial.ok ? initial.data.year : currentYear;
 
-let cells: Cell[];
+let cells: ContributionDay[];
 let heroError: string | null = null;
 if (initial.ok) {
 	cells = initial.data.cells;

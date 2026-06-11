@@ -8,8 +8,12 @@ export interface LogServerErrorParams {
 	path: string;
 }
 
-const describeError = (error: unknown): string =>
-	error instanceof Error ? error.message : error ? String(error) : "unknown";
+const describeError = (error: unknown): string => {
+	if (error instanceof Error) return error.message;
+	if (!error) return "unknown";
+	if (typeof error === "object") return JSON.stringify(error);
+	return String(error);
+};
 
 export const logServerError = ({ logger, error, path }: LogServerErrorParams): void => {
 	logger.error({

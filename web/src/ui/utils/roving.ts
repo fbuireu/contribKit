@@ -1,4 +1,9 @@
-export function activateRadio(buttons: NodeListOf<HTMLElement>, target: HTMLElement): void {
+export interface ActivateRadioParams {
+	buttons: NodeListOf<HTMLElement>;
+	target: HTMLElement;
+}
+
+export function activateRadio({ buttons, target }: ActivateRadioParams): void {
 	buttons.forEach((button) => {
 		button.classList.remove("active");
 		button.setAttribute("aria-checked", "false");
@@ -7,7 +12,13 @@ export function activateRadio(buttons: NodeListOf<HTMLElement>, target: HTMLElem
 	target.setAttribute("aria-checked", "true");
 }
 
-export function addRadioKeyboard(buttons: NodeListOf<HTMLElement>, index: number, onActivate: () => void): void {
+export interface AddRadioKeyboardParams {
+	buttons: NodeListOf<HTMLElement>;
+	index: number;
+	onActivate: () => void;
+}
+
+export function addRadioKeyboard({ buttons, index, onActivate }: AddRadioKeyboardParams): void {
 	buttons[index].addEventListener("keydown", (event) => {
 		const len = buttons.length;
 		let targetIndex = -1;
@@ -25,13 +36,18 @@ export function addRadioKeyboard(buttons: NodeListOf<HTMLElement>, index: number
 			targetIndex = len - 1;
 		}
 		if (targetIndex < 0) return;
-		activateRadio(buttons, buttons[targetIndex]);
+		activateRadio({ buttons, target: buttons[targetIndex] });
 		buttons[targetIndex].focus();
 		onActivate();
 	});
 }
 
-export function activateTab(tabs: NodeListOf<HTMLElement>, target: HTMLElement): void {
+export interface ActivateTabParams {
+	tabs: NodeListOf<HTMLElement>;
+	target: HTMLElement;
+}
+
+export function activateTab({ tabs, target }: ActivateTabParams): void {
 	tabs.forEach((tab) => {
 		tab.classList.remove("active");
 		tab.setAttribute("aria-selected", "false");

@@ -20,8 +20,16 @@ export type Failure =
 	| { readonly kind: typeof FailureKind.Network; readonly status?: number; readonly message: string }
 	| { readonly kind: typeof FailureKind.Parse; readonly message: string };
 
+export const isFailure = (value: unknown): value is Failure =>
+	typeof value === "object" && value !== null && "kind" in value;
+
+export interface InvalidInputParams {
+	field: FailureField;
+	message: string;
+}
+
 export const notFound = (username: string): Failure => ({ kind: FailureKind.NotFound, username });
-export const invalidInput = (field: FailureField, message: string): Failure => ({
+export const invalidInput = ({ field, message }: InvalidInputParams): Failure => ({
 	kind: FailureKind.InvalidInput,
 	field,
 	message,

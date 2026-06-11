@@ -1,13 +1,13 @@
 {
-  "name": "ContribKit",
-  "short_name": "ContribKit",
-  "description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
-  "icons": [
-    { "src": "/favicon.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png" }
-  ],
-  "theme_color": "#09090b",
-  "background_color": "#09090b",
-  "display": "standalone",
-  "start_url": "/"
+	"name": "ContribKit",
+	"short_name": "ContribKit",
+	"description": "Visualize, customize, and export your GitHub contribution calendar — no token required.",
+	"icons": [
+		{ "src": "/favicon.png", "sizes": "192x192", "type": "image/png" },
+		{ "src": "/favicon.png", "sizes": "512x512", "type": "image/png" }
+	],
+	"theme_color": "#09090b",
+	"background_color": "#09090b",
+	"display": "standalone",
+	"start_url": "/"
 }

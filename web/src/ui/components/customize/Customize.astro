@@ -33,11 +33,11 @@ const paletteEntries = Object.values(PALETTES);
             <span class="mono dimmer">{paletteEntries.length}</span>
           </div>
           <div class="palette-list" id="palette-list" role="radiogroup" aria-label="Color palette">
-            {paletteEntries.map(({ key, name, colors }, i) => (
+            {paletteEntries.map(({ key, name, colors }, index) => (
               <button
-                class:list={['palette-row', { active: i === 0 }]}
+                class:list={['palette-row', { active: index === 0 }]}
                 role="radio"
-                aria-checked={i === 0 ? 'true' : 'false'}
+                aria-checked={index === 0 ? 'true' : 'false'}
                 data-key={key}
               >
                 <span class="palette-swatches">
@@ -55,11 +55,11 @@ const paletteEntries = Object.values(PALETTES);
             <span class="mono dimmer">{SHAPE_KINDS.length}</span>
           </div>
           <div class="shape-list" id="shape-list" role="radiogroup" aria-label="Cell shape">
-            {SHAPE_KINDS.map((kind, i) => (
+            {SHAPE_KINDS.map((kind, index) => (
               <button
-                class:list={['shape-btn', { active: i === 0 }]}
+                class:list={['shape-btn', { active: index === 0 }]}
                 role="radio"
-                aria-checked={i === 0 ? 'true' : 'false'}
+                aria-checked={index === 0 ? 'true' : 'false'}
                 data-key={kind}
               >
                 <Fragment set:html={shapePreviewSVG(kind)} />

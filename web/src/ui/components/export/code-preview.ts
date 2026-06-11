@@ -105,7 +105,13 @@ export const SVG_LINES: CodeLine[] = [
 	[["c-tag", "</svg>"]],
 ];
 
-export function buildMdLines(username: string, palette: string, shape: string): CodeLine[] {
+export interface BuildMdLinesParams {
+	username: string;
+	palette: string;
+	shape: string;
+}
+
+export function buildMdLines({ username, palette, shape }: BuildMdLinesParams): CodeLine[] {
 	const base = `https://contribkit.app/user/${username}.svg`;
 	return [
 		[["c-comment", "<!-- paste into your README -->"]],
@@ -156,15 +162,15 @@ export function buildCodeBlock(lines: CodeLine[]): HTMLPreElement {
 	lines.forEach((line) => {
 		const div = document.createElement("div");
 		div.className = "code-line";
-		if (!line.length) {
-			div.innerHTML = "&nbsp;";
-		} else {
+		if (line.length) {
 			line.forEach(([className, text]) => {
 				const span = document.createElement("span");
 				if (className) span.className = className;
 				span.textContent = text;
 				div.appendChild(span);
 			});
+		} else {
+			div.innerHTML = "&nbsp;";
 		}
 		pre.appendChild(div);
 	});

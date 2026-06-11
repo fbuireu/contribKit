@@ -8,6 +8,7 @@ Implementations of `domain/` interfaces. Can depend on `fetch`, Cloudflare Worke
 |---|---|
 | `github/` | `createGithubHtmlContributionsRepository` — HTML scraping of `github.com/users/{login}/contributions` |
 | `rendering/` | `svgStringRenderer` — pure string-based SVG output, no DOM |
+| `logging/` | `better-stack-logger` (Better Stack ingestion) and `logServerError` (500-page reporting helper) |
 
 ## Rules
 

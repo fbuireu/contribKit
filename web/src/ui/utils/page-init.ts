@@ -1,7 +1,7 @@
-import type { ContributionDay } from "@domain/entities/types";
+import { buildGridFromApi } from "@domain/services/calendar-grid";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import { buildGridFromApi, generateData, rehydrateCells, summarize } from "@ui/components/grid/calendar-utils";
+import { generateData, summarize } from "@ui/components/grid/calendar";
 import { CONTRIBUTION_ERRORS } from "@ui/utils/contribution-errors";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
@@ -25,7 +25,7 @@ interface ContributionsResponse {
 
 const CELLS =
 	Array.isArray(window.__INITIAL_CELLS__) && window.__INITIAL_CELLS__.length
-		? rehydrateCells(window.__INITIAL_CELLS__)
+		? window.__INITIAL_CELLS__
 		: generateData(7);
 
 const ERRORS = CONTRIBUTION_ERRORS;
@@ -45,7 +45,7 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 	const selectedYear = Number(yearSelect?.value ?? 0);
 	const yearQuery = selectedYear && selectedYear <= CURRENT_YEAR ? `&year=${selectedYear}` : "";
 
-	if (updateHistory) syncUrl(username, selectedYear, CURRENT_YEAR);
+	if (updateHistory) syncUrl({ username, year: selectedYear, currentYear: CURRENT_YEAR });
 	void writeUsernameCookie(username);
 	syncSuggestionSelection(username);
 
@@ -55,7 +55,7 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 
 	try {
 		const response = await fetch(`/api/contributions?user=${encodeURIComponent(username)}${yearQuery}`);
-		const data = (await response.json()) as ContributionsResponse;
+		const data: ContributionsResponse = await response.json();
 
 		if (!response.ok) {
 			setHeroError(ERRORS[response.status] ?? data.error ?? "something went wrong");
@@ -69,9 +69,7 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 			setUsername(username);
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
-			const stats = summarize(
-				data.cells.map((cell: ContributionDay) => ({ date: cell.date, level: cell.level, count: cell.count ?? null })),
-			);
+			const stats = summarize(data.cells);
 			if (data.total != null) stats.count = data.total;
 			updateHeroStats(stats);
 			updateYearRange(getCells());
@@ -95,10 +93,10 @@ function initPaletteList() {
 	const allPaletteButtons = document.querySelectorAll<HTMLElement>("#palette-list .palette-row");
 	allPaletteButtons.forEach((button, index) => {
 		button.addEventListener("click", () => {
-			activateRadio(allPaletteButtons, button);
+			activateRadio({ buttons: allPaletteButtons, target: button });
 			renderCustomize();
 		});
-		addRadioKeyboard(allPaletteButtons, index, renderCustomize);
+		addRadioKeyboard({ buttons: allPaletteButtons, index, onActivate: renderCustomize });
 	});
 }
 
@@ -106,10 +104,10 @@ function initShapeList() {
 	const allShapeButtons = document.querySelectorAll<HTMLElement>("#shape-list .shape-btn");
 	allShapeButtons.forEach((button, index) => {
 		button.addEventListener("click", () => {
-			activateRadio(allShapeButtons, button);
+			activateRadio({ buttons: allShapeButtons, target: button });
 			renderCustomize();
 		});
-		addRadioKeyboard(allShapeButtons, index, renderCustomize);
+		addRadioKeyboard({ buttons: allShapeButtons, index, onActivate: renderCustomize });
 	});
 }
 
@@ -117,7 +115,7 @@ function initExportTabs() {
 	const allTabs = document.querySelectorAll<HTMLElement>("#export-tabs [data-key]");
 	allTabs.forEach((tab, index) => {
 		tab.addEventListener("click", () => {
-			activateTab(allTabs, tab);
+			activateTab({ tabs: allTabs, target: tab });
 			renderExportPreview();
 		});
 		tab.addEventListener("keydown", (event) => {
@@ -137,7 +135,7 @@ function initExportTabs() {
 				targetIndex = len - 1;
 			}
 			if (targetIndex < 0) return;
-			activateTab(allTabs, allTabs[targetIndex]);
+			activateTab({ tabs: allTabs, target: allTabs[targetIndex] });
 			allTabs[targetIndex].focus();
 			renderExportPreview();
 		});
@@ -200,7 +198,7 @@ function initUsernameStrip() {
 }
 
 function initHistoryNav() {
-	window.addEventListener("popstate", () => {
+	globalThis.addEventListener("popstate", () => {
 		const username = readUsernameFromUrl(DEFAULT_USERNAME);
 		const input = document.getElementById("hero-username") as HTMLInputElement | null;
 		const yearSelect = document.getElementById("hero-year") as HTMLSelectElement | null;
@@ -217,13 +215,13 @@ function initUsernameState() {
 	const ssrUsername = input?.value.trim() || DEFAULT_USERNAME;
 	setUsername(ssrUsername);
 
-	const urlUser = new URLSearchParams(window.location.search).get("user")?.trim();
+	const urlUser = new URLSearchParams(globalThis.location.search).get("user")?.trim();
 	if (!urlUser) void seedUsernameCookie(ssrUsername);
 
 	if (urlUser !== ssrUsername) {
-		const url = new URL(window.location.href);
+		const url = new URL(globalThis.location.href);
 		url.searchParams.set("user", ssrUsername);
-		window.history.replaceState(null, "", url);
+		globalThis.history.replaceState(null, "", url);
 	}
 
 	syncSuggestionSelection(ssrUsername);

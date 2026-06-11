@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { invalidInput, network, notFound, parse } from "./failure";
+import { invalidInput, isFailure, network, notFound, parse } from "./failure";
+
+describe("isFailure", () => {
+	it("detects failure-shaped objects", () => {
+		expect(isFailure(notFound("torvalds"))).toBe(true);
+		expect(isFailure(parse("bad json"))).toBe(true);
+	});
+
+	it("rejects non-failures", () => {
+		expect(isFailure(null)).toBe(false);
+		expect(isFailure("nope")).toBe(false);
+		expect(isFailure({ value: 1 })).toBe(false);
+	});
+});
 
 describe("failure constructors", () => {
 	it("notFound", () => {
@@ -7,7 +20,7 @@ describe("failure constructors", () => {
 	});
 
 	it("invalidInput", () => {
-		expect(invalidInput("username", "bad")).toEqual({
+		expect(invalidInput({ field: "username", message: "bad" })).toEqual({
 			kind: "InvalidInput",
 			field: "username",
 			message: "bad",

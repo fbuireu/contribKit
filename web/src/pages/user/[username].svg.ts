@@ -1,12 +1,13 @@
+import { messageFor, statusFor } from "@application/http/failure-http";
 import { fetchContributions } from "@application/use-cases/fetch-contributions";
 import { renderCalendarSvg } from "@application/use-cases/render-calendar-svg";
+import { isFailure } from "@domain/failures/failure";
 import { DEFAULT_BACKGROUND_COLOR, DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND, isShapeKind, type ShapeKind } from "@domain/value-objects/shape";
 import { parseUsername } from "@domain/value-objects/username";
 import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
 import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import { svgStringRenderer } from "@infrastructure/rendering/svg-string-renderer";
-import { isFailure, messageFor, statusFor } from "@ui/utils/failure-http";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
 

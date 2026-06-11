@@ -28,12 +28,12 @@ const EXPORT_FORMATS = [
     </h2>
     <div class="export-grid">
       <div class="export-tabs" id="export-tabs" role="tablist" aria-label="Export format">
-        {EXPORT_FORMATS.map(({ key, detail, size }, i) => (
+        {EXPORT_FORMATS.map(({ key, detail, size }, index) => (
           <button
-            class:list={['export-tab', { active: i === 0 }]}
+            class:list={['export-tab', { active: index === 0 }]}
             role="tab"
             id={`export-tab-${key}`}
-            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-selected={index === 0 ? 'true' : 'false'}
             aria-controls="export-preview"
             data-key={key}
           >

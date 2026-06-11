@@ -2,7 +2,7 @@ export function initThemeToggle(): void {
 	const button = document.getElementById("theme-toggle");
 	if (!button) return;
 	const meta = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
-	const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+	const darkModeMediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
 
 	function pinned(): string | null {
 		const storedScheme = localStorage.getItem("color-scheme");

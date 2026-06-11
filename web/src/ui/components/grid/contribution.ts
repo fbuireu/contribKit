@@ -1,6 +1,11 @@
 export const TOTALS_PER_LEVEL = [0, 1, 4, 9, 16] as const;
 
-export function formatContribLabel(dateIso: string, count: number): string {
+export interface FormatContribLabelParams {
+	dateIso: string;
+	count: number;
+}
+
+export function formatContribLabel({ dateIso, count }: FormatContribLabelParams): string {
 	const dateText = new Date(`${dateIso}T12:00:00`).toLocaleDateString("en-US", {
 		weekday: "long",
 		month: "long",

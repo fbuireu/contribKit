@@ -9,18 +9,18 @@ describe("TOTALS_PER_LEVEL", () => {
 
 describe("formatContribLabel", () => {
 	it("renders no contributions for zero", () => {
-		expect(formatContribLabel("2024-03-15", 0)).toMatch(/^No contributions on /);
+		expect(formatContribLabel({ dateIso: "2024-03-15", count: 0 })).toMatch(/^No contributions on /);
 	});
 
 	it("renders a singular contribution", () => {
-		expect(formatContribLabel("2024-03-15", 1)).toMatch(/^1 contribution on /);
+		expect(formatContribLabel({ dateIso: "2024-03-15", count: 1 })).toMatch(/^1 contribution on /);
 	});
 
 	it("renders many with a thousands separator", () => {
-		expect(formatContribLabel("2024-03-15", 1234)).toMatch(/^1,234 contributions on /);
+		expect(formatContribLabel({ dateIso: "2024-03-15", count: 1234 })).toMatch(/^1,234 contributions on /);
 	});
 
 	it("includes the formatted date", () => {
-		expect(formatContribLabel("2024-03-15", 5)).toContain("March 15, 2024");
+		expect(formatContribLabel({ dateIso: "2024-03-15", count: 5 })).toContain("March 15, 2024");
 	});
 });

@@ -1,7 +1,8 @@
+import type { ContributionDay } from "@domain/entities/types";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
 import { buildCodeBlock, buildMdLines, SVG_LINES } from "@ui/components/export/code-preview";
-import type { Cell, CellSummary } from "@ui/components/grid/calendar-utils";
+import type { CellSummary } from "@ui/components/grid/calendar";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import { getCells, getUsername } from "./state";
@@ -36,8 +37,8 @@ export function renderCustomize(): void {
 	const heroGrid = document.getElementById("hero-grid-container");
 	if (heroGrid)
 		heroGrid.innerHTML = renderCalendarString({ cells, palette, shape, size: 13, gap: 3, showLabels: true });
-	document.querySelectorAll<HTMLElement>(".legend .legend-sq").forEach((square, i) => {
-		square.style.background = palette[i] ?? palette[0];
+	document.querySelectorAll<HTMLElement>(".legend .legend-sq").forEach((square, index) => {
+		square.style.background = palette[index] ?? palette[0];
 	});
 	const paletteLabelEl = document.getElementById("custom-palette-label");
 	if (paletteLabelEl) paletteLabelEl.textContent = getActivePalette();
@@ -75,7 +76,7 @@ export function renderExportPreview(): void {
 		card.appendChild(tag);
 	} else {
 		card.classList.add("code-preview");
-		const mdLines = buildMdLines(username, getActivePalette(), shape);
+		const mdLines = buildMdLines({ username, palette: getActivePalette(), shape });
 		card.appendChild(buildCodeBlock(exportTab === "svg" ? SVG_LINES : mdLines));
 		const plainText =
 			exportTab === "svg"
@@ -101,7 +102,7 @@ export function renderExportPreview(): void {
 	preview.appendChild(card);
 }
 
-export function updateYearRange(cells: Cell[]): void {
+export function updateYearRange(cells: ContributionDay[]): void {
 	const el = document.getElementById("hero-year-range");
 	if (!el || cells.length < 8) return;
 	el.textContent = cells[7].date.slice(0, 4);

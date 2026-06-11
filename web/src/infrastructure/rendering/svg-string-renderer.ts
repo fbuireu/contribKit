@@ -1,20 +1,19 @@
 import {
 	calendarDimensions,
+	chunkWeeks,
 	dotRadius,
 	hexPoints,
+	monthLabelPositions,
 	radiusFor,
-	SVG_DAYS_PER_WEEK,
 	SVG_DEFAULT_CELL_GAP,
 	SVG_DEFAULT_CELL_SIZE,
 	SVG_DOW_LABEL_BASELINE,
 	SVG_MONTH_LABEL_BASELINE,
-	SVG_MONTH_LABEL_MAX_DAY,
 	SVG_PAD_X,
 	SVG_PAD_Y,
-	SVG_WEEKS,
 } from "@domain/services/svg-geometry";
 import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
-import { DOW, MONTHS } from "@domain/value-objects/calendar-labels";
+import { DOW } from "@domain/value-objects/calendar-labels";
 import type { ShapeKind } from "@domain/value-objects/shape";
 
 const LABEL_FONT_FAMILY = "ui-monospace,monospace";
@@ -24,10 +23,25 @@ const MONTH_LABEL_LETTER_SPACING = "0.04em";
 const DOW_LABEL_FILL = "rgba(255,255,255,0.35)";
 const DOW_LABEL_FONT_SIZE = "9";
 
-const renderRect = (x: number, y: number, size: number, radius: number, fill: string): string =>
+interface RenderRectParams {
+	x: number;
+	y: number;
+	size: number;
+	radius: number;
+	fill: string;
+}
+
+const renderRect = ({ x, y, size, radius, fill }: RenderRectParams): string =>
 	`<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${radius}" fill="${fill}"/>`;
 
-const renderCircle = (cx: number, cy: number, r: number, fill: string): string =>
+interface RenderCircleParams {
+	cx: number;
+	cy: number;
+	r: number;
+	fill: string;
+}
+
+const renderCircle = ({ cx, cy, r, fill }: RenderCircleParams): string =>
 	`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`;
 
 interface CellRenderContext {
@@ -40,12 +54,12 @@ interface CellRenderContext {
 }
 
 const CELL_RENDERERS: Record<ShapeKind, (context: CellRenderContext) => string> = {
-	dot: ({ x, y, size, fill, level }) => renderCircle(x + size / 2, y + size / 2, dotRadius(level), fill),
+	dot: ({ x, y, size, fill, level }) => renderCircle({ cx: x + size / 2, cy: y + size / 2, r: dotRadius(level), fill }),
 	hex: ({ x, y, size, fill }) =>
 		`<polygon points="${hexPoints({ cx: x + size / 2, cy: y + size / 2, radius: size / 2 })}" fill="${fill}"/>`,
-	circle: ({ x, y, size, fill }) => renderCircle(x + size / 2, y + size / 2, size / 2, fill),
-	rounded: ({ x, y, size, radius, fill }) => renderRect(x, y, size, radius, fill),
-	square: ({ x, y, size, radius, fill }) => renderRect(x, y, size, radius, fill),
+	circle: ({ x, y, size, fill }) => renderCircle({ cx: x + size / 2, cy: y + size / 2, r: size / 2, fill }),
+	rounded: ({ x, y, size, radius, fill }) => renderRect({ x, y, size, radius, fill }),
+	square: ({ x, y, size, radius, fill }) => renderRect({ x, y, size, radius, fill }),
 };
 
 export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendererParams): string => {
@@ -56,9 +70,7 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 	const { cellWidth, labelWidth, labelHeight, totalWidth, totalHeight } = calendarDimensions({ size, gap, showLabels });
 	const radius = radiusFor({ shape, size });
 
-	const weeks = Array.from({ length: SVG_WEEKS }, (_, i) =>
-		calendar.days.slice(i * SVG_DAYS_PER_WEEK, i * SVG_DAYS_PER_WEEK + SVG_DAYS_PER_WEEK),
-	);
+	const weeks = chunkWeeks(calendar.days);
 
 	const parts: string[] = [];
 	parts.push(
@@ -70,23 +82,15 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 	}
 
 	if (showLabels) {
-		let lastMonth = -1;
-		for (const [weekIndex, week] of weeks.entries()) {
-			const first = week[0];
-			if (!first) continue;
-			const date = new Date(`${first.date}T12:00:00`);
-			const month = date.getMonth();
-			if (month !== lastMonth && date.getDate() <= SVG_MONTH_LABEL_MAX_DAY) {
-				parts.push(
-					`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" fill="${MONTH_LABEL_FILL}" font-size="${MONTH_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}" letter-spacing="${MONTH_LABEL_LETTER_SPACING}">${MONTHS[month]}</text>`,
-				);
-				lastMonth = month;
-			}
+		for (const { weekIndex, label } of monthLabelPositions(weeks)) {
+			parts.push(
+				`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" fill="${MONTH_LABEL_FILL}" font-size="${MONTH_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}" letter-spacing="${MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
+			);
 		}
 
-		for (const [i, dayLabel] of DOW.entries()) {
+		for (const [index, dayLabel] of DOW.entries()) {
 			parts.push(
-				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (i * 2 + 1) * cellWidth + SVG_DOW_LABEL_BASELINE}" fill="${DOW_LABEL_FILL}" font-size="${DOW_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
+				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_DOW_LABEL_BASELINE}" fill="${DOW_LABEL_FILL}" font-size="${DOW_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
 			);
 		}
 	}

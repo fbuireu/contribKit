@@ -8,7 +8,7 @@ Every Astro component lives here, grouped by role. CSS and component-specific lo
 |---|---|
 | `core/` | App shell + head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `analytics/`, `cookie-consent/`. |
 | `hero/` · `customize/` · `export/` · `how-it-works/` · `widget/` | Home-page feature sections — one folder each (`.astro` + `.css` + any local logic). |
-| `grid/` | The contribution graph: `CellTip` + its rendering utils (`calendar-utils`, `render-svg`, `mini-grid`, `contribution`, `load-initial-contributions`). |
+| `grid/` | The contribution graph: `CellTip` + its rendering utils (`calendar`, `render-svg`, `mini-grid`, `contribution`). |
 | `error/` | The `404`/`500` UI — `ErrorView` + `ContributionCode` + `glyph-utils`, generic over code + tone. |
 | `icons/` | Inline SVG icon components — no external icon library. |
 | `legal/` | Shared styles for the legal pages. |

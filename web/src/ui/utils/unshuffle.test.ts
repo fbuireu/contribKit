@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { decrypt, type ShuffledData } from "./crypto";
+import { type ShuffledData, unshuffle } from "./unshuffle";
 
-describe("decrypt", () => {
+describe("unshuffle", () => {
 	it("reorders shuffled letters by their order field", () => {
 		const data: ShuffledData[] = [
 			{ letter: "l", order: 2 },
@@ -9,7 +9,7 @@ describe("decrypt", () => {
 			{ letter: "i", order: 3 },
 			{ letter: "e", order: 1 },
 		];
-		expect(decrypt(data)).toBe("Heli");
+		expect(unshuffle(data)).toBe("Heli");
 	});
 
 	it("preserves spaces and punctuation", () => {
@@ -18,7 +18,7 @@ describe("decrypt", () => {
 			{ letter: " ", order: 1 },
 			{ letter: "a", order: 0 },
 		];
-		expect(decrypt(data)).toBe("a b");
+		expect(unshuffle(data)).toBe("a b");
 	});
 
 	it("does not mutate the input array", () => {
@@ -26,11 +26,11 @@ describe("decrypt", () => {
 			{ letter: "b", order: 1 },
 			{ letter: "a", order: 0 },
 		];
-		decrypt(data);
+		unshuffle(data);
 		expect(data.map((part) => part.letter)).toEqual(["b", "a"]);
 	});
 
 	it("returns an empty string for empty input", () => {
-		expect(decrypt([])).toBe("");
+		expect(unshuffle([])).toBe("");
 	});
 });

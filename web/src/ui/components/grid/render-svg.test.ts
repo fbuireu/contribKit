@@ -1,9 +1,9 @@
+import type { ContributionDay } from "@domain/entities/types";
 import { describe, expect, it } from "vitest";
-import type { Cell } from "./calendar-utils";
 import { renderCalendarString, shapePreviewSVG } from "./render-svg";
 
 const palette = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"];
-const cells: Cell[] = Array.from({ length: 53 * 7 }, () => ({ date: "2024-01-01", level: 2, count: 4 }));
+const cells: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({ date: "2024-01-01", level: 2, count: 4 }));
 
 describe("renderCalendarString", () => {
 	it("produces an <svg> with rects for square shapes", () => {

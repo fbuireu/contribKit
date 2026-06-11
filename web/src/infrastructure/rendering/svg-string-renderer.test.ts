@@ -7,10 +7,10 @@ import { svgStringRenderer } from "./svg-string-renderer";
 
 const calendar: ContributionCalendar = {
 	username: "torvalds",
-	days: Array.from({ length: 371 }, (_, i) => ({
+	days: Array.from({ length: 371 }, (_, index) => ({
 		date: "2024-01-01",
-		level: (i % 5) as ContributionLevel,
-		count: i % 5,
+		level: (index % 5) as ContributionLevel,
+		count: index % 5,
 	})),
 	total: 100,
 };

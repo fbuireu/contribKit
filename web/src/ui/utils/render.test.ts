@@ -13,7 +13,9 @@ import { setCells, setUsername } from "./state";
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const $ = (selector: string) => document.querySelector(selector) as HTMLElement;
 
-const cells = Array.from({ length: 371 }, () => ({ date: "2024-06-15", level: 2, count: 4 }));
+import type { ContributionDay } from "@domain/entities/types";
+
+const cells: ContributionDay[] = Array.from({ length: 371 }, () => ({ date: "2024-06-15", level: 2, count: 4 }));
 
 beforeEach(() => {
 	document.body.innerHTML = "";

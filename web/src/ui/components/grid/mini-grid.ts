@@ -1,5 +1,5 @@
+import type { ContributionDay } from "@domain/entities/types";
 import { mulberry32 } from "@ui/utils/mulberry";
-import type { Cell } from "./calendar-utils";
 
 const DEMO_COLS = 26;
 const LIVE_COLS = 53;
@@ -16,7 +16,7 @@ const LEVEL_THRESHOLDS = [
 	{ min: 0.42, level: 1 },
 ] as const;
 
-export function generateMiniGrid(palette: readonly string[], liveCells?: Cell[]): string {
+export function generateMiniGrid(palette: readonly string[], liveCells?: ContributionDay[]): string {
 	let cells: number[];
 	let cols: number;
 	let responsive: boolean;
@@ -25,15 +25,15 @@ export function generateMiniGrid(palette: readonly string[], liveCells?: Cell[])
 		cols = LIVE_COLS;
 		responsive = true;
 		const total = cols * ROWS;
-		cells = Array.from({ length: total }, (_, i) => liveCells[i]?.level ?? 0);
+		cells = Array.from({ length: total }, (_, index) => liveCells[index]?.level ?? 0);
 	} else {
 		cols = DEMO_COLS;
 		responsive = false;
 		const rand = mulberry32(SEED);
-		cells = Array.from({ length: cols * ROWS }, (_, i) => {
+		cells = Array.from({ length: cols * ROWS }, (_, index) => {
 			const randomValue = rand();
-			const progress = Math.floor(i / ROWS) / cols;
-			const boosted = randomValue + progress * 0.3 + Math.sin(i / 8) * 0.15;
+			const progress = Math.floor(index / ROWS) / cols;
+			const boosted = randomValue + progress * 0.3 + Math.sin(index / 8) * 0.15;
 			return LEVEL_THRESHOLDS.find(({ min }) => boosted > min)?.level ?? 0;
 		});
 	}

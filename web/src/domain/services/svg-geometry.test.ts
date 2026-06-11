@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
 	calendarDimensions,
+	chunkWeeks,
 	dotRadius,
 	hexPoints,
+	monthLabelPositions,
 	radiusFor,
+	SVG_DAYS_PER_WEEK,
 	SVG_LABEL_WIDTH,
 	SVG_PAD_X,
 	SVG_WEEKS,
@@ -46,5 +49,46 @@ describe("calendarDimensions", () => {
 		const dimensions = calendarDimensions({ size: 10, gap: 2, showLabels: false });
 		expect(dimensions.labelWidth).toBe(0);
 		expect(dimensions.labelHeight).toBe(0);
+	});
+});
+
+describe("chunkWeeks", () => {
+	it("splits a full grid into SVG_WEEKS weeks of SVG_DAYS_PER_WEEK", () => {
+		const cells = Array.from({ length: SVG_WEEKS * SVG_DAYS_PER_WEEK }, (_, index) => index);
+		const weeks = chunkWeeks(cells);
+		expect(weeks).toHaveLength(SVG_WEEKS);
+		expect(weeks[0]).toEqual([0, 1, 2, 3, 4, 5, 6]);
+		expect(weeks.at(-1)?.at(-1)).toBe(SVG_WEEKS * SVG_DAYS_PER_WEEK - 1);
+	});
+
+	it("leaves trailing weeks empty when there are fewer cells", () => {
+		const weeks = chunkWeeks([1, 2, 3]);
+		expect(weeks).toHaveLength(SVG_WEEKS);
+		expect(weeks[0]).toEqual([1, 2, 3]);
+		expect(weeks[1]).toEqual([]);
+	});
+});
+
+describe("monthLabelPositions", () => {
+	it("labels the first week of each month within the max-day window", () => {
+		const weeks = [
+			[{ date: "2024-01-01" }],
+			[{ date: "2024-01-08" }],
+			[{ date: "2024-02-05" }],
+			[{ date: "2024-02-12" }],
+		];
+		expect(monthLabelPositions(weeks)).toEqual([
+			{ weekIndex: 0, label: "Jan" },
+			{ weekIndex: 2, label: "Feb" },
+		]);
+	});
+
+	it("skips a month whose first visible week starts too late", () => {
+		const weeks = [[{ date: "2024-01-01" }], [{ date: "2024-02-09" }]];
+		expect(monthLabelPositions(weeks)).toEqual([{ weekIndex: 0, label: "Jan" }]);
+	});
+
+	it("ignores empty weeks", () => {
+		expect(monthLabelPositions([[], [{ date: "2024-03-04" }]])).toEqual([{ weekIndex: 1, label: "Mar" }]);
 	});
 });

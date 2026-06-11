@@ -17,5 +17,5 @@ Pure TypeScript. Business core. No Astro, no Cloudflare, no `fetch`.
 | `value-objects/` | `Username`, `Year`, `Palette`, `ShapeKind`, `ContributionLevel` — validated, immutable |
 | `entities/` | `ContributionDay`, `ContributionCalendar` — identity by username + days |
 | `repositories/` | `ContributionsRepository` — interface, no impl |
-| `services/` | `SvgRenderer` — type alias for a pure rendering function |
+| `services/` | `SvgRenderer` (pure rendering function type), `svg-geometry` (layout constants + week/month-label helpers), `calendar-grid` (53×7 grid building), `dates` (ISO date math) |
 | `failures/` | `Failure` discriminated union (`NotFound`, `InvalidInput`, `Network`, `Parse`) |

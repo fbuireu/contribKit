@@ -14,7 +14,7 @@ Astro pages and API routes. The only layer that wires together `application/`, `
 ## Rules
 
 - Validate all external input (query params, route params) with Zod before passing to the domain.
-- Map `Failure` to HTTP responses exclusively via `ui/lib/failure-http.ts`. Never inline `statusFor`, `messageFor`, or `isFailure`.
+- Map `Failure` to HTTP responses exclusively via `application/http/failure-http.ts` (`statusFor`, `messageFor`) and guard with `isFailure` from `domain/failures/failure.ts`. Never inline them.
 - `prerender = false` on all dynamic routes.
 - Cache headers: `public, max-age=3600, stale-while-revalidate=86400` on all data responses.
 - Pages are the composition root: they instantiate infrastructure, call use cases, and pass results to components. No business logic lives here.

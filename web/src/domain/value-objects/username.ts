@@ -12,7 +12,7 @@ export interface Username {
 export const parseUsername = (input: string): Username | Failure => {
 	const trimmed = input.trim();
 	if (!USERNAME_REGEX.test(trimmed)) {
-		return invalidInput(FailureField.Username, "Invalid GitHub username");
+		return invalidInput({ field: FailureField.Username, message: "Invalid GitHub username" });
 	}
 	return { _tag: "Username", value: trimmed };
 };

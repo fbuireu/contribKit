@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readUsernameFromUrl, readYearFromUrl, syncUrl } from "./url";
 
-const stubLocation = (search: string, pushState = vi.fn()) =>
-	vi.stubGlobal("window", { location: { search, href: "https://x.test/" }, history: { pushState } });
+const stubLocation = (search: string, pushState = vi.fn()) => {
+	vi.stubGlobal("location", { search, href: "https://x.test/" });
+	vi.stubGlobal("history", { pushState });
+};
 
 describe("readUsernameFromUrl", () => {
 	afterEach(() => vi.unstubAllGlobals());
@@ -43,7 +45,7 @@ describe("syncUrl", () => {
 	it("pushes the user and a non-current year", () => {
 		const pushState = vi.fn();
 		stubLocation("", pushState);
-		syncUrl("torvalds", 2022, 2024);
+		syncUrl({ username: "torvalds", year: 2022, currentYear: 2024 });
 		const url = pushState.mock.calls[0][2] as URL;
 		expect(url.searchParams.get("user")).toBe("torvalds");
 		expect(url.searchParams.get("year")).toBe("2022");
@@ -52,7 +54,7 @@ describe("syncUrl", () => {
 	it("omits the year when it equals the current year", () => {
 		const pushState = vi.fn();
 		stubLocation("", pushState);
-		syncUrl("torvalds", 2024, 2024);
+		syncUrl({ username: "torvalds", year: 2024, currentYear: 2024 });
 		const url = pushState.mock.calls[0][2] as URL;
 		expect(url.searchParams.has("year")).toBe(false);
 	});

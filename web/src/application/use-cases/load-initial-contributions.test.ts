@@ -11,7 +11,7 @@ const calendar = {
 describe("loadInitialContributions", () => {
 	it("returns the built grid on success", async () => {
 		const loadContributions = vi.fn().mockResolvedValue(calendar);
-		const result = await loadInitialContributions({ loadContributions, username: "torvalds", year: 2024 });
+		const result = await loadInitialContributions(loadContributions)({ username: "torvalds", year: 2024 });
 		expect(result.ok).toBe(true);
 		if (result.ok) {
 			expect(result.data.total).toBe(1234);
@@ -21,13 +21,13 @@ describe("loadInitialContributions", () => {
 
 	it("passes a repository failure through as status + message", async () => {
 		const loadContributions = vi.fn().mockResolvedValue(network("github is down"));
-		const result = await loadInitialContributions({ loadContributions, username: "torvalds" });
+		const result = await loadInitialContributions(loadContributions)({ username: "torvalds" });
 		expect(result).toEqual({ ok: false, status: 502, message: "github is down" });
 	});
 
 	it("rejects an invalid username before calling the repository", async () => {
 		const loadContributions = vi.fn();
-		const result = await loadInitialContributions({ loadContributions, username: "a b c!" });
+		const result = await loadInitialContributions(loadContributions)({ username: "a b c!" });
 		expect(result.ok).toBe(false);
 		expect(loadContributions).not.toHaveBeenCalled();
 	});

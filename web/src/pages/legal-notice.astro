@@ -2,7 +2,7 @@
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
-import { decrypt, type ShuffledData } from "@ui/utils/crypto";
+import { type ShuffledData, unshuffle } from "@ui/utils/unshuffle";
 
 const TITLE = "Legal Notice — ContribKit";
 const EFFECTIVE_DATE = "2026-06-03";
@@ -107,15 +107,15 @@ const OWNER_ADDRESS: ShuffledData[] = [
           <tbody>
             <tr>
               <th scope="row">Owner</th>
-              <td><span class="protected">{decrypt(OWNER_NAME)}</span></td>
+              <td><span class="protected">{unshuffle(OWNER_NAME)}</span></td>
             </tr>
             <tr>
               <th scope="row">Tax ID (NIF)</th>
-              <td><span class="protected mono">{decrypt(OWNER_NIF)}</span></td>
+              <td><span class="protected mono">{unshuffle(OWNER_NIF)}</span></td>
             </tr>
             <tr>
               <th scope="row">Address</th>
-              <td><span class="protected">{decrypt(OWNER_ADDRESS)}</span></td>
+              <td><span class="protected">{unshuffle(OWNER_ADDRESS)}</span></td>
             </tr>
             <tr>
               <th scope="row">Contact</th>

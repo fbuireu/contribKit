@@ -1,20 +1,19 @@
 import {
 	calendarDimensions,
+	chunkWeeks,
 	dotRadius,
 	hexPoints,
+	monthLabelPositions,
 	radiusFor,
-	SVG_DAYS_PER_WEEK,
 	SVG_DOW_LABEL_BASELINE,
 	SVG_MONTH_LABEL_BASELINE,
-	SVG_MONTH_LABEL_MAX_DAY,
 	SVG_PAD_X,
 	SVG_PAD_Y,
-	SVG_WEEKS,
 } from "@domain/services/svg-geometry";
-import { DOW, MONTHS } from "@domain/value-objects/calendar-labels";
+import { DOW } from "@domain/value-objects/calendar-labels";
 import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
 import { cssVar } from "@ui/utils/css";
-import type { Cell, RenderCalendarParams } from "./calendar-utils";
+import type { RenderCalendarParams } from "./calendar";
 import { TOTALS_PER_LEVEL } from "./contribution";
 
 export function renderCalendarString({
@@ -25,20 +24,8 @@ export function renderCalendarString({
 	gap = 2,
 	showLabels = true,
 }: RenderCalendarParams): string {
-	const weeks: Cell[][] = [];
-	for (let weekIndex = 0; weekIndex < SVG_WEEKS; weekIndex++)
-		weeks.push(cells.slice(weekIndex * SVG_DAYS_PER_WEEK, weekIndex * SVG_DAYS_PER_WEEK + SVG_DAYS_PER_WEEK));
-
-	const monthLabels: { weekIndex: number; label: string }[] = [];
-	let lastMonth = -1;
-	weeks.forEach((week, weekIndex) => {
-		if (!week[0]) return;
-		const month = parseInt(week[0].date.slice(5, 7), 10) - 1;
-		if (month !== lastMonth && parseInt(week[0].date.slice(8, 10), 10) <= SVG_MONTH_LABEL_MAX_DAY) {
-			monthLabels.push({ weekIndex, label: MONTHS[month] });
-			lastMonth = month;
-		}
-	});
+	const weeks = chunkWeeks(cells);
+	const monthLabels = monthLabelPositions(weeks);
 
 	const { cellWidth, labelWidth, labelHeight, totalWidth, totalHeight } = calendarDimensions({ size, gap, showLabels });
 	const radius = radiusFor({ shape, size });
@@ -50,12 +37,12 @@ export function renderCalendarString({
 	if (showLabels) {
 		monthLabels.forEach(({ weekIndex, label }) => {
 			parts.push(
-				`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" style="fill:var(--text-dim);opacity:.85" font-size="9.5" font-family="ui-monospace,'JetBrains Mono',monospace" letter-spacing="0.04em">${label}</text>`,
+				`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" style="fill:var(--text-dim);opacity:.85;font-family:var(--font-mono)" font-size="9.5" letter-spacing="0.04em">${label}</text>`,
 			);
 		});
-		DOW.forEach((dayLabel, i) => {
+		DOW.forEach((dayLabel, index) => {
 			parts.push(
-				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (i * 2 + 1) * cellWidth + SVG_DOW_LABEL_BASELINE}" style="fill:var(--text-dimmer)" font-size="9" font-family="ui-monospace,'JetBrains Mono',monospace">${dayLabel}</text>`,
+				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_DOW_LABEL_BASELINE}" style="fill:var(--text-dimmer);font-family:var(--font-mono)" font-size="9">${dayLabel}</text>`,
 			);
 		});
 	}

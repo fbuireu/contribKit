@@ -1,3 +1,5 @@
+import { MONTHS } from "../value-objects/calendar-labels";
+
 export const SVG_PAD_X = 12;
 export const SVG_PAD_Y = 12;
 export const SVG_LABEL_WIDTH = 28;
@@ -46,6 +48,31 @@ export const calendarDimensions = ({ size, gap, showLabels }: CalendarDimensions
 		totalWidth: SVG_WEEKS * cellWidth + labelWidth + SVG_PAD_X * 2,
 		totalHeight: SVG_DAYS_PER_WEEK * cellWidth + labelHeight + SVG_PAD_Y * 2,
 	};
+};
+
+export const chunkWeeks = <T>(cells: readonly T[]): T[][] =>
+	Array.from({ length: SVG_WEEKS }, (_, weekIndex) =>
+		cells.slice(weekIndex * SVG_DAYS_PER_WEEK, (weekIndex + 1) * SVG_DAYS_PER_WEEK),
+	);
+
+export interface MonthLabelPosition {
+	weekIndex: number;
+	label: string;
+}
+
+export const monthLabelPositions = (weeks: ReadonlyArray<ReadonlyArray<{ date: string }>>): MonthLabelPosition[] => {
+	const labels: MonthLabelPosition[] = [];
+	let lastMonth = -1;
+	weeks.forEach((week, weekIndex) => {
+		const first = week[0];
+		if (!first) return;
+		const month = Number.parseInt(first.date.slice(5, 7), 10) - 1;
+		if (month !== lastMonth && Number.parseInt(first.date.slice(8, 10), 10) <= SVG_MONTH_LABEL_MAX_DAY) {
+			labels.push({ weekIndex, label: MONTHS[month] });
+			lastMonth = month;
+		}
+	});
+	return labels;
 };
 
 export interface HexPointsParams {

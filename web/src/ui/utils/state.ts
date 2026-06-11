@@ -1,11 +1,11 @@
-import type { Cell } from "@ui/components/grid/calendar-utils";
+import type { ContributionDay } from "@domain/entities/types";
 
-let cells: Cell[] = [];
+let cells: ContributionDay[] = [];
 let username = "";
 
-export const getCells = (): Cell[] => cells;
+export const getCells = (): ContributionDay[] => cells;
 export const getUsername = (): string => username;
-export const setCells = (next: Cell[]): void => {
+export const setCells = (next: ContributionDay[]): void => {
 	cells = next;
 };
 export const setUsername = (next: string): void => {
