@@ -41,10 +41,10 @@
 		"lint:ts:typecheck": "pnpm types && tsc --project . --noEmit"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "13.6.0",
+		"@astrojs/cloudflare": "13.6.1",
 		"@astrojs/sitemap": "3.7.3",
 		"@logtail/edge": "0.5.8",
-		"astro": "6.4.2",
+		"astro": "6.4.4",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
@@ -56,13 +56,13 @@
 		"@semantic-release/exec": "7.1.0",
 		"@semantic-release/git": "10.0.1",
 		"@semantic-release/github": "12.0.8",
-		"@types/node": "25.9.1",
+		"@types/node": "25.9.2",
 		"@vitest/coverage-istanbul": "4.1.8",
-		"happy-dom": "^20.10.1",
+		"happy-dom": "^20.10.2",
 		"semantic-release": "25.0.3",
 		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
 		"vitest": "4.1.8",
-		"wrangler": "4.96.0"
+		"wrangler": "4.98.0"
 	}
 }
