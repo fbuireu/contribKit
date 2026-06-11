@@ -19,7 +19,7 @@
     "labels": ["security", "vulnerability"]
   },
   "osvVulnerabilityAlerts": true,
-  "includePaths": ["app/**", "web/**", ".github/**"]
+  "includePaths": ["app/**", "web/**", ".github/**"],
   "packageRules": [
     {
       "matchFileNames": ["web/**"],
