@@ -33,7 +33,7 @@ jobs:
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
-          channel: stable
+          flutter-version-file: app/pubspec.yaml
           cache: true
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -64,7 +64,7 @@ jobs:
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
-          channel: stable
+          flutter-version-file: app/pubspec.yaml
           cache: true
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -100,7 +100,7 @@ jobs:
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
-          channel: stable
+          flutter-version-file: app/pubspec.yaml
           cache: true
 
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
