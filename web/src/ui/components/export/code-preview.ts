@@ -124,7 +124,7 @@ export function buildMarkdownLines({ username, palette, shape }: BuildMarkdownLi
 		],
 		[
 			["", " "],
-			["c-attr", "&bg"],
+			["c-attr", "&background"],
 			["", "="],
 			["c-str", "transparent"],
 			["c-tag", ")"],

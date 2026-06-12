@@ -4,12 +4,17 @@ interface Analytics {
 	loadBetterStack(): void;
 }
 
-function appendScript(src: string): HTMLScriptElement {
+interface AppendScriptParams {
+	src: string;
+	token?: string;
+}
+
+function appendScript({ src, token }: AppendScriptParams): void {
 	const script = document.createElement("script");
 	script.async = true;
 	script.src = src;
+	if (token) script.dataset.token = token;
 	document.head.appendChild(script);
-	return script;
 }
 
 function createAnalytics(): Analytics {
@@ -26,14 +31,13 @@ function createAnalytics(): Analytics {
 			const id = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 			if (!id || googleAnalyticsLoaded) return;
 			googleAnalyticsLoaded = true;
-			appendScript(`https://www.googletagmanager.com/gtag/js?id=${id}`);
+			appendScript({ src: `https://www.googletagmanager.com/gtag/js?id=${id}` });
 		},
 		loadBetterStack() {
 			const token = import.meta.env.PUBLIC_BETTER_STACK_SOURCE_TOKEN;
 			if (!token || betterStackLoaded) return;
 			betterStackLoaded = true;
-			const script = appendScript("https://cdn.betterstack.com/js/telemetry.js");
-			script.dataset.token = token;
+			appendScript({ src: "https://cdn.betterstack.com/js/telemetry.js", token });
 		},
 	};
 }

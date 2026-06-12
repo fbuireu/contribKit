@@ -1,73 +1,172 @@
-# ContribKit 
+<div align="center">
 
-[![CI Web](https://github.com/fbuireu/contribkit/actions/workflows/ci-web.yml/badge.svg)](https://github.com/fbuireu/contribkit/actions/workflows/ci-web.yml)
-[![CI App](https://github.com/fbuireu/contribkit/actions/workflows/ci-app.yml/badge.svg)](https://github.com/fbuireu/contribkit/actions/workflows/ci-app.yml)
-[![codecov](https://codecov.io/gh/fbuireu/contribkit/branch/main/graph/badge.svg)](https://codecov.io/gh/fbuireu/contribkit)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+<img src="web/public/logo.svg" alt="ContribKit logo" width="96" height="96">
 
-Visualize and export your GitHub contribution calendar with full visual customization — custom palettes, gradients, shapes, and backgrounds. Export as PNG, SVG, or Markdown.
+# ContribKit
 
-## Running locally
+**Visualize, customize, and export your GitHub contribution calendar — custom palettes, shapes, and backgrounds. No token required. Available on the web, iOS & Android, with home-screen widgets.**
 
-```bash
-flutter run --dart-define=REVENUE_CAT
+[![CI Web](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-web.yml?style=flat-square&logo=github&label=CI%20Web)](https://github.com/fbuireu/contribkit/actions/workflows/ci-web.yml)
+[![CI App](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-app.yml?style=flat-square&logo=github&label=CI%20App)](https://github.com/fbuireu/contribkit/actions/workflows/ci-app.yml)
+[![Codecov](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?style=flat-square&logo=codecov)](https://codecov.io/gh/fbuireu/contribkit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+
+**[Website](https://contribkit.app)** · **[Google Play](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)** · **App Store (soon)** · **[Web docs](web/README.md)** · **[App docs](app/README.md)**
+
+</div>
+
+---
+
+## Table of Contents
+
+- [What You Get](#what-you-get)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Monorepo Development](#monorepo-development)
+- [Documentation](#documentation)
+- [Support & Contributing](#support--contributing)
+- [Use of AI](#use-of-ai)
+
+---
+
+## What You Get
+
+Type a GitHub username and get a fully customizable contribution calendar you can pin, embed, or carry on your home screen:
+
+- **Live SVG endpoint** — this image is rendered by ContribKit right now:
+
+  <img src="https://contribkit.app/user/torvalds.svg" alt="torvalds' GitHub contributions rendered by ContribKit" width="800">
+
+- **[Web app](https://contribkit.app):** render any profile, tweak palette and shape, and export as PNG, SVG, or Markdown.
+- **[Mobile app](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit):** native iOS & Android app with home-screen widgets that keep your streak one glance away.
+- **README embed:** a one-line Markdown snippet that always shows your up-to-date calendar.
+
+---
+
+## Features
+
+- 🎨 **11 color palettes:** GitHub, Catppuccin, Nord, Dracula, Gruvbox, Sunset, Tokyo Night, One Dark, Rosé Pine, Solarized, Monokai
+- 🔷 **5 cell shapes:** rounded, square, circle, dot, hex
+- 📤 **3 export formats:** PNG for the readme, SVG for the portfolio, Markdown for the bio
+- 🔓 **No token required:** only public contribution data — no OAuth, no PAT
+- 📱 **Home-screen widgets:** small (streak counter), medium (full grid), large (both) — iOS & Android
+- 🗓️ **Year selector:** any year back to 2005 (GitHub's launch)
+- 🌗 **Dark/light theme:** follows your system scheme, with manual override
+- 🧩 **Shared design tokens:** the same palettes and shapes everywhere, defined once in [`shared/`](shared)
+
+---
+
+## Quick Start
+
+### Web
+
+1. Open **[contribkit.app](https://contribkit.app)**
+2. Type a GitHub username and hit **render**
+3. Customize, then copy or export from the **export** section
+
+### Mobile
+
+1. Install from **[Google Play](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)** (App Store coming soon)
+2. Enter your username
+3. Add the widget to your home screen
+
+### README
+
+```markdown
+![contributions](https://contribkit.app/user/YOUR_USERNAME.svg)
 ```
 
-Generate a token at [github.com/settings/tokens](https://github.com/settings/tokens) with no scopes required (public data only).
+See the **[embedding guide](web/README.md#embedding-in-your-readme)** for palettes, shapes, and background options.
 
-## Development
+---
 
-```bash
-# Install dependencies
-flutter pub get
+## Project Structure
 
-# Install lefthook (once, globally) and activate git hooks
-brew install lefthook   # or: npm i -g @evilmartians/lefthook
-lefthook install
+Monorepo with three components sharing design tokens:
 
-# Watch for code generation changes
-dart run build_runner watch --delete-conflicting-outputs
+| Directory                    | Component                                               | Stack                                     | Docs                            |
+| ---------------------------- | ------------------------------------------------------- | ----------------------------------------- | ------------------------------- |
+| [`web/`](web)                | [contribkit.app](https://contribkit.app) + SVG/JSON API | Astro · TypeScript · Cloudflare Workers | **[web/README.md](web/README.md)** |
+| [`app/`](app)                | iOS & Android app with home-screen widgets              | Flutter · Riverpod · RevenueCat           | **[app/README.md](app/README.md)** |
+| [`shared/`](shared)          | Single source of truth for palettes, shapes, usernames  | JSON consumed by both apps                | **[shared/CONTEXT.md](shared/CONTEXT.md)** |
 
-# Run tests
-flutter test --coverage
+Both apps follow the same DDD-ish layered architecture (`domain` → `application` → `infrastructure` / `ui`): the domain is pure, validated value objects guard every boundary, errors are typed `Failure`s (nothing throws across layers), and each layer documents its own rules in a colocated `CONTEXT.md`.
 
-# Analyze
-flutter analyze
-```
+---
 
-## Environments
+## Monorepo Development
+
+Tooling that applies to the whole repo:
+
+- **Package manager:** pnpm workspaces ([`pnpm-workspace.yaml`](pnpm-workspace.yaml))
+- **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)) — install once with `brew install lefthook && lefthook install`
+- **Commits:** [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint
+- **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
+- **CI:** path-filtered workflows — [`ci-web.yml`](.github/workflows/ci-web.yml) and [`ci-app.yml`](.github/workflows/ci-app.yml) only run when their component changes
 
 GitHub Environments are namespaced by component (`<component>-<stage>`) because they are repo-global and hold component-specific secrets:
 
-| GitHub Environment | Component | Stage | Deployed by |
-|---|---|---|---|
-| `app-production` | Flutter app | production | `release-app.yml` (track = production) |
-| `app-development` | Flutter app | development | `release-app.yml` (track ≠ production) |
-| `web-production` | Astro web | production | `ci-web.yml` (deploy-production, push to `main`) |
-| `web-development` | Astro web | development | `ci-web.yml` (deploy-development, per-PR preview) |
+| GitHub Environment | Component   | Stage       | Deployed by                                       |
+| ------------------ | ----------- | ----------- | ------------------------------------------------- |
+| `app-production`   | Flutter app | production  | `release-app.yml` (track = production)            |
+| `app-development`  | Flutter app | development | `release-app.yml` (track ≠ production)            |
+| `web-production`   | Astro web   | production  | `ci-web.yml` (deploy-production, push to `main`)  |
+| `web-development`  | Astro web   | development | `ci-web.yml` (deploy-development, per-PR preview) |
 
-App `development` and web `development` map to different things: app `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker on `*.workers.dev`.
+App `development` and web `development` map to different things: app `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker on `*.workers.dev`. The component-scoped configs do **not** repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter uses `production` / `development` flavors.
 
-The component-scoped configs do **not** repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter uses `production` / `development` flavors.
+Component-specific setup, commands, and deploy flows live in **[web/README.md](web/README.md)** and **[app/README.md](app/README.md)**.
 
-### Web deploy flow
+---
 
-Both deploys run from `ci-web.yml` and only after `web-check` (lint + test) and `web-build` (build + typecheck) pass:
+## Documentation
 
-- **Production**: every push to `main` touching `web/**` builds with `CLOUDFLARE_ENV=production` then `wrangler deploy` → worker `contribkit` on `contribkit.app`. Decoupled from semantic-release (which only versions).
-- **Development**: every PR touching `web/**` builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` (`wrangler deploy --name …`) on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
+| Guide                                              | Description                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------ |
+| **[Web](web/README.md)**                            | API reference, embedding guide, architecture, deploys        |
+| **[App](app/README.md)**                            | Flutter setup, widgets, in-app purchases, releases           |
+| **[Shared tokens](shared/CONTEXT.md)**              | Palettes, shapes, and usernames consumed by both apps        |
+| **[Legal notice](https://contribkit.app/legal-notice)** | [Privacy](https://contribkit.app/privacy) · [Terms](https://contribkit.app/terms) |
 
-> **Important — how environments work with `@astrojs/cloudflare`:** the adapter resolves the `wrangler.toml` `[env.NAME]` block **at build time** into `dist/server/wrangler.json`. You select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (and `--name` for previews). **Do not** use `wrangler deploy --env <env>` — the adapter-generated config is already flattened, so `--env` is ignored and per-env routes/ratelimits/observability are silently dropped.
+---
 
-### Environment variables
+## Support & Contributing
 
-All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined). The BetterStack source token is the same for browser RUM and the server logger; since the browser already exposes it, a single public var is used for both — no separate runtime secret.
+- **[Report bugs](../../issues/new?template=bug_report.yml)**
+- **[Request features](../../issues/new?template=feature_request.yml)**
+- **[Report security issues](../../issues/new?template=security_report.yml)**
+- **[Improve documentation](../../issues/new?template=documentation.yml)**
 
-| Variable | Type | Used by | Where it lives |
-|---|---|---|---|
-| `PUBLIC_GOOGLE_ANALYTICS_ID` | build-time | GA (browser) | GitHub Environment **variable** |
-| `PUBLIC_BETTER_STACK_SOURCE_TOKEN` | build-time | BetterStack RUM (browser) + logger (server) | GitHub Environment **variable** |
-| `PUBLIC_BETTER_STACK_INGESTING_URL` | build-time | BetterStack logger endpoint (server) | GitHub Environment **variable** |
-| `API_RATE_LIMITER` | runtime binding | rate limiter | `wrangler.toml` per env |
+If you find this project useful, consider supporting its development:
 
-Hit `/api/health` to verify which vars/bindings the deployed worker was built/configured with (presence only, never values).
+<p align="center">
+  <a href="https://github.com/sponsors/fbuireu">
+    <img src="https://img.shields.io/badge/Sponsor-fbuireu-pink?style=for-the-badge&logo=github-sponsors" alt="Sponsor">
+  </a>
+  <a href="https://www.buymeacoffee.com/ferranbuireu">
+    <img src="https://img.shields.io/badge/Buy%20Me%20A%20Beer-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Beer">
+  </a>
+</p>
+
+---
+
+## Use of AI
+
+This project uses AI assistance primarily for documentation and review purposes. AI tools (GitHub Copilot, Claude) were used to:
+
+- Write and improve documentation (READMEs, layer `CONTEXT.md` files)
+- Generate boilerplate code and configuration files
+- Assist with code reviews and refactoring suggestions
+
+The core logic, architecture decisions, and implementation were developed by the maintainer. All AI-generated content has been reviewed and validated.
+
+ContribKit is not affiliated with GitHub, Inc.
+
+---
+
+<div align="center">
+
+[MIT](LICENSE) © Made with 🤘🏼 by [Ferran Buireu](https://github.com/fbuireu)
+
+</div>
