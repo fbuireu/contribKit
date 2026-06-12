@@ -4,7 +4,7 @@ Pure TypeScript. Business core. No Astro, no Cloudflare, no `fetch`.
 
 ## Rules
 
-- Zero external imports. Only TS stdlib types.
+- No package imports. Only TS stdlib types, plus the design-token JSON from `@shared` (palettes, shapes, usernames) as data.
 - Functional style: factory functions return readonly objects with a discriminating `_tag`. No classes.
 - Value objects validate on construction. If a `Username` exists, it is valid.
 - Errors are typed `Failure` discriminated unions. Never throw.

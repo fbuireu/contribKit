@@ -13,9 +13,9 @@ Pure TypeScript. Orchestrates `domain/` to fulfill a single use case.
 
 | Function | Purpose |
 |---|---|
-| `fetchContributions(repo)(username, year)` | Loads a `ContributionCalendar` for a user/year |
-| `renderCalendarSvg(renderer)(calendar, options)` | Renders the SVG string for a calendar |
-| `loadInitialContributions(load)(username, year)` | Validates input, loads contributions, and returns the built 53×7 grid or `status` + `message` |
+| `fetchContributions(repo)({ username, year })` | Loads a `ContributionCalendar` for a user/year |
+| `renderCalendarSvg(renderer)({ calendar, options })` | Renders the SVG string for a calendar |
+| `loadInitialContributions(load)({ username?, year? })` | Validates input, loads contributions, and returns the built 53×7 grid or `status` + `message` |
 
 ## Shared
 

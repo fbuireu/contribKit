@@ -7,7 +7,7 @@ Presentation layer. Astro components, client-side interactivity, shared utilitie
 | Directory | Contents |
 |---|---|
 | `components/` | All Astro components — features, app shell (`core/`), the contribution grid, error pages, icons. See `components/CONTEXT.md`. |
-| `utils/` | Shared TypeScript utilities used across features and pages: PRNG (`mulberry`), `unshuffle` (de-obfuscation for legal pages), and `page-init` (the client page controller). |
+| `utils/` | Shared TypeScript utilities used across features and pages: `page-init` (the client page controller), `render` + `state` (re-render functions over module state), `roving` (keyboard navigation), `url`/`cookie` (username + year persistence), `cell-tooltip`, `contribution-errors` (status → hero copy), PRNG (`mulberry`), and `unshuffle` (de-obfuscation for legal pages). |
 | `styles/` | Global CSS layered with `@layer` — `index.css` is the entry imported by `BaseLayout`. |
 
 ## Rules
