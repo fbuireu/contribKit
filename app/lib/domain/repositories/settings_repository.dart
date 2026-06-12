@@ -3,8 +3,6 @@ import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 
-/// Mirrors [ThemeMode] from Flutter but lives in the domain to keep this
-/// interface free of framework dependencies.
 enum AppThemeMode { system, light, dark }
 
 abstract interface class SettingsRepository {

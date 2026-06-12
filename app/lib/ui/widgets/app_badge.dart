@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Thin wrapper over [ShadBadge].
 class AppBadge extends StatelessWidget {
   const AppBadge({super.key, required this.child})
     : _variant = ShadBadgeVariant.secondary;

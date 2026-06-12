@@ -1,8 +1,3 @@
-/// A validated GitHub username.
-///
-/// GitHub usernames: 1–39 chars, alphanumeric + hyphens, cannot start or
-/// end with a hyphen. Construction throws [ArgumentError] for invalid input;
-/// if a [Username] instance exists, it is guaranteed to be valid.
 final class Username {
   const Username._(this.value);
 

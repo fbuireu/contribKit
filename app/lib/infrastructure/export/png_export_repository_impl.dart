@@ -7,9 +7,7 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:flutter/widgets.dart';
 
-/// Renders the contribution calendar to a PNG using Flutter's canvas.
 final class PngExportRepository implements ExportRepository {
-  /// Scale factor applied to logical pixels — 3x produces a retina PNG.
   static const _pixelRatio = 3.0;
 
   @override

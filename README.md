@@ -50,10 +50,10 @@ Type a GitHub username and get a fully customizable contribution calendar you ca
 - 🔷 **5 cell shapes:** rounded, square, circle, dot, hex
 - 📤 **3 export formats:** PNG for the readme, SVG for the portfolio, Markdown for the bio
 - 🔓 **No token required:** only public contribution data — no OAuth, no PAT
-- 📱 **Home-screen widgets:** small (streak counter), medium (full grid), large (both) — iOS & Android
+- 📱 **Home-screen widgets:** small (streak counter), medium (full grid), large (both) — iOS & Android, refreshed daily
 - 🗓️ **Year selector:** any year back to 2005 (GitHub's launch)
 - 🌗 **Dark/light theme:** follows your system scheme, with manual override
-- 🧩 **Shared design tokens:** the same palettes and shapes everywhere, defined once in [`shared/`](shared)
+- 🧩 **Shared design tokens:** palettes and shapes defined once in [`shared/`](shared), used by web and app
 
 ---
 

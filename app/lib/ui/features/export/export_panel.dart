@@ -17,7 +17,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Bottom panel with export format buttons and clipboard copy for Markdown.
 class ExportPanel extends ConsumerStatefulWidget {
   const ExportPanel({
     super.key,

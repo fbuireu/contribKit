@@ -16,10 +16,6 @@ import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Bottom sheet exposing all customization options with a live mini preview.
-///
-/// Changes apply immediately to the global [viewerProvider] state so the
-/// main screen updates live behind the sheet. "Apply" simply closes it.
 class CustomizerSheet extends ConsumerStatefulWidget {
   const CustomizerSheet({super.key});
 

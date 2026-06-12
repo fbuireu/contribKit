@@ -19,3 +19,5 @@ Flutter widgets and Riverpod providers. The only layer that knows about Flutter 
 | `features/viewer/` | Contribution calendar viewer screen and notifier |
 | `features/customizer/` | Palette, shape, and background customization UI |
 | `features/export/` | Export format selection and share flow |
+| `features/tip/` | Tip jar (RevenueCat one-time purchases) |
+| `features/widget/` | Home-screen widget data sync and configuration |

@@ -6,7 +6,6 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 
-/// Generates an SVG string for the contribution calendar.
 final class SvgExportRepository implements ExportRepository {
   @override
   Future<List<int>> export({

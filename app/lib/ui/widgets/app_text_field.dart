@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Thin wrapper over [ShadInput] for text input.
 class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,

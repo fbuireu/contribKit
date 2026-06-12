@@ -8,7 +8,6 @@ import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Renders a single day cell in the contribution grid.
 class ContributionCell extends StatelessWidget {
   const ContributionCell({
     super.key,

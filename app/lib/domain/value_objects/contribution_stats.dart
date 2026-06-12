@@ -18,6 +18,5 @@ final class ContributionStats {
   final double weeklyAverage;
   final int bestMonthContributions;
 
-  /// 1-based month index; null when there are no contributions.
   final int? bestMonthIndex;
 }

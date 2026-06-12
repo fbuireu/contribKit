@@ -6,7 +6,6 @@ import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
-/// Three-tile stats strip: total commits, current streak, longest streak.
 class StatsPanel extends StatelessWidget {
   const StatsPanel({super.key, required this.calendar});
 

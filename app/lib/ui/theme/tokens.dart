@@ -1,9 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-/// Single source of truth for all design constants.
-///
-/// No magic numbers anywhere in the widget tree — every measurement,
-/// duration, and radius comes from here.
 abstract final class Tokens {
   static const double space1 = 4;
   static const double space2 = 8;

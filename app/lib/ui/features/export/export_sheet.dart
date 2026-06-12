@@ -19,8 +19,6 @@ import 'package:share_plus/share_plus.dart';
 
 enum _Fmt { png, svg, md }
 
-/// Bottom sheet for exporting the calendar with format selection and a
-/// live preview showing the current palette and shape settings.
 class ExportSheet extends ConsumerStatefulWidget {
   const ExportSheet({
     super.key,

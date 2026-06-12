@@ -13,7 +13,6 @@ final class ContributionCalendar {
   final Username username;
   final Year year;
 
-  /// All weeks in this calendar, ordered oldest → newest.
   final List<ContributionWeek> weeks;
 
   final int totalContributions;

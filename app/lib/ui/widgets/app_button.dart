@@ -1,10 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Thin wrapper over [ShadButton] that enforces use through the App layer.
-///
-/// Feature widgets never instantiate [ShadButton] directly. This wrapper
-/// centralises any future style overrides to one file.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,

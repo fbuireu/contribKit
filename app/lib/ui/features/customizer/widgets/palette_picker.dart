@@ -5,10 +5,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Palette selection strip — a row of color swatches.
-///
-/// The available palettes are loaded from the shared asset at runtime;
-/// while loading, the strip is hidden.
 class PalettePicker extends ConsumerWidget {
   const PalettePicker({
     super.key,

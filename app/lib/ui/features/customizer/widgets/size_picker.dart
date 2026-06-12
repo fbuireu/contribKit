@@ -3,7 +3,6 @@ import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// Segmented control for selecting the cell density.
 class SizePicker extends StatelessWidget {
   const SizePicker({
     super.key,

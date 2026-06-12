@@ -4,7 +4,6 @@ import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// A row of color swatches for selecting the calendar card background.
 class BackgroundPicker extends StatelessWidget {
   const BackgroundPicker({
     super.key,

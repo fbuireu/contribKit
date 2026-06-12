@@ -4,10 +4,6 @@ import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 
-/// Exports the calendar as a GitHub-compatible Markdown snippet.
-///
-/// The output embeds an SVG image as a data URI — renders correctly in
-/// GitHub README files and most Markdown-aware tools.
 final class MarkdownExportRepository implements ExportRepository {
   MarkdownExportRepository({required this._svgRepository});
 

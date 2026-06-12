@@ -15,7 +15,6 @@ const _keyCellSize = 'cellSize';
 const _keyCardBackground = 'cardBackground';
 const _keyThemeMode = 'themeMode';
 
-/// Hive-backed implementation of [SettingsRepository].
 final class HiveSettingsRepository implements SettingsRepository {
   Future<Box<dynamic>> get _box => Hive.openBox<dynamic>(_settingsBoxName);
 

@@ -1,11 +1,6 @@
 import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 
-/// An immutable five-level color palette for contribution visualization.
-///
-/// Each level maps to one of the [ContributionLevel] values. The palette is
-/// the user's primary customization surface — predefined palettes live in
-/// [Palettes].
 final class Palette {
   const Palette({
     required this.name,
@@ -19,10 +14,8 @@ final class Palette {
 
   final String name;
 
-  /// Empty-cell color for dark mode.
   final Color none;
 
-  /// Empty-cell color for light mode.
   final Color noneLight;
   final Color low;
   final Color medium;

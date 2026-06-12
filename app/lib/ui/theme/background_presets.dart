@@ -1,9 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-/// Named presets for the calendar card background color.
 enum BackgroundPreset { system, charcoal, github, navy, black }
 
-/// Color values and display labels for each [BackgroundPreset].
 abstract final class BackgroundPresets {
   static const labels = {
     BackgroundPreset.system: 'System',
@@ -13,8 +11,6 @@ abstract final class BackgroundPresets {
     BackgroundPreset.black: 'Black',
   };
 
-  /// Returns the background [Color], or null for [BackgroundPreset.system]
-  /// (callers should fall back to [AppColors.card] in that case).
   static const Map<BackgroundPreset, Color?> colors = {
     BackgroundPreset.system: null,
     BackgroundPreset.charcoal: Color(0xFF1C1C1E),

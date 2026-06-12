@@ -6,10 +6,6 @@ import 'package:contribkit/ui/features/viewer/widgets/contribution_cell.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 
-/// Renders the full 52-week contribution grid.
-///
-/// Wraps in a horizontal [SingleChildScrollView] so narrow screens can
-/// scroll to see the full year.
 class ContributionGrid extends StatelessWidget {
   const ContributionGrid({
     super.key,

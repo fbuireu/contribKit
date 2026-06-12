@@ -11,7 +11,9 @@ Concrete implementations of domain interfaces. Can depend on pub packages but mu
 
 | Directory | Contents |
 |---|---|
-| `github/` | GraphQL client, `ContributionRepository` implementation, DTOs |
-| `github/dtos/` | JSON-deserializable transfer objects; converted to entities before leaving this layer |
-| `persistence/` | Hive / shared_preferences adapters for cache and settings |
-| `export/` | One repository implementation per export format (PNG, SVG, Markdown) plus a composite |
+| `github/` | `ContributionRepository` implementation: HTML scraping of `github.com/users/{username}/contributions` (no token) + Hive cache (1h TTL for the current year, indefinite for past years) |
+| `github/dtos/` | JSON-deserializable transfer objects for the Hive cache; converted to entities before leaving this layer |
+| `persistence/` | Hive adapters for settings |
+| `assets/` | Repositories backed by the bundled `assets/*.json` (palettes, suggested usernames) — generated copies of `shared/` |
+| `export/` | One repository implementation per export format (PNG, SVG, Markdown) |
+| `purchase/` | RevenueCat implementation of the purchase repository (tip jar) |

@@ -22,8 +22,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-/// The primary screen: username input, year picker, contribution grid,
-/// stats, and action buttons that open the customizer and export sheets.
 class ViewerScreen extends ConsumerStatefulWidget {
   const ViewerScreen({super.key});
 

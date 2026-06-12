@@ -153,7 +153,6 @@ final class GitHubContributionRepository implements ContributionRepository {
     );
   }
 
-  /// Groups sorted days into calendar weeks starting on Sunday.
   List<ContributionWeek> _groupIntoWeeks(List<ContributionDay> days) {
     final weeks = <ContributionWeek>[];
     var current = <ContributionDay>[];
