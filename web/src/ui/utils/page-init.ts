@@ -2,7 +2,7 @@ import { buildGridFromApi } from "@domain/services/calendar-grid";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { generateData, summarize } from "@ui/components/grid/calendar";
-import { CONTRIBUTION_ERRORS } from "@ui/utils/contribution-errors";
+import { CONTRIBUTION_ERRORS, FALLBACK_CONTRIBUTION_ERROR } from "@ui/utils/contribution-errors";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
 import {
@@ -13,7 +13,7 @@ import {
 	updateHeroStats,
 	updateYearRange,
 } from "./render";
-import { activateRadio, activateTab, addRadioKeyboard } from "./roving";
+import { activateRadio, activateTab, initRovingGroup, RovingOrientation } from "./roving";
 import { getCells, setCells, setUsername } from "./state";
 import { readUsernameFromUrl, readYearFromUrl, syncUrl } from "./url";
 
@@ -26,13 +26,24 @@ interface ContributionsResponse {
 const CELLS =
 	Array.isArray(window.__INITIAL_CELLS__) && window.__INITIAL_CELLS__.length
 		? window.__INITIAL_CELLS__
-		: generateData(7);
+		: generateData();
 
-const ERRORS = CONTRIBUTION_ERRORS;
 const CURRENT_YEAR = new Date().getFullYear();
 
 setCells(CELLS);
 setUsername(readUsernameFromUrl(DEFAULT_USERNAME));
+
+interface ShowErrorStateParams {
+	message: string;
+	year: number;
+}
+
+function showErrorState({ message, year }: ShowErrorStateParams): void {
+	setHeroError(message);
+	setCells(buildGridFromApi({ days: [], year }));
+	renderCustomize();
+	updateHeroStats({ count: 0, streak: 0, longest: 0 });
+}
 
 async function renderFromGitHub(username: string, { updateHistory = true }: { updateHistory?: boolean } = {}) {
 	const renderButton = document.getElementById("hero-render-btn") as HTMLButtonElement | null;
@@ -44,10 +55,12 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 
 	const selectedYear = Number(yearSelect?.value ?? 0);
 	const yearQuery = selectedYear && selectedYear <= CURRENT_YEAR ? `&year=${selectedYear}` : "";
+	const fallbackYear = selectedYear || CURRENT_YEAR;
 
 	if (updateHistory) syncUrl({ username, year: selectedYear, currentYear: CURRENT_YEAR });
 	void writeUsernameCookie(username);
 	syncSuggestionSelection(username);
+	setUsername(username);
 
 	setHeroError(null);
 	renderButton.disabled = true;
@@ -58,15 +71,14 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 		const data: ContributionsResponse = await response.json();
 
 		if (!response.ok) {
-			setHeroError(ERRORS[response.status] ?? data.error ?? "something went wrong");
-			setCells(buildGridFromApi({ days: [], year: selectedYear || new Date().getFullYear() }));
-			setUsername(username);
-			renderCustomize();
-			updateHeroStats({ count: 0, streak: 0, longest: 0 });
+			showErrorState({
+				message: CONTRIBUTION_ERRORS[response.status] ?? data.error ?? FALLBACK_CONTRIBUTION_ERROR,
+				year: fallbackYear,
+			});
 		} else {
-			const year = parseInt(data.cells[0]?.date ?? String(new Date().getFullYear()), 10);
+			const firstDate = data.cells[0]?.date;
+			const year = firstDate ? Number(firstDate.slice(0, 4)) : CURRENT_YEAR;
 			setCells(buildGridFromApi({ days: data.cells, year }));
-			setUsername(username);
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
 			const stats = summarize(data.cells);
@@ -78,67 +90,29 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 			if (howWidget) howWidget.textContent = username;
 		}
 	} catch {
-		setHeroError("could not reach the server, try again");
-		setCells(buildGridFromApi({ days: [], year: selectedYear || new Date().getFullYear() }));
-		setUsername(username);
-		renderCustomize();
-		updateHeroStats({ count: 0, streak: 0, longest: 0 });
+		showErrorState({ message: "could not reach the server, try again", year: fallbackYear });
 	}
 
 	renderButton.disabled = false;
 	if (renderLabel) renderLabel.textContent = "render";
 }
 
-function initPaletteList() {
-	const allPaletteButtons = document.querySelectorAll<HTMLElement>("#palette-list .palette-row");
-	allPaletteButtons.forEach((button, index) => {
-		button.addEventListener("click", () => {
-			activateRadio({ buttons: allPaletteButtons, target: button });
-			renderCustomize();
-		});
-		addRadioKeyboard({ buttons: allPaletteButtons, index, onActivate: renderCustomize });
-	});
-}
-
-function initShapeList() {
-	const allShapeButtons = document.querySelectorAll<HTMLElement>("#shape-list .shape-btn");
-	allShapeButtons.forEach((button, index) => {
-		button.addEventListener("click", () => {
-			activateRadio({ buttons: allShapeButtons, target: button });
-			renderCustomize();
-		});
-		addRadioKeyboard({ buttons: allShapeButtons, index, onActivate: renderCustomize });
+function initRadioList(selector: string) {
+	const buttons = document.querySelectorAll<HTMLElement>(selector);
+	initRovingGroup({
+		elements: buttons,
+		activate: (target) => activateRadio({ buttons, target }),
+		onActivate: renderCustomize,
 	});
 }
 
 function initExportTabs() {
-	const allTabs = document.querySelectorAll<HTMLElement>("#export-tabs [data-key]");
-	allTabs.forEach((tab, index) => {
-		tab.addEventListener("click", () => {
-			activateTab({ tabs: allTabs, target: tab });
-			renderExportPreview();
-		});
-		tab.addEventListener("keydown", (event) => {
-			const len = allTabs.length;
-			let targetIndex = -1;
-			if (event.key === "ArrowRight") {
-				event.preventDefault();
-				targetIndex = (index + 1) % len;
-			} else if (event.key === "ArrowLeft") {
-				event.preventDefault();
-				targetIndex = (index - 1 + len) % len;
-			} else if (event.key === "Home") {
-				event.preventDefault();
-				targetIndex = 0;
-			} else if (event.key === "End") {
-				event.preventDefault();
-				targetIndex = len - 1;
-			}
-			if (targetIndex < 0) return;
-			activateTab({ tabs: allTabs, target: allTabs[targetIndex] });
-			allTabs[targetIndex].focus();
-			renderExportPreview();
-		});
+	const tabs = document.querySelectorAll<HTMLElement>("#export-tabs [data-key]");
+	initRovingGroup({
+		elements: tabs,
+		activate: (target) => activateTab({ tabs, target }),
+		onActivate: renderExportPreview,
+		orientation: RovingOrientation.Horizontal,
 	});
 }
 
@@ -232,8 +206,8 @@ export function initPage() {
 	renderCustomize();
 	renderWidget();
 	renderExportPreview();
-	initPaletteList();
-	initShapeList();
+	initRadioList("#palette-list .palette-row");
+	initRadioList("#shape-list .shape-btn");
 	initExportTabs();
 	initUsernameStrip();
 	initHistoryNav();

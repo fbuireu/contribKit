@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isYear, parseYear } from "./year";
+import { currentYear, isYear, parseYear } from "./year";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -41,5 +41,13 @@ describe("parseYear", () => {
 		const result = parseYear("notayear");
 		expect(isYear(result)).toBe(false);
 		expect((result as { kind: string }).kind).toBe("InvalidInput");
+	});
+});
+
+describe("currentYear", () => {
+	it("returns a valid Year for today", () => {
+		const year = currentYear();
+		expect(isYear(year)).toBe(true);
+		expect(year.value).toBe(CURRENT_YEAR);
 	});
 });

@@ -1,17 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { activateRadio, activateTab, addRadioKeyboard } from "./roving";
+import { activateRadio, activateTab, initRovingGroup, RovingOrientation } from "./roving";
 
-type KeydownHandler = (event: { key: string; preventDefault: () => void }) => void;
+type Handler = (event: { key: string; preventDefault: () => void }) => void;
 
 interface FakeEl {
 	id: string;
 	classes: Set<string>;
 	attrs: Record<string, string>;
 	focus: ReturnType<typeof vi.fn>;
-	keydown?: KeydownHandler;
+	keydown?: Handler;
+	click?: () => void;
 	classList: { add: (c: string) => void; remove: (c: string) => void };
 	setAttribute: (key: string, value: string) => void;
-	addEventListener: (type: string, handler: KeydownHandler) => void;
+	addEventListener: (type: string, handler: Handler | (() => void)) => void;
 }
 
 const makeEl = (id = ""): FakeEl => {
@@ -27,7 +28,8 @@ const makeEl = (id = ""): FakeEl => {
 			attrs[key] = value;
 		},
 		addEventListener: (type, handler) => {
-			if (type === "keydown") el.keydown = handler;
+			if (type === "keydown") el.keydown = handler as Handler;
+			if (type === "click") el.click = handler as () => void;
 		},
 	};
 	return el;
@@ -47,11 +49,28 @@ describe("activateRadio", () => {
 	});
 });
 
-describe("addRadioKeyboard", () => {
-	it("moves to the next item on ArrowDown and activates it", () => {
+describe("initRovingGroup", () => {
+	const setup = (orientation?: RovingOrientation) => {
 		const els = [makeEl(), makeEl(), makeEl()];
 		const onActivate = vi.fn();
-		addRadioKeyboard({ buttons: asList(els), index: 0, onActivate });
+		initRovingGroup({
+			elements: asList(els),
+			activate: (target) => activateRadio({ buttons: asList(els), target }),
+			onActivate,
+			orientation,
+		});
+		return { els, onActivate };
+	};
+
+	it("activates the clicked element", () => {
+		const { els, onActivate } = setup();
+		els[2].click?.();
+		expect(els[2].classes.has("active")).toBe(true);
+		expect(onActivate).toHaveBeenCalledOnce();
+	});
+
+	it("moves to the next item on ArrowDown and activates it", () => {
+		const { els, onActivate } = setup();
 		const preventDefault = vi.fn();
 		els[0].keydown?.({ key: "ArrowDown", preventDefault });
 		expect(preventDefault).toHaveBeenCalled();
@@ -61,25 +80,29 @@ describe("addRadioKeyboard", () => {
 	});
 
 	it("wraps from the first item to the last on ArrowUp", () => {
-		const els = [makeEl(), makeEl(), makeEl()];
-		addRadioKeyboard({ buttons: asList(els), index: 0, onActivate: vi.fn() });
+		const { els } = setup();
 		els[0].keydown?.({ key: "ArrowUp", preventDefault: vi.fn() });
 		expect(els[2].classes.has("active")).toBe(true);
 	});
 
 	it("jumps to the last item with End", () => {
-		const els = [makeEl(), makeEl(), makeEl()];
-		addRadioKeyboard({ buttons: asList(els), index: 1, onActivate: vi.fn() });
+		const { els } = setup();
 		els[1].keydown?.({ key: "End", preventDefault: vi.fn() });
 		expect(els[2].classes.has("active")).toBe(true);
 	});
 
 	it("ignores unrelated keys", () => {
-		const els = [makeEl(), makeEl()];
-		const onActivate = vi.fn();
-		addRadioKeyboard({ buttons: asList(els), index: 0, onActivate });
+		const { els, onActivate } = setup();
 		els[0].keydown?.({ key: "Enter", preventDefault: vi.fn() });
 		expect(onActivate).not.toHaveBeenCalled();
+	});
+
+	it("ignores vertical arrows when the orientation is horizontal", () => {
+		const { els, onActivate } = setup(RovingOrientation.Horizontal);
+		els[0].keydown?.({ key: "ArrowDown", preventDefault: vi.fn() });
+		expect(onActivate).not.toHaveBeenCalled();
+		els[0].keydown?.({ key: "ArrowRight", preventDefault: vi.fn() });
+		expect(els[1].classes.has("active")).toBe(true);
 	});
 });
 

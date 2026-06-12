@@ -1,4 +1,4 @@
-const USERNAME_COOKIE = "ck_user";
+export const USERNAME_COOKIE = "ck_user";
 const ONE_WEEK = 60 * 60 * 24 * 7;
 
 export async function readUsernameCookie(): Promise<string | null> {

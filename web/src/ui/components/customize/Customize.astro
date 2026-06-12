@@ -5,7 +5,7 @@ import { SHAPE_KINDS } from "@domain/value-objects/shape";
 import { shapePreviewSVG } from "@ui/components/grid/render-svg";
 import ArrowRight from "@ui/components/icons/ArrowRight.astro";
 
-const paletteEntries = Object.values(PALETTES);
+const palettes = Object.values(PALETTES);
 ---
 
 <section class="section" id="custom" aria-label="Customize">
@@ -30,10 +30,10 @@ const paletteEntries = Object.values(PALETTES);
         <div class="ctrl-group">
           <div class="ctrl-label">
             <span class="mono dim">palette</span>
-            <span class="mono dimmer">{paletteEntries.length}</span>
+            <span class="mono dimmer">{palettes.length}</span>
           </div>
           <div class="palette-list" id="palette-list" role="radiogroup" aria-label="Color palette">
-            {paletteEntries.map(({ key, name, colors }, index) => (
+            {palettes.map(({ key, name, colors }, index) => (
               <button
                 class:list={['palette-row', { active: index === 0 }]}
                 role="radio"

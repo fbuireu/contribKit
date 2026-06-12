@@ -20,8 +20,10 @@ export type Failure =
 	| { readonly kind: typeof FailureKind.Network; readonly status?: number; readonly message: string }
 	| { readonly kind: typeof FailureKind.Parse; readonly message: string };
 
+const FAILURE_KINDS: ReadonlySet<string> = new Set(Object.values(FailureKind));
+
 export const isFailure = (value: unknown): value is Failure =>
-	typeof value === "object" && value !== null && "kind" in value;
+	typeof value === "object" && value !== null && "kind" in value && FAILURE_KINDS.has(String(value.kind));
 
 export interface InvalidInputParams {
 	field: FailureField;

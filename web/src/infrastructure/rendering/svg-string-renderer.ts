@@ -1,66 +1,26 @@
+import { renderCellShape } from "@domain/services/cell-shapes";
 import {
 	calendarDimensions,
 	chunkWeeks,
-	dotRadius,
-	hexPoints,
 	monthLabelPositions,
 	radiusFor,
 	SVG_DEFAULT_CELL_GAP,
 	SVG_DEFAULT_CELL_SIZE,
 	SVG_DOW_LABEL_BASELINE,
+	SVG_DOW_LABEL_FONT_SIZE,
 	SVG_MONTH_LABEL_BASELINE,
+	SVG_MONTH_LABEL_FONT_SIZE,
+	SVG_MONTH_LABEL_LETTER_SPACING,
 	SVG_PAD_X,
 	SVG_PAD_Y,
 } from "@domain/services/svg-geometry";
 import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
 import { DOW } from "@domain/value-objects/calendar-labels";
-import type { ShapeKind } from "@domain/value-objects/shape";
+import { DEFAULT_BACKGROUND_COLOR } from "@domain/value-objects/palette";
 
 const LABEL_FONT_FAMILY = "ui-monospace,monospace";
 const MONTH_LABEL_FILL = "rgba(255,255,255,0.45)";
-const MONTH_LABEL_FONT_SIZE = "9.5";
-const MONTH_LABEL_LETTER_SPACING = "0.04em";
 const DOW_LABEL_FILL = "rgba(255,255,255,0.35)";
-const DOW_LABEL_FONT_SIZE = "9";
-
-interface RenderRectParams {
-	x: number;
-	y: number;
-	size: number;
-	radius: number;
-	fill: string;
-}
-
-const renderRect = ({ x, y, size, radius, fill }: RenderRectParams): string =>
-	`<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${radius}" fill="${fill}"/>`;
-
-interface RenderCircleParams {
-	cx: number;
-	cy: number;
-	r: number;
-	fill: string;
-}
-
-const renderCircle = ({ cx, cy, r, fill }: RenderCircleParams): string =>
-	`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`;
-
-interface CellRenderContext {
-	x: number;
-	y: number;
-	size: number;
-	radius: number;
-	fill: string;
-	level: number;
-}
-
-const CELL_RENDERERS: Record<ShapeKind, (context: CellRenderContext) => string> = {
-	dot: ({ x, y, size, fill, level }) => renderCircle({ cx: x + size / 2, cy: y + size / 2, r: dotRadius(level), fill }),
-	hex: ({ x, y, size, fill }) =>
-		`<polygon points="${hexPoints({ cx: x + size / 2, cy: y + size / 2, radius: size / 2 })}" fill="${fill}"/>`,
-	circle: ({ x, y, size, fill }) => renderCircle({ cx: x + size / 2, cy: y + size / 2, r: size / 2, fill }),
-	rounded: ({ x, y, size, radius, fill }) => renderRect({ x, y, size, radius, fill }),
-	square: ({ x, y, size, radius, fill }) => renderRect({ x, y, size, radius, fill }),
-};
 
 export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendererParams): string => {
 	const { palette, shape, background } = options;
@@ -77,20 +37,20 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 		`<svg viewBox="0 0 ${totalWidth} ${totalHeight}" width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GitHub contribution calendar">`,
 	);
 
-	if (background !== "transparent") {
+	if (background !== DEFAULT_BACKGROUND_COLOR) {
 		parts.push(`<rect width="${totalWidth}" height="${totalHeight}" fill="${background}"/>`);
 	}
 
 	if (showLabels) {
 		for (const { weekIndex, label } of monthLabelPositions(weeks)) {
 			parts.push(
-				`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" fill="${MONTH_LABEL_FILL}" font-size="${MONTH_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}" letter-spacing="${MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
+				`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" fill="${MONTH_LABEL_FILL}" font-size="${SVG_MONTH_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}" letter-spacing="${SVG_MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
 			);
 		}
 
 		for (const [index, dayLabel] of DOW.entries()) {
 			parts.push(
-				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_DOW_LABEL_BASELINE}" fill="${DOW_LABEL_FILL}" font-size="${DOW_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
+				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_DOW_LABEL_BASELINE}" fill="${DOW_LABEL_FILL}" font-size="${SVG_DOW_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
 			);
 		}
 	}
@@ -102,7 +62,7 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 			const fill = palette.colors[day.level];
 			const x = weekIndex * cellWidth;
 			const y = dayIndex * cellWidth;
-			parts.push(CELL_RENDERERS[shape]({ x, y, size, radius, fill, level: day.level }));
+			parts.push(renderCellShape({ shape, x, y, size, radius, fill, level: day.level }));
 		}
 	}
 

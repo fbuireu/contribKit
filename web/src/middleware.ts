@@ -22,6 +22,14 @@ const SECURITY_HEADERS: Record<string, string> = {
 	].join("; "),
 };
 
+const withSecurityHeaders = (response: Response): Response => {
+	const secured = new Response(response.body, response);
+	for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+		secured.headers.set(key, value);
+	}
+	return secured;
+};
+
 export const onRequest = defineMiddleware(async (context, next) => {
 	const { request, url } = context;
 
@@ -32,21 +40,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
 			const key = request.headers.get("CF-Connecting-IP") ?? "unknown";
 			const { success } = await rateLimiter.limit({ key });
 			if (!success) {
-				return new Response(JSON.stringify({ error: "Too many requests" }), {
-					status: 429,
-					headers: {
-						"Content-Type": "application/json",
-						"Retry-After": "60",
-					},
-				});
+				return withSecurityHeaders(
+					new Response(JSON.stringify({ error: "Too many requests" }), {
+						status: 429,
+						headers: {
+							"Content-Type": "application/json",
+							"Retry-After": "60",
+						},
+					}),
+				);
 			}
 		}
 	}
 
-	const response = await next();
-	const newResponse = new Response(response.body, response);
-	for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-		newResponse.headers.set(key, value);
-	}
-	return newResponse;
+	return withSecurityHeaders(await next());
 });

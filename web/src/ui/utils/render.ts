@@ -1,10 +1,13 @@
 import type { ContributionDay } from "@domain/entities/types";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
-import { buildCodeBlock, buildMdLines, SVG_LINES } from "@ui/components/export/code-preview";
+import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES } from "@ui/components/export/code-preview";
+import { DEFAULT_EXPORT_FORMAT, ExportFormatKey } from "@ui/components/export/export-formats";
 import type { CellSummary } from "@ui/components/grid/calendar";
+import { CUSTOMIZE_GRID_PRESET, EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
+import { formatHeroError } from "./contribution-errors";
 import { getCells, getUsername } from "./state";
 
 export const getActivePalette = (): string =>
@@ -14,7 +17,7 @@ export const getActiveShape = (): string =>
 	document.querySelector<HTMLElement>("#shape-list .shape-btn.active")?.dataset.key ?? DEFAULT_SHAPE_KIND;
 
 export const getActiveExportTab = (): string =>
-	document.querySelector<HTMLElement>('#export-tabs [aria-selected="true"]')?.dataset.key ?? "png";
+	document.querySelector<HTMLElement>('#export-tabs [aria-selected="true"]')?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
 
 export function renderWidget(): void {
 	const palette = PALETTES[getActivePalette()].colors;
@@ -33,10 +36,10 @@ export function renderCustomize(): void {
 	const cells = getCells();
 	const customGrid = document.getElementById("custom-grid-container");
 	if (customGrid)
-		customGrid.innerHTML = renderCalendarString({ cells, palette, shape, size: 12, gap: 3, showLabels: false });
+		customGrid.innerHTML = renderCalendarString({ cells, palette, shape, ...CUSTOMIZE_GRID_PRESET, showLabels: false });
 	const heroGrid = document.getElementById("hero-grid-container");
 	if (heroGrid)
-		heroGrid.innerHTML = renderCalendarString({ cells, palette, shape, size: 13, gap: 3, showLabels: true });
+		heroGrid.innerHTML = renderCalendarString({ cells, palette, shape, ...HERO_GRID_PRESET, showLabels: true });
 	document.querySelectorAll<HTMLElement>(".legend .legend-sq").forEach((square, index) => {
 		square.style.background = palette[index] ?? palette[0];
 	});
@@ -60,7 +63,7 @@ export function renderExportPreview(): void {
 	const cells = getCells();
 	const username = getUsername();
 
-	if (exportTab === "png") {
+	if (exportTab === ExportFormatKey.Png) {
 		card.classList.add("png-preview");
 		const checker = document.createElement("div");
 		checker.className = "preview-checker";
@@ -68,7 +71,7 @@ export function renderExportPreview(): void {
 		card.appendChild(checker);
 		const content = document.createElement("div");
 		content.className = "preview-content";
-		content.innerHTML = renderCalendarString({ cells, palette, shape, size: 10, gap: 2, showLabels: false });
+		content.innerHTML = renderCalendarString({ cells, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false });
 		card.appendChild(content);
 		const tag = document.createElement("div");
 		tag.className = "preview-tag mono";
@@ -76,12 +79,13 @@ export function renderExportPreview(): void {
 		card.appendChild(tag);
 	} else {
 		card.classList.add("code-preview");
-		const mdLines = buildMdLines({ username, palette: getActivePalette(), shape });
-		card.appendChild(buildCodeBlock(exportTab === "svg" ? SVG_LINES : mdLines));
-		const plainText =
-			exportTab === "svg"
-				? renderCalendarString({ cells, palette, shape, size: 10, gap: 2, showLabels: false })
-				: `![contributions](https://contribkit.app/user/${username}.svg)`;
+		const isSvgTab = exportTab === ExportFormatKey.Svg;
+		card.appendChild(
+			buildCodeBlock(isSvgTab ? SVG_LINES : buildMarkdownLines({ username, palette: getActivePalette(), shape })),
+		);
+		const plainText = isSvgTab
+			? renderCalendarString({ cells, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false })
+			: markdownSnippet(username);
 		const copyButton = document.createElement("button");
 		copyButton.className = "copy-btn mono";
 		copyButton.textContent = "copy";
@@ -96,7 +100,7 @@ export function renderExportPreview(): void {
 		card.appendChild(copyButton);
 		const tag = document.createElement("div");
 		tag.className = "preview-tag mono";
-		tag.textContent = exportTab === "svg" ? `${username}.svg` : "README.md";
+		tag.textContent = isSvgTab ? `${username}.svg` : "README.md";
 		card.appendChild(tag);
 	}
 	preview.appendChild(card);
@@ -121,7 +125,7 @@ export function setHeroError(message: string | null): void {
 	const errorEl = document.getElementById("hero-error");
 	if (!errorEl) return;
 	if (message) {
-		errorEl.textContent = `↳ ${message}`;
+		errorEl.textContent = formatHeroError(message);
 		errorEl.hidden = false;
 	} else {
 		errorEl.textContent = "";

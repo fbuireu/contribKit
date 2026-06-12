@@ -7,3 +7,5 @@ export const CONTRIBUTION_ERRORS: Record<number, string> = {
 export const FALLBACK_CONTRIBUTION_ERROR = "something went wrong";
 
 export const contributionError = (status: number): string => CONTRIBUTION_ERRORS[status] ?? FALLBACK_CONTRIBUTION_ERROR;
+
+export const formatHeroError = (message: string): string => `↳ ${message}`;

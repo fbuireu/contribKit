@@ -1,124 +1,100 @@
+import {
+	SVG_DAYS_PER_WEEK,
+	SVG_DEFAULT_CELL_GAP,
+	SVG_DEFAULT_CELL_SIZE,
+	SVG_GRID_CELL_COUNT,
+	SVG_WEEKS,
+} from "@domain/services/svg-geometry";
+import { PALETTES } from "@domain/value-objects/palette";
+
 type Token = [string, string];
 type CodeLine = Token[];
 
+const CELL_STEP = SVG_DEFAULT_CELL_SIZE + SVG_DEFAULT_CELL_GAP;
+const VIEWBOX_WIDTH = SVG_WEEKS * CELL_STEP;
+const VIEWBOX_HEIGHT = SVG_DAYS_PER_WEEK * CELL_STEP;
+const CELL_RADIUS = 2;
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+const [, low, , high, veryHigh] = PALETTES.github.colors;
+const SAMPLE_FILLS = [low, high, veryHigh];
+const REMAINING_RECTS = SVG_GRID_CELL_COUNT - SAMPLE_FILLS.length;
+const EXPORT_BASE_URL = "https://contribkit.app/user";
+const IMAGE_ALT = "contributions";
+
+export const userSvgUrl = (username: string): string => `${EXPORT_BASE_URL}/${username}.svg`;
+
+export const markdownSnippet = (username: string): string => `![${IMAGE_ALT}](${userSvgUrl(username)})`;
+
+interface AttributeTokensParams {
+	name: string;
+	value: string | number;
+}
+
+const attributeTokens = ({ name, value }: AttributeTokensParams): Token[] => [
+	["c-attr", name],
+	["", "="],
+	["c-str", `"${value}"`],
+];
+
+const joinWithSpaces = (groups: Token[][]): Token[] =>
+	groups.flatMap((tokens, index) => (index === 0 ? tokens : [["", " "] as Token, ...tokens]));
+
+interface RectLineParams {
+	column: number;
+	fill: string;
+}
+
+const rectLine = ({ column, fill }: RectLineParams): CodeLine => [
+	["", " "],
+	["c-tag", "<rect "],
+	...joinWithSpaces([
+		attributeTokens({ name: "x", value: column * CELL_STEP }),
+		attributeTokens({ name: "y", value: 0 }),
+		attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
+		attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
+		attributeTokens({ name: "rx", value: CELL_RADIUS }),
+		attributeTokens({ name: "fill", value: fill }),
+	]),
+	["c-tag", "/>"],
+];
+
 export const SVG_LINES: CodeLine[] = [
-	[["c-comment", "<!-- 53 × 7 grid · cell=10 · gap=2 -->"]],
+	[
+		[
+			"c-comment",
+			`<!-- ${SVG_WEEKS} × ${SVG_DAYS_PER_WEEK} grid · cell=${SVG_DEFAULT_CELL_SIZE} · gap=${SVG_DEFAULT_CELL_GAP} -->`,
+		],
+	],
 	[
 		["c-tag", "<svg "],
-		["c-attr", "viewBox"],
-		["", "="],
-		["c-str", '"0 0 636 84"'],
-		["", " "],
-		["c-attr", "xmlns"],
-		["", "="],
-		["c-str", '"http://www.w3.org/2000/svg"'],
+		...joinWithSpaces([
+			attributeTokens({ name: "viewBox", value: `0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}` }),
+			attributeTokens({ name: "xmlns", value: SVG_NAMESPACE }),
+		]),
 		["c-tag", ">"],
 	],
+	...SAMPLE_FILLS.map((fill, column) => rectLine({ column, fill })),
 	[
 		["", " "],
-		["c-tag", "<rect "],
-		["c-attr", "x"],
-		["", "="],
-		["c-str", '"0"'],
-		["", " "],
-		["c-attr", "y"],
-		["", "="],
-		["c-str", '"0"'],
-		["", " "],
-		["c-attr", "width"],
-		["", "="],
-		["c-str", '"10"'],
-		["", " "],
-		["c-attr", "height"],
-		["", "="],
-		["c-str", '"10"'],
-		["", " "],
-		["c-attr", "rx"],
-		["", "="],
-		["c-str", '"2"'],
-		["", " "],
-		["c-attr", "fill"],
-		["", "="],
-		["c-str", '"#0E4429"'],
-		["c-tag", "/>"],
-	],
-	[
-		["", " "],
-		["c-tag", "<rect "],
-		["c-attr", "x"],
-		["", "="],
-		["c-str", '"12"'],
-		["", " "],
-		["c-attr", "y"],
-		["", "="],
-		["c-str", '"0"'],
-		["", " "],
-		["c-attr", "width"],
-		["", "="],
-		["c-str", '"10"'],
-		["", " "],
-		["c-attr", "height"],
-		["", "="],
-		["c-str", '"10"'],
-		["", " "],
-		["c-attr", "rx"],
-		["", "="],
-		["c-str", '"2"'],
-		["", " "],
-		["c-attr", "fill"],
-		["", "="],
-		["c-str", '"#26A641"'],
-		["c-tag", "/>"],
-	],
-	[
-		["", " "],
-		["c-tag", "<rect "],
-		["c-attr", "x"],
-		["", "="],
-		["c-str", '"24"'],
-		["", " "],
-		["c-attr", "y"],
-		["", "="],
-		["c-str", '"0"'],
-		["", " "],
-		["c-attr", "width"],
-		["", "="],
-		["c-str", '"10"'],
-		["", " "],
-		["c-attr", "height"],
-		["", "="],
-		["c-str", '"10"'],
-		["", " "],
-		["c-attr", "rx"],
-		["", "="],
-		["c-str", '"2"'],
-		["", " "],
-		["c-attr", "fill"],
-		["", "="],
-		["c-str", '"#39D353"'],
-		["c-tag", "/>"],
-	],
-	[
-		["", " "],
-		["c-comment", "<!-- … 368 more rects … -->"],
+		["c-comment", `<!-- … ${REMAINING_RECTS} more rects … -->`],
 	],
 	[["c-tag", "</svg>"]],
 ];
 
-export interface BuildMdLinesParams {
+export interface BuildMarkdownLinesParams {
 	username: string;
 	palette: string;
 	shape: string;
 }
 
-export function buildMdLines({ username, palette, shape }: BuildMdLinesParams): CodeLine[] {
-	const base = `https://contribkit.app/user/${username}.svg`;
+export function buildMarkdownLines({ username, palette, shape }: BuildMarkdownLinesParams): CodeLine[] {
+	const base = userSvgUrl(username);
 	return [
 		[["c-comment", "<!-- paste into your README -->"]],
 		[],
 		[
 			["c-tag", "!["],
-			["c-str", "contributions"],
+			["c-str", IMAGE_ALT],
 			["c-tag", "]("],
 			["c-attr", base],
 			["c-tag", ")"],
@@ -128,7 +104,7 @@ export function buildMdLines({ username, palette, shape }: BuildMdLinesParams): 
 		[],
 		[
 			["c-tag", "!["],
-			["c-str", "contributions"],
+			["c-str", IMAGE_ALT],
 			["c-tag", "]("],
 			["c-attr", base],
 		],

@@ -24,6 +24,30 @@ describe("getAnalytics", () => {
 		expect(gtag).toHaveBeenLastCalledWith("consent", "update", { analytics_storage: "denied" });
 	});
 
+	it("loads Google Analytics only once when an id is set", async () => {
+		vi.stubEnv("PUBLIC_GOOGLE_ANALYTICS_ID", "G-TEST");
+		const appendChild = vi.fn();
+		vi.stubGlobal("document", { createElement: () => ({ dataset: {} }), head: { appendChild } });
+		const { getAnalytics } = await import("./analytics");
+
+		const analytics = getAnalytics();
+		analytics.loadGoogleAnalytics();
+		analytics.loadGoogleAnalytics();
+
+		expect(appendChild).toHaveBeenCalledTimes(1);
+	});
+
+	it("skips Google Analytics when no id is set", async () => {
+		vi.stubEnv("PUBLIC_GOOGLE_ANALYTICS_ID", "");
+		const appendChild = vi.fn();
+		vi.stubGlobal("document", { createElement: () => ({ dataset: {} }), head: { appendChild } });
+		const { getAnalytics } = await import("./analytics");
+
+		getAnalytics().loadGoogleAnalytics();
+
+		expect(appendChild).not.toHaveBeenCalled();
+	});
+
 	it("loads Better Stack only once when a token is set", async () => {
 		vi.stubEnv("PUBLIC_BETTER_STACK_SOURCE_TOKEN", "tok_123");
 		const appendChild = vi.fn();

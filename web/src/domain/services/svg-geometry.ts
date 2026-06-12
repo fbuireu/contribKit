@@ -6,11 +6,15 @@ export const SVG_LABEL_WIDTH = 28;
 export const SVG_LABEL_HEIGHT = 18;
 export const SVG_WEEKS = 53;
 export const SVG_DAYS_PER_WEEK = 7;
+export const SVG_GRID_CELL_COUNT = SVG_WEEKS * SVG_DAYS_PER_WEEK;
 export const SVG_DEFAULT_CELL_SIZE = 10;
 export const SVG_DEFAULT_CELL_GAP = 2;
 export const SVG_MONTH_LABEL_BASELINE = 11;
 export const SVG_DOW_LABEL_BASELINE = 4;
 export const SVG_MONTH_LABEL_MAX_DAY = 7;
+export const SVG_MONTH_LABEL_FONT_SIZE = "9.5";
+export const SVG_MONTH_LABEL_LETTER_SPACING = "0.04em";
+export const SVG_DOW_LABEL_FONT_SIZE = "9";
 
 const RADIUS_BY_SHAPE: Record<string, number> = { rounded: 2.5, square: 0 };
 

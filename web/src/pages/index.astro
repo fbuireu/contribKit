@@ -13,13 +13,15 @@ import Customize from "@ui/components/customize/Customize.astro";
 import Export from "@ui/components/export/Export.astro";
 import CellTip from "@ui/components/grid/CellTip.astro";
 import { generateData, summarize } from "@ui/components/grid/calendar";
+import { EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import Hero from "@ui/components/hero/Hero.astro";
 import HowItWorks from "@ui/components/how-it-works/HowItWorks.astro";
 import Widget from "@ui/components/widget/Widget.astro";
 import { contributionError } from "@ui/utils/contribution-errors";
+import { USERNAME_COOKIE } from "@ui/utils/cookie";
 
-const SITE_URL = "https://contribkit.app";
+const SITE_URL = (Astro.site ?? Astro.url).origin;
 const OG_IMAGE = `${SITE_URL}/og.png`;
 const OG_IMAGE_ALT = "ContribKit — GitHub contribution calendar with custom palette";
 const TITLE = "ContribKit — Your GitHub activity, your aesthetic.";
@@ -57,7 +59,7 @@ const SCHEMA = [
 ];
 
 const requestedUsername = Astro.url.searchParams.get("user")?.trim();
-const savedRaw = Astro.cookies.get("ck_user")?.value?.trim();
+const savedRaw = Astro.cookies.get(USERNAME_COOKIE)?.value?.trim();
 const savedUsername = savedRaw && isUsername(parseUsername(savedRaw)) ? savedRaw : undefined;
 const username = requestedUsername || savedUsername || DEFAULT_USERNAME;
 const isExplicit = Boolean(requestedUsername || savedUsername);
@@ -76,7 +78,7 @@ if (initial.ok) {
 	cells = buildGridFromApi({ days: [], year: currentYear });
 	heroError = contributionError(initial.status);
 } else {
-	cells = generateData(7);
+	cells = generateData();
 }
 
 const summary = summarize(cells);
@@ -86,24 +88,18 @@ const heroSVG = renderCalendarString({
 	cells,
 	palette: CLASSIC,
 	shape: ShapeKind.Rounded,
-	size: 13,
-	gap: 3,
+	...HERO_GRID_PRESET,
 	showLabels: true,
 });
 const exportSvg = renderCalendarString({
 	cells,
 	palette: CLASSIC,
 	shape: DEFAULT_SHAPE_KIND,
-	size: 10,
-	gap: 2,
+	...EXPORT_GRID_PRESET,
 	showLabels: false,
 });
 
-const initialCellsForClient = cells.map((cell) => ({
-	date: cell.date,
-	level: cell.level,
-	count: cell.count ?? null,
-}));
+const initialCellsForClient = cells;
 
 Astro.response.headers.set(
 	"Cache-Control",

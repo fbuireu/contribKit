@@ -24,7 +24,6 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
   gtag('js', new Date());
   gtag('config', GA_ID);
 </script>
-<script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
 
 <script>
   import { acceptedService } from "vanilla-cookieconsent";
@@ -32,7 +31,9 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 
   function applyConsent() {
     const analytics = getAnalytics();
-    analytics.syncGoogleConsent(acceptedService("ga4", "analytics"));
+    const googleGranted = acceptedService("ga4", "analytics");
+    analytics.syncGoogleConsent(googleGranted);
+    if (googleGranted) analytics.loadGoogleAnalytics();
     if (acceptedService("betterstack", "analytics")) analytics.loadBetterStack();
   }
 

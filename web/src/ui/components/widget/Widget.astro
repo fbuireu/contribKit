@@ -1,6 +1,7 @@
 ---
 import "./widget.css";
 import { PALETTES } from "@domain/value-objects/palette";
+import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import Clock from "@ui/components/icons/Clock.astro";
 import Flame from "@ui/components/icons/Flame.astro";
@@ -29,7 +30,7 @@ const miniGrid = generateMiniGrid(PALETTES.github.colors);
             <div class="home-widgets">
               <div class="w-card w-medium" role="img" aria-label="Medium widget showing contribution grid">
                 <div class="w-head">
-                  <span class="mono w-name" id="widget-username">torvalds</span>
+                  <span class="mono w-name" id="widget-username">{DEFAULT_USERNAME}</span>
                   <span class="w-streak">
                     <Flame />
                     <span class="mono">42</span>

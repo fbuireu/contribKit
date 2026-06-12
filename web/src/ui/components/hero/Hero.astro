@@ -2,19 +2,21 @@
 import { SUGGESTED_USERNAMES } from "@domain/value-objects/username";
 import { GITHUB_LAUNCH_YEAR } from "@domain/value-objects/year";
 import "./hero.css";
+import type { CellSummary } from "@ui/components/grid/calendar";
 import AppStore from "@ui/components/icons/AppStore.astro";
 import ArrowRight from "@ui/components/icons/ArrowRight.astro";
 import ChevronDown from "@ui/components/icons/ChevronDown.astro";
 import GooglePlay from "@ui/components/icons/GooglePlay.astro";
 import { PLAY_STORE_URL } from "@ui/utils/app-links";
+import { formatHeroError } from "@ui/utils/contribution-errors";
 
 const currentYear = new Date().getFullYear();
 const appVersion = __APP_VERSION__;
 
 interface Props {
 	heroSVG: string;
-	summary: { count: number; streak: number; longest: number };
-	palette: string[];
+	summary: CellSummary;
+	palette: readonly string[];
 	username: string;
 	year?: number;
 	error?: string | null;
@@ -87,7 +89,7 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
       ))}
     </div>
 
-    <p class="hero-error" id="hero-error" aria-live="polite" hidden={!error}>{error ? `↳ ${error}` : ""}</p>
+    <p class="hero-error" id="hero-error" aria-live="polite" hidden={!error}>{error ? formatHeroError(error) : ""}</p>
 
     <div class="hero-stage">
       <div class="hero-card">

@@ -21,5 +21,7 @@ export const parseYear = (input: number | string | null | undefined): Year | nul
 	return { _tag: "Year", value: year };
 };
 
+export const currentYear = (): Year => ({ _tag: "Year", value: new Date().getFullYear() });
+
 export const isYear = (value: unknown): value is Year =>
 	typeof value === "object" && value !== null && (value as { _tag?: unknown })._tag === "Year";
