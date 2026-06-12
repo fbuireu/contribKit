@@ -1,3 +1,10 @@
+# [contribkit-web-v1.11.1](https://github.com/fbuireu/contribKit/compare/web-v1.11.0...web-v1.11.1) (2026-06-12)
+
+
+### Bug Fixes
+
+* ddd layers ([3d2bb8e](https://github.com/fbuireu/contribKit/commit/3d2bb8e9ecf6f8f1487f5f01f7c57c595ceb28d6))
+
 # [contribkit-web-v1.11.0](https://github.com/fbuireu/contribKit/compare/web-v1.10.2...web-v1.11.0) (2026-06-11)
 
 
