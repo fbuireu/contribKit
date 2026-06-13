@@ -14,8 +14,8 @@ export interface BuildCalendarGridParams {
 }
 
 export const buildCalendarGrid = ({ map, year }: BuildCalendarGridParams): ContributionDay[] => {
-	const jan1 = `${year}-01-01`;
-	const start = addDays({ iso: jan1, days: -getWeekday(jan1) });
+	const yearStart = `${year}-01-01`;
+	const start = addDays({ iso: yearStart, days: -getWeekday(yearStart) });
 	const cells: ContributionDay[] = [];
 	for (let dayOffset = 0; dayOffset < SVG_GRID_CELL_COUNT; dayOffset++) {
 		const date = addDays({ iso: start, days: dayOffset });

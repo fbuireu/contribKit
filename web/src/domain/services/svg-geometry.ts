@@ -15,7 +15,7 @@ export const SVG_MONTH_LABEL_MAX_DAY = 7;
 export const SVG_MONTH_LABEL_FONT_SIZE = "9.5";
 export const SVG_MONTH_LABEL_LETTER_SPACING = "0.04em";
 export const SVG_DOW_LABEL_FONT_SIZE = "9";
-
+export const DOT_BASE_RADIUS = 1.4;
 const RADIUS_BY_SHAPE: Record<string, number> = { rounded: 2.5, square: 0 };
 
 export interface RadiusForParams {
@@ -25,7 +25,7 @@ export interface RadiusForParams {
 
 export const radiusFor = ({ shape, size }: RadiusForParams): number => RADIUS_BY_SHAPE[shape] ?? size / 2;
 
-export const dotRadius = (level: number): number => (level === 0 ? 1.4 : 1.4 + level);
+export const dotRadius = (level: number): number => (level === 0 ? DOT_BASE_RADIUS : DOT_BASE_RADIUS + level);
 
 export interface CalendarDimensionsParams {
 	size: number;
