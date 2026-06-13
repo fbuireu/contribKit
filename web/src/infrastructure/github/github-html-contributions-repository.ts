@@ -42,10 +42,10 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 	const idToCount = new Map<string, number>();
 
 	for (const match of html.matchAll(TD_REGEX)) {
-		const attrs = match[1];
-		const date = DATE_REGEX.exec(attrs)?.[1];
-		const level = LEVEL_REGEX.exec(attrs)?.[1];
-		const id = ID_REGEX.exec(attrs)?.[1] ?? null;
+		const attributes = match[1];
+		const date = DATE_REGEX.exec(attributes)?.[1];
+		const level = LEVEL_REGEX.exec(attributes)?.[1];
+		const id = ID_REGEX.exec(attributes)?.[1] ?? null;
 		if (date && level !== undefined) {
 			days.push({ date, level: Number.parseInt(level, 10), id });
 		}

@@ -18,8 +18,5 @@ node_modules/
 # AI
 .claude/
 
-# Local wiki drafts
-docs/wiki/
-
 # Cloudflare
 web/worker-configuration.d.ts
