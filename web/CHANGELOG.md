@@ -1,3 +1,10 @@
+# [contribkit-web-v1.11.2](https://github.com/fbuireu/contribKit/compare/web-v1.11.1...web-v1.11.2) (2026-06-14)
+
+
+### Bug Fixes
+
+* small rearrangement of files and vars ([13d8389](https://github.com/fbuireu/contribKit/commit/13d83899891340537429c49d444c57dcd3bc8984))
+
 # [contribkit-web-v1.11.1](https://github.com/fbuireu/contribKit/compare/web-v1.11.0...web-v1.11.1) (2026-06-12)
 
 
