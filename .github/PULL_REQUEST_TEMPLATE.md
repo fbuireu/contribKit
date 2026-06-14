@@ -49,7 +49,6 @@ Fixes #<!-- issue number -->
 
 - [ ] I ran `dart format` before committing
 - [ ] No new lint warnings (`flutter analyze`)
-- [ ] I have added `///` doc comments to all new public APIs in `domain/` and `application/`
 - [ ] No magic numbers — spacing and colors go through `Tokens` / `AppColors`
 - [ ] No `dynamic` types outside of JSON boundary code
 - [ ] Domain layer has zero external dependencies

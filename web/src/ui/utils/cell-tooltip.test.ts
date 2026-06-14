@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { initCellTooltip } from "./cell-tooltip";
 

@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
-import { SVG_GRID_CELL_COUNT } from "@domain/services/svg-geometry";
+
+import { GRID_CELL_COUNT } from "@domain/services/dates";
 import { PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES, userSvgUrl } from "./code-preview";
@@ -30,7 +31,7 @@ describe("SVG_LINES", () => {
 	});
 
 	it("accounts for every remaining grid cell in the ellipsis comment", () => {
-		expect(toText(SVG_LINES)).toContain(`${SVG_GRID_CELL_COUNT - 3} more rects`);
+		expect(toText(SVG_LINES)).toContain(`${GRID_CELL_COUNT - 3} more rects`);
 	});
 });
 

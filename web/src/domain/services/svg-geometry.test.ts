@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { WEEKS_PER_YEAR } from "./dates";
 import {
 	calendarDimensions,
-	chunkWeeks,
 	dotRadius,
 	hexPoints,
 	monthLabelPositions,
 	radiusFor,
-	SVG_DAYS_PER_WEEK,
 	SVG_LABEL_WIDTH,
 	SVG_PAD_X,
-	SVG_WEEKS,
 } from "./svg-geometry";
 
 describe("radiusFor", () => {
@@ -42,30 +40,13 @@ describe("calendarDimensions", () => {
 		const dimensions = calendarDimensions({ size: 10, gap: 2, showLabels: true });
 		expect(dimensions.cellWidth).toBe(12);
 		expect(dimensions.labelWidth).toBe(SVG_LABEL_WIDTH);
-		expect(dimensions.totalWidth).toBe(SVG_WEEKS * 12 + SVG_LABEL_WIDTH + SVG_PAD_X * 2);
+		expect(dimensions.totalWidth).toBe(WEEKS_PER_YEAR * 12 + SVG_LABEL_WIDTH + SVG_PAD_X * 2);
 	});
 
 	it("drops label dimensions when labels are hidden", () => {
 		const dimensions = calendarDimensions({ size: 10, gap: 2, showLabels: false });
 		expect(dimensions.labelWidth).toBe(0);
 		expect(dimensions.labelHeight).toBe(0);
-	});
-});
-
-describe("chunkWeeks", () => {
-	it("splits a full grid into SVG_WEEKS weeks of SVG_DAYS_PER_WEEK", () => {
-		const cells = Array.from({ length: SVG_WEEKS * SVG_DAYS_PER_WEEK }, (_, index) => index);
-		const weeks = chunkWeeks(cells);
-		expect(weeks).toHaveLength(SVG_WEEKS);
-		expect(weeks[0]).toEqual([0, 1, 2, 3, 4, 5, 6]);
-		expect(weeks.at(-1)?.at(-1)).toBe(SVG_WEEKS * SVG_DAYS_PER_WEEK - 1);
-	});
-
-	it("leaves trailing weeks empty when there are fewer cells", () => {
-		const weeks = chunkWeeks([1, 2, 3]);
-		expect(weeks).toHaveLength(SVG_WEEKS);
-		expect(weeks[0]).toEqual([1, 2, 3]);
-		expect(weeks[1]).toEqual([]);
 	});
 });
 

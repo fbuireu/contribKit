@@ -1,12 +1,10 @@
 import { MONTHS } from "../value-objects/calendar-labels";
+import { DAYS_PER_WEEK, WEEKS_PER_YEAR } from "./dates";
 
 export const SVG_PAD_X = 12;
 export const SVG_PAD_Y = 12;
 export const SVG_LABEL_WIDTH = 28;
 export const SVG_LABEL_HEIGHT = 18;
-export const SVG_WEEKS = 53;
-export const SVG_DAYS_PER_WEEK = 7;
-export const SVG_GRID_CELL_COUNT = SVG_WEEKS * SVG_DAYS_PER_WEEK;
 export const SVG_DEFAULT_CELL_SIZE = 10;
 export const SVG_DEFAULT_CELL_GAP = 2;
 export const SVG_MONTH_LABEL_BASELINE = 11;
@@ -49,15 +47,10 @@ export const calendarDimensions = ({ size, gap, showLabels }: CalendarDimensions
 		cellWidth,
 		labelWidth,
 		labelHeight,
-		totalWidth: SVG_WEEKS * cellWidth + labelWidth + SVG_PAD_X * 2,
-		totalHeight: SVG_DAYS_PER_WEEK * cellWidth + labelHeight + SVG_PAD_Y * 2,
+		totalWidth: WEEKS_PER_YEAR * cellWidth + labelWidth + SVG_PAD_X * 2,
+		totalHeight: DAYS_PER_WEEK * cellWidth + labelHeight + SVG_PAD_Y * 2,
 	};
 };
-
-export const chunkWeeks = <T>(cells: readonly T[]): T[][] =>
-	Array.from({ length: SVG_WEEKS }, (_, weekIndex) =>
-		cells.slice(weekIndex * SVG_DAYS_PER_WEEK, (weekIndex + 1) * SVG_DAYS_PER_WEEK),
-	);
 
 export interface MonthLabelPosition {
 	weekIndex: number;

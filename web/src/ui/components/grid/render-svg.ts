@@ -1,7 +1,7 @@
 import { renderCellShape } from "@domain/services/cell-shapes";
+import { chunkWeeks } from "@domain/services/dates";
 import {
 	calendarDimensions,
-	chunkWeeks,
 	hexPoints,
 	monthLabelPositions,
 	radiusFor,

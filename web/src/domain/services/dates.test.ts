@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, getWeekday } from "./dates";
+import { addDays, chunkWeeks, DAYS_PER_WEEK, getWeekday, WEEKS_PER_YEAR } from "./dates";
 
 describe("addDays", () => {
 	it("adds days within a month", () => {
@@ -24,5 +24,22 @@ describe("getWeekday", () => {
 
 	it("returns 1 for Monday", () => {
 		expect(getWeekday("2024-03-11")).toBe(1);
+	});
+});
+
+describe("chunkWeeks", () => {
+	it("splits a full grid into WEEKS_PER_YEAR weeks of DAYS_PER_WEEK", () => {
+		const cells = Array.from({ length: WEEKS_PER_YEAR * DAYS_PER_WEEK }, (_, index) => index);
+		const weeks = chunkWeeks(cells);
+		expect(weeks).toHaveLength(WEEKS_PER_YEAR);
+		expect(weeks[0]).toEqual([0, 1, 2, 3, 4, 5, 6]);
+		expect(weeks.at(-1)?.at(-1)).toBe(WEEKS_PER_YEAR * DAYS_PER_WEEK - 1);
+	});
+
+	it("leaves trailing weeks empty when there are fewer cells", () => {
+		const weeks = chunkWeeks([1, 2, 3]);
+		expect(weeks).toHaveLength(WEEKS_PER_YEAR);
+		expect(weeks[0]).toEqual([1, 2, 3]);
+		expect(weeks[1]).toEqual([]);
 	});
 });

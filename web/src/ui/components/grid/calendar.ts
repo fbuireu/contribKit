@@ -1,6 +1,5 @@
 import type { ContributionDay } from "@domain/entities/types";
-import { addDays, getWeekday, toIsoDate } from "@domain/services/dates";
-import { SVG_GRID_CELL_COUNT } from "@domain/services/svg-geometry";
+import { addDays, GRID_CELL_COUNT, getWeekday, toIsoDate } from "@domain/services/dates";
 import { mulberry32 } from "@ui/utils/mulberry";
 import { TOTALS_PER_LEVEL } from "./contribution";
 
@@ -51,7 +50,7 @@ export function generateData(seed = 7): ContributionDay[] {
 	const cells: ContributionDay[] = [];
 	const today = toIsoDate(new Date());
 	const end = addDays({ iso: today, days: 6 - getWeekday(today) });
-	const totalDays = SVG_GRID_CELL_COUNT;
+	const totalDays = GRID_CELL_COUNT;
 	const start = addDays({ iso: end, days: -(totalDays - 1) });
 
 	for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {

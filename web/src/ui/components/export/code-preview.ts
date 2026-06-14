@@ -1,23 +1,18 @@
-import {
-	SVG_DAYS_PER_WEEK,
-	SVG_DEFAULT_CELL_GAP,
-	SVG_DEFAULT_CELL_SIZE,
-	SVG_GRID_CELL_COUNT,
-	SVG_WEEKS,
-} from "@domain/services/svg-geometry";
+import { DAYS_PER_WEEK, GRID_CELL_COUNT, WEEKS_PER_YEAR } from "@domain/services/dates";
+import { SVG_DEFAULT_CELL_GAP, SVG_DEFAULT_CELL_SIZE } from "@domain/services/svg-geometry";
 import { PALETTES } from "@domain/value-objects/palette";
 
 type Token = [string, string];
 type CodeLine = Token[];
 
 const CELL_STEP = SVG_DEFAULT_CELL_SIZE + SVG_DEFAULT_CELL_GAP;
-const VIEWBOX_WIDTH = SVG_WEEKS * CELL_STEP;
-const VIEWBOX_HEIGHT = SVG_DAYS_PER_WEEK * CELL_STEP;
+const VIEWBOX_WIDTH = WEEKS_PER_YEAR * CELL_STEP;
+const VIEWBOX_HEIGHT = DAYS_PER_WEEK * CELL_STEP;
 const CELL_RADIUS = 2;
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const [, low, , high, veryHigh] = PALETTES.github.colors;
 const SAMPLE_FILLS = [low, high, veryHigh];
-const REMAINING_RECTS = SVG_GRID_CELL_COUNT - SAMPLE_FILLS.length;
+const REMAINING_RECTS = GRID_CELL_COUNT - SAMPLE_FILLS.length;
 const EXPORT_BASE_URL = "https://contribkit.app/user";
 const IMAGE_ALT = "contributions";
 
@@ -62,7 +57,7 @@ export const SVG_LINES: CodeLine[] = [
 	[
 		[
 			"c-comment",
-			`<!-- ${SVG_WEEKS} × ${SVG_DAYS_PER_WEEK} grid · cell=${SVG_DEFAULT_CELL_SIZE} · gap=${SVG_DEFAULT_CELL_GAP} -->`,
+			`<!-- ${WEEKS_PER_YEAR} × ${DAYS_PER_WEEK} grid · cell=${SVG_DEFAULT_CELL_SIZE} · gap=${SVG_DEFAULT_CELL_GAP} -->`,
 		],
 	],
 	[
