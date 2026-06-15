@@ -81,6 +81,42 @@
       "description": "Hold below 4.0.4: it requires analyzer ^12, which no stable freezed release supports yet, breaking pub version solving. Lift once freezed ships a stable analyzer-12 release."
     },
     {
+      "matchManagers": ["pub"],
+      "matchDepNames": ["json_serializable"],
+      "allowedVersions": "<6.14.0",
+      "description": "Hold below 6.14.0: it requires analyzer >=10, incompatible with riverpod_lint/generator (analyzer ^9) and freezed (<11). Lift together with the riverpod analyzer caps once freezed supports analyzer 12."
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchDepNames": ["json_annotation"],
+      "allowedVersions": "<4.12.0",
+      "description": "Hold below 4.12.0: json_serializable 6.13.0 requires json_annotation <4.12.0. Lift together with json_serializable."
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchDepNames": [
+        "flutter_riverpod",
+        "riverpod",
+        "riverpod_annotation",
+        "riverpod_generator",
+        "riverpod_lint"
+      ],
+      "groupName": "riverpod",
+      "description": "Bump the riverpod ecosystem together; they share riverpod/analyzer versions and break pub solving if split across PRs."
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchDepNames": ["json_serializable", "json_annotation"],
+      "groupName": "json codegen",
+      "description": "Bump json_serializable and json_annotation together; their versions are tightly coupled."
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchDepNames": ["purchases_flutter", "purchases_ui_flutter"],
+      "groupName": "purchases",
+      "description": "purchases_ui_flutter depends on a matching purchases_flutter; bump together."
+    },
+    {
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["patch"],
       "automerge": true,
