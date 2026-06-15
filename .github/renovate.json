@@ -30,43 +30,31 @@
       "addLabels": ["app"]
     },
     {
-      "matchManagers": ["pub"],
       "matchUpdateTypes": ["pin", "pinDigest", "digest"],
       "automerge": true,
       "automergeType": "pr",
       "addLabels": ["pin-update"]
     },
     {
-      "matchManagers": ["pub"],
       "matchUpdateTypes": ["patch"],
       "automerge": true,
       "automergeType": "pr",
       "addLabels": ["patch-update"]
     },
     {
-      "matchManagers": ["pub"],
       "matchUpdateTypes": ["minor"],
       "automerge": true,
       "automergeType": "pr",
       "addLabels": ["minor-update"]
     },
     {
-      "matchManagers": ["pub"],
       "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update"],
-      "automerge": false
+      "automerge": false,
+      "addLabels": ["major-update"]
     },
     {
-      "matchManagers": ["pub"],
-      "matchDepNames": [
-        "flutter_riverpod",
-        "riverpod_annotation",
-        "shadcn_ui",
-        "freezed_annotation"
-      ],
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update"],
-      "automerge": false
+      "matchManagers": ["github-actions"],
+      "addLabels": ["ci"]
     },
     {
       "matchManagers": ["pub"],
@@ -82,73 +70,17 @@
       ],
       "groupName": "flutter codegen",
       "automerge": false,
-      "addLabels": ["codegen"],
-      "description": "These packages share the analyzer/riverpod/build constraints (and riverpod_generator pins riverpod_annotation exactly), so they must be bumped together or pub version solving breaks. automerge off: bumping them can require regenerating *.g.dart/*.freezed.dart."
+      "addLabels": ["codegen"]
     },
     {
       "matchManagers": ["pub"],
       "matchPackageNames": ["purchases_flutter", "purchases_ui_flutter"],
-      "groupName": "purchases",
-      "description": "purchases_ui_flutter depends on a matching purchases_flutter; bump together."
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["patch"],
-      "automerge": true,
-      "automergeType": "pr",
-      "addLabels": ["patch-update"]
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor"],
-      "automerge": true,
-      "automergeType": "pr",
-      "addLabels": ["minor-update"]
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update"],
-      "automerge": false
-    },
-    {
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["digest", "pinDigest", "patch", "minor"],
-      "automerge": true,
-      "automergeType": "pr",
-      "addLabels": ["ci"]
-    },
-    {
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update"],
-      "automerge": false
-    },
-    {
-      "matchManagers": ["gradle", "gradle-wrapper"],
-      "matchUpdateTypes": ["patch"],
-      "automerge": true,
-      "automergeType": "pr",
-      "addLabels": ["patch-update"]
-    },
-    {
-      "matchManagers": ["gradle", "gradle-wrapper"],
-      "matchUpdateTypes": ["minor"],
-      "automerge": true,
-      "automergeType": "pr",
-      "addLabels": ["minor-update"]
-    },
-    {
-      "matchManagers": ["gradle", "gradle-wrapper"],
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update"],
-      "automerge": false
+      "groupName": "purchases"
     },
     {
       "matchManagers": ["gradle"],
       "matchDepNames": ["dev.flutter.flutter-plugin-loader"],
-      "enabled": false,
-      "description": "Provided by the Flutter SDK via includeBuild, not a published Maven artifact. Update by bumping Flutter, not by Renovate."
+      "enabled": false
     }
   ]
 }
