@@ -31,7 +31,7 @@
     },
     {
       "matchManagers": ["pub"],
-      "matchUpdateTypes": ["pin", "pinDigest"],
+      "matchUpdateTypes": ["pin", "pinDigest", "digest"],
       "automerge": true,
       "automergeType": "pr",
       "addLabels": ["pin-update"]
