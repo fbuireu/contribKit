@@ -1,3 +1,10 @@
+# [contribkit-web-v1.11.3](https://github.com/fbuireu/contribKit/compare/web-v1.11.2...web-v1.11.3) (2026-06-15)
+
+
+### Bug Fixes
+
+* **ci:** unbreak version solving and lockfile policy checks ([c4731f4](https://github.com/fbuireu/contribKit/commit/c4731f464e6c480e137a2b46bf51e153dcc87f93))
+
 # [contribkit-web-v1.11.2](https://github.com/fbuireu/contribKit/compare/web-v1.11.1...web-v1.11.2) (2026-06-14)
 
 
