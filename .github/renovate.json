@@ -69,6 +69,29 @@
       "automerge": false
     },
     {
+      "matchManagers": ["pub"],
+      "matchPackageNames": [
+        "/^riverpod/",
+        "freezed",
+        "freezed_annotation",
+        "json_serializable",
+        "json_annotation",
+        "build_runner",
+        "source_gen",
+        "analyzer"
+      ],
+      "groupName": "flutter codegen",
+      "automerge": false,
+      "addLabels": ["codegen", "review-required"],
+      "description": "These packages share the analyzer/riverpod/build constraints (and riverpod_generator pins riverpod_annotation exactly), so they must be bumped together or pub version solving breaks. automerge off: bumping them can require regenerating *.g.dart/*.freezed.dart."
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchPackageNames": ["purchases_flutter", "purchases_ui_flutter"],
+      "groupName": "purchases",
+      "description": "purchases_ui_flutter depends on a matching purchases_flutter; bump together."
+    },
+    {
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["patch"],
       "automerge": true,
