@@ -13,11 +13,11 @@ dependencies:
 
   # State management
   flutter_riverpod: 3.3.1
-  riverpod_annotation: 4.0.2
+  riverpod_annotation: 4.0.3
 
   # Serialization / freezed
   freezed_annotation: 3.1.0
-  json_annotation: 4.11.0
+  json_annotation: 4.12.0
 
   # Networking
   http: 1.6.0
@@ -59,13 +59,13 @@ dev_dependencies:
 
   # Code generation
   build_runner: 2.15.0
-  riverpod_generator: 4.0.3
+  riverpod_generator: 4.0.4
   freezed: 3.2.5
-  json_serializable: 6.13.0
+  json_serializable: 6.14.0
 
   # Linting
   flutter_lints: 6.0.0
-  riverpod_lint: 3.1.3
+  riverpod_lint: 3.1.4
 
   # Testing
   mocktail: 1.0.5
