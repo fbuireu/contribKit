@@ -65,7 +65,7 @@
         "freezed_annotation"
       ],
       "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update", "review-required"],
+      "addLabels": ["major-update"],
       "automerge": false
     },
     {
@@ -82,7 +82,7 @@
       ],
       "groupName": "flutter codegen",
       "automerge": false,
-      "addLabels": ["codegen", "review-required"],
+      "addLabels": ["codegen"],
       "description": "These packages share the analyzer/riverpod/build constraints (and riverpod_generator pins riverpod_annotation exactly), so they must be bumped together or pub version solving breaks. automerge off: bumping them can require regenerating *.g.dart/*.freezed.dart."
     },
     {
@@ -108,7 +108,7 @@
     {
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update", "review-required"],
+      "addLabels": ["major-update"],
       "automerge": false
     },
     {
@@ -121,7 +121,7 @@
     {
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update", "review-required"],
+      "addLabels": ["major-update"],
       "automerge": false
     },
     {
@@ -141,7 +141,7 @@
     {
       "matchManagers": ["gradle", "gradle-wrapper"],
       "matchUpdateTypes": ["major"],
-      "addLabels": ["major-update", "review-required"],
+      "addLabels": ["major-update"],
       "automerge": false
     },
     {
