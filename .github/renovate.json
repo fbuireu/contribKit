@@ -69,6 +69,18 @@
       "automerge": false
     },
     {
+      "matchManagers": ["pub"],
+      "matchDepNames": ["riverpod_lint"],
+      "allowedVersions": "<3.1.4",
+      "description": "Hold below 3.1.4: it requires analyzer ^12, which no stable freezed release supports yet, breaking pub version solving. Lift once freezed ships a stable analyzer-12 release."
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchDepNames": ["riverpod_generator"],
+      "allowedVersions": "<4.0.4",
+      "description": "Hold below 4.0.4: it requires analyzer ^12, which no stable freezed release supports yet, breaking pub version solving. Lift once freezed ships a stable analyzer-12 release."
+    },
+    {
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["patch"],
       "automerge": true,
