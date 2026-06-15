@@ -59,7 +59,7 @@ dev_dependencies:
 
   # Code generation
   build_runner: 2.15.0
-  riverpod_generator: 4.0.3
+  riverpod_generator: 4.0.4
   freezed: 3.2.5
   json_serializable: 6.13.0
 
