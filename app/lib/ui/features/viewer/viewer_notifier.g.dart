@@ -47,7 +47,7 @@ abstract class _$ViewerNotifier extends $Notifier<ViewerState> {
   ViewerState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ViewerState, ViewerState>;
     final element =
         ref.element
@@ -57,6 +57,6 @@ abstract class _$ViewerNotifier extends $Notifier<ViewerState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
