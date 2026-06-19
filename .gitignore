@@ -20,3 +20,7 @@ node_modules/
 
 # Cloudflare
 web/worker-configuration.d.ts
+
+# pnpm workspace: only the root lockfile is valid
+web/pnpm-lock.yaml
+app/pnpm-lock.yaml
