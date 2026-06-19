@@ -20,7 +20,7 @@ Common issues and how to resolve them. ContribKit maps every failure to a typed 
 ```
 
 - Confirm the username is correct and the profile is public.
-- Bad **option** values (`palette`, `shape`, `background`) don't break the image — they silently fall back to defaults. So a broken image is about the user/profile, not the params.
+- Bad **option** values (`palette`, `shape`, `background`) don't break the image; they silently fall back to defaults. So a broken image is about the user/profile, not the params.
 - GitHub caches README images via Camo. After your activity changes, it can take a while for the cached image to refresh.
 
 ---
@@ -50,7 +50,7 @@ The API is rate-limited per IP at **100 requests/minute**. Back off and retry. F
 
 ## Deploy/preview issues (web)
 
-If a deploy succeeds but per-env routes, ratelimits, or observability are missing, you probably used `wrangler deploy --env <env>`. With `@astrojs/cloudflare` the config is flattened at build time — select the env via `CLOUDFLARE_ENV=<env> astro build` and deploy with a plain `wrangler deploy`. See **[Web Application](Web-Application)**.
+If a deploy succeeds but per-env routes, ratelimits, or observability are missing, you probably used `wrangler deploy --env <env>`. With `@astrojs/cloudflare` the config is flattened at build time, so select the env via `CLOUDFLARE_ENV=<env> astro build` and deploy with a plain `wrangler deploy`. See **[Web Application](Web-Application)**.
 
 ---
 

@@ -1,14 +1,14 @@
 # Deterministic Randomness (Mulberry32)
 
-Some UI surfaces need a contribution grid that *looks* plausible before real data has loaded — skeleton/placeholder grids, the mini-grid, and the error page's decorative calendar. Rather than `Math.random()` (which would flicker on every render and can't be tested), ContribKit uses a **seeded** PRNG: Mulberry32. It lives in `web/src/ui/utils/mulberry.ts`.
+Some UI surfaces need a contribution grid that *looks* plausible before real data has loaded: skeleton/placeholder grids, the mini-grid, and the error page's decorative calendar. Rather than `Math.random()` (which would flicker on every render and can't be tested), ContribKit uses a **seeded** PRNG: Mulberry32. It lives in `web/src/ui/utils/mulberry.ts`.
 
 ---
 
 ## Why seeded
 
-- **Deterministic** — the same seed always yields the same sequence, so a placeholder grid is stable across re-renders and identical between SSR and hydration (no layout flicker, no mismatch).
-- **Testable** — a fixed seed gives a fixed output, so the PRNG and anything built on it can be unit-tested.
-- **Tiny & fast** — Mulberry32 is a single-`uint32`-state generator, ideal for non-cryptographic visual use.
+- **Deterministic:** the same seed always yields the same sequence, so a placeholder grid is stable across re-renders and identical between SSR and hydration (no layout flicker, no mismatch).
+- **Testable:** a fixed seed gives a fixed output, so the PRNG and anything built on it can be unit-tested.
+- **Tiny & fast:** Mulberry32 is a single-`uint32`-state generator, ideal for non-cryptographic visual use.
 
 > Mulberry32 is **not** cryptographically secure. It is only used for visual placeholder data, never for anything security-sensitive.
 
@@ -59,5 +59,5 @@ Each caller picks a seed, calls `mulberry32(seed)`, then draws from the returned
 
 ## See also
 
-- **[Calendar Grid](Calendar-Grid)** — the real, data-driven grid this stands in for
-- **[SVG Rendering](SVG-Rendering)** — how levels become colored cells
+- **[Calendar Grid](Calendar-Grid)** is the real, data-driven grid this stands in for.
+- **[SVG Rendering](SVG-Rendering)** covers how levels become colored cells.

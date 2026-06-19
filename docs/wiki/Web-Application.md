@@ -29,7 +29,7 @@ cd web
 
 | File | Route |
 |------|-------|
-| `pages/index.astro` | Landing page — SSR initial render + client interactivity |
+| `pages/index.astro` | Landing page: SSR initial render + client interactivity |
 | `pages/api/contributions.ts` | `GET /api/contributions?user=&year=` |
 | `pages/api/health.ts` | `GET /api/health` |
 | `pages/user/[username].svg.ts` | `GET /user/:username.svg` |
@@ -45,7 +45,7 @@ All dynamic routes set `prerender = false`. Pages are the composition root: they
 | `/api/contributions` | Zod schema requires `user` (min 1), optional `year`; then `parseUsername` + `parseYear` |
 | `/user/:username.svg` | `parseUsername(params.username)`; `palette`/`shape` fall back to defaults, `background` is regex-checked (`transparent`, hex, or CSS color name) then defaulted |
 
-Unknown `palette`/`shape`/`background` values silently fall back to defaults via Zod `.catch()`, so the SVG never errors on bad options — only an invalid **username** produces a 4xx.
+Unknown `palette`/`shape`/`background` values silently fall back to defaults via Zod `.catch()`, so the SVG never errors on bad options; only an invalid **username** produces a 4xx.
 
 ---
 
@@ -53,8 +53,8 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 
 `src/middleware.ts` runs on every request and does two things:
 
-1. **Rate limiting** — for `/api/*` paths, it reads the `API_RATE_LIMITER` binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. Over the limit, it returns `429` with `Retry-After: 60` (still wrapped in the security headers).
-2. **Security headers** — every response is re-wrapped with a strict header set:
+1. **Rate limiting:** for `/api/*` paths, it reads the `API_RATE_LIMITER` binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. Over the limit, it returns `429` with `Retry-After: 60` (still wrapped in the security headers).
+2. **Security headers:** every response is re-wrapped with a strict header set:
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
@@ -77,10 +77,10 @@ Cross-Origin-Resource-Policy: same-origin
 
 Both deploys run from `ci-web.yml`, only after `web-check` (lint + test) and `web-build` (build + typecheck) pass:
 
-- **Production** — every push to `main` touching `web/**` builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`.
-- **Development** — every PR touching `web/**` builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
+- **Production:** every push to `main` touching `web/**` builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`.
+- **Development:** every PR touching `web/**` builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
 
-> **`@astrojs/cloudflare` gotcha:** the adapter flattens the `wrangler.toml` `[env.NAME]` block at build time into `dist/server/wrangler.json`. Select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (use `--name` for previews). **Do not** use `wrangler deploy --env <env>` — the generated config is already flattened, so `--env` is ignored and per-env routes/ratelimits/observability are silently dropped.
+> **`@astrojs/cloudflare` gotcha:** the adapter flattens the `wrangler.toml` `[env.NAME]` block at build time into `dist/server/wrangler.json`. Select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (use `--name` for previews). **Do not** use `wrangler deploy --env <env>`: the generated config is already flattened, so `--env` is ignored and per-env routes/ratelimits/observability are silently dropped.
 
 See **[CI/CD](CI-CD)** for the full pipeline.
 

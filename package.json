@@ -17,7 +17,7 @@
     "developer-tools",
     "github-stats"
   ],
-  "packageManager": "pnpm@11.5.2",
+  "packageManager": "pnpm@11.7.0",
   "engines": {
     "node": "v26.3.0"
   },

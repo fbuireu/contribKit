@@ -69,11 +69,11 @@ This guarantees a complete, gap-free grid even when GitHub omits leading/trailin
 
 ## Why deterministic matters
 
-Because the grid is derived purely from the date and the parsed map, the same input always yields the same output. That keeps SVG rendering reproducible and cacheable, and makes the grid trivially unit-testable. (Placeholder/skeleton grids in the UI use a seeded PRNG for the same reason — see **[Deterministic Randomness](Mulberry32)**.)
+Because the grid is derived purely from the date and the parsed map, the same input always yields the same output. That keeps SVG rendering reproducible and cacheable, and makes the grid trivially unit-testable. (Placeholder/skeleton grids in the UI use a seeded PRNG for the same reason; see **[Deterministic Randomness](Mulberry32)**.)
 
 ---
 
 ## See also
 
-- **[HTML Parsing](HTML-Parsing)** — produces the days fed into the grid
-- **[SVG Rendering](SVG-Rendering)** — chunks the grid back into weeks to draw it
+- **[HTML Parsing](HTML-Parsing)** produces the days fed into the grid.
+- **[SVG Rendering](SVG-Rendering)** chunks the grid back into weeks to draw it.

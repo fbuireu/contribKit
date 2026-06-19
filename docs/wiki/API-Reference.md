@@ -4,7 +4,7 @@ ContribKit's web component exposes a small public API on Cloudflare Workers. All
 
 Base URL: `https://contribkit.app`
 
-> **No authentication.** ContribKit reads only **public** GitHub data — there's no API key, token, or OAuth. Just call the endpoints.
+> **No authentication.** ContribKit reads only **public** GitHub data, with no API key, token, or OAuth. Just call the endpoints.
 
 ---
 
@@ -32,7 +32,7 @@ Renders the contribution calendar for `:username` as an SVG image. Always uses t
 
 Unknown values silently fall back to the default, so the image never breaks.
 
-The username must be a valid GitHub login (alphanumeric with single hyphens, 1–39 chars). This endpoint always renders the **latest rolling year** — use `/api/contributions?year=` for historical data.
+The username must be a valid GitHub login (alphanumeric with single hyphens, 1–39 chars). This endpoint always renders the **latest rolling year**; use `/api/contributions?year=` for historical data.
 
 ### Example
 
@@ -103,7 +103,7 @@ Errors return `{ "error": "<message>" }` with an appropriate status:
 
 ## `GET /api/health`
 
-Reports whether the deployed worker was built/configured with each expected variable and binding. Reports **presence only — never values**. Sent with `Cache-Control: no-store`.
+Reports whether the deployed worker was built/configured with each expected variable and binding. Reports **presence only, never values**. Sent with `Cache-Control: no-store`.
 
 ```json
 {
@@ -119,8 +119,6 @@ Reports whether the deployed worker was built/configured with each expected vari
 ```
 
 Returns `200` when everything is present, `503` (`"status": "misconfigured"`) otherwise.
-
----
 
 ---
 
@@ -170,6 +168,6 @@ Every response (set by the middleware) includes:
 
 ## See also
 
-- **[How It Works](How-It-Works)** — what happens behind each request
-- **[SVG Rendering](SVG-Rendering)** — how `palette`/`shape`/`background` are applied
-- **[Web Application](Web-Application)** — middleware, env vars, deploys
+- **[How It Works](How-It-Works)** walks through what happens behind each request.
+- **[SVG Rendering](SVG-Rendering)** covers how `palette`/`shape`/`background` are applied.
+- **[Web Application](Web-Application)** covers middleware, env vars, and deploys.

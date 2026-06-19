@@ -16,6 +16,6 @@ const files = staged.trim().split('\n').filter(Boolean);
 const touchedPackages = PACKAGES.filter(pkg => files.some(f => f.startsWith(`${pkg}/`)));
 
 if (touchedPackages.length > 1) {
-  process.stderr.write(`\nCommit touches ${touchedPackages.join(' and ')} — split into separate commits.\n\n`);
+  process.stderr.write(`\nCommit touches ${touchedPackages.join(' and ')}: split into separate commits.\n\n`);
   process.exit(1);
 }

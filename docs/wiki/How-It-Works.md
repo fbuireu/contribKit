@@ -35,7 +35,7 @@ flowchart TD
    - `parseUsername` trims input and tests it against GitHub's username rules (alphanumeric + single hyphens, 1–39 chars). If a `Username` exists, it is valid.
    - `parseYear` accepts `null`/empty (→ latest rolling year), rejects non-integers, and bounds the year to `2005 … currentYear`.
    - Any invalid input becomes a typed `Failure` **before any network call**.
-3. **`fetchContributions(repo)({ username, year })`** orchestrates the fetch through the repository interface (a curried use case — the repository is injected via closure).
+3. **`fetchContributions(repo)({ username, year })`** orchestrates the fetch through the repository interface (a curried use case, with the repository injected via closure).
 4. **Fetching** requests the public contributions HTML from GitHub with browser-like headers. See **[Fetching Contributions](Fetching-Contributions)**.
 5. **Parsing** extracts each day's `date`, `level` (0–4, run through `clampLevel`), and exact `count` (from the linked `<tool-tip>`) via regex over the HTML. See **[HTML Parsing](HTML-Parsing)**.
 6. **Grid building** maps the parsed days onto a fixed 53×7 (371-cell) grid aligned to week boundaries. See **[Calendar Grid](Calendar-Grid)**.
@@ -48,7 +48,7 @@ The `/api/contributions` and `/user/:username.svg` routes instantiate the reposi
 
 ## Errors never throw
 
-Every function that can fail returns `T | Failure` — never throws. A `Failure` is a typed discriminated union created by small constructors (`notFound`, `invalidInput`, `network`, `parse`) and narrowed with the `isFailure` guard:
+Every function that can fail returns `T | Failure` and never throws. A `Failure` is a typed discriminated union created by small constructors (`notFound`, `invalidInput`, `network`, `parse`) and narrowed with the `isFailure` guard:
 
 ```ts
 type Failure =
@@ -58,7 +58,7 @@ type Failure =
   | { kind: "Parse"; message: string };
 ```
 
-At the HTTP boundary, `statusFor` and `messageFor` (in `application/http/failure-http.ts`) map a `Failure` to a status code and a user-facing message — the **only** place that mapping lives:
+At the HTTP boundary, `statusFor` and `messageFor` (in `application/http/failure-http.ts`) map a `Failure` to a status code and a user-facing message. This is the **only** place that mapping lives:
 
 | Failure | Typical cause | `statusFor` | `messageFor` |
 |---------|---------------|-------------|--------------|
@@ -73,5 +73,5 @@ Responses with status `>= 500` are logged to Better Stack with the username, fai
 
 ## See also
 
-- **[Architecture](Architecture)** — the layers behind this flow
-- **[API Reference](API-Reference)** — the endpoints that trigger it
+- **[Architecture](Architecture)** describes the layers behind this flow.
+- **[API Reference](API-Reference)** lists the endpoints that trigger it.

@@ -1,6 +1,6 @@
 # Getting Started
 
-There's nothing to install to use ContribKit — it works with any public GitHub username. Pick the path that fits you.
+There's nothing to install to use ContribKit; it works with any public GitHub username. Pick the path that fits you.
 
 ---
 
@@ -12,7 +12,7 @@ There's nothing to install to use ContribKit — it works with any public GitHub
 4. Pick a **year** (anything from 2005 to today) or keep the latest rolling year.
 5. Copy or export from the **export** section (PNG, SVG, or Markdown).
 
-No login, no token — ContribKit only reads **public** contribution data.
+No login and no token: ContribKit only reads **public** contribution data.
 
 ### What you can customize
 
@@ -47,7 +47,7 @@ Unknown option values silently fall back to the default, so the image never brea
 
 1. Install from **[Google Play](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)** (App Store coming soon).
 2. Enter your username.
-3. Add a **widget** to your home screen — small (streak counter), medium (full grid), or large (both).
+3. Add a **widget** to your home screen: small (streak counter), medium (full grid), or large (both).
 
 Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** for details.
 
@@ -57,7 +57,7 @@ Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** f
 
 ContribKit is a pnpm-workspace monorepo (`web/`, `app/`, `shared/`).
 
-**Prerequisites:** Node `v26.3.0` (see `engines`), `pnpm@11.x`, and — for the app — the Flutter SDK. Install [lefthook](Git-Hooks) once so the local checks fire.
+**Prerequisites:** Node `v26.3.0` (see `engines`), `pnpm@11.x`, and, for the app, the Flutter SDK. Install [lefthook](Git-Hooks) once so the local checks fire.
 
 To work on the **web** app:
 
@@ -81,6 +81,6 @@ If you edit design tokens in `shared/`, run `pnpm sync:assets` so the app picks 
 
 ## Next steps
 
-- **[How It Works](How-It-Works)** — what happens between a username and a rendered calendar
-- **[API Reference](API-Reference)** — endpoints and query parameters
-- **[Troubleshooting](Troubleshooting)** — if a calendar doesn't render
+- **[How It Works](How-It-Works)** explains what happens between a username and a rendered calendar.
+- **[API Reference](API-Reference)** lists the endpoints and query parameters.
+- **[Troubleshooting](Troubleshooting)** helps when a calendar doesn't render.

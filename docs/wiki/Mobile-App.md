@@ -10,11 +10,11 @@ The mobile component (`app/`) is a single Flutter codebase shipping native iOS &
 ## Features
 
 - **Native iOS & Android** from one Flutter codebase, with platform-respecting widgets on both
-- **All 11 palettes & 5 shapes** — the same design tokens as the web, loaded from `shared/`
+- **All 11 palettes & 5 shapes:** the same design tokens as the web, loaded from `shared/`
 - **Home-screen widgets:** small (streak counter), medium (full grid), large (both)
-- **Daily background refresh** — fetches once a day, easy on the battery
+- **Daily background refresh:** fetches once a day, easy on the battery
 - **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
-- **No login** — just a username, only public contribution data
+- **No login:** just a username, only public contribution data
 
 ---
 
@@ -34,7 +34,7 @@ The customizer mirrors the web options: palette, shape, **size**, and background
 
 ### Contribution stats
 
-`ContributionStatsService.compute(calendar)` derives a `ContributionStats` value object from the calendar — all pure, no I/O:
+`ContributionStatsService.compute(calendar)` derives a `ContributionStats` value object from the calendar, all pure, no I/O:
 
 | Stat | How it's computed |
 |------|-------------------|
@@ -56,7 +56,7 @@ Three repositories implement the `ExportRepository` interface, each producing a 
 
 ### State & dependency injection
 
-Riverpod wires everything through `ui/di/providers.dart` (code-generated `providers.g.dart`). Repositories (GitHub, assets, settings, purchases, export) are provided to use cases, which are provided to notifiers — the same inward dependency direction as the web. Persisted settings (username, palette, shape, size, background) live in `settings_repository_impl` (local persistence).
+Riverpod wires everything through `ui/di/providers.dart` (code-generated `providers.g.dart`). Repositories (GitHub, assets, settings, purchases, export) are provided to use cases, which are provided to notifiers, the same inward dependency direction as the web. Persisted settings (username, palette, shape, size, background) live in `settings_repository_impl` (local persistence).
 
 ---
 
@@ -74,7 +74,7 @@ Widgets are driven by `calendar_widget_service.dart` and refreshed by a daily ba
 
 ## In-app purchases
 
-ContribKit offers an optional **tip jar** via RevenueCat (`revenuecat_purchase_repository.dart`), surfaced in `ui/features/tip/tip_jar_sheet.dart`. The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `purchase_tip`. Tips are entirely optional — every feature works without them. The `development` flavor uses the RevenueCat sandbox.
+ContribKit offers an optional **tip jar** via RevenueCat (`revenuecat_purchase_repository.dart`), surfaced in `ui/features/tip/tip_jar_sheet.dart`. The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `purchase_tip`. Tips are entirely optional, and every feature works without them. The `development` flavor uses the RevenueCat sandbox.
 
 ## Development
 
@@ -86,19 +86,19 @@ flutter pub get
 flutter run --flavor development --dart-define-from-file=dart-defines.json
 ```
 
-Build-time config is supplied via `dart-defines.json` (dev) and `dart-defines.prod.json` (prod). Design tokens come from `app/assets/*.json`, regenerated from `shared/` with `pnpm sync:assets` — see **[Project Structure](Project-Structure)** and **[Git Hooks](Git-Hooks)**.
+Build-time config is supplied via `dart-defines.json` (dev) and `dart-defines.prod.json` (prod). Design tokens come from `app/assets/*.json`, regenerated from `shared/` with `pnpm sync:assets`. See **[Project Structure](Project-Structure)** and **[Git Hooks](Git-Hooks)**.
 
 ---
 
 ## Shared design tokens
 
-The app cannot import `shared/` directly (Flutter bundles only assets inside its own package), so it uses generated copies in `app/assets/*.json`. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook / CI) — never edit `app/assets/` by hand. See **[Project Structure](Project-Structure)**.
+The app cannot import `shared/` directly (Flutter bundles only assets inside its own package), so it uses generated copies in `app/assets/*.json`. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook / CI), and never edit `app/assets/` by hand. See **[Project Structure](Project-Structure)**.
 
 ---
 
 ## Releases
 
-Built and **shipped to Google Play automatically** via `release-app.yml`. A manual dispatch picks a track (`internal` / `alpha` / `beta` / `production`); semantic-release then versions the app and, if there's something to publish, the pipeline signs and uploads a release App Bundle with `fastlane` — and even generates the Play Store release notes from `CHANGELOG.md`.
+Built and **shipped to Google Play automatically** via `release-app.yml`. A manual dispatch picks a track (`internal` / `alpha` / `beta` / `production`); semantic-release then versions the app and, if there's something to publish, the pipeline signs and uploads a release App Bundle with `fastlane`, and even generates the Play Store release notes from `CHANGELOG.md`.
 
 | Flavor | GitHub Environment | Target |
 |--------|--------------------|--------|

@@ -44,15 +44,15 @@ config:
 flowchart TD
     commit(["git commit"]) --> pc["pre-commit"]
     pc --> sync["sync-shared-assets (shared/*.json)"]
-    pc --> webfmt["web-format — biome check --write"]
-    pc --> dartfmt["flutter-format — dart format"]
-    pc --> analyze["flutter-analyze — flutter analyze --fatal-infos"]
+    pc --> webfmt["web-format: biome check --write"]
+    pc --> dartfmt["flutter-format: dart format"]
+    pc --> analyze["flutter-analyze: flutter analyze --fatal-infos"]
     sync & webfmt & dartfmt & analyze --> cm["commit-msg"]
     cm --> scope["auto-scope.mjs"]
     cm --> lint["commitlint --edit"]
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
-    pp --> webcheck["web-check — astro check"]
+    pp --> webcheck["web-check: astro check"]
     pp --> dartcheck["flutter-analyze --fatal-infos"]
 ```
 
@@ -65,11 +65,11 @@ Runs on staged files only, before the commit is created.
 | Command | Scope (glob) | Runs | Notes |
 |---------|--------------|------|-------|
 | `sync-shared-assets` | `shared/*.json` | `node scripts/sync-shared-assets.mjs --stage` | Regenerates `app/assets/*.json` from `shared/` and re-stages them |
-| `web-format` | `web/**/*.{ts,astro,css,json}` | `biome check --write` on staged files | `stage_fixed: true` — fixes are auto-restaged |
+| `web-format` | `web/**/*.{ts,astro,css,json}` | `biome check --write` on staged files | `stage_fixed: true`, so fixes are auto-restaged |
 | `flutter-format` | `app/**/*.dart` | `dart format` on staged files | runs in parallel; `stage_fixed: true` |
 | `flutter-analyze` | `app/**/*.dart` | `flutter analyze --fatal-infos` | runs in parallel; fails on any info/warning |
 
-Because `web-format` and `flutter-format` use `stage_fixed: true`, autofixes are folded back into the same commit — you don't need to re-`git add` them.
+Because `web-format` and `flutter-format` use `stage_fixed: true`, autofixes are folded back into the same commit, so you don't need to re-`git add` them.
 
 ---
 
@@ -87,7 +87,7 @@ Validates the commit message. Runs sequentially (`parallel: false`) and is **ski
 semantic-release-monorepo lists a commit in **every** package changelog whose files it touched. A commit that changes both `web/` and `app/` would therefore leak web changes into the app changelog and vice versa. `auto-scope.mjs` prevents this: it inspects the staged files and, if both `app/` and `web/` are touched, aborts with:
 
 ```
-Commit touches app and web — split into separate commits.
+Commit touches app and web: split into separate commits.
 ```
 
 Keep each commit scoped to a single package.
@@ -107,12 +107,12 @@ module.exports = {
 };
 ```
 
-- **[Conventional Commits](https://www.conventionalcommits.org)** — `type(scope): subject` (e.g. `feat(web): add hex shape`).
-- **pnpm scopes** — valid scopes are derived from the workspace packages.
-- **scope-case** — scopes may be `lower-case`, `PascalCase`, or `camelCase`.
-- **header-max-length** — the header may be up to **130** characters.
+- **[Conventional Commits](https://www.conventionalcommits.org):** `type(scope): subject` (e.g. `feat(web): add hex shape`).
+- **pnpm scopes:** valid scopes are derived from the workspace packages.
+- **scope-case:** scopes may be `lower-case`, `PascalCase`, or `camelCase`.
+- **header-max-length:** the header may be up to **130** characters.
 
-Conventional Commit types drive semantic-release versioning — see **[CI/CD](CI-CD)**.
+Conventional Commit types drive semantic-release versioning; see **[CI/CD](CI-CD)**.
 
 ---
 
@@ -137,7 +137,7 @@ The Flutter app can only bundle assets inside its own package, so the shared des
 | In CI | before the release build |
 | Manually | `pnpm sync:assets` |
 
-> Always edit the source files in `shared/` — never the generated copies in `app/assets/`. See **[Project Structure](Project-Structure)**.
+> Always edit the source files in `shared/`, never the generated copies in `app/assets/`. See **[Project Structure](Project-Structure)**.
 
 ---
 
@@ -149,5 +149,5 @@ In a genuine emergency you can skip hooks with `git commit --no-verify` / `git p
 
 ## See also
 
-- **[CI/CD](CI-CD)** — the same checks enforced server-side, plus releases
-- **[Project Structure](Project-Structure)** — monorepo tooling and shared tokens
+- **[CI/CD](CI-CD)** enforces the same checks server-side, plus releases.
+- **[Project Structure](Project-Structure)** covers the monorepo tooling and shared tokens.

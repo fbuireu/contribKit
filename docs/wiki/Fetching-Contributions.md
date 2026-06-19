@@ -1,6 +1,6 @@
 # Fetching Contributions
 
-ContribKit gets contribution data by reading GitHub's **public** contributions page — there is no GitHub API call, no token, and no OAuth. The web implementation lives in `infrastructure/github/github-html-contributions-repository.ts` and implements the domain `ContributionsRepository` interface.
+ContribKit gets contribution data by reading GitHub's **public** contributions page, with no GitHub API call, no token, and no OAuth. The web implementation lives in `infrastructure/github/github-html-contributions-repository.ts` and implements the domain `ContributionsRepository` interface.
 
 ---
 
@@ -60,9 +60,9 @@ A successful result is `{ username, days, total }`, where `days` are the parsed 
 
 ## Why scraping, not the API
 
-- **No token required** — the GraphQL contributions API needs an authenticated PAT; the public page doesn't.
-- **Only public data** — exactly what's already visible on a profile.
-- **One place to update** — if GitHub changes the page structure, only this module (and its regexes) change. See **[HTML Parsing](HTML-Parsing)**.
+- **No token required:** the GraphQL contributions API needs an authenticated PAT; the public page doesn't.
+- **Only public data:** exactly what's already visible on a profile.
+- **One place to update:** if GitHub changes the page structure, only this module (and its regexes) change. See **[HTML Parsing](HTML-Parsing)**.
 
 The Flutter app has its own implementation (`infrastructure/github/contribution_repository_impl.dart`) following the same idea.
 
@@ -70,6 +70,6 @@ The Flutter app has its own implementation (`infrastructure/github/contribution_
 
 ## See also
 
-- **[HTML Parsing](HTML-Parsing)** — how cells and counts are extracted
-- **[Calendar Grid](Calendar-Grid)** — how parsed days become a grid
-- **[Troubleshooting](Troubleshooting)** — when fetching fails
+- **[HTML Parsing](HTML-Parsing)** covers how cells and counts are extracted.
+- **[Calendar Grid](Calendar-Grid)** covers how parsed days become a grid.
+- **[Troubleshooting](Troubleshooting)** covers what to do when fetching fails.

@@ -64,7 +64,7 @@ See **[Mobile App](Mobile-App)**.
 
 ---
 
-## `shared/` — design tokens
+## `shared/`: design tokens
 
 The single source of truth for data used by both apps:
 
@@ -74,7 +74,7 @@ The single source of truth for data used by both apps:
 | `shapes.json` | 5 cell shapes |
 | `usernames.json` | Suggested usernames |
 
-> **Edit the JSON here — never edit the copies under `app/assets/`.**
+> **Edit the JSON here, never the copies under `app/assets/`.**
 
 - **web** imports these directly via the `@shared` alias at build time.
 - **app** (Flutter) can only bundle assets inside its own package, so it uses generated copies in `app/assets/*.json`. They are regenerated:
@@ -100,8 +100,7 @@ See **[Git Hooks](Git-Hooks)** for how these run.
 ## Monorepo tooling
 
 - **Package manager:** pnpm workspaces (`pnpm-workspace.yaml`)
-- **Git hooks:** lefthook (`lefthook install`)
 - **Commits:** Conventional Commits, enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows that only run when their component changes — see **[CI/CD](CI-CD)**
-- **Git hooks:** lefthook runs formatting, linting, and commit-message checks locally — see **[Git Hooks](Git-Hooks)**
+- **CI:** path-filtered workflows that only run when their component changes (see **[CI/CD](CI-CD)**)
+- **Git hooks:** lefthook (`lefthook install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)

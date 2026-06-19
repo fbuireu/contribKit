@@ -27,7 +27,7 @@ Each layer documents its own rules in a colocated `CONTEXT.md`.
 | **application** | Curried use cases that orchestrate the domain, plus `Failure` → HTTP mapping. |
 | **infrastructure** | GitHub HTML scraping, the SVG string renderer, logging. Implements domain interfaces. |
 | **ui** | Astro components, client interactivity, styles. |
-| **pages** | Routes — the only layer that wires everything together (the composition root). |
+| **pages** | Routes, the only layer that wires everything together (the composition root). |
 
 ---
 
@@ -35,7 +35,7 @@ Each layer documents its own rules in a colocated `CONTEXT.md`.
 
 ### Pure domain
 
-`domain/` imports no packages — only TS stdlib types plus the design-token JSON from `@shared` as data. Functional style: factory functions return readonly objects with a discriminating `_tag`. No classes.
+`domain/` imports no packages, only TS stdlib types plus the design-token JSON from `@shared` as data. Functional style: factory functions return readonly objects with a discriminating `_tag`. No classes.
 
 ### Validated value objects
 
@@ -66,7 +66,7 @@ Pure helpers with no I/O, all unit-tested:
 
 | Service | Responsibility |
 |---------|----------------|
-| `calendar-grid` | builds the deterministic 53×7 grid — see **[Calendar Grid](Calendar-Grid)** |
+| `calendar-grid` | builds the deterministic 53×7 grid (see **[Calendar Grid](Calendar-Grid)**) |
 | `svg-geometry` | layout constants, dimensions, week/month-label positioning, hex points |
 | `cell-shapes` | per-shape SVG cell markup shared by server and client renderers |
 | `dates` | ISO-string date math (`addDays`, `getWeekday`, `toIsoDate`) |
@@ -74,7 +74,7 @@ Pure helpers with no I/O, all unit-tested:
 
 ### Typed failures, no throwing
 
-Errors are a `Failure` discriminated union — `NotFound`, `InvalidInput`, `Network`, `Parse`. Functions return `T | Failure`; nothing throws across layers. Failures are built with small constructors and narrowed with `isFailure`:
+Errors are a `Failure` discriminated union: `NotFound`, `InvalidInput`, `Network`, `Parse`. Functions return `T | Failure`; nothing throws across layers. Failures are built with small constructors and narrowed with `isFailure`:
 
 | Constructor | Produces | Carries |
 |-------------|----------|---------|
@@ -87,7 +87,7 @@ The mapping from `Failure` to an HTTP status and message lives in exactly one pl
 
 ### Curried use cases
 
-Use cases are curried factory functions: they take repository/service implementations and return the operation. They hold no state and know nothing about Astro, Cloudflare, or `fetch` — everything arrives via the closure.
+Use cases are curried factory functions: they take repository/service implementations and return the operation. They hold no state and know nothing about Astro, Cloudflare, or `fetch`; everything arrives via the closure.
 
 | Use case | Purpose |
 |----------|---------|
@@ -97,7 +97,7 @@ Use cases are curried factory functions: they take repository/service implementa
 
 ### Repositories are interfaces
 
-`domain/repositories/` declares interfaces only. Implementations live in `infrastructure/` — e.g. `createGithubHtmlContributionsRepository`. Network and parsing errors are converted to `Failure` at that boundary; a raw `Error` never escapes.
+`domain/repositories/` declares interfaces only. Implementations live in `infrastructure/`, e.g. `createGithubHtmlContributionsRepository`. Network and parsing errors are converted to `Failure` at that boundary; a raw `Error` never escapes.
 
 ---
 
@@ -109,5 +109,5 @@ Palettes, shapes, and suggested usernames are defined once in `shared/*.json` an
 
 ## See also
 
-- **[Project Structure](Project-Structure)** — where each layer lives on disk
-- **[Web Application](Web-Application)** · **[Mobile App](Mobile-App)** — per-platform specifics
+- **[Project Structure](Project-Structure)** shows where each layer lives on disk.
+- **[Web Application](Web-Application)** · **[Mobile App](Mobile-App)** cover the per-platform specifics.
