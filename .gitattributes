@@ -1,0 +1,4 @@
+# Generated files: collapsed in diffs and excluded from language stats
+app/assets/*.json     linguist-generated=true
+**/*.g.dart           linguist-generated=true
+**/*.freezed.dart     linguist-generated=true
