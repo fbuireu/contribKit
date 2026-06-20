@@ -1,3 +1,10 @@
+# [contribkit-web-v1.11.4](https://github.com/fbuireu/contribKit/compare/web-v1.11.3...web-v1.11.4) (2026-06-20)
+
+
+### Bug Fixes
+
+* wrong streak count for today ([860d814](https://github.com/fbuireu/contribKit/commit/860d814922a0f78e4e0ae439a87aba7c899107e9))
+
 # [contribkit-web-v1.11.3](https://github.com/fbuireu/contribKit/compare/web-v1.11.2...web-v1.11.3) (2026-06-15)
 
 
