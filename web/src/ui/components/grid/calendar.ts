@@ -38,9 +38,17 @@ export function summarize(cells: readonly ContributionDay[]): CellSummary {
 			if (currentStreak > longest) longest = currentStreak;
 		} else currentStreak = 0;
 	}
-	for (let index = sorted.length - 1; index >= 0; index--) {
-		if (sorted[index].level > 0) streak++;
-		else break;
+	const today = toIsoDate(new Date());
+	let index = sorted.length - 1;
+	while (index >= 0) {
+		const isFuture = sorted[index].date > today;
+		const isPendingToday = sorted[index].date === today && sorted[index].level === 0;
+		if (!isFuture && !isPendingToday) break;
+		index--;
+	}
+	while (index >= 0 && sorted[index].level > 0) {
+		streak++;
+		index--;
 	}
 	return { count, streak, longest };
 }
