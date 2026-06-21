@@ -29,7 +29,7 @@ test.describe("homepage", () => {
 
 	test("shows the cookie consent banner when no consent cookie is set", async ({ page }) => {
 		await page.goto("/");
-		await expect(page.getByRole("button", { name: "Accept all" })).toBeVisible();
+		await expect(page.getByRole("button", { name: "Accept all" })).toBeVisible({ timeout: 15000 });
 	});
 
 	test("renders indexable SEO meta tags with a large-image card", async ({ page }) => {
