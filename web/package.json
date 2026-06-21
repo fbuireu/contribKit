@@ -63,6 +63,6 @@
 		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
 		"vitest": "4.1.9",
-		"wrangler": "4.100.0"
+		"wrangler": "4.101.0"
 	}
 }
