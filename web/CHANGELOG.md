@@ -1,3 +1,10 @@
+# [contribkit-web-v1.11.6](https://github.com/fbuireu/contribKit/compare/web-v1.11.5...web-v1.11.6) (2026-06-21)
+
+
+### Bug Fixes
+
+* **e2e:** show cookie banner under Playwright ([#48](https://github.com/fbuireu/contribKit/issues/48)) ([6fd351f](https://github.com/fbuireu/contribKit/commit/6fd351f11be6d7f72443655a355472b0c7450afc))
+
 # [contribkit-web-v1.11.5](https://github.com/fbuireu/contribKit/compare/web-v1.11.4...web-v1.11.5) (2026-06-21)
 
 
