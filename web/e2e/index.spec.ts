@@ -28,6 +28,10 @@ test.describe("homepage", () => {
 	});
 
 	test("shows the cookie consent banner when no consent cookie is set", async ({ page }) => {
+		// cookieconsent's `hideFromBots` skips the banner when `navigator.webdriver` is set; pose as a real user.
+		await page.addInitScript(() => {
+			Object.defineProperty(navigator, "webdriver", { get: () => false });
+		});
 		await page.goto("/");
 		await expect(page.getByRole("button", { name: "Accept all" })).toBeVisible({ timeout: 15000 });
 	});
