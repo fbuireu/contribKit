@@ -3,7 +3,7 @@
   "description": "ContribKit Flutter app — release tooling only",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@11.5.3",
+  "packageManager": "pnpm@11.8.0",
   "scripts": {
     "release": "semantic-release"
   },
