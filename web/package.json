@@ -16,7 +16,7 @@
 	"author": "Ferran Buireu <contact@contribkit.app>",
 	"version": "1.11.6",
 	"type": "module",
-	"packageManager": "pnpm@11.5.3",
+	"packageManager": "pnpm@11.8.0",
 	"engines": {
 		"node": "v26.3.0"
 	},
