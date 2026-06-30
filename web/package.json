@@ -16,7 +16,6 @@
 	"author": "Ferran Buireu <contact@contribkit.app>",
 	"version": "1.11.6",
 	"type": "module",
-	"packageManager": "pnpm@11.8.0",
 	"engines": {
 		"node": "v26.3.0"
 	},
@@ -41,28 +40,28 @@
 		"lint:ts:typecheck": "pnpm types && tsc --project . --noEmit"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "13.7.0",
+		"@astrojs/cloudflare": "14.0.1",
 		"@astrojs/sitemap": "3.7.3",
 		"@logtail/edge": "0.5.8",
-		"astro": "6.4.8",
+		"astro": "7.0.3",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
 		"@astrojs/check": "0.9.9",
 		"@astrojs/ts-plugin": "1.10.9",
-		"@biomejs/biome": "2.5.0",
-		"@playwright/test": "1.61.0",
+		"@biomejs/biome": "2.5.1",
+		"@playwright/test": "1.61.1",
 		"@semantic-release/changelog": "6.0.3",
 		"@semantic-release/exec": "7.1.0",
 		"@semantic-release/git": "10.0.1",
 		"@semantic-release/github": "12.0.8",
-		"@types/node": "25.9.3",
+		"@types/node": "26.0.1",
 		"@vitest/coverage-istanbul": "4.1.9",
 		"happy-dom": "20.10.6",
 		"semantic-release": "25.0.5",
 		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
 		"vitest": "4.1.9",
-		"wrangler": "4.101.0"
+		"wrangler": "4.105.0"
 	}
 }
