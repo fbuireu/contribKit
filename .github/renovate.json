@@ -78,6 +78,11 @@
       "groupName": "purchases"
     },
     {
+      "matchManagers": ["pub"],
+      "matchDepNames": ["intl"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["gradle"],
       "matchDepNames": ["dev.flutter.flutter-plugin-loader"],
       "enabled": false
