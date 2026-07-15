@@ -56,12 +56,12 @@
 		"@semantic-release/git": "10.0.1",
 		"@semantic-release/github": "12.0.9",
 		"@types/node": "26.0.1",
-		"@vitest/coverage-istanbul": "4.1.9",
+		"@vitest/coverage-istanbul": "4.1.10",
 		"happy-dom": "20.10.6",
 		"semantic-release": "25.0.6",
 		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
-		"vitest": "4.1.9",
+		"vitest": "4.1.10",
 		"wrangler": "4.105.0"
 	}
 }
