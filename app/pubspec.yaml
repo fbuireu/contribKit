@@ -1,7 +1,7 @@
 name: contribkit
 description: Visualize and export GitHub contribution calendars with full visual customization.
 publish_to: none
-version: 1.2.5+26
+version: 1.2.6+27
 
 environment:
   sdk: 3.12.2

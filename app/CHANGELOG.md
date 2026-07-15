@@ -1,3 +1,18 @@
+# [contribkit-app-v1.2.6](https://github.com/fbuireu/contribKit/compare/app-v1.2.5...app-v1.2.6) (2026-07-15)
+
+
+### Bug Fixes
+
+* **app:** align Dart SDK pin with Flutter 3.44.1 (3.12.2 -> 3.12.1) ([2314f8f](https://github.com/fbuireu/contribKit/commit/2314f8f619def4be004aec9a0498b48e96b81478))
+* **app:** bump freezed to 3.2.6-dev.1 to unblock pub get (analyzer 12) ([#46](https://github.com/fbuireu/contribKit/issues/46)) ([092aef4](https://github.com/fbuireu/contribKit/commit/092aef48a1614a406405caba3150f2d5ae311b83))
+* **app:** pin riverpod_lint/generator to analyzer-11-compatible versions ([9c67fda](https://github.com/fbuireu/contribKit/commit/9c67fda445f22b90121c83e098cecb23bed3096a))
+* **ci:** unbreak version solving and lockfile policy checks ([c4731f4](https://github.com/fbuireu/contribKit/commit/c4731f464e6c480e137a2b46bf51e153dcc87f93))
+* **contribkit-web:** deploy preview worker with --env so workers.dev resolves ([#47](https://github.com/fbuireu/contribKit/issues/47)) ([5826c25](https://github.com/fbuireu/contribKit/commit/5826c25326cb30afbadb3bc2c83899364576c9e1))
+* **deps:** update dependency home_widget to v0.9.3 ([#24](https://github.com/fbuireu/contribKit/issues/24)) ([28ef57c](https://github.com/fbuireu/contribKit/commit/28ef57c75a8a7a3f0dd63b475df32cb58d40a332))
+* **deps:** update dependency path_provider to v2.1.6 ([#53](https://github.com/fbuireu/contribKit/issues/53)) ([b73cec2](https://github.com/fbuireu/contribKit/commit/b73cec2370d4ac3349e0b98e647642ef445e275c))
+* **deps:** update flutter codegen ([5b3bfcd](https://github.com/fbuireu/contribKit/commit/5b3bfcd1a040e4722ca4ae290d6280215fa598b9))
+* **deps:** update purchases to v10.2.2 ([0a5f45b](https://github.com/fbuireu/contribKit/commit/0a5f45b2117ec709ee10f48a76ed1dfbeb9196dc))
+
 # [contribkit-app-v1.2.5](https://github.com/fbuireu/contribKit/compare/app-v1.2.4...app-v1.2.5) (2026-06-07)
 
 
