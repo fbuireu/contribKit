@@ -36,6 +36,10 @@ flowchart LR
 - **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-web-development.yml`.
 - **release:** semantic-release versions the web component (decoupled from deploy).
 
+Both deploys pass an explicit `--message` (`<sha> - <event>`) to `wrangler deploy`. Without it, wrangler
+annotates the deployment with the full commit message, and Cloudflare rejects the deploy when that message
+is very long (e.g. a large squash-merge body) — the API error does not mention the message at all.
+
 Concurrency cancels in-progress runs for pull requests only.
 
 ---
