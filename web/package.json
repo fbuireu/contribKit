@@ -17,7 +17,7 @@
 	"version": "1.11.8",
 	"type": "module",
 	"engines": {
-		"node": "26.5.0"
+		"node": "26.5.1"
 	},
 	"scripts": {
 		"types": "wrangler types",
@@ -55,7 +55,7 @@
 		"@semantic-release/exec": "7.1.0",
 		"@semantic-release/git": "10.0.1",
 		"@semantic-release/github": "12.0.9",
-		"@types/node": "26.1.1",
+		"@types/node": "26.1.2",
 		"@vitest/coverage-istanbul": "4.1.10",
 		"happy-dom": "20.10.6",
 		"semantic-release": "25.0.8",
