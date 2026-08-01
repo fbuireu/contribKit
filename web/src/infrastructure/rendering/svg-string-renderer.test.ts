@@ -1,7 +1,7 @@
 import type { ContributionCalendar } from "@domain/entities/types";
+import type { CellShape } from "@domain/value-objects/cell-shape";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
-import type { ShapeKind } from "@domain/value-objects/shape";
 import { describe, expect, it } from "vitest";
 import { svgStringRenderer } from "./svg-string-renderer";
 
@@ -17,7 +17,7 @@ const calendar: ContributionCalendar = {
 
 const palette = paletteByKey(DEFAULT_PALETTE_KEY);
 
-const render = (shape: ShapeKind, overrides = {}): string =>
+const render = (shape: CellShape, overrides = {}): string =>
 	svgStringRenderer({ calendar, options: { palette, shape, background: "transparent", ...overrides } });
 
 describe("svgStringRenderer", () => {

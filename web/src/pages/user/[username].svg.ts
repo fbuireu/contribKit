@@ -1,15 +1,14 @@
-import { messageFor, statusFor } from "@application/http/failure-http";
-import { fetchContributions } from "@application/use-cases/fetch-contributions";
+import { messageFor, SERVER_ERROR_STATUS, statusFor } from "@application/http/failure-http";
 import { renderCalendarSvg } from "@application/use-cases/render-calendar-svg";
 import { isFailure } from "@domain/failures/failure";
+import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
 import { DEFAULT_BACKGROUND_COLOR, DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
-import { DEFAULT_SHAPE_KIND, isShapeKind, type ShapeKind } from "@domain/value-objects/shape";
 import { parseUsername } from "@domain/value-objects/username";
-import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
 import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import { svgStringRenderer } from "@infrastructure/rendering/svg-string-renderer";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
+import { loadContributions } from "../_contributions";
 
 export const prerender = false;
 
@@ -17,12 +16,10 @@ const BACKGROUND_REGEX = /^(transparent|#[0-9a-fA-F]{3,8}|[a-zA-Z]{1,30})$/;
 
 const querySchema = z.object({
 	palette: z.string().catch(DEFAULT_PALETTE_KEY),
-	shape: z.string().catch(DEFAULT_SHAPE_KIND),
+	shape: z.string().catch(DEFAULT_CELL_SHAPE),
 	background: z.string().regex(BACKGROUND_REGEX).catch(DEFAULT_BACKGROUND_COLOR),
 });
 
-const repository = createGithubHtmlContributionsRepository();
-const loadContributions = fetchContributions(repository);
 const renderSvg = renderCalendarSvg(svgStringRenderer);
 
 export const GET: APIRoute = async ({ params, url, locals }) => {
@@ -37,7 +34,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 	const calendar = await loadContributions({ username, year: null });
 	if (isFailure(calendar)) {
 		const status = statusFor(calendar);
-		if (status >= 500) {
+		if (status >= SERVER_ERROR_STATUS) {
 			const executionContext = (locals as { cfContext?: ExecutionContext }).cfContext;
 			getLogger(executionContext).error({
 				message: "GitHub contributions fetch failed",
@@ -61,7 +58,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 		shape: shapeParam,
 		background,
 	} = querySchema.parse(Object.fromEntries(url.searchParams));
-	const shape: ShapeKind = isShapeKind(shapeParam) ? shapeParam : DEFAULT_SHAPE_KIND;
+	const shape: CellShape = isCellShape(shapeParam) ? shapeParam : DEFAULT_CELL_SHAPE;
 	const svg = renderSvg({ calendar, options: { palette: paletteByKey(paletteKey), shape, background } });
 
 	return new Response(svg, {

@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readUsernameCookie, seedUsernameCookie, writeUsernameCookie } from "./cookie";
 
@@ -38,5 +39,12 @@ describe("username-cookie", () => {
 		vi.stubGlobal("cookieStore", { get: vi.fn().mockResolvedValue({ value: "existing" }), set });
 		await seedUsernameCookie("torvalds");
 		expect(set).not.toHaveBeenCalled();
+	});
+
+	it("falls back to document.cookie where the Cookie Store API is absent", async () => {
+		vi.stubGlobal("cookieStore", undefined);
+		await writeUsernameCookie("torvalds");
+		expect(document.cookie).toContain("ck_user=torvalds");
+		expect(await readUsernameCookie()).toBe("torvalds");
 	});
 });

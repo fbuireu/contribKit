@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+const ANY_NON_EMPTY_TITLE = /.+/;
+const RESOLVED_THEME_CLASS = /theme-(light|dark)/;
+const ACTIVE_ROW_CLASS = /active/;
+
 test.describe("homepage", () => {
 	test("returns 200", async ({ page }) => {
 		const response = await page.goto("/");
@@ -8,7 +12,7 @@ test.describe("homepage", () => {
 
 	test("has a non-empty title", async ({ page }) => {
 		await page.goto("/");
-		await expect(page).toHaveTitle(/.+/);
+		await expect(page).toHaveTitle(ANY_NON_EMPTY_TITLE);
 	});
 
 	test("renders main#main-content", async ({ page }) => {
@@ -28,7 +32,6 @@ test.describe("homepage", () => {
 	});
 
 	test("shows the cookie consent banner when no consent cookie is set", async ({ page }) => {
-		// cookieconsent's `hideFromBots` skips the banner when `navigator.webdriver` is set; pose as a real user.
 		await page.addInitScript(() => {
 			Object.defineProperty(navigator, "webdriver", { get: () => false });
 		});
@@ -72,8 +75,8 @@ test.describe("homepage", () => {
 		await page.goto("/");
 		const rows = page.locator("#palette-list .palette-row");
 		await rows.nth(1).click();
-		await expect(rows.nth(1)).toHaveClass(/active/);
-		await expect(rows.nth(0)).not.toHaveClass(/active/);
+		await expect(rows.nth(1)).toHaveClass(ACTIVE_ROW_CLASS);
+		await expect(rows.nth(0)).not.toHaveClass(ACTIVE_ROW_CLASS);
 	});
 
 	test("switching the export tab to SVG shows the code preview", async ({ page }) => {
@@ -92,6 +95,6 @@ test.describe("homepage", () => {
 	test("the header theme toggle pins a theme", async ({ page }) => {
 		await page.goto("/");
 		await page.locator(".theme-toggle").click();
-		await expect(page.locator("html")).toHaveClass(/theme-(light|dark)/);
+		await expect(page.locator("html")).toHaveClass(RESOLVED_THEME_CLASS);
 	});
 });

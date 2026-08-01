@@ -1,12 +1,11 @@
-import { messageFor, statusFor } from "@application/http/failure-http";
-import { fetchContributions } from "@application/use-cases/fetch-contributions";
+import { messageFor, SERVER_ERROR_STATUS, statusFor } from "@application/http/failure-http";
 import { isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
-import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
 import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
+import { loadContributions } from "../_contributions";
 
 export const prerender = false;
 
@@ -14,9 +13,6 @@ const querySchema = z.object({
 	user: z.string().min(1),
 	year: z.string().optional(),
 });
-
-const repository = createGithubHtmlContributionsRepository();
-const loadContributions = fetchContributions(repository);
 
 export const GET: APIRoute = async ({ url, locals }) => {
 	const data = querySchema.safeParse(Object.fromEntries(url.searchParams));
@@ -37,7 +33,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
 	const result = await loadContributions({ username, year: isYear(year) ? year : null });
 	if (isFailure(result)) {
 		const status = statusFor(result);
-		if (status >= 500) {
+		if (status >= SERVER_ERROR_STATUS) {
 			const executionContext = (locals as { cfContext?: ExecutionContext }).cfContext;
 			getLogger(executionContext).error({
 				message: "GitHub contributions fetch failed",
@@ -53,10 +49,13 @@ export const GET: APIRoute = async ({ url, locals }) => {
 		return Response.json({ error: messageFor(result) }, { status });
 	}
 
+	const days = result.days.map((day) => ({ date: day.date, level: day.level, count: day.count }));
+
 	return Response.json(
 		{
 			username: result.username,
-			cells: result.days.map((day) => ({ date: day.date, level: day.level, count: day.count })),
+			days,
+			cells: days,
 			total: result.total,
 		},
 		{

@@ -10,6 +10,8 @@ import {
 	SVG_PAD_X,
 } from "./svg-geometry";
 
+const TWO_DECIMAL_POINT_PAIR = /^-?\d+\.\d{2},-?\d+\.\d{2}$/;
+
 describe("radiusFor", () => {
 	it("rounded → 2.5", () => expect(radiusFor({ shape: "rounded", size: 10 })).toBe(2.5));
 	it("square → 0", () => expect(radiusFor({ shape: "square", size: 10 })).toBe(0));
@@ -31,7 +33,7 @@ describe("hexPoints", () => {
 	it("returns 6 space-separated x,y points fixed to 2 decimals", () => {
 		const points = hexPoints({ cx: 10, cy: 10, radius: 7 }).split(" ");
 		expect(points).toHaveLength(6);
-		for (const point of points) expect(point).toMatch(/^-?\d+\.\d{2},-?\d+\.\d{2}$/);
+		for (const point of points) expect(point).toMatch(TWO_DECIMAL_POINT_PAIR);
 	});
 });
 

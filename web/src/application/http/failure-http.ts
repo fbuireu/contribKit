@@ -1,5 +1,7 @@
 import { type Failure, FailureKind } from "@domain/failures/failure";
 
+export const SERVER_ERROR_STATUS = 500;
+
 const STATUS_BY_KIND: Record<Failure["kind"], number> = {
 	[FailureKind.NotFound]: 404,
 	[FailureKind.InvalidInput]: 400,

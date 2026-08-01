@@ -1,12 +1,12 @@
 import type { ContributionDay } from "@domain/entities/types";
 
-let cells: ContributionDay[] = [];
+let days: ContributionDay[] = [];
 let username = "";
 
-export const getCells = (): ContributionDay[] => cells;
+export const getDays = (): ContributionDay[] => days;
 export const getUsername = (): string => username;
-export const setCells = (next: ContributionDay[]): void => {
-	cells = next;
+export const setDays = (next: ContributionDay[]): void => {
+	days = next;
 };
 export const setUsername = (next: string): void => {
 	username = next;

@@ -19,7 +19,7 @@ describe("parseYear", () => {
 		expect(isYear(result) && result.value).toBe(2015);
 	});
 
-	it("accepts the GitHub launch year (2005)", () => {
+	it("accepts MIN_YEAR, the product floor (2005)", () => {
 		expect(isYear(parseYear(2005))).toBe(true);
 	});
 
@@ -41,6 +41,11 @@ describe("parseYear", () => {
 		const result = parseYear("notayear");
 		expect(isYear(result)).toBe(false);
 		expect((result as { kind: string }).kind).toBe("InvalidInput");
+	});
+
+	it("rejects a year with trailing junk instead of truncating it", () => {
+		expect(isYear(parseYear("2020abc"))).toBe(false);
+		expect(isYear(parseYear("2020.5"))).toBe(false);
 	});
 });
 

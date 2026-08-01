@@ -14,7 +14,7 @@ interface ImportMeta {
 declare global {
 	const __APP_VERSION__: string;
 	interface Window {
-		__INITIAL_CELLS__?: ContributionDay[];
+		__INITIAL_DAYS__?: ContributionDay[];
 		dataLayer: unknown[];
 		gtag: (...args: unknown[]) => void;
 	}

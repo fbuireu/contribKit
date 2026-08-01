@@ -3,27 +3,38 @@ import { describe, expect, it } from "vitest";
 import { renderCalendarString, shapePreviewSVG } from "./render-svg";
 
 const palette = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"];
-const cells: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({ date: "2024-01-01", level: 2, count: 4 }));
+const days: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({ date: "2024-01-01", level: 2, count: 4 }));
 
 describe("renderCalendarString", () => {
+	it("emits data-count for known counts and omits it entirely when the count is unknown", () => {
+		const unknown: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({
+			date: "2024-01-01",
+			level: 3,
+			count: null,
+		}));
+		const svg = renderCalendarString({ days: unknown, palette, shape: "square" });
+		expect(svg).toContain('data-date="2024-01-01"');
+		expect(svg).not.toContain("data-count");
+		expect(renderCalendarString({ days, palette, shape: "square" })).toContain('data-count="4"');
+	});
 	it("produces an <svg> with rects for square shapes", () => {
-		const svg = renderCalendarString({ cells, palette, shape: "square" });
+		const svg = renderCalendarString({ days, palette, shape: "square" });
 		expect(svg.startsWith("<svg")).toBe(true);
 		expect(svg).toContain("<rect");
 	});
 
 	it("renders circles for dot and polygons for hex", () => {
-		expect(renderCalendarString({ cells, palette, shape: "dot" })).toContain("<circle");
-		expect(renderCalendarString({ cells, palette, shape: "hex" })).toContain("<polygon");
+		expect(renderCalendarString({ days, palette, shape: "dot" })).toContain("<circle");
+		expect(renderCalendarString({ days, palette, shape: "hex" })).toContain("<polygon");
 	});
 
 	it("includes labels when showLabels is on and omits them when off", () => {
-		expect(renderCalendarString({ cells, palette, showLabels: true })).toContain("<text");
-		expect(renderCalendarString({ cells, palette, showLabels: false })).not.toContain("<text");
+		expect(renderCalendarString({ days, palette, showLabels: true })).toContain("<text");
+		expect(renderCalendarString({ days, palette, showLabels: false })).not.toContain("<text");
 	});
 
-	it("embeds data-date and data-count on cells", () => {
-		const svg = renderCalendarString({ cells, palette });
+	it("embeds data-date and data-count on days", () => {
+		const svg = renderCalendarString({ days, palette });
 		expect(svg).toContain('data-date="2024-01-01"');
 		expect(svg).toContain("data-count=");
 	});

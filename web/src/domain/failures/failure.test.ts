@@ -28,11 +28,11 @@ describe("failure constructors", () => {
 	});
 
 	it("network with a status", () => {
-		expect(network("down", 502)).toEqual({ kind: "Network", status: 502, message: "down" });
+		expect(network({ message: "down", status: 502 })).toEqual({ kind: "Network", status: 502, message: "down" });
 	});
 
 	it("network without a status", () => {
-		expect(network("down")).toEqual({ kind: "Network", status: undefined, message: "down" });
+		expect(network({ message: "down" })).toEqual({ kind: "Network", status: undefined, message: "down" });
 	});
 
 	it("parse", () => {

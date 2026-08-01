@@ -1,7 +1,7 @@
 ---
 import "./customize.css";
+import { CELL_SHAPES } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
-import { SHAPE_KINDS } from "@domain/value-objects/shape";
 import { shapePreviewSVG } from "@ui/components/grid/render-svg";
 import ArrowRight from "@ui/components/icons/ArrowRight.astro";
 
@@ -52,10 +52,10 @@ const palettes = Object.values(PALETTES);
         <div class="ctrl-group">
           <div class="ctrl-label">
             <span class="mono dim">shape</span>
-            <span class="mono dimmer">{SHAPE_KINDS.length}</span>
+            <span class="mono dimmer">{CELL_SHAPES.length}</span>
           </div>
           <div class="shape-list" id="shape-list" role="radiogroup" aria-label="Cell shape">
-            {SHAPE_KINDS.map((kind, index) => (
+            {CELL_SHAPES.map((kind, index) => (
               <button
                 class:list={['shape-btn', { active: index === 0 }]}
                 role="radio"

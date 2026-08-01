@@ -10,7 +10,8 @@ interface FakeEl {
 	focus: ReturnType<typeof vi.fn>;
 	keydown?: Handler;
 	click?: () => void;
-	classList: { add: (c: string) => void; remove: (c: string) => void };
+	tabIndex: number;
+	classList: { add: (c: string) => void; remove: (c: string) => void; contains: (c: string) => boolean };
 	setAttribute: (key: string, value: string) => void;
 	addEventListener: (type: string, handler: Handler | (() => void)) => void;
 }
@@ -23,7 +24,8 @@ const makeEl = (id = ""): FakeEl => {
 		classes,
 		attrs,
 		focus: vi.fn(),
-		classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c) },
+		tabIndex: 0,
+		classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c), contains: (c) => classes.has(c) },
 		setAttribute: (key, value) => {
 			attrs[key] = value;
 		},
@@ -117,5 +119,12 @@ describe("activateTab", () => {
 		expect(tabs[1].attrs["aria-selected"]).toBe("true");
 		expect(tabs[0].attrs["aria-selected"]).toBe("false");
 		expect(panel.attrs["aria-labelledby"]).toBe("tab-b");
+	});
+
+	it("keeps exactly one tab in the tab order", () => {
+		vi.stubGlobal("document", { getElementById: () => null });
+		const tabs = [makeEl("tab-a"), makeEl("tab-b")];
+		activateTab({ tabs: asList(tabs), target: asEl(tabs[1]) });
+		expect(tabs.map((tab) => tab.tabIndex)).toEqual([-1, 0]);
 	});
 });

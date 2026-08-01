@@ -21,7 +21,7 @@ logServerError({ logger: getLogger(executionContext), error, path });
 const terminal: TerminalLine[] = [
 	{ kind: TerminalLineKind.Command, text: `contribkit render ${path}` },
 	{ kind: TerminalLineKind.Error, text: "error: 500 — render pipeline crashed (E_RENDER)" },
-	{ kind: TerminalLineKind.Output, text: "trace: 8f3c1a · reported automatically" },
+	{ kind: TerminalLineKind.Output, text: "reported automatically" },
 ];
 
 Astro.response.status = 500;

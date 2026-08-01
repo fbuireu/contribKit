@@ -22,4 +22,14 @@ describe("logServerError", () => {
 		logServerError({ logger: { error }, error: undefined, path: "/y" });
 		expect(error).toHaveBeenCalledWith(expect.objectContaining({ context: { path: "/y", reason: "unknown" } }));
 	});
+
+	it("survives a throwable it cannot serialise", () => {
+		const error = vi.fn();
+		const circular: Record<string, unknown> = {};
+		circular.self = circular;
+
+		expect(() => logServerError({ logger: { error }, error: circular, path: "/z" })).not.toThrow();
+		expect(() => logServerError({ logger: { error }, error: { size: 1n }, path: "/z" })).not.toThrow();
+		expect(error).toHaveBeenCalledTimes(2);
+	});
 });

@@ -1,7 +1,8 @@
 import type { ContributionDay } from "@domain/entities/types";
 import { addDays, GRID_CELL_COUNT, getWeekday, toIsoDate } from "@domain/services/dates";
 import { mulberry32 } from "@ui/utils/mulberry";
-import { TOTALS_PER_LEVEL } from "./contribution";
+
+const COUNT_SPREAD_PER_LEVEL = [0, 3, 7, 12, 24] as const;
 
 const LEVEL_THRESHOLDS = [
 	{ minScore: 0.95, level: 4 },
@@ -11,7 +12,7 @@ const LEVEL_THRESHOLDS = [
 ] as const;
 
 export interface RenderCalendarParams {
-	cells: ContributionDay[];
+	days: ContributionDay[];
 	palette: readonly string[];
 	shape?: string;
 	size?: number;
@@ -19,43 +20,9 @@ export interface RenderCalendarParams {
 	showLabels?: boolean;
 }
 
-export interface CellSummary {
-	count: number;
-	streak: number;
-	longest: number;
-}
-
-export function summarize(cells: readonly ContributionDay[]): CellSummary {
-	const sorted = [...cells].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-	let count = 0,
-		streak = 0,
-		longest = 0,
-		currentStreak = 0;
-	for (const cell of sorted) {
-		count += cell.count ?? TOTALS_PER_LEVEL[cell.level] ?? 0;
-		if (cell.level > 0) {
-			currentStreak++;
-			if (currentStreak > longest) longest = currentStreak;
-		} else currentStreak = 0;
-	}
-	const today = toIsoDate(new Date());
-	let index = sorted.length - 1;
-	while (index >= 0) {
-		const isFuture = sorted[index].date > today;
-		const isPendingToday = sorted[index].date === today && sorted[index].level === 0;
-		if (!isFuture && !isPendingToday) break;
-		index--;
-	}
-	while (index >= 0 && sorted[index].level > 0) {
-		streak++;
-		index--;
-	}
-	return { count, streak, longest };
-}
-
 export function generateData(seed = 7): ContributionDay[] {
 	const random = mulberry32(seed);
-	const cells: ContributionDay[] = [];
+	const days: ContributionDay[] = [];
 	const today = toIsoDate(new Date());
 	const end = addDays({ iso: today, days: 6 - getWeekday(today) });
 	const totalDays = GRID_CELL_COUNT;
@@ -72,7 +39,9 @@ export function generateData(seed = 7): ContributionDay[] {
 		let score = base + cluster + (randomValue - 0.5) * 0.6;
 		if (random() < 0.08) score -= 0.6;
 		const level = LEVEL_THRESHOLDS.find(({ minScore }) => score >= minScore)?.level ?? 0;
-		cells.push({ date, level, count: null });
+		const spread = COUNT_SPREAD_PER_LEVEL[level];
+		const count = spread === 0 ? 0 : 1 + Math.floor(random() * spread);
+		days.push({ date, level, count });
 	}
-	return cells;
+	return days;
 }

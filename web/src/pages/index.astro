@@ -1,18 +1,18 @@
 ---
-import { fetchContributions } from "@application/use-cases/fetch-contributions";
-import { loadInitialContributions } from "@application/use-cases/load-initial-contributions";
+import { SERVER_ERROR_STATUS } from "@application/http/failure-http";
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
+import { computeContributionStats } from "@domain/services/contribution-stats";
+import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
-import { DEFAULT_SHAPE_KIND, ShapeKind } from "@domain/value-objects/shape";
 import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
-import { createGithubHtmlContributionsRepository } from "@infrastructure/github/create-github-html-contributions-repository";
+import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import Customize from "@ui/components/customize/Customize.astro";
 import Export from "@ui/components/export/Export.astro";
-import CellTip from "@ui/components/grid/CellTip.astro";
-import { generateData, summarize } from "@ui/components/grid/calendar";
+import CellTooltip from "@ui/components/grid/CellTooltip.astro";
+import { generateData } from "@ui/components/grid/calendar";
 import { EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import Hero from "@ui/components/hero/Hero.astro";
@@ -20,6 +20,7 @@ import HowItWorks from "@ui/components/how-it-works/HowItWorks.astro";
 import Widget from "@ui/components/widget/Widget.astro";
 import { contributionError } from "@ui/utils/contribution-errors";
 import { USERNAME_COOKIE } from "@ui/utils/cookie";
+import { loadInitial } from "./_contributions";
 
 const SITE_URL = (Astro.site ?? Astro.url).origin;
 const OG_IMAGE = `${SITE_URL}/og.png`;
@@ -66,58 +67,71 @@ const isExplicit = Boolean(requestedUsername || savedUsername);
 const currentYear = new Date().getFullYear();
 const requestedYear = Astro.url.searchParams.get("year");
 
-const loadContributions = fetchContributions(createGithubHtmlContributionsRepository());
-const initial = await loadInitialContributions(loadContributions)({ username, year: requestedYear });
+const initial = await loadInitial({ username, year: requestedYear });
 const resolvedYear = initial.ok ? initial.data.year : currentYear;
 
-let cells: ContributionDay[];
-let heroError: string | null = null;
-if (initial.ok) {
-	cells = initial.data.cells;
-} else if (isExplicit) {
-	cells = buildGridFromApi({ days: [], year: currentYear });
-	heroError = contributionError(initial.status);
-} else {
-	cells = generateData();
+if (!initial.ok && initial.status >= SERVER_ERROR_STATUS) {
+	const executionContext = (Astro.locals as { cfContext?: ExecutionContext }).cfContext;
+	getLogger(executionContext).error({
+		message: "GitHub contributions fetch failed",
+		context: {
+			username,
+			kind: initial.kind,
+			reason: initial.message,
+			status: initial.status,
+			endpoint: "page",
+		},
+	});
 }
 
-const summary = summarize(cells);
-if (initial.ok && initial.data.total) summary.count = initial.data.total;
+let days: ContributionDay[];
+let heroError: string | null = null;
+if (initial.ok) {
+	days = initial.data.days;
+} else if (isExplicit) {
+	days = buildGridFromApi({ days: [], year: currentYear });
+	heroError = contributionError(initial.status);
+} else {
+	days = generateData();
+}
+
+const stats = computeContributionStats(days);
+if (initial.ok && initial.data.total != null) stats.totalContributions = initial.data.total;
 
 const heroSVG = renderCalendarString({
-	cells,
+	days,
 	palette: CLASSIC,
-	shape: ShapeKind.Rounded,
+	shape: CellShape.Rounded,
 	...HERO_GRID_PRESET,
 	showLabels: true,
 });
 const exportSvg = renderCalendarString({
-	cells,
+	days,
 	palette: CLASSIC,
-	shape: DEFAULT_SHAPE_KIND,
+	shape: DEFAULT_CELL_SHAPE,
 	...EXPORT_GRID_PRESET,
 	showLabels: false,
 });
 
-const initialCellsForClient = cells;
+const initialDaysForClient = days;
 
 Astro.response.headers.set(
 	"Cache-Control",
-	requestedUsername ? "private, max-age=3600, stale-while-revalidate=86400" : "private, no-store",
+	isExplicit ? "private, max-age=3600, stale-while-revalidate=86400" : "private, no-store",
 );
 ---
 
 <BaseLayout metadata={metadata}>
-  <Hero heroSVG={heroSVG} summary={summary} palette={CLASSIC} username={username} year={resolvedYear} error={heroError} />
+  <Hero heroSVG={heroSVG} stats={stats} palette={CLASSIC} username={username} year={resolvedYear} error={heroError} />
   <HowItWorks />
   <Customize />
   <Export exportSvg={exportSvg} />
   <Widget />
-  <CellTip />
+  <CellTooltip />
 </BaseLayout>
 
-<script is:inline define:vars={{ initialCellsForClient }}>
-  window.__INITIAL_CELLS__ = initialCellsForClient;
+<script is:inline define:vars={{ initialDaysForClient }}>
+  window.__INITIAL_DAYS__ = initialDaysForClient;
 </script>
 
 <script is:inline type="application/ld+json" set:html={JSON.stringify(SCHEMA)} />

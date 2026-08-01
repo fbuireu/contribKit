@@ -6,7 +6,7 @@ describe("statusFor", () => {
 	it("maps each failure kind to a status", () => {
 		expect(statusFor(notFound("x"))).toBe(404);
 		expect(statusFor(invalidInput({ field: "username", message: "bad" }))).toBe(400);
-		expect(statusFor(network("down"))).toBe(502);
+		expect(statusFor(network({ message: "down" }))).toBe(502);
 		expect(statusFor(parse("oops"))).toBe(502);
 	});
 });
@@ -17,7 +17,7 @@ describe("messageFor", () => {
 	});
 
 	it("passes through the failure message otherwise", () => {
-		expect(messageFor(network("github is down"))).toBe("github is down");
+		expect(messageFor(network({ message: "github is down" }))).toBe("github is down");
 		expect(messageFor(invalidInput({ field: "year", message: "not a year" }))).toBe("not a year");
 	});
 });

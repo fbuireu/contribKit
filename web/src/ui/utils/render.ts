@@ -1,20 +1,21 @@
 import type { ContributionDay } from "@domain/entities/types";
+import type { ContributionStats } from "@domain/services/contribution-stats";
+import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
-import { DEFAULT_SHAPE_KIND } from "@domain/value-objects/shape";
 import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES } from "@ui/components/export/code-preview";
 import { DEFAULT_EXPORT_FORMAT, ExportFormatKey } from "@ui/components/export/export-formats";
-import type { CellSummary } from "@ui/components/grid/calendar";
+import { formatTotalContributions } from "@ui/components/grid/contribution";
 import { CUSTOMIZE_GRID_PRESET, EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import { formatHeroError } from "./contribution-errors";
-import { getCells, getUsername } from "./state";
+import { getDays, getUsername } from "./state";
 
 export const getActivePalette = (): string =>
 	document.querySelector<HTMLElement>("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY;
 
 export const getActiveShape = (): string =>
-	document.querySelector<HTMLElement>("#shape-list .shape-btn.active")?.dataset.key ?? DEFAULT_SHAPE_KIND;
+	document.querySelector<HTMLElement>("#shape-list .shape-btn.active")?.dataset.key ?? DEFAULT_CELL_SHAPE;
 
 export const getActiveExportTab = (): string =>
 	document.querySelector<HTMLElement>('#export-tabs [aria-selected="true"]')?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
@@ -24,7 +25,7 @@ export function renderWidget(): void {
 	const phoneScreen = document.getElementById("phone-screen");
 	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4]);
 	const widgetGrid = document.getElementById("widget-mini-grid");
-	if (widgetGrid) widgetGrid.innerHTML = generateMiniGrid(palette, getCells());
+	if (widgetGrid) widgetGrid.innerHTML = generateMiniGrid({ palette, liveDays: getDays() });
 	const widgetUsername = document.getElementById("widget-username");
 	const username = getUsername();
 	if (widgetUsername && username) widgetUsername.textContent = username;
@@ -33,13 +34,13 @@ export function renderWidget(): void {
 export function renderCustomize(): void {
 	const palette = PALETTES[getActivePalette()].colors;
 	const shape = getActiveShape();
-	const cells = getCells();
+	const days = getDays();
 	const customGrid = document.getElementById("custom-grid-container");
 	if (customGrid)
-		customGrid.innerHTML = renderCalendarString({ cells, palette, shape, ...CUSTOMIZE_GRID_PRESET, showLabels: false });
+		customGrid.innerHTML = renderCalendarString({ days, palette, shape, ...CUSTOMIZE_GRID_PRESET, showLabels: false });
 	const heroGrid = document.getElementById("hero-grid-container");
 	if (heroGrid)
-		heroGrid.innerHTML = renderCalendarString({ cells, palette, shape, ...HERO_GRID_PRESET, showLabels: true });
+		heroGrid.innerHTML = renderCalendarString({ days, palette, shape, ...HERO_GRID_PRESET, showLabels: true });
 	document.querySelectorAll<HTMLElement>(".legend .legend-sq").forEach((square, index) => {
 		square.style.background = palette[index] ?? palette[0];
 	});
@@ -60,7 +61,7 @@ export function renderExportPreview(): void {
 	const palette = PALETTES[getActivePalette()].colors;
 	const shape = getActiveShape();
 	const exportTab = getActiveExportTab();
-	const cells = getCells();
+	const days = getDays();
 	const username = getUsername();
 
 	if (exportTab === ExportFormatKey.Png) {
@@ -71,7 +72,7 @@ export function renderExportPreview(): void {
 		card.appendChild(checker);
 		const content = document.createElement("div");
 		content.className = "preview-content";
-		content.innerHTML = renderCalendarString({ cells, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false });
+		content.innerHTML = renderCalendarString({ days, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false });
 		card.appendChild(content);
 		const tag = document.createElement("div");
 		tag.className = "preview-tag mono";
@@ -84,7 +85,7 @@ export function renderExportPreview(): void {
 			buildCodeBlock(isSvgTab ? SVG_LINES : buildMarkdownLines({ username, palette: getActivePalette(), shape })),
 		);
 		const plainText = isSvgTab
-			? renderCalendarString({ cells, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false })
+			? renderCalendarString({ days, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false })
 			: markdownSnippet(username);
 		const copyButton = document.createElement("button");
 		copyButton.className = "copy-btn mono";
@@ -106,19 +107,19 @@ export function renderExportPreview(): void {
 	preview.appendChild(card);
 }
 
-export function updateYearRange(cells: ContributionDay[]): void {
+export function updateYearRange(days: ContributionDay[]): void {
 	const el = document.getElementById("hero-year-range");
-	if (!el || cells.length < 8) return;
-	el.textContent = cells[7].date.slice(0, 4);
+	if (!el || days.length < 8) return;
+	el.textContent = days[7].date.slice(0, 4);
 }
 
-export function updateHeroStats(summary: CellSummary): void {
+export function updateHeroStats(stats: ContributionStats): void {
 	const bar = document.querySelector(".bar-tag");
 	if (bar)
-		bar.innerHTML = `<span class="mono" style="color:var(--contrib-peak)">${summary.count.toLocaleString()}</span> contributions`;
-	const stats = document.querySelector(".legend-stats");
-	if (stats)
-		stats.innerHTML = `<span><b class="mono">${summary.streak}</b> day streak</span><span class="sep">·</span><span><b class="mono">${summary.longest}</b> longest</span>`;
+		bar.innerHTML = `<span class="mono" style="color:var(--contrib-peak)">${formatTotalContributions(stats.totalContributions)}</span> contributions`;
+	const legend = document.querySelector(".legend-stats");
+	if (legend)
+		legend.innerHTML = `<span><b class="mono">${stats.currentStreak}</b> day streak</span><span class="sep">·</span><span><b class="mono">${stats.longestStreak}</b> longest</span>`;
 }
 
 export function setHeroError(message: string | null): void {

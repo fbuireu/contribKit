@@ -4,7 +4,7 @@ const CELL_GAP = 8;
 const VIEWPORT_MARGIN = 8;
 
 export function initCellTooltip(): void {
-	const maybeTooltip = document.getElementById("cell-tip");
+	const maybeTooltip = document.getElementById("cell-tooltip");
 	if (!maybeTooltip || typeof maybeTooltip.showPopover !== "function") return;
 	const tooltip = maybeTooltip;
 
@@ -24,9 +24,10 @@ export function initCellTooltip(): void {
 
 	function showTooltip(element: HTMLElement | SVGElement) {
 		activeCell = element;
+		const rawCount = element.dataset.count;
 		tooltip.textContent = formatContribLabel({
 			dateIso: element.dataset.date || "",
-			count: Number.parseInt(element.dataset.count || "0", 10),
+			count: rawCount === undefined ? null : Number.parseInt(rawCount, 10),
 		});
 		if (!tooltip.matches(":popover-open")) tooltip.showPopover();
 		positionTooltip();
@@ -38,23 +39,17 @@ export function initCellTooltip(): void {
 	}
 
 	document.addEventListener("mouseover", (event) => {
-		const cell =
-			event.target instanceof Element
-				? event.target.closest<HTMLElement | SVGElement>("[data-date][data-count]")
-				: null;
+		const cell = event.target instanceof Element ? event.target.closest<HTMLElement | SVGElement>("[data-date]") : null;
 		if (cell) showTooltip(cell);
 		else if (activeCell) hideTooltip();
 	});
 	document.addEventListener("focusin", (event) => {
-		const cell =
-			event.target instanceof Element
-				? event.target.closest<HTMLElement | SVGElement>("[data-date][data-count]")
-				: null;
+		const cell = event.target instanceof Element ? event.target.closest<HTMLElement | SVGElement>("[data-date]") : null;
 		if (cell) showTooltip(cell);
 	});
 	document.addEventListener("focusout", (event) => {
 		const next = event.relatedTarget;
-		if (!(next instanceof Element) || !next.closest("[data-date][data-count]")) hideTooltip();
+		if (!(next instanceof Element) || !next.closest("[data-date]")) hideTooltip();
 	});
 	document.addEventListener("mouseleave", hideTooltip);
 	globalThis.addEventListener("scroll", positionTooltip, { passive: true });

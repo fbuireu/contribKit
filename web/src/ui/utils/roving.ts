@@ -5,6 +5,17 @@ export const RovingOrientation = {
 
 export type RovingOrientation = (typeof RovingOrientation)[keyof typeof RovingOrientation];
 
+interface SetRovingFocusParams {
+	elements: NodeListOf<HTMLElement>;
+	target: HTMLElement;
+}
+
+const setRovingFocus = ({ elements, target }: SetRovingFocusParams): void => {
+	elements.forEach((element) => {
+		element.tabIndex = element === target ? 0 : -1;
+	});
+};
+
 export interface ActivateRadioParams {
 	buttons: NodeListOf<HTMLElement>;
 	target: HTMLElement;
@@ -17,6 +28,7 @@ export function activateRadio({ buttons, target }: ActivateRadioParams): void {
 	});
 	target.classList.add("active");
 	target.setAttribute("aria-checked", "true");
+	setRovingFocus({ elements: buttons, target });
 }
 
 export interface ActivateTabParams {
@@ -31,6 +43,7 @@ export function activateTab({ tabs, target }: ActivateTabParams): void {
 	});
 	target.classList.add("active");
 	target.setAttribute("aria-selected", "true");
+	setRovingFocus({ elements: tabs, target });
 	const panel = document.getElementById("export-preview");
 	if (panel && target.id) panel.setAttribute("aria-labelledby", target.id);
 }
@@ -64,6 +77,8 @@ export function initRovingGroup({
 	onActivate,
 	orientation = RovingOrientation.Both,
 }: InitRovingGroupParams): void {
+	const active = [...elements].find((element) => element.classList.contains("active")) ?? elements[0];
+	if (active) setRovingFocus({ elements, target: active });
 	elements.forEach((element, index) => {
 		element.addEventListener("click", () => {
 			activate(element);

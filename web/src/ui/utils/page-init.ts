@@ -1,7 +1,8 @@
 import { buildGridFromApi } from "@domain/services/calendar-grid";
+import { computeContributionStats } from "@domain/services/contribution-stats";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import { generateData, summarize } from "@ui/components/grid/calendar";
+import { generateData } from "@ui/components/grid/calendar";
 import { CONTRIBUTION_ERRORS, FALLBACK_CONTRIBUTION_ERROR } from "@ui/utils/contribution-errors";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
@@ -14,23 +15,21 @@ import {
 	updateYearRange,
 } from "./render";
 import { activateRadio, activateTab, initRovingGroup, RovingOrientation } from "./roving";
-import { getCells, setCells, setUsername } from "./state";
+import { getDays, setDays, setUsername } from "./state";
 import { readUsernameFromUrl, readYearFromUrl, syncUrl } from "./url";
 
 interface ContributionsResponse {
-	cells: { date: string; level: ContributionLevel; count: number | null }[];
-	total: number;
+	days: { date: string; level: ContributionLevel; count: number | null }[];
+	total: number | null;
 	error?: string;
 }
 
-const CELLS =
-	Array.isArray(window.__INITIAL_CELLS__) && window.__INITIAL_CELLS__.length
-		? window.__INITIAL_CELLS__
-		: generateData();
+const INITIAL_DAYS =
+	Array.isArray(window.__INITIAL_DAYS__) && window.__INITIAL_DAYS__.length ? window.__INITIAL_DAYS__ : generateData();
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-setCells(CELLS);
+setDays(INITIAL_DAYS);
 setUsername(readUsernameFromUrl(DEFAULT_USERNAME));
 
 interface ShowErrorStateParams {
@@ -40,12 +39,17 @@ interface ShowErrorStateParams {
 
 function showErrorState({ message, year }: ShowErrorStateParams): void {
 	setHeroError(message);
-	setCells(buildGridFromApi({ days: [], year }));
+	setDays(buildGridFromApi({ days: [], year }));
 	renderCustomize();
-	updateHeroStats({ count: 0, streak: 0, longest: 0 });
+	updateHeroStats({ totalContributions: null, currentStreak: 0, longestStreak: 0 });
 }
 
-async function renderFromGitHub(username: string, { updateHistory = true }: { updateHistory?: boolean } = {}) {
+interface RenderFromGitHubParams {
+	username: string;
+	updateHistory?: boolean;
+}
+
+async function renderFromGitHub({ username, updateHistory = true }: RenderFromGitHubParams) {
 	const renderButton = document.getElementById("hero-render-btn") as HTMLButtonElement | null;
 	const renderLabel = document.getElementById("hero-render-label");
 	const gridContainer = document.getElementById("hero-grid-container");
@@ -54,8 +58,7 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 	if (!renderButton || !gridContainer) return;
 
 	const selectedYear = Number(yearSelect?.value ?? 0);
-	const yearQuery = selectedYear && selectedYear <= CURRENT_YEAR ? `&year=${selectedYear}` : "";
-	const fallbackYear = selectedYear || CURRENT_YEAR;
+	const year = selectedYear && selectedYear <= CURRENT_YEAR ? selectedYear : CURRENT_YEAR;
 
 	if (updateHistory) syncUrl({ username, year: selectedYear, currentYear: CURRENT_YEAR });
 	void writeUsernameCookie(username);
@@ -67,30 +70,28 @@ async function renderFromGitHub(username: string, { updateHistory = true }: { up
 	if (renderLabel) renderLabel.textContent = "loading…";
 
 	try {
-		const response = await fetch(`/api/contributions?user=${encodeURIComponent(username)}${yearQuery}`);
+		const response = await fetch(`/api/contributions?user=${encodeURIComponent(username)}&year=${year}`);
 		const data: ContributionsResponse = await response.json();
 
 		if (!response.ok) {
 			showErrorState({
 				message: CONTRIBUTION_ERRORS[response.status] ?? data.error ?? FALLBACK_CONTRIBUTION_ERROR,
-				year: fallbackYear,
+				year,
 			});
 		} else {
-			const firstDate = data.cells[0]?.date;
-			const year = firstDate ? Number(firstDate.slice(0, 4)) : CURRENT_YEAR;
-			setCells(buildGridFromApi({ days: data.cells, year }));
+			setDays(buildGridFromApi({ days: data.days, year }));
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
-			const stats = summarize(data.cells);
-			if (data.total != null) stats.count = data.total;
+			const stats = computeContributionStats(data.days);
+			if (data.total != null) stats.totalContributions = data.total;
 			updateHeroStats(stats);
-			updateYearRange(getCells());
+			updateYearRange(getDays());
 			renderExportPreview();
 			const howWidget = document.getElementById("how-widget-username");
 			if (howWidget) howWidget.textContent = username;
 		}
 	} catch {
-		showErrorState({ message: "could not reach the server, try again", year: fallbackYear });
+		showErrorState({ message: "could not reach the server, try again", year });
 	}
 
 	renderButton.disabled = false;
@@ -140,7 +141,7 @@ function initUsernameStrip() {
 			input.focus();
 			return;
 		}
-		renderFromGitHub(username);
+		renderFromGitHub({ username });
 	};
 
 	form?.addEventListener("submit", (event) => {
@@ -166,7 +167,7 @@ function initUsernameStrip() {
 			if (!username) return;
 			input.value = username;
 			usernameDisplay.textContent = username;
-			renderFromGitHub(username);
+			renderFromGitHub({ username });
 		});
 	});
 }
@@ -180,7 +181,7 @@ function initHistoryNav() {
 		if (input) input.value = username;
 		if (usernameDisplay) usernameDisplay.textContent = username;
 		if (yearSelect) yearSelect.value = String(readYearFromUrl(CURRENT_YEAR));
-		renderFromGitHub(username, { updateHistory: false });
+		renderFromGitHub({ username, updateHistory: false });
 	});
 }
 
@@ -211,6 +212,6 @@ export function initPage() {
 	initExportTabs();
 	initUsernameStrip();
 	initHistoryNav();
-	updateYearRange(CELLS);
+	updateYearRange(INITIAL_DAYS);
 	initCellTooltip();
 }

@@ -22,16 +22,35 @@ const SECURITY_HEADERS: Record<string, string> = {
 	].join("; "),
 };
 
-const withSecurityHeaders = (response: Response): Response => {
+const EMBEDDABLE_SVG = /^\/user\/[^/]+\.svg$/;
+
+const AGENT_GUIDE_ROUTE = "/CLAUDE";
+
+interface WithSecurityHeadersParams {
+	response: Response;
+	pathname: string;
+}
+
+const withSecurityHeaders = ({ response, pathname }: WithSecurityHeadersParams): Response => {
 	const secured = new Response(response.body, response);
 	for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
 		secured.headers.set(key, value);
+	}
+	if (EMBEDDABLE_SVG.test(pathname)) {
+		secured.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
 	}
 	return secured;
 };
 
 export const onRequest = defineMiddleware(async (context, next) => {
 	const { request, url } = context;
+
+	if (url.pathname === AGENT_GUIDE_ROUTE) {
+		return withSecurityHeaders({
+			pathname: url.pathname,
+			response: new Response(null, { status: 404 }),
+		});
+	}
 
 	if (url.pathname.startsWith("/api/")) {
 		const rateLimiter = env.API_RATE_LIMITER;
@@ -40,18 +59,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
 			const key = request.headers.get("CF-Connecting-IP") ?? "unknown";
 			const { success } = await rateLimiter.limit({ key });
 			if (!success) {
-				return withSecurityHeaders(
-					new Response(JSON.stringify({ error: "Too many requests" }), {
+				return withSecurityHeaders({
+					pathname: url.pathname,
+					response: new Response(JSON.stringify({ error: "Too many requests" }), {
 						status: 429,
 						headers: {
 							"Content-Type": "application/json",
 							"Retry-After": "60",
 						},
 					}),
-				);
+				});
 			}
 		}
 	}
 
-	return withSecurityHeaders(await next());
+	return withSecurityHeaders({ response: await next(), pathname: url.pathname });
 });

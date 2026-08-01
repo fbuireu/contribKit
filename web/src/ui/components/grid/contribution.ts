@@ -1,8 +1,11 @@
-export const TOTALS_PER_LEVEL = [0, 1, 4, 9, 16] as const;
+export const UNKNOWN_TOTAL_TEXT = "unknown";
+
+export const formatTotalContributions = (total: number | null): string =>
+	total === null ? UNKNOWN_TOTAL_TEXT : total.toLocaleString();
 
 export interface FormatContribLabelParams {
 	dateIso: string;
-	count: number;
+	count: number | null;
 }
 
 export function formatContribLabel({ dateIso, count }: FormatContribLabelParams): string {
@@ -12,6 +15,7 @@ export function formatContribLabel({ dateIso, count }: FormatContribLabelParams)
 		day: "numeric",
 		year: "numeric",
 	});
+	if (count === null) return `Contributions unknown on ${dateText}`;
 	if (count <= 0) return `No contributions on ${dateText}`;
 	if (count === 1) return `1 contribution on ${dateText}`;
 	return `${count.toLocaleString()} contributions on ${dateText}`;

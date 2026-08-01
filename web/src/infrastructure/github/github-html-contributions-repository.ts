@@ -10,7 +10,7 @@ const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
 const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
 const LEVEL_REGEX = /data-level="(\d)"/;
 const ID_REGEX = /\bid="([^"]+)"/;
-const TIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
+const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
 
 interface BuildUrlParams {
 	username: string;
@@ -51,7 +51,7 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 		}
 	}
 
-	for (const match of html.matchAll(TIP_REGEX)) {
+	for (const match of html.matchAll(TOOLTIP_REGEX)) {
 		idToCount.set(match[1], Number.parseInt(match[2], 10));
 	}
 
@@ -82,11 +82,11 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 				},
 			});
 		} catch (error) {
-			return network(error instanceof Error ? error.message : String(error));
+			return network({ message: error instanceof Error ? error.message : String(error) });
 		}
 
 		if (response.status === 404) return notFound(username.value);
-		if (!response.ok) return network(`GitHub returned ${response.status}`, response.status);
+		if (!response.ok) return network({ message: `GitHub returned ${response.status}`, status: response.status });
 
 		const html = await response.text();
 		const { days, total } = parseHtml(html);

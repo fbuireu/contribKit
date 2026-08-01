@@ -15,20 +15,21 @@ describe("loadInitialContributions", () => {
 		expect(result.ok).toBe(true);
 		if (result.ok) {
 			expect(result.data.total).toBe(1234);
-			expect(result.data.cells).toHaveLength(53 * 7);
+			expect(result.data.days).toHaveLength(53 * 7);
 		}
 	});
 
 	it("passes a repository failure through as status + message", async () => {
-		const loadContributions = vi.fn().mockResolvedValue(network("github is down"));
+		const loadContributions = vi.fn().mockResolvedValue(network({ message: "github is down" }));
 		const result = await loadInitialContributions(loadContributions)({ username: "torvalds" });
-		expect(result).toEqual({ ok: false, status: 502, message: "github is down" });
+		expect(result).toEqual({ ok: false, kind: "Network", status: 502, message: "github is down" });
 	});
 
 	it("rejects an invalid username before calling the repository", async () => {
 		const loadContributions = vi.fn();
 		const result = await loadInitialContributions(loadContributions)({ username: "a b c!" });
 		expect(result.ok).toBe(false);
+		if (!result.ok) expect(result.kind).toBe("InvalidInput");
 		expect(loadContributions).not.toHaveBeenCalled();
 	});
 });

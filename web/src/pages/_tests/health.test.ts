@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("cloudflare:workers", () => ({ env: { API_RATE_LIMITER: { limit: vi.fn() } } }));
 
-import { GET } from "./health";
+import { GET } from "../api/health";
 
 const PUBLIC_VARS = [
 	"PUBLIC_GOOGLE_ANALYTICS_ID",

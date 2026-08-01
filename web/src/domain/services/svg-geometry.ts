@@ -1,4 +1,4 @@
-import { MONTHS } from "../value-objects/calendar-labels";
+import { MONTH_LABELS } from "../value-objects/calendar-labels";
 import { DAYS_PER_WEEK, WEEKS_PER_YEAR } from "./dates";
 
 export const SVG_PAD_X = 12;
@@ -8,11 +8,11 @@ export const SVG_LABEL_HEIGHT = 18;
 export const SVG_DEFAULT_CELL_SIZE = 10;
 export const SVG_DEFAULT_CELL_GAP = 2;
 export const SVG_MONTH_LABEL_BASELINE = 11;
-export const SVG_DOW_LABEL_BASELINE = 4;
+export const SVG_WEEKDAY_LABEL_BASELINE = 4;
 export const SVG_MONTH_LABEL_MAX_DAY = 7;
 export const SVG_MONTH_LABEL_FONT_SIZE = "9.5";
 export const SVG_MONTH_LABEL_LETTER_SPACING = "0.04em";
-export const SVG_DOW_LABEL_FONT_SIZE = "9";
+export const SVG_WEEKDAY_LABEL_FONT_SIZE = "9";
 export const DOT_BASE_RADIUS = 1.4;
 const RADIUS_BY_SHAPE: Record<string, number> = { rounded: 2.5, square: 0 };
 
@@ -65,7 +65,7 @@ export const monthLabelPositions = (weeks: ReadonlyArray<ReadonlyArray<{ date: s
 		if (!first) return;
 		const month = Number.parseInt(first.date.slice(5, 7), 10) - 1;
 		if (month !== lastMonth && Number.parseInt(first.date.slice(8, 10), 10) <= SVG_MONTH_LABEL_MAX_DAY) {
-			labels.push({ weekIndex, label: MONTHS[month] });
+			labels.push({ weekIndex, label: MONTH_LABELS[month] });
 			lastMonth = month;
 		}
 	});

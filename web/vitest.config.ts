@@ -15,6 +15,7 @@ export default defineConfig({
 		},
 	},
 	test: {
+		include: [...configDefaults.include, "../docs/**/*.test.ts"],
 		exclude: [...configDefaults.exclude, "e2e/**"],
 		coverage: {
 			provider: "istanbul",

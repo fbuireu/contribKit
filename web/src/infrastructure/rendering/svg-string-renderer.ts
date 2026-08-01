@@ -6,21 +6,21 @@ import {
 	radiusFor,
 	SVG_DEFAULT_CELL_GAP,
 	SVG_DEFAULT_CELL_SIZE,
-	SVG_DOW_LABEL_BASELINE,
-	SVG_DOW_LABEL_FONT_SIZE,
 	SVG_MONTH_LABEL_BASELINE,
 	SVG_MONTH_LABEL_FONT_SIZE,
 	SVG_MONTH_LABEL_LETTER_SPACING,
 	SVG_PAD_X,
 	SVG_PAD_Y,
+	SVG_WEEKDAY_LABEL_BASELINE,
+	SVG_WEEKDAY_LABEL_FONT_SIZE,
 } from "@domain/services/svg-geometry";
 import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
-import { DOW } from "@domain/value-objects/calendar-labels";
+import { WEEKDAY_LABELS } from "@domain/value-objects/calendar-labels";
 import { DEFAULT_BACKGROUND_COLOR } from "@domain/value-objects/palette";
 
 const LABEL_FONT_FAMILY = "ui-monospace,monospace";
 const MONTH_LABEL_FILL = "rgba(255,255,255,0.45)";
-const DOW_LABEL_FILL = "rgba(255,255,255,0.35)";
+const WEEKDAY_LABEL_FILL = "rgba(255,255,255,0.35)";
 
 export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendererParams): string => {
 	const { palette, shape, background } = options;
@@ -48,9 +48,9 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 			);
 		}
 
-		for (const [index, dayLabel] of DOW.entries()) {
+		for (const [index, dayLabel] of WEEKDAY_LABELS.entries()) {
 			parts.push(
-				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_DOW_LABEL_BASELINE}" fill="${DOW_LABEL_FILL}" font-size="${SVG_DOW_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
+				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_WEEKDAY_LABEL_BASELINE}" fill="${WEEKDAY_LABEL_FILL}" font-size="${SVG_WEEKDAY_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
 			);
 		}
 	}

@@ -35,6 +35,43 @@ describe("security headers", () => {
 		expect(response.headers.get("Content-Security-Policy")).toContain("default-src 'self'");
 		expect(response.headers.get("Cross-Origin-Opener-Policy")).toBe("same-origin");
 	});
+
+	it("keep the resource policy at same-origin everywhere but the SVG route", async () => {
+		env.API_RATE_LIMITER = undefined;
+		for (const path of ["/", "/api/health", "/user/torvalds.svg/extra", "/user/torvalds.png"]) {
+			const response = await run({ path, next: ok });
+			expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("same-origin");
+		}
+	});
+
+	it("open the resource policy on the SVG route so it embeds cross-origin", async () => {
+		env.API_RATE_LIMITER = undefined;
+		const response = await run({ path: "/user/torvalds.svg", next: ok });
+		expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("cross-origin");
+	});
+
+	it("open it with query parameters too", async () => {
+		env.API_RATE_LIMITER = undefined;
+		const response = await run({ path: "/user/torvalds.svg?palette=nord&shape=hex", next: ok });
+		expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("cross-origin");
+	});
+});
+
+describe("the pages-layer agent guide", () => {
+	it("is not reachable, because Astro turns src/pages/CLAUDE.md into a route", async () => {
+		env.API_RATE_LIMITER = undefined;
+		const next = vi.fn(ok);
+		const response = await run({ path: "/CLAUDE", next });
+		expect(response.status).toBe(404);
+		expect(next).not.toHaveBeenCalled();
+		expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+	});
+
+	it("does not block a real route that merely starts the same way", async () => {
+		env.API_RATE_LIMITER = undefined;
+		const response = await run({ path: "/CLAUDEX", next: ok });
+		expect(response.status).toBe(200);
+	});
 });
 
 describe("api rate limiting", () => {

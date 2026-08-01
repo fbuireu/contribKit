@@ -1,6 +1,10 @@
 import type { CookieConsentConfig } from "vanilla-cookieconsent";
 import { acceptedCategory } from "vanilla-cookieconsent";
 
+const GOOGLE_ANALYTICS_COOKIES = /^_ga/;
+const GOOGLE_ANALYTICS_LEGACY_COOKIES = /^(_ga|_gid)/;
+const BETTER_STACK_COOKIES = /^bs_/;
+
 export const config: CookieConsentConfig = {
 	onChange: ({ changedCategories, changedServices }) => {
 		const analyticsChanged = changedCategories.includes("analytics") || Object.hasOwn(changedServices, "analytics");
@@ -29,17 +33,17 @@ export const config: CookieConsentConfig = {
 		},
 		analytics: {
 			autoClear: {
-				cookies: [{ name: /^_ga/ }, { name: "_gid" }, { name: /^bs_/ }],
+				cookies: [{ name: GOOGLE_ANALYTICS_COOKIES }, { name: "_gid" }, { name: BETTER_STACK_COOKIES }],
 			},
 			services: {
 				ga4: {
 					label:
 						'<a href="https://marketingplatform.google.com/about/analytics/terms/us/" target="_blank">Google Analytics 4</a>',
-					cookies: [{ name: /^(_ga|_gid)/ }],
+					cookies: [{ name: GOOGLE_ANALYTICS_LEGACY_COOKIES }],
 				},
 				betterstack: {
 					label: '<a href="https://betterstack.com/privacy" target="_blank">Better Stack Telemetry</a>',
-					cookies: [{ name: /^bs_/ }],
+					cookies: [{ name: BETTER_STACK_COOKIES }],
 				},
 			},
 		},

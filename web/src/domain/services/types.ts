@@ -1,10 +1,10 @@
 import type { ContributionCalendar } from "../entities/types";
+import type { CellShape } from "../value-objects/cell-shape";
 import type { Palette } from "../value-objects/palette";
-import type { ShapeKind } from "../value-objects/shape";
 
 export interface SvgRenderOptions {
 	readonly palette: Palette;
-	readonly shape: ShapeKind;
+	readonly shape: CellShape;
 	readonly background: string;
 	readonly cellSize?: number;
 	readonly cellGap?: number;

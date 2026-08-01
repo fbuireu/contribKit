@@ -1,0 +1,59 @@
+import { describe, expect, it } from "vitest";
+import { computeContributionStats } from "./contribution-stats";
+import { toIsoDate } from "./dates";
+
+describe("computeContributionStats", () => {
+	it("totals counts and computes trailing streak + longest run", () => {
+		const stats = computeContributionStats([
+			{ date: "2024-01-01", level: 1, count: 2 },
+			{ date: "2024-01-02", level: 0, count: 0 },
+			{ date: "2024-01-03", level: 2, count: 3 },
+			{ date: "2024-01-04", level: 1, count: 1 },
+		]);
+		expect(stats.totalContributions).toBe(6);
+		expect(stats.currentStreak).toBe(2);
+		expect(stats.longestStreak).toBe(2);
+	});
+
+	it("skips trailing future days and a pending empty today when counting the streak", () => {
+		const iso = toIsoDate;
+		const dayBefore = (date: Date, days: number) => new Date(date.getTime() - days * 86_400_000);
+		const today = new Date();
+		const stats = computeContributionStats([
+			{ date: iso(dayBefore(today, 2)), level: 2, count: 3 },
+			{ date: iso(dayBefore(today, 1)), level: 1, count: 1 },
+			{ date: iso(today), level: 0, count: 0 },
+			{ date: iso(dayBefore(today, -1)), level: 0, count: 0 },
+		]);
+		expect(stats.currentStreak).toBe(2);
+	});
+
+	it("distinguishes the current streak from the longest one", () => {
+		const stats = computeContributionStats([
+			{ date: "2024-01-01", level: 1, count: 1 },
+			{ date: "2024-01-02", level: 1, count: 1 },
+			{ date: "2024-01-03", level: 1, count: 1 },
+			{ date: "2024-01-04", level: 1, count: 1 },
+			{ date: "2024-01-05", level: 0, count: 0 },
+			{ date: "2024-01-06", level: 2, count: 2 },
+		]);
+		expect(stats.longestStreak).toBe(4);
+		expect(stats.currentStreak).toBe(1);
+	});
+
+	it("reports an unknown total rather than a lower bound when an active day has no count", () => {
+		const stats = computeContributionStats([
+			{ date: "2024-01-01", level: 4, count: null },
+			{ date: "2024-01-02", level: 2, count: 5 },
+		]);
+		expect(stats.totalContributions).toBeNull();
+	});
+
+	it("treats an unknown count on a level-0 day as the zero it must be", () => {
+		const stats = computeContributionStats([
+			{ date: "2024-01-01", level: 0, count: null },
+			{ date: "2024-01-02", level: 2, count: 5 },
+		]);
+		expect(stats.totalContributions).toBe(5);
+	});
+});

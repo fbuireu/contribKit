@@ -5,7 +5,8 @@ test.describe("api/contributions", () => {
 		const response = await request.get("/api/contributions?user=torvalds");
 		expect(response.status()).toBe(200);
 		const body = await response.json();
-		expect(Array.isArray(body.cells)).toBe(true);
+		expect(Array.isArray(body.days)).toBe(true);
+		expect(body.cells).toEqual(body.days);
 	});
 
 	test("returns 400 without a user", async ({ request }) => {

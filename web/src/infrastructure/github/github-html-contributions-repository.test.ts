@@ -60,12 +60,40 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		expect(result).toEqual({ kind: "Network", status: undefined, message: "boom" });
 	});
 
-	it("returns Parse when no contribution cells are found", async () => {
+	it("returns Parse when no contribution days are found", async () => {
 		stubFetch(async () => new Response("<html>nothing here</html>", { status: 200 }));
 
 		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
 
 		expect(result).toEqual({ kind: "Parse", message: "Could not parse contributions" });
+	});
+
+	it("reports an unknown total rather than zero when no tool-tip parses", async () => {
+		stubFetch(
+			async () =>
+				new Response('<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="a"></td>', {
+					status: 200,
+				}),
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.total).toBeNull();
+		expect(result.days[0].count).toBeNull();
+	});
+
+	it("leaves the current year open-ended so it ends today", async () => {
+		const fetchMock = vi.fn<typeof fetch>(async () => new Response(HTML, { status: 200 }));
+		vi.stubGlobal("fetch", fetchMock);
+		const year = { _tag: "Year", value: new Date().getFullYear() } as Year;
+
+		await githubHtmlContributionsRepository.fetch({ username, year });
+
+		const calledUrl = String(fetchMock.mock.calls[0]?.[0]);
+		expect(calledUrl).toContain(`from=${year.value}-01-01`);
+		expect(calledUrl).not.toContain("to=");
 	});
 
 	it("adds from/to query params for a past year", async () => {

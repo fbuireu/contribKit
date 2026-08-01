@@ -1,0 +1,130 @@
+# web/src/pages
+
+Astro pages and API routes, plus `web/src/middleware.ts`, which sits in front of all of them. This is the
+composition root: the only layer that instantiates infrastructure, calls use cases and hands results to components.
+It is also the only entry point for HTTP traffic.
+
+## Invariants & rules
+
+- **`export const prerender = false` on every dynamic route.** The site is server-rendered because the SVG endpoint
+  cannot be built ahead of time ([ADR 0007](../../../docs/adr/0007-server-rendered-web-app-on-the-edge.md)).
+- **Validate every external input before it reaches the domain.** Query strings go through Zod, in the two API
+  routes and nowhere else; the `:username` route param and the `ck_user` cookie go through `parseUsername`, which
+  is the domain's own validator and returns a `Failure` rather than throwing. Zod is for the *shape* of a query
+  string, not a substitute for a value object.
+- **Map `Failure` to HTTP only through `@application/http/failure-http`** (`statusFor`, `messageFor`), guarded by
+  `isFailure` from `@domain/failures/failure`. Never inline a status or a message.
+- **Compose at module scope, not per request** — and in an `.astro` file there is no module scope, because the
+  frontmatter runs on every request. That is why the repository and the curried use cases live in
+  `_contributions.ts` and are imported. The leading underscore keeps Astro from routing it. The landing page built
+  its own repository inline until this file existed, quietly rebuilding infrastructure per visit.
+- **No business logic here.** If a route grows a rule, it belongs in `application/` or `domain/`.
+- **Every page uses `BaseLayout`.** Never hand-write `<!doctype html>` or a `<head>` in a page file.
+
+## The routes
+
+| File | Route | Notes |
+| --- | --- | --- |
+| `index.astro` | `/` | SSR landing page plus client interactivity |
+| `user/[username].svg.ts` | `GET /user/:username.svg` | The embed endpoint |
+| `api/contributions.ts` | `GET /api/contributions?user=&year=` | JSON |
+| `api/health.ts` | `GET /api/health` | Configuration presence check |
+| `404.astro`, `500.astro` | — | Both render the shared `ErrorView` |
+| `legal-notice.astro`, `privacy.astro`, `terms.astro` | — | Static legal pages |
+| `_contributions.ts` | — | Not a route: the shared composition all three data consumers import |
+| `_tests/` | — | Not routes: the three route tests, kept out of the namespace by the underscore |
+| `CLAUDE.md` | `/CLAUDE`, 404'd | This file. Astro routes markdown too — see below |
+
+**Everything here that is not underscore-prefixed is a public URL, `.md` included.** This file is a route:
+Astro compiled it and served it on `contribkit.app` until `AGENT_GUIDE_ROUTE` in `web/src/middleware.ts`
+started answering 404 for it, and the colocated route tests were live endpoints returning 500 with the vitest
+runtime bundled into the Worker. Two assertions in the docs contract keep both shut
+([ADR 0018](../../../docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)). Before adding a file
+here, decide what URL it becomes.
+
+## Caching, and the one exception
+
+`public, max-age=3600, stale-while-revalidate=86400` on both data responses. `/api/health` sets `no-store`, because
+a cached health check answers a question nobody asked. The landing page is `private` either way, and keyed on the
+same `isExplicit` the failure branch uses: the one-hour window when the visitor asked for a username **or carries
+the cookie**, `no-store` when it is showing the default. It keyed on the query param alone until that was
+reconciled, so a returning visitor's own calendar was never cached. Caching is also the
+only thing standing between the SVG endpoint and unthrottled origin load, which is what makes the rate-limiting
+decision the shape it is ([ADR 0010](../../../docs/adr/0010-rate-limit-only-the-json-api.md)).
+
+## The two data endpoints diverge on purpose
+
+They look symmetrical and are not:
+
+|  | `/user/:username.svg` | `/api/contributions` |
+| --- | --- | --- |
+| Bad `palette` / `shape` / `background` | `.catch(default)` — renders anyway | not accepted |
+| Bad `year` | not accepted; always the rolling latest | `InvalidInput` → 400 |
+| Missing `user` | in the path, so it cannot be missing | 400 with a fixed message |
+| Rate limited | **no** | yes, per IP |
+| Body on failure | `text/plain` | JSON `{ error }` |
+
+The SVG endpoint degrades instead of erroring because its response is consumed as an `<img>`: a 400 renders as a
+broken image in someone's README, while a calendar in the wrong palette still shows the reader what they came for.
+The JSON endpoint is consumed by code, which can read a status.
+
+**The SVG route ignores `?year=` entirely** — it always calls the use case with `year: null`. That is not an
+oversight to fix casually: an embed URL is pasted into a README once and never revisited, so a pinned year would
+quietly go stale forever.
+
+**`/api/contributions` answers with `days` and repeats it as `cells`.** `days` is the name the glossary requires;
+`cells` is the field the endpoint shipped with, kept as a deprecated alias so nothing that already reads it breaks.
+Both point at the same array. New consumers read `days`; the alias goes away on a deliberate breaking release, not
+in passing.
+
+## `middleware.ts`
+
+Runs on every request and does three things.
+
+1. **A 404 for `/CLAUDE`, before anything else.** Astro compiles this very file into a public page, and
+   `AGENT_GUIDE_ROUTE` is what keeps it off the web
+   ([ADR 0018](../../../docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
+2. **Rate limiting, `/api/*` only.** Keyed on `CF-Connecting-IP`, falling back to the literal `"unknown"` — so
+   requests arriving without that header share a single bucket. **The whole block is skipped when the
+   `API_RATE_LIMITER` binding is absent**, which is the case in local development, so "it did not rate-limit
+   locally" proves nothing. A rejection is a 429 with `Retry-After: 60`. The binding is read with
+   `import { env } from "cloudflare:workers"`, the only supported route since `locals.runtime.env` became a getter
+   that throws.
+3. **Security headers on every response**, including that 429. They are applied by copying the response
+   (`new Response(response.body, response)`) and setting headers on the copy, because the `Response` returned by
+   `next()` has immutable headers.
+
+The CSP allows `'unsafe-inline'` for scripts and styles and names Google Tag Manager, Better Stack and Google Fonts
+explicitly. Adding a third-party origin means editing that list; there is no wildcard to fall back on. One header is
+not uniform: `EMBEDDABLE_SVG` overrides `Cross-Origin-Resource-Policy` to `cross-origin` for `/user/<name>.svg` and
+nothing else, so the calendar embeds outside GitHub
+([ADR 0017](../../../docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md)).
+
+## Gotchas
+
+- **Every route that can see a 5xx logs it, including the landing page.** All three compare against
+  `SERVER_ERROR_STATUS` from `failure-http` and log `username`, `kind`, `reason`, `status` and an `endpoint` tag
+  (`"api"`, `"svg"`, `"page"`) — the tag is the only thing distinguishing them in Better Stack. The page could only
+  start doing this once `loadInitialContributions` carried the failure's `kind`; before that a GitHub outage on `/`
+  produced no log line at all.
+- **`500.astro` logs as a side effect of rendering.** `logServerError` runs in the frontmatter, so anything that
+  renders the 500 page twice reports twice. It reads the throwable from `Astro.props.error`, which Astro populates
+  only when it invokes the page as an error handler — visiting `/500` by hand logs `undefined`.
+- **The terminal block on the error pages is decoration, and must not read as data.** It once printed a fixed
+  `trace: 8f3c1a`, an identifier that corresponded to nothing and that a user could reasonably have quoted in a bug
+  report. Keep those lines free of anything that looks like a real identifier.
+- **`/api/health` returns 503, not 200, when anything is missing.** It checks four keys — the analytics ID, both
+  Better Stack variables and the `API_RATE_LIMITER` binding — and reports `"ok"` only when all four are present. A
+  local run or a preview deployment is expected to fail it.
+- **The landing page distinguishes an asked-for user from the default.** `?user=` wins, then the `USERNAME_COOKIE`,
+  then `DEFAULT_USERNAME`. `isExplicit` is true only for the first two, and it decides what a failure looks like: an
+  explicit user gets an empty grid plus an error message, while a first-time visitor gets a generated placeholder
+  grid and no error at all. Never surface a fetch failure for a user nobody asked for.
+- **The landing page overwrites the computed total with the scraped one** whenever the scrape produced one at all,
+  by mutating the object `computeContributionStats` returned. The check is `!= null`, not truthiness: a scraped
+  total of `0` is a fact and has to win over a sum, and it used to lose.
+- **The SVG route parses its query string after the fetch, not before.** Nothing can fail there — every field is
+  `.catch(default)` — so the order is harmless, but it is the reverse of `/api/contributions`, which validates
+  first precisely because its inputs can be rejected.
+- `404.astro` and `500.astro` render the **same** `ErrorView`, driven entirely by props. Never fork a second copy
+  for a new status.

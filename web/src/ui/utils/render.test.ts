@@ -9,18 +9,18 @@ import {
 	updateHeroStats,
 	updateYearRange,
 } from "./render";
-import { setCells, setUsername } from "./state";
+import { setDays, setUsername } from "./state";
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const $ = (selector: string) => document.querySelector(selector) as HTMLElement;
 
 import type { ContributionDay } from "@domain/entities/types";
 
-const cells: ContributionDay[] = Array.from({ length: 371 }, () => ({ date: "2024-06-15", level: 2, count: 4 }));
+const days: ContributionDay[] = Array.from({ length: 371 }, () => ({ date: "2024-06-15", level: 2, count: 4 }));
 
 beforeEach(() => {
 	document.body.innerHTML = "";
-	setCells(cells);
+	setDays(days);
 	setUsername("torvalds");
 });
 
@@ -38,7 +38,7 @@ describe("setHeroError", () => {
 describe("updateHeroStats", () => {
 	it("writes the totals into the bar and legend", () => {
 		document.body.innerHTML = `<span class="bar-tag"></span><div class="legend-stats"></div>`;
-		updateHeroStats({ count: 1234, streak: 5, longest: 9 });
+		updateHeroStats({ totalContributions: 1234, currentStreak: 5, longestStreak: 9 });
 		expect($(".bar-tag").innerHTML).toContain("1,234");
 		expect($(".legend-stats").innerHTML).toContain("5");
 		expect($(".legend-stats").innerHTML).toContain("9");
@@ -48,7 +48,7 @@ describe("updateHeroStats", () => {
 describe("updateYearRange", () => {
 	it("takes the year from the 8th cell", () => {
 		document.body.innerHTML = `<span id="hero-year-range"></span>`;
-		updateYearRange(cells);
+		updateYearRange(days);
 		expect(byId("hero-year-range").textContent).toBe("2024");
 	});
 });

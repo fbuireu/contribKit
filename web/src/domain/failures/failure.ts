@@ -36,5 +36,14 @@ export const invalidInput = ({ field, message }: InvalidInputParams): Failure =>
 	field,
 	message,
 });
-export const network = (message: string, status?: number): Failure => ({ kind: FailureKind.Network, status, message });
+export interface NetworkParams {
+	message: string;
+	status?: number;
+}
+
+export const network = ({ message, status }: NetworkParams): Failure => ({
+	kind: FailureKind.Network,
+	status,
+	message,
+});
 export const parse = (message: string): Failure => ({ kind: FailureKind.Parse, message });

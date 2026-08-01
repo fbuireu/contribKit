@@ -11,7 +11,7 @@ vi.mock("@logtail/edge", () => ({
 	})),
 }));
 
-import { GET } from "./contributions";
+import { GET } from "../api/contributions";
 
 const HTML = `<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="c1"></td><tool-tip for="c1">5 contributions</tool-tip>`;
 
@@ -42,9 +42,10 @@ describe("GET /api/contributions", () => {
 
 		expect(res.status).toBe(200);
 		expect(res.headers.get("Cache-Control")).toContain("max-age=3600");
-		const body = (await res.json()) as { username: string; cells: unknown[] };
+		const body = (await res.json()) as { username: string; days: unknown[]; cells: unknown[] };
 		expect(body.username).toBe("torvalds");
-		expect(body.cells).toEqual([{ date: "2024-01-01", level: 2, count: 5 }]);
+		expect(body.days).toEqual([{ date: "2024-01-01", level: 2, count: 5 }]);
+		expect(body.cells).toEqual(body.days);
 	});
 
 	it("404 when the user is not found", async () => {

@@ -1,8 +1,9 @@
 ---
 import { SUGGESTED_USERNAMES } from "@domain/value-objects/username";
-import { GITHUB_LAUNCH_YEAR } from "@domain/value-objects/year";
+import { MIN_YEAR } from "@domain/value-objects/year";
 import "./hero.css";
-import type { CellSummary } from "@ui/components/grid/calendar";
+import type { ContributionStats } from "@domain/services/contribution-stats";
+import { formatTotalContributions } from "@ui/components/grid/contribution";
 import AppStore from "@ui/components/icons/AppStore.astro";
 import ArrowRight from "@ui/components/icons/ArrowRight.astro";
 import ChevronDown from "@ui/components/icons/ChevronDown.astro";
@@ -15,13 +16,13 @@ const appVersion = __APP_VERSION__;
 
 interface Props {
 	heroSVG: string;
-	summary: CellSummary;
+	stats: ContributionStats;
 	palette: readonly string[];
 	username: string;
 	year?: number;
 	error?: string | null;
 }
-const { heroSVG, summary, palette, username, year = currentYear, error = null } = Astro.props;
+const { heroSVG, stats, palette, username, year = currentYear, error = null } = Astro.props;
 ---
 
 <section class="hero" aria-label="Hero">
@@ -67,7 +68,7 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
         <input class="us-input" id="hero-username" type="search" value={username} spellcheck="false" autocomplete="off" autocapitalize="none" autocorrect="off" />
         <div class="us-year-wrap">
           <select class="us-year" id="hero-year" aria-label="Year">
-            {Array.from({ length: currentYear - GITHUB_LAUNCH_YEAR + 1 }, (_, index) => currentYear - index).map(yearOption => (
+            {Array.from({ length: currentYear - MIN_YEAR + 1 }, (_, index) => currentYear - index).map(yearOption => (
               <option value={yearOption} selected={yearOption === year}>{yearOption}</option>
             ))}
           </select>
@@ -103,7 +104,7 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
             <span class="mono dim" id="hero-year-range">last year</span>
           </div>
           <div class="bar-tag">
-            <span class="mono">{summary.count.toLocaleString()}</span> contributions
+            <span class="mono">{formatTotalContributions(stats.totalContributions)}</span> contributions
           </div>
         </div>
         <div class="hero-card-body" id="hero-grid-container">
@@ -118,9 +119,9 @@ const { heroSVG, summary, palette, username, year = currentYear, error = null } 
             <span class="mono dimmer" aria-hidden="true">more</span>
           </div>
           <div class="legend-stats">
-            <span><b class="mono">{summary.streak}</b> day streak</span>
+            <span><b class="mono">{stats.currentStreak}</b> day streak</span>
             <span class="sep" aria-hidden="true">·</span>
-            <span><b class="mono">{summary.longest}</b> longest</span>
+            <span><b class="mono">{stats.longestStreak}</b> longest</span>
           </div>
         </div>
       </div>

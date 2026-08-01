@@ -11,7 +11,13 @@ export interface LogServerErrorParams {
 const describeError = (error: unknown): string => {
 	if (error instanceof Error) return error.message;
 	if (!error) return "unknown";
-	if (typeof error === "object") return JSON.stringify(error);
+	if (typeof error === "object") {
+		try {
+			return JSON.stringify(error) ?? String(error);
+		} catch {
+			return String(error);
+		}
+	}
 	return String(error);
 };
 

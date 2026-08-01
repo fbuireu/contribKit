@@ -1,4 +1,4 @@
-@scope (.cell-tip) {
+@scope (.cell-tooltip) {
 	:scope {
 		position: fixed;
 		inset: auto;
@@ -31,7 +31,7 @@
 		background: transparent;
 	}
 
-	[data-date][data-count] {
+	[data-date] {
 		cursor: default;
 	}
 }
