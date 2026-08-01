@@ -1,6 +1,3 @@
-// Blocks commits that touch more than one package at once.
-// Reason: semantic-release-monorepo includes a commit in every package changelog whose files it touched,
-// so mixed commits cause web changes to appear in the app changelog and vice versa.
 import { execSync } from 'node:child_process';
 
 const PACKAGES = ['app', 'web'];
