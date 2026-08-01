@@ -40,10 +40,10 @@
 		"lint:ts:typecheck": "pnpm types && tsc --project . --noEmit"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "14.1.5",
+		"@astrojs/cloudflare": "14.1.6",
 		"@astrojs/sitemap": "3.7.3",
 		"@logtail/edge": "0.5.8",
-		"astro": "7.1.4",
+		"astro": "7.1.5",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
