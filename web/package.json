@@ -40,14 +40,14 @@
 		"lint:ts:typecheck": "pnpm types && tsc --project . --noEmit"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "14.1.2",
+		"@astrojs/cloudflare": "14.1.5",
 		"@astrojs/sitemap": "3.7.3",
 		"@logtail/edge": "0.5.8",
-		"astro": "7.1.0",
+		"astro": "7.1.4",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
-		"@astrojs/check": "0.9.9",
+		"@astrojs/check": "0.9.10",
 		"@astrojs/ts-plugin": "1.10.10",
 		"@biomejs/biome": "2.5.5",
 		"@playwright/test": "1.61.1",
