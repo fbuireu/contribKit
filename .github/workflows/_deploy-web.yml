@@ -58,7 +58,6 @@ jobs:
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           INPUTS_WORKER_NAME: ${{ inputs.worker_name }}
-          INPUTS_WRANGLER_ENV: ${{ inputs.wrangler_env }}
           DEPLOY_MESSAGE: ${{ github.sha }} - ${{ github.event_name }}
         with:
           timeout_minutes: 5
@@ -71,4 +70,4 @@ jobs:
             if [ -n "${INPUTS_WORKER_NAME}" ]; then
               NAME_FLAG="--name ${INPUTS_WORKER_NAME}"
             fi
-            pnpm exec wrangler deploy --env "${INPUTS_WRANGLER_ENV}" $NAME_FLAG --message "$DEPLOY_MESSAGE"
+            pnpm exec wrangler deploy $NAME_FLAG --message "$DEPLOY_MESSAGE"

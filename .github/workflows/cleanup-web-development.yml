@@ -5,6 +5,11 @@ on:
     types: [closed]
     paths:
       - "web/**"
+      - "shared/**"
+      - "docs/**"
+      - "*.md"
+      - ".github/workflows/ci-web.yml"
+      - ".github/actions/prepare-web-env/**"
 
 permissions:
   contents: read

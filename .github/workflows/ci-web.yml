@@ -5,12 +5,18 @@ on:
     branches: [main]
     paths:
       - "web/**"
+      - "shared/**"
+      - "docs/**"
+      - "*.md"
       - ".github/workflows/ci-web.yml"
       - ".github/actions/prepare-web-env/**"
   pull_request:
     branches: [main]
     paths:
       - "web/**"
+      - "shared/**"
+      - "docs/**"
+      - "*.md"
       - ".github/workflows/ci-web.yml"
       - ".github/actions/prepare-web-env/**"
   workflow_dispatch:
@@ -37,6 +43,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint:all
+
+      - name: Format
+        run: pnpm format:check
 
       - name: Test
         run: pnpm test --coverage
