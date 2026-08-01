@@ -21,7 +21,7 @@ No login and no token: ContribKit only reads **public** contribution data.
 | Palette | GitHub, Catppuccin, Nord, Dracula, Gruvbox, Sunset, Tokyo Night, One Dark, Rosé Pine, Solarized, Monokai |
 | Shape | rounded, square, circle, dot, hex |
 | Background | transparent, any hex (`#101010`), or a CSS color name |
-| Year | any integer from **2005** (GitHub's launch) to the current year |
+| Year | any integer from **2005** to the current year |
 
 ---
 
@@ -47,7 +47,7 @@ Unknown option values silently fall back to the default, so the image never brea
 
 1. Install from **[Google Play](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)** (App Store coming soon).
 2. Enter your username.
-3. Add a **widget** to your home screen: small (streak counter), medium (full grid), or large (both).
+3. On Android, add a **widget** to your home screen: small (streak counter) or medium (grid, streak and total). iOS has no widget — the app carries no WidgetKit extension.
 
 Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** for details.
 
@@ -57,7 +57,7 @@ Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** f
 
 ContribKit is a pnpm-workspace monorepo (`web/`, `app/`, `shared/`).
 
-**Prerequisites:** Node `v26.3.0` (see `engines`), `pnpm@11.x`, and, for the app, the Flutter SDK. Install [lefthook](Git-Hooks) once so the local checks fire.
+**Prerequisites:** Node — `v26.3.0` at the root and `26.5.1` for `web/`, which is what `web/.nvmrc` pins and what CI installs — plus `pnpm@11.18.0`, and, for the app, Flutter `3.44.8` / Dart `3.12.2` exactly as pinned in `app/pubspec.yaml`. Install [lefthook](Git-Hooks) once so the local checks fire.
 
 To work on the **web** app:
 
@@ -72,7 +72,7 @@ To work on the **Flutter app**:
 ```bash
 cd app
 flutter pub get
-flutter run --flavor development --dart-define-from-file=dart-defines.json
+flutter run --dart-define-from-file=dart-defines.json
 ```
 
 If you edit design tokens in `shared/`, run `pnpm sync:assets` so the app picks them up. See **[Project Structure](Project-Structure)**, **[Web Application](Web-Application)**, **[Mobile App](Mobile-App)**, and **[Git Hooks](Git-Hooks)**.

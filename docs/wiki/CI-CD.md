@@ -1,11 +1,11 @@
 # CI/CD
 
-CI is split per component with **path filters**, so a web change never triggers an app build and vice versa. Each component is linted, tested, built, versioned with semantic-release, and shipped automatically: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
+CI is split per component with **path filters**, so an app change never triggers a web build and vice versa. Each component is linted, tested, built, versioned with semantic-release, and shipped automatically: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
-| `ci-web.yml` | `web/**` changes | lint, test, build, typecheck, deploy, release |
-| `ci-app.yml` | `app/**` changes | Flutter format check, analyze, test (+coverage), build |
+| `ci-web.yml` | `web/**`, `shared/**`, `docs/**`, `*.md` changes | lint, test, build, typecheck, deploy, release |
+| `ci-app.yml` | `app/**` changes | docs-consistency contract, Flutter format check, analyze, test (+coverage), build |
 | `release-app.yml` | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
 | `_deploy-web.yml` | reusable | shared web deploy steps |
 | `cleanup-web-development.yml` | PR close | deletes the per-PR preview worker |
@@ -31,9 +31,9 @@ flowchart LR
 ```
 
 - **web-check:** Biome lint, Vitest tests, upload coverage to Codecov.
-- **web-build:** production build + `tsc` typecheck.
+- **web-build:** production build + `pnpm lint:astro` (`astro check` over the Astro diagnostics). No workflow runs `tsc`; `pnpm lint:ts:typecheck` is a local command only.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`.
-- **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-web-development.yml`.
+- **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-web-development.yml`, whose path filter matches this workflow's so no preview outlives its pull request.
 - **release:** semantic-release versions the web component (decoupled from deploy).
 
 Both deploys pass an explicit `--message` (`<sha> - <event>`) to `wrangler deploy`. Without it, wrangler
@@ -41,6 +41,8 @@ annotates the deployment with the full commit message, and Cloudflare rejects th
 is very long (e.g. a large squash-merge body) — the API error does not mention the message at all.
 
 Concurrency cancels in-progress runs for pull requests only.
+
+> **The path filter is wider than `web/**` on purpose.** `shared/**`, `docs/**` and `*.md` are in the trigger list because the documentation-consistency contract runs inside `web-check`, and a guard that never fires on documentation changes is not a guard. The cost is that `deploy-production` sits behind the same filter, so **a documentation-only push to `main` redeploys the Worker**. That is accepted — the deploy is idempotent, and the alternative is a silently disabled contract. Removing any of those three patterns disables it.
 
 ---
 
@@ -55,10 +57,12 @@ config:
   theme: neutral
 ---
 flowchart LR
+  docs["docs-contract (pnpm test:docs)"]
   analyze["flutter-analyze (format + analyze --fatal-infos)"] --> build["flutter-build (debug APK)"]
   test["flutter-test (+ coverage → Codecov)"] --> build
 ```
 
+- **docs-contract:** installs Node and the web dependencies and runs `pnpm test:docs`. It touches no Dart, and it is here because `ci-web.yml` is never triggered by `app/**` while a large share of the contract's assertions are about the Flutter side — the mirrored tokens in `app/assets/`, the nested guides under `app/lib/`, the ban on `//` comments in hand-written Dart. Adding `app/**` to the web filter instead would redeploy the site on every app commit.
 - **flutter-analyze:** `dart format` verification + `flutter analyze --fatal-infos`.
 - **flutter-test:** unit/widget tests with coverage uploaded to Codecov.
 - **flutter-build:** builds a debug APK to catch build breakages early.
@@ -89,7 +93,7 @@ flowchart TD
 1. **Version:** semantic-release computes the next version from Conventional Commits, updates the changelog, tags `app-vX.Y.Z`, and force-updates the major tag (`app-vX`). A `detect` step decides whether anything was actually published.
 2. **Sign:** the upload keystore and Play service-account JSON are decoded from GitHub secrets at runtime; nothing sensitive is committed.
 3. **Release notes:** the latest `CHANGELOG.md` section is transformed into a Google Play `changelogs/<versionCode>.txt`: drop the version header, flatten subheadings, unwrap Markdown links, strip bold/commit-hashes, bulletize, and clamp to **500 chars** (Play's limit). The notes are also echoed to the job summary.
-4. **Build:** `flutter build appbundle --release`, with the RevenueCat key injected via `--dart-define-from-file` and shared assets synced first.
+4. **Build:** `flutter build appbundle --release --dart-define-from-file=dart-defines.json`, where that file is written at runtime from the RevenueCat secret. The workflow does not run `pnpm sync:assets`, but it does regenerate the mirror: a `Sync shared assets` step copies `shared/*.json` into `assets/` immediately before the build, so the AAB always ships the current tokens even if the commit did not.
 5. **Upload:** `fastlane deploy track:<track>` pushes the AAB to the chosen Play track.
 
 The job binds to the `app-production` or `app-development` GitHub Environment depending on the selected track, so production secrets stay scoped.
@@ -107,7 +111,7 @@ Environments are repo-global, so they're namespaced by component (`<component>-<
 | `app-production` | Flutter app | production | `release-app.yml` (track = production) |
 | `app-development` | Flutter app | development | `release-app.yml` (track ≠ production) |
 
-App `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker. Component-scoped configs don't repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter uses `production` / `development` flavors.
+App `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker. Component-scoped configs don't repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter has no build flavors: locally the stage is whichever dart-defines file you pass (`dart-defines.prod.json` vs `dart-defines.json`), and in `release-app.yml` it is the `track` input, which selects the GitHub Environment whose `REVENUECAT_KEY` is written into `dart-defines.json` at build time.
 
 ---
 
@@ -132,5 +136,5 @@ semantic-release runs per component and tags `web-vX.Y.Z` / `app-vX.Y.Z`, driven
 
 - **[Git Hooks](Git-Hooks)** runs the same checks locally before push.
 - **[Web Application](Web-Application)** explains the `@astrojs/cloudflare` deploy gotcha.
-- **[Mobile App](Mobile-App)** covers flavors, signing, and in-app purchases.
+- **[Mobile App](Mobile-App)** covers build configuration, signing, and in-app purchases.
 - **[Project Structure](Project-Structure)** covers the monorepo tooling.

@@ -1,6 +1,6 @@
 # Calendar Grid
 
-GitHub's contribution calendar is always a fixed **53 weeks × 7 days** grid. ContribKit builds that grid deterministically so rendering is stable regardless of which days GitHub actually returned. The logic lives in `domain/services/calendar-grid.ts`.
+GitHub's contribution calendar is always a fixed **53 weeks × 7 days** grid. ContribKit builds that grid deterministically so rendering is stable regardless of which days GitHub actually returned. The logic lives in `web/src/domain/services/calendar-grid.ts`.
 
 ```mermaid
 ---
@@ -14,7 +14,7 @@ flowchart LR
     walk --> grid["53 weeks × 7 days<br/>= 371 cells"]
 ```
 
-`SVG_GRID_CELL_COUNT = SVG_WEEKS (53) × SVG_DAYS_PER_WEEK (7) = 371` cells.
+`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7) = 371` cells. All three are declared in `web/src/domain/services/dates.ts`.
 
 ---
 
@@ -26,7 +26,7 @@ A year doesn't start on a Sunday, so the grid starts on the **Sunday on or befor
 start = (year-01-01) shifted back by getWeekday(year-01-01) days
 ```
 
-From `start`, it walks forward exactly `SVG_GRID_CELL_COUNT` days, producing one `ContributionDay` per cell. Date math is pure ISO-string arithmetic in `domain/services/dates.ts`:
+From `start`, it walks forward exactly `GRID_CELL_COUNT` days, producing one `ContributionDay` per cell. Date math is pure ISO-string arithmetic in `web/src/domain/services/dates.ts`:
 
 | Helper | Behavior |
 |--------|----------|
@@ -34,7 +34,7 @@ From `start`, it walks forward exactly `SVG_GRID_CELL_COUNT` days, producing one
 | `addDays({ iso, days })` | shifts an ISO date by N days |
 | `toIsoDate(date)` | `YYYY-MM-DD` slice |
 
-All three construct dates at **`T12:00:00`** (local noon) rather than midnight. Anchoring at noon avoids off-by-one errors where a DST transition or timezone offset would otherwise push a midnight timestamp into the previous/next day.
+The two that construct a date — `getWeekday` and `addDays` — do it at **`T12:00:00`** (local noon) rather than midnight; `toIsoDate` builds no `Date` at all, it formats one out of its local calendar fields. Anchoring at noon avoids off-by-one errors where a DST transition or timezone offset would otherwise push a midnight timestamp into the previous/next day.
 
 ### Worked example
 

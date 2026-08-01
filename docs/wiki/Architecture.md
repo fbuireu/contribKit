@@ -10,12 +10,12 @@ config:
 ---
 flowchart RL
     application --> domain
-    infrastructure --> application
+    infrastructure --> domain
     ui["ui / pages"] --> application
     ui --> domain
 ```
 
-Each layer documents its own rules in a colocated `CONTEXT.md`.
+Each layer documents its own rules in a colocated `CLAUDE.md`.
 
 ---
 
@@ -39,17 +39,17 @@ Each layer documents its own rules in a colocated `CONTEXT.md`.
 
 ### Validated value objects
 
-Value objects validate on construction. If a `Username` exists, it is valid; same for `Year`, `Palette`, `ShapeKind`, `ContributionLevel`. Validation happens once, at the boundary, so the rest of the code never re-checks. Each exposes a `parse*` constructor returning `T | Failure` (or `null`) and an `is*` type guard.
+Value objects validate on construction. If a `Username` exists, it is valid; same for `Year`. Validation happens once, at the boundary, so the rest of the code never re-checks. Only those two carry the full pair — `parseUsername`/`isUsername` and `parseYear`/`isYear`, the constructors returning `T | Failure`. The other three are narrower by design: `CellShape` exposes `isCellShape` alone, `Palette` a total `paletteByKey` lookup, and `ContributionLevel` a `clampLevel` that cannot fail.
 
 | Value object | Rule | On failure |
 |--------------|------|------------|
-| `Username` | trimmed; matches `^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$` (1–39 chars, no leading/trailing or doubled hyphen) | `InvalidInput(username)` |
+| `Username` | trimmed; matches `^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$` — 1–39 chars, no leading or trailing hyphen. Consecutive hyphens **are** accepted even though GitHub rejects them, so `a--b` validates here and 404s upstream | `InvalidInput(username)` |
 | `Year` | `null`/empty → `null` (latest rolling year); must be an integer in `2005 … currentYear` | `InvalidInput(year)` |
 | `ContributionLevel` | `clampLevel(raw)` clamps any number into `0–4` | never fails (clamps) |
 | `Palette` | looked up by key; unknown key falls back to `github` | never fails (default) |
-| `ShapeKind` | one of `rounded`, `square`, `circle`, `dot`, `hex`; unknown falls back to `rounded` | never fails (default) |
+| `CellShape` | one of `rounded`, `square`, `circle`, `dot`, `hex`; unknown falls back to `rounded` | never fails (default) |
 
-`Username` and `ShapeKind`/`Palette` source their suggestion lists and definitions from the shared token JSON, so input validation and the customizer stay in sync.
+`Username` and `CellShape`/`Palette` source their suggestion lists and definitions from the shared token JSON, so input validation and the customizer stay in sync.
 
 ### Entities
 
@@ -72,15 +72,15 @@ Pure helpers with no I/O, all unit-tested:
 | `dates` | ISO-string date math (`addDays`, `getWeekday`, `toIsoDate`) |
 | `SvgRenderer` | the pure rendering **function type** implemented in `infrastructure/` |
 
-### Typed failures, no throwing
+### Typed failures
 
-Errors are a `Failure` discriminated union: `NotFound`, `InvalidInput`, `Network`, `Parse`. Functions return `T | Failure`; nothing throws across layers. Failures are built with small constructors and narrowed with `isFailure`:
+On the web, errors are a `Failure` discriminated union: `NotFound`, `InvalidInput`, `Network`, `Parse`. Functions return `T | Failure`; nothing throws across layers. The app uses a sealed `Failure` hierarchy instead and throws it across `infrastructure` to `ui`, matching it without a wildcard where the error is rendered. Failures are built with small constructors and narrowed with `isFailure`:
 
 | Constructor | Produces | Carries |
 |-------------|----------|---------|
 | `notFound(username)` | `NotFound` | `username` |
 | `invalidInput({ field, message })` | `InvalidInput` | `field` (`username`/`year`), `message` |
-| `network(message, status?)` | `Network` | `message`, optional upstream `status` |
+| `network({ message, status })` | `Network` | `message`, optional upstream `status` |
 | `parse(message)` | `Parse` | `message` |
 
 The mapping from `Failure` to an HTTP status and message lives in exactly one place: `application/http/failure-http.ts` (`statusFor`, `messageFor`), guarded by `isFailure`. See **[How It Works](How-It-Works)** for the status table.

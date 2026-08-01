@@ -37,9 +37,9 @@ with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The gr
 
 ### Labels
 
-- **Month labels** come from `MONTHS` (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `monthLabelPositions` emits a label at the first week of each new month, but only when that week's first day falls on/before day 7, which prevents a stray label when a month barely peeks into a column.
-- **Day-of-week labels** are `DOW = ["Mon", "Wed", "Fri"]`, drawn on alternating rows (rows 1, 3, 5) so they don't overlap.
-- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`) so they read on both light and dark backgrounds.
+- **Month labels** come from `MONTH_LABELS` in `calendar-labels.ts` (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `monthLabelPositions` emits a label at the first week of each new month, but only when that week's first day falls on/before day 7, which prevents a stray label when a month barely peeks into a column.
+- **Day-of-week labels** are `WEEKDAY_LABELS = ["Mon", "Wed", "Fri"]`, drawn on alternating rows (rows 1, 3, 5) so they don't overlap.
+- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one — a known defect recorded in [`web/src/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/CLAUDE.md).
 
 ---
 
@@ -97,7 +97,7 @@ The server renderer above powers the `/user/:username.svg` endpoint. The **landi
 |---|---|---|
 | Colors | palette literals + `rgba(...)` label fills | same palette colors, but label text via CSS vars (`var(--text-dim)`, `var(--font-mono)`) so it tracks the theme |
 | Sizing | fixed `width`/`height` | `width="100%"` + `style="display:block;overflow:visible"` for responsive layout |
-| Per-cell | fill only | also emits `data-date` and `data-count` for the hover tooltip (count falls back to `TOTALS_PER_LEVEL[level]`) |
+| Per-cell | fill only | also emits `data-date`, plus `data-count` only when the count is known — cells with an unknown count omit it and the tooltip says so |
 
 `render-svg.ts` also exports `shapePreviewSVG(kind)`, the tiny 20×20 swatch drawn inside each shape-picker button, using `SHAPE_PREVIEWS` and the `--contrib-peak` CSS var.
 
@@ -107,14 +107,14 @@ The server renderer above powers the `/user/:username.svg` endpoint. The **landi
 
 The landing page has **no reactive framework**. The DOM itself is the source of truth, and one function re-renders everything.
 
-**1. State.** Two singletons in `ui/utils/state.ts` hold the fetched data: `getCells()` / `setCells()` and the username. The active **shape** and **palette** are read straight from the DOM, from whichever control carries the `.active` class (`ui/utils/render.ts`):
+**1. State.** Two singletons in `ui/utils/state.ts` hold the fetched data: `getDays()` / `setDays()` and the username. The active **shape** and **palette** are read straight from the DOM, from whichever control carries the `.active` class (`ui/utils/render.ts`):
 
 ```ts
 getActivePalette = () => $("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY;
-getActiveShape   = () => $("#shape-list  .shape-btn.active")?.dataset.key   ?? DEFAULT_SHAPE_KIND;
+getActiveShape   = () => $("#shape-list  .shape-btn.active")?.dataset.key   ?? DEFAULT_CELL_SHAPE;
 ```
 
-**2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getCells()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_PRESET` 13/3, `CUSTOMIZE_GRID_PRESET` 12/3, `EXPORT_GRID_PRESET` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
+**2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_PRESET` 13/3, `CUSTOMIZE_GRID_PRESET` 12/3, `EXPORT_GRID_PRESET` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
 
 **3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in `ui/utils/page-init.ts`; their `onActivate` is `renderCustomize`:
 
@@ -125,7 +125,7 @@ initRadioList("#shape-list .shape-btn");       // pick shape   → renderCustomi
 
 Activating a button moves the `.active` class (`activateRadio`) and fires `renderCustomize`, which re-reads the new selection from the DOM.
 
-**4. New data.** When a username is rendered, `renderFromGitHub` fetches `/api/contributions`, calls `setCells(buildGridFromApi(...))`, then `renderCustomize()`. The grid shape (53×7) is always rebuilt by [Calendar Grid](Calendar-Grid); the fetch only fills `level`/`count`.
+**4. New data.** When a username is rendered, `renderFromGitHub` fetches `/api/contributions`, calls `setDays(buildGridFromApi(...))`, then `renderCustomize()`. The grid shape (53×7) is always rebuilt by [Calendar Grid](Calendar-Grid); the fetch only fills `level`/`count`.
 
 In one line: **change shape/palette → `activateRadio` flips `.active` → `onActivate` runs `renderCustomize` → it reads selection from the DOM + cells from the singleton → `renderCalendarString` regenerates each grid's `innerHTML`.** The same flow runs after a fetch, just triggered by new data instead of a click.
 

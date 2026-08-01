@@ -2,7 +2,7 @@
 
 **Visualize, customize, and export your GitHub contribution calendar with custom palettes, shapes, and backgrounds. No token required.**
 
-ContribKit turns any public GitHub profile into a fully customizable contribution calendar you can pin, embed, or carry on your home screen. It runs as a web app and public API on Cloudflare Workers, and as a native iOS & Android app with home-screen widgets, both sharing a single set of design tokens.
+ContribKit turns any public GitHub profile into a fully customizable contribution calendar you can pin, embed, or carry on your home screen. It runs as a web app and public API on Cloudflare Workers, and as a native iOS & Android app with Android home-screen widgets, both sharing a single set of design tokens.
 
 ---
 
@@ -13,7 +13,7 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 - Renders a customizable calendar as **SVG** (web/API), **PNG**, or **Markdown** (app)
 - Offers **11 color palettes**, **5 cell shapes**, and configurable backgrounds
 - Exposes a **live SVG endpoint** you can drop straight into a README
-- Ships a **mobile app** with daily-refreshed home-screen widgets
+- Ships a **mobile app** with daily-refreshed home-screen widgets on Android
 
 ---
 
@@ -29,7 +29,7 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 | **[Web Application](Web-Application)** | Astro on Cloudflare Workers: dev, deploy, env |
 | **[Mobile App](Mobile-App)** | Flutter app, widgets, in-app purchases |
 | **[Fetching Contributions](Fetching-Contributions)** | The GitHub HTML scraping repository |
-| **[HTML Parsing](HTML-Parsing)** | Regex extraction of cells and tooltips |
+| **[HTML Parsing](HTML-Parsing)** | Regex extraction of Contribution Days and tooltips |
 | **[Calendar Grid](Calendar-Grid)** | Building the deterministic 53×7 grid |
 | **[SVG Rendering](SVG-Rendering)** | Geometry, shapes, and the string renderer |
 | **[Deterministic Randomness](Mulberry32)** | The Mulberry32 PRNG used for placeholder grids |
@@ -46,18 +46,18 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 - **11 palettes:** GitHub, Catppuccin, Nord, Dracula, Gruvbox, Sunset, Tokyo Night, One Dark, Rosé Pine, Solarized, Monokai
 - **5 cell shapes:** rounded, square, circle, dot, hex
 - **Backgrounds:** transparent, any hex color, or a CSS color name
-- **Year selector:** any year back to 2005 (GitHub's launch)
+- **Year selector:** any year back to 2005
 
 ### Platforms
 
 - **Web app + API:** Astro + TypeScript on Cloudflare Workers
-- **iOS & Android:** one Flutter codebase, with platform-respecting home-screen widgets
+- **iOS & Android:** one Flutter codebase; the home-screen widgets are Android-only
 - **README embed:** a one-line Markdown snippet that always shows your latest calendar
 
 ### Engineering highlights
 
 - **Token-free by design:** reads GitHub's public contributions page; no API key, OAuth, or PAT anywhere in the stack
-- **One architecture, two platforms:** the same DDD-ish layering (`domain` → `application` → `infrastructure`/`ui`) in TypeScript and Dart, with pure domains, validated value objects at every boundary, and typed `Failure` unions (nothing throws across layers)
+- **One architecture, two platforms:** the same DDD-ish layering (`domain` → `application` → `infrastructure`/`ui`) in TypeScript and Dart, with pure domains, validated value objects at every boundary, and sealed sets of typed `Failure`s matched without a wildcard (returned as values on the web, thrown and caught in the app)
 - **Edge rendering:** SVG generated as a pure string inside a Cloudflare Worker (no DOM, no canvas), so output is deterministic and cacheable
 - **Single source of truth:** palettes/shapes/usernames defined once in `shared/`, consumed by both apps and auto-synced into the Flutter bundle
 - **Fully automated delivery:** per-component CI with path filters, per-PR preview Workers, semantic-release versioning, and **automatic Google Play shipping** (signed AAB + Play release notes generated from the changelog)

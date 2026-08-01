@@ -5,7 +5,7 @@ ContribKit is a pnpm-workspace monorepo with three components that share design 
 ```
 ContribKit/
 ├── web/        Astro + TypeScript on Cloudflare Workers (contribkit.app + API)
-├── app/        Flutter iOS & Android app with home-screen widgets
+├── app/        Flutter iOS & Android app, Android home-screen widgets
 ├── shared/     Single source of truth: palettes, shapes, usernames (JSON)
 ├── scripts/    Repo tooling (e.g. sync-shared-assets.mjs)
 └── .github/    CI/CD workflows
@@ -14,7 +14,7 @@ ContribKit/
 | Directory | Component | Stack |
 |-----------|-----------|-------|
 | `web/` | contribkit.app + SVG/JSON API | Astro · TypeScript · Cloudflare Workers |
-| `app/` | iOS & Android app with widgets | Flutter · Riverpod · RevenueCat |
+| `app/` | iOS & Android app, Android widgets | Flutter · Riverpod · RevenueCat |
 | `shared/` | Palettes, shapes, usernames | JSON consumed by both apps |
 
 ---
@@ -23,10 +23,10 @@ ContribKit/
 
 ```
 domain/
-  value-objects/   Username, Year, ContributionLevel, Palette, ShapeKind, calendar-labels
+  value-objects/   Username, Year, ContributionLevel, Palette, CellShape, calendar-labels
   entities/        ContributionDay, ContributionCalendar (types.ts)
   repositories/    ContributionsRepository (interface only)
-  services/        calendar-grid, svg-geometry, cell-shapes, dates, SvgRenderer type
+  services/        calendar-grid, svg-geometry, cell-shapes, dates, contribution-stats, SvgRenderer type
   failures/        Failure union + constructors + isFailure
 application/
   use-cases/       fetchContributions, renderCalendarSvg, loadInitialContributions
@@ -39,15 +39,19 @@ ui/
   components/      Astro components (core/, grid/, error/, icons/, features…)
   utils/           page-init, render/state, roving, url/cookie, mulberry, …
   styles/          @layer-based global CSS
-pages/
+pages/             every non-underscore file here is a public URL, .md included
   index.astro      landing page (SSR + client interactivity)
   api/             contributions.ts, health.ts
   user/            [username].svg.ts
+  _contributions.ts  shared composition, not a route
+  _tests/          the route tests, kept out of the namespace
   404.astro, 500.astro, legal-notice/privacy/terms
 middleware.ts      rate limiting + security headers
 ```
 
-Most layers carry a colocated `CONTEXT.md` documenting their rules. See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
+Unit tests sit next to what they cover. The one exception is `docs/docs-consistency.test.ts`: its subject is the documentation, not a module, so it lives beside the documents at the repo root. It still runs from the web package — `web/vitest.config.ts` adds `../docs/**/*.test.ts`, `web/tsconfig.json` includes it, and the biome scripts pass `../docs`.
+
+Every layer carries a colocated `CLAUDE.md` documenting its rules, and the docs-consistency test fails if one is missing. See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
 
 ---
 
@@ -79,8 +83,9 @@ The single source of truth for data used by both apps:
 - **web** imports these directly via the `@shared` alias at build time.
 - **app** (Flutter) can only bundle assets inside its own package, so it uses generated copies in `app/assets/*.json`. They are regenerated:
   - automatically on commit (lefthook `pre-commit` runs `scripts/sync-shared-assets.mjs --stage` when a `shared/*.json` is staged),
-  - in CI before the release build,
   - manually with `pnpm sync:assets`.
+
+  **`ci-app.yml` does not regenerate them**, so the only thing standing between a stale mirror and a green CI run is that pre-commit hook — and the docs-consistency test, which compares the two directories and fails when they drift. The release workflow is the exception: `release-app.yml` copies `shared/*.json` into `assets/` in its `Sync shared assets` step, immediately before building the AAB, so a shipped build is never stale even when the commit is.
 
 ---
 
@@ -102,5 +107,5 @@ See **[Git Hooks](Git-Hooks)** for how these run.
 - **Package manager:** pnpm workspaces (`pnpm-workspace.yaml`)
 - **Commits:** Conventional Commits, enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows that only run when their component changes (see **[CI/CD](CI-CD)**)
+- **CI:** path-filtered workflows — `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**` and `*.md`; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
 - **Git hooks:** lefthook (`lefthook install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)

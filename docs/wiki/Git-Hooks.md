@@ -107,8 +107,8 @@ module.exports = {
 };
 ```
 
-- **[Conventional Commits](https://www.conventionalcommits.org):** `type(scope): subject` (e.g. `feat(web): add hex shape`).
-- **pnpm scopes:** valid scopes are derived from the workspace packages.
+- **[Conventional Commits](https://www.conventionalcommits.org):** `type(scope): subject` (e.g. `feat(contribkit-web): add hex shape`).
+- **pnpm scopes:** valid scopes are derived from the workspace package **names**, so they are `contribkit-web` and `contribkit-app` — not `web` and `app`, which commitlint rejects. The scope is optional.
 - **scope-case:** scopes may be `lower-case`, `PascalCase`, or `camelCase`.
 - **header-max-length:** the header may be up to **130** characters.
 

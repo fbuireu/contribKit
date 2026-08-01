@@ -1,0 +1,308 @@
+# Architecture
+
+How ContribKit is built, for contributors. What it does and how to use it is the [README](./README.md) and the
+user guides in [docs/wiki/](./docs/wiki/) — in particular [How It Works](./docs/wiki/How-It-Works.md) and
+[Project Structure](./docs/wiki/Project-Structure.md); this document does not restate them. Conventions and the
+maintenance contract are [CLAUDE.md](./CLAUDE.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to
+work on the repo is [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+The thing to understand before anything else: **the same domain is implemented twice**, in TypeScript and in Dart,
+deliberately ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). The layering is heavier
+than one client would justify. Its job is to keep the two implementations shaped alike, so "does the app do what
+the web does?" stays a cheap question to answer.
+
+## 1. Components
+
+```mermaid
+---
+config:
+  look: handDrawn
+  theme: neutral
+---
+flowchart TD
+    gh["github.com/users/:login/contributions<br/>public HTML, no token"]
+
+    gh --> web["web/<br/>Astro 7 SSR on Cloudflare Workers"]
+    gh --> app["app/<br/>Flutter, iOS + Android"]
+
+    tokens["shared/<br/>palettes · shapes · usernames"] --> web
+    tokens -->|"pnpm sync:assets"| assets["app/assets/*.json<br/>generated copy"]
+    assets --> app
+
+    web --> site["contribkit.app"]
+    web --> svg["GET /user/:username.svg"]
+    web --> json["GET /api/contributions"]
+    app --> widget["home-screen widget"]
+    app --> export["PNG · SVG · Markdown"]
+
+    classDef pure fill:#8a6a0f,stroke:#dfb317,stroke-width:2px,color:#fff
+    classDef shell fill:#9b2530,stroke:#d73a49,stroke-width:2px,color:#fff
+    class tokens,assets pure
+    class web,app,gh shell
+```
+
+| Component | What it is | Released as |
+| --- | --- | --- |
+| [`web/`](./web/README.md) | Astro 7 (`output: "server"`) on `@astrojs/cloudflare`, serving the site plus the public SVG and JSON endpoints | `web-vX.Y.Z`, deployed to Cloudflare Workers |
+| [`app/`](./app/README.md) | Flutter iOS/Android client with home-screen widgets and a tip jar | `app-vX.Y.Z`, shipped to Google Play |
+| [`shared/`](./shared/README.md) | Plain JSON design tokens: `palettes.json`, `shapes.json`, `usernames.json` | not released; consumed by both |
+
+Neither client needs a GitHub token. Both read the same public contributions page
+([ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md)), and the app talks to GitHub directly
+rather than through this project's own API ([ADR 0008](./docs/adr/0008-the-mobile-app-fetches-github-directly.md)) —
+a decision with a written exit plan in [docs/plans/0001](./docs/plans/0001-app-consumes-contribkit-api.md).
+
+The two components are released independently ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)),
+which is why a single commit may not touch both — `scripts/auto-scope.mjs` rejects one that does, because
+`semantic-release-monorepo` would file it in both changelogs.
+
+## 2. Layer map
+
+Both clients use the same four layers with a strict inward dependency direction. Gold is the pure core; red is the
+shell that owns the side effects.
+
+```mermaid
+---
+config:
+  look: handDrawn
+  theme: neutral
+---
+flowchart TD
+    subgraph W["web/src — TypeScript"]
+        wpages["pages/<br/>routes · composition root"] --> wui["ui/<br/>Astro components"]
+        wpages --> wapp["application/<br/>curried use cases"]
+        wpages --> winfra["infrastructure/<br/>scraping · SVG · logging"]
+        wui --> wdom["domain/<br/>pure TS"]
+        wapp --> wdom
+        winfra --> wdom
+    end
+
+    subgraph A["app/lib — Dart"]
+        aui["ui/<br/>widgets · Riverpod"] --> aapp["application/<br/>one class per use case"]
+        aui --> ainfra["infrastructure/<br/>GitHub · Hive · export · IAP"]
+        aapp --> adom["domain/<br/>pure Dart"]
+        ainfra --> adom
+    end
+
+    classDef pure fill:#8a6a0f,stroke:#dfb317,stroke-width:2px,color:#fff
+    classDef shell fill:#9b2530,stroke:#d73a49,stroke-width:2px,color:#fff
+    class wdom,wapp,adom,aapp pure
+    class wpages,wui,winfra,aui,ainfra shell
+```
+
+Every arrow is an import a layer may make; anything not drawn is forbidden. The table is the normative statement —
+the diagram is its picture.
+
+| Layer | Web | App | May import | Must not import |
+| --- | --- | --- | --- | --- |
+| domain | `web/src/domain/` · `@domain/*` | `app/lib/domain/` | nothing but the language stdlib, plus `shared/*.json` as data on the web | Astro, Cloudflare, `fetch`, Flutter, Riverpod, `dart:ui` |
+| application | `web/src/application/` · `@application/*` | `app/lib/application/` | domain | infrastructure, ui, pages, any framework |
+| infrastructure | `web/src/infrastructure/` · `@infrastructure/*` | `app/lib/infrastructure/` | domain | ui, pages, application |
+| ui | `web/src/ui/` · `@ui/*` | `app/lib/ui/` | domain; the app also reaches application, and infrastructure **only** through `ui/di/` | web-side: application, infrastructure — neither is imported today |
+| pages | `web/src/pages/` | — (the app's composition root is `ui/di/providers.dart`) | everything | — |
+
+Three rules govern the diagram in both languages:
+
+- **The domain layer imports nothing from its host framework.** On the web that means no Astro, no Cloudflare, no
+  `fetch`; in the app no Flutter, no Riverpod, no `dart:ui` — which is why the app carries its own `Color` value
+  object rather than the framework's.
+- **Value objects validate on construction.** If a `Username` exists, it is valid.
+- **Errors are a sealed, typed set** ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)),
+  and the two clients carry that set differently — see §4.
+
+The codebase-wide conventions those boundaries sit inside are stated once in
+[CLAUDE.md](./CLAUDE.md#conventions); what each layer actually guarantees is that layer's own `CLAUDE.md`, linked
+in [§7](#7-where-things-live).
+
+## 3. A request, end to end
+
+**Web — `GET /user/:username.svg`** (`web/src/pages/user/[username].svg.ts`):
+
+| # | Call | Layer | Notes |
+| --- | --- | --- | --- |
+| 1 | `parseUsername(params.username)` | domain | Returns a `Username` or an `InvalidInput` failure; nothing downstream sees an unvalidated handle |
+| 2 | `fetchContributions(repository)({ username, year: null })` | application | Curried once in `web/src/pages/_contributions.ts`, which every data route imports: the repository is bound at module load, the call takes the request |
+| 3 | `createGithubHtmlContributionsRepository()` fetches and parses | infrastructure | Regexes over the rendered page — there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
+| 4 | `querySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
+| 5 | `renderCalendarSvg(svgStringRenderer)({ calendar, options })` | application → infrastructure | String concatenation, no DOM |
+| 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`; `/api/health` is the exception at `no-store` |
+
+Any failure short-circuits: `isFailure` guards the result and `statusFor` / `messageFor` in
+`web/src/application/http/failure-http.ts` turn it into a response. Anything at or above `SERVER_ERROR_STATUS` is
+also reported to Better Stack with the username, kind and endpoint — from all three data consumers, the landing page
+included. This endpoint is deliberately **not** rate-limited — README embeds arrive through
+GitHub's shared image proxy, so a per-IP limit would throttle every reader at once
+([ADR 0010](./docs/adr/0010-rate-limit-only-the-json-api.md)).
+
+**App — opening the Viewer** (`app/lib/ui/features/viewer/`):
+
+| # | Call | Layer | Notes |
+| --- | --- | --- | --- |
+| 1 | `providers.dart` constructs repositories and use cases | ui/di | The only file allowed to import `infrastructure/` and `application/` at once |
+| 2 | `FetchContributions.call(...)` | application | One class, one public `call` |
+| 3 | `GitHubContributionRepository.fetchCalendar(...)` | infrastructure | Hive cache first — 1h TTL for the current year, indefinite for past years ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)) |
+| 4 | DTO → entity at the boundary | infrastructure/github/dtos | A DTO never leaves the layer |
+| 5 | Grid padded to 53×7 | infrastructure | `_groupIntoWeeks` in the app's contribution repository pads dates outside the requested year as empty days, so week counts never vary ([ADR 0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md)). The web builds its grid in the domain layer instead |
+| 6 | `ContributionStats` derived | domain/services | Streaks, best day, best month, weekly average, active days |
+
+Separately, `callbackDispatcher` in `app/lib/main.dart` runs every 24 hours under WorkManager to refresh the
+home-screen widget. It is a **background isolate**: it opens Hive and reads the settings box by key directly rather
+than going through `SettingsRepository`, so it survives a rename silently and has to be updated by hand. This is the
+first of the three traps named in [CLAUDE.md](./CLAUDE.md#maintenance-contract).
+
+## 4. Failures
+
+One sealed set per client, matched exhaustively at the boundary, never widened with a wildcard
+([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). The two sets are not identical, and
+the difference is the point: each client can only fail in the ways it can actually fail.
+
+| Web (`Failure` union, returned as a value) | App (`sealed class Failure`, thrown and caught) |
+| --- | --- |
+| `NotFound`, `InvalidInput`, `Network`, `Parse` | `NotFoundFailure`, `NetworkFailure`, `ParseFailure`, `RateLimitedFailure`, `CacheFailure`, `ExportFailure`, `PurchaseFailure`, `UnexpectedFailure` |
+
+The web returns failures because a Worker route is a function from request to response and a thrown error there is
+just a 500 with no shape. The app throws them because a `sealed class` plus an exhaustive `switch` is how Dart makes
+a missed case a compile error. Adding a kind to either set means updating the exhaustive match that renders it, in
+the same commit.
+
+## 5. Shared design tokens
+
+`shared/*.json` is the single source of truth for palettes, cell shapes and suggested usernames. The web imports it
+at build time through the `@shared/*` alias. Flutter cannot import from outside its own package, so
+`scripts/sync-shared-assets.mjs` copies the files into `app/assets/` and the app loads them as bundled assets
+([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)).
+
+**Edit `shared/`, never `app/assets/`** — the copies are generated, a lefthook `pre-commit` command regenerates and
+stages them whenever `shared/*.json` changes, and the docs-consistency test fails if they drift.
+
+Two token facts worth knowing before you touch them: the app bundles `shapes.json` but no Dart code reads it, which
+is recorded rather than fixed ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)),
+and the `noneLight` palette variant is app-only because an embedded SVG cannot know the viewer's theme
+([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)).
+
+## 6. Build & release
+
+- **Web.** `pnpm build` is `wrangler types && astro build`. It is server-rendered rather than prerendered because
+  the SVG endpoint renders per request ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). Biome
+  is linter and formatter; Vitest covers unit and docs tests; Playwright runs end-to-end against the deployed
+  preview.
+- **App.** Flutter 3.44.8 / Dart 3.12.2, pinned in `app/pubspec.yaml`. A mismatched local Flutter blocks `pub get`
+  and codegen — do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
+  `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is
+  passed, and `--flavor` fails.
+- **Hooks.** lefthook, composed from `lefthook.yml` plus `app/lefthook.yml` and `web/lefthook.yml`. `pre-commit`
+  formats staged Dart and web files and re-stages them, and syncs `shared/*.json`; `commit-msg` runs
+  `scripts/auto-scope.mjs` then commitlint; `pre-push` runs `flutter analyze --fatal-infos` and `pnpm lint:astro`.
+- **Releases.** semantic-release per component, own tag series (`web-vX.Y.Z`, `app-vX.Y.Z`), configured in
+  `web/.releaserc.json` and `app/.releaserc.json`.
+
+`.github/workflows/`:
+
+| Workflow | Trigger | Purpose |
+| --- | --- | --- |
+| `ci-web.yml` | push/PR to `main` under `web/**`, `shared/**`, `docs/**`, `*.md` or its own config | Lint, test + coverage, build, typecheck; then release and deploy |
+| `_deploy-web.yml` | called by `ci-web.yml` | Reusable Cloudflare deploy, parameterised by environment |
+| `ci-app.yml` | push/PR to `main` under `app/**`, its own config, or `prepare-web-env` | `pnpm test:docs`, `dart format --set-exit-if-changed`, `flutter analyze --fatal-infos`, `flutter test` with coverage, debug APK build |
+| `release-app.yml` | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
+| `cleanup-web-development.yml` | PR closed, under the same paths as `ci-web.yml` | Deletes the per-PR preview Worker. Its filter must mirror the one that creates the preview, or a docs-only PR leaves a Worker behind |
+| `sync-wiki.yml` | push to `main` under `docs/wiki/**` | Publishes `docs/wiki/` to the GitHub Wiki |
+| `zizmor.yml` | — | Static analysis of the workflow files themselves |
+| `dependabot-auto-merge.yml` · `renovate-auto-approve.yml` | dependency PRs | Auto-approve and merge low-risk updates |
+
+**`ci-web.yml`'s path filter is load-bearing in two directions.** `docs/**`, `shared/**` and `*.md` are in the
+trigger list so the docs-consistency contract actually runs on the changes most likely to break it — removing them
+disables the guard silently ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)). The
+cost is that `deploy-production` sits behind the same filter, so a docs-only push to `main` redeploys the Worker.
+That is accepted: the deploy is idempotent and the alternative is a guard that does not guard. Nothing under
+`app/**` triggers that workflow, though, so `ci-app.yml` runs `pnpm test:docs` in a job of its own — otherwise the
+assertions about `app/assets/`, the nested guides under `app/lib/` and the Dart comment ban would never fire on an
+app-only change.
+
+GitHub Environments are namespaced `<component>-<stage>` because they are repo-global and hold component-specific
+secrets; the full mapping is in the [README](./README.md#monorepo-development).
+
+## 7. Where things live
+
+Three axes, three kinds of document. [CONTEXT.md](./CONTEXT.md) is the domain glossary — what the words **mean**.
+The `CLAUDE.md` files — one at the root, one per layer — are **structure**, and they load automatically when an
+agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
+
+| ADR | Decision |
+| --- | --- |
+| [0001](./docs/adr/0001-monorepo-with-independently-released-components.md) | The components share a repository but not a release |
+| [0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) | Design tokens are defined once and mirrored into the Flutter bundle |
+| [0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md) | Both clients use the same layered architecture |
+| [0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) | Failures are a sealed set, matched without a wildcard |
+| [0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md) | Contribution data is scraped from the public page |
+| [0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md) | The page is parsed with regexes, not a DOM parser |
+| [0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md) | The web app is server-rendered on the edge |
+| [0008](./docs/adr/0008-the-mobile-app-fetches-github-directly.md) | The mobile app fetches GitHub directly |
+| [0009](./docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md) | Tips unlock nothing |
+| [0010](./docs/adr/0010-rate-limit-only-the-json-api.md) | Only the JSON API is rate-limited |
+| [0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md) | The app keeps its own scraper for now |
+| [0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md) | The light-theme palette variant is app-only |
+| [0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md) | The app's calendar grid is always 53 by 7 |
+| [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
+| [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
+| [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |
+| [0017](./docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md) | The SVG endpoint opts out of the same-origin resource policy |
+| [0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) | `src/pages` is a public namespace, not a folder |
+
+Every one of them follows [0000, the template](./docs/adr/0000-adr-template.md) — `# N. Title`, a date, a status,
+then *Context*, *Decision*, *Consequences*. A new ADR starts by copying that file, not by writing one from scratch,
+and it needs a link from somewhere other than this index — an ADR only the index points at will not be read.
+
+| Document | Covers |
+| --- | --- |
+| [CLAUDE.md](./CLAUDE.md) | Commands, conventions, the maintenance contract — loaded into every agent session |
+| [CONTEXT.md](./CONTEXT.md) | The domain glossary both clients obey, and the words to avoid |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
+| [web/src/domain/CLAUDE.md](./web/src/domain/CLAUDE.md) | Purity rules, value objects, failures, services |
+| [web/src/application/CLAUDE.md](./web/src/application/CLAUDE.md) | Curried use cases, `Failure` → HTTP mapping |
+| [web/src/infrastructure/CLAUDE.md](./web/src/infrastructure/CLAUDE.md) | GitHub scraping, the SVG renderer, logging |
+| [web/src/ui/CLAUDE.md](./web/src/ui/CLAUDE.md) · [components/](./web/src/ui/components/CLAUDE.md) | Component groups and colocation |
+| [web/src/pages/CLAUDE.md](./web/src/pages/CLAUDE.md) | Routes and the composition root |
+| [app/lib/domain/CLAUDE.md](./app/lib/domain/CLAUDE.md) | Pure Dart core, entities, value objects |
+| [app/lib/application/CLAUDE.md](./app/lib/application/CLAUDE.md) | One class per use case |
+| [app/lib/infrastructure/CLAUDE.md](./app/lib/infrastructure/CLAUDE.md) · [github/dtos/](./app/lib/infrastructure/github/dtos/CLAUDE.md) | Clients, persistence, export, DTOs |
+| [app/lib/ui/CLAUDE.md](./app/lib/ui/CLAUDE.md) · [di/](./app/lib/ui/di/CLAUDE.md) · [theme/](./app/lib/ui/theme/CLAUDE.md) | Widgets, providers, wiring, tokens |
+| [docs/plans/](./docs/plans/) | Work deferred on purpose, kept because the decision to defer is the record |
+| [docs/wiki/](./docs/wiki/) | The published GitHub wiki — user-facing, synced by `sync-wiki.yml` |
+
+One guide per layer, and one level deeper only where a directory has rules of its own
+(`ui/components/`, `ui/di/`, `ui/theme/`, `github/dtos/`). A guide in a subdirectory only reaches the agent once it
+opens a file in that exact folder, so a deeper split costs reach.
+
+## 8. Extending it
+
+| Task | Files to touch |
+| --- | --- |
+| **Add a palette, shape or suggested username** | `shared/*.json`, then `pnpm sync:assets`, then the README feature list — the docs test asserts every shipped token is advertised. A palette also needs `noneLight` for the app ([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)). |
+| **Add a `Failure` kind** | The sealed set (`web/src/domain/failures/failure.ts` or `app/lib/domain/failures/failure.dart`), every exhaustive match over it — on the web `web/src/application/http/failure-http.ts` — and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved. Never widen a match with `_`. |
+| **Change how contributions are fetched or parsed** | **Both** clients. The parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)), so a fix in one is a bug left in the other. Levels come from GitHub's `data-level`, not from the count. |
+| **Add a web query parameter** | `querySchema` in the route, with a `.catch(default)`; the render options in `web/src/domain/services/types.ts`; then `web/README.md` and `docs/wiki/API-Reference.md`. |
+| **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, **plus a legacy-key fallback and a migration test**, plus the direct `box.get` in the background isolate in `app/lib/main.dart`. A rename is not done until all three agree. |
+| **Change what a cached calendar means** | Bump `_cacheBoxName` in the app's contribution repository — past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)). |
+| **Introduce or redefine a domain word** | [CONTEXT.md](./CONTEXT.md) first, then the identifiers. The glossary is prescriptive: if the code says something an `_Avoid_` list names, the code is what is wrong. |
+
+## 9. Known inconsistencies
+
+Most of what this section used to list has either been fixed in the source or promoted to an ADR, because the
+divergence turned out to be deliberate — `shapes.json` bundled but unread
+([0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)), `noneLight` app-only
+([0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the app unable to represent an unknown Count
+([0008](./docs/adr/0008-the-mobile-app-fetches-github-directly.md)), and Cell Size named in one client and numeric
+in the other ([0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+
+One is outstanding:
+
+- **The JSON endpoint still answers with `cells` as well as `days`.** `web/src/pages/api/contributions.ts` returns
+  `{ username, days: [...], cells: [...], total }`, the two pointing at the same array. `cells` is on the
+  glossary's `_Avoid_` list for Contribution Day — a Cell is the square, a Contribution Day is the data behind it —
+  and every identifier inside both clients now says `days`. The field survives only because it is a **published
+  contract**: dropping it breaks any consumer written against the shipped shape, so it stays until a release that
+  says out loud that it is going. `web/README.md` and `docs/wiki/API-Reference.md` document `days` as the field to
+  read and `cells` as deprecated. Do not add a third name, and do not remove this entry until the alias is gone.
+
+When another is found, record it here with the symbol that proves it, and delete the entry once the code changes —
+an entry that has quietly become false is worse than no list at all.

@@ -51,10 +51,11 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 
 ## Middleware
 
-`src/middleware.ts` runs on every request and does two things:
+`src/middleware.ts` runs on every request and does three things:
 
-1. **Rate limiting:** for `/api/*` paths, it reads the `API_RATE_LIMITER` binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. Over the limit, it returns `429` with `Retry-After: 60` (still wrapped in the security headers).
-2. **Security headers:** every response is re-wrapped with a strict header set:
+1. **Blocking the agent guide:** `/CLAUDE` gets a bare `404` before anything else runs. Astro compiles `src/pages/CLAUDE.md` into a public page, and this is what keeps it off the web ([ADR 0018](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
+2. **Rate limiting:** for `/api/*` paths, it reads the `API_RATE_LIMITER` binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. Over the limit, it returns `429` with `Retry-After: 60` (still wrapped in the security headers).
+3. **Security headers:** every response is re-wrapped with a strict header set:
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
@@ -69,7 +70,10 @@ Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Resource-Policy: same-origin
+Cross-Origin-Embedder-Policy: unsafe-none
 ```
+
+`/user/:username.svg` overrides the resource policy to `cross-origin` so the calendar embeds on any site; every other route keeps `same-origin`. See **[API Reference](API-Reference)**.
 
 ---
 
@@ -77,10 +81,10 @@ Cross-Origin-Resource-Policy: same-origin
 
 Both deploys run from `ci-web.yml`, only after `web-check` (lint + test) and `web-build` (build + typecheck) pass:
 
-- **Production:** every push to `main` touching `web/**` builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`.
-- **Development:** every PR touching `web/**` builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
+- **Production:** every push to `main` matching the workflow's path filter builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`. That filter covers `shared/**`, `docs/**` and `*.md` as well as `web/**`, so a documentation-only push redeploys too — see **[CI/CD](CI-CD)** for why.
+- **Development:** every PR matching the same filter builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
 
-> **`@astrojs/cloudflare` gotcha:** the adapter flattens the `wrangler.toml` `[env.NAME]` block at build time into `dist/server/wrangler.json`. Select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (use `--name` for previews). **Do not** use `wrangler deploy --env <env>`: the generated config is already flattened, so `--env` is ignored and per-env routes/ratelimits/observability are silently dropped.
+> **`@astrojs/cloudflare` gotcha:** the adapter flattens the `wrangler.toml` `[env.NAME]` block at build time into `dist/server/wrangler.json`. Select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (use `--name` for previews). Do not pass `wrangler deploy --env <env>` on top of it. The generated config carries a `targetEnvironment`, and wrangler checks the flag against it: matching is a byte-for-byte no-op — `--dry-run` with and without `--env production` prints identical output, same Worker name, same bindings — and mismatching is a hard error (`This does not match the target environment "production"`). So the flag can only be redundant or fatal, never quietly wrong. `_deploy-web.yml` carried it until this was executed rather than assumed; it is gone.
 
 See **[CI/CD](CI-CD)** for the full pipeline.
 

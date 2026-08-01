@@ -13,7 +13,7 @@ Base URL: `https://contribkit.app`
 | Endpoint | Returns | Description |
 |----------|---------|-------------|
 | `GET /user/:username.svg` | `image/svg+xml` | Rendered calendar; accepts `palette`, `shape`, `background` |
-| `GET /api/contributions?user=&year=` | `application/json` | Raw contribution cells plus yearly total |
+| `GET /api/contributions?user=&year=` | `application/json` | Raw Contribution Days plus yearly total |
 | `GET /api/health` | `application/json` | Deployment health: env var/binding presence (never values) |
 
 ---
@@ -32,7 +32,7 @@ Renders the contribution calendar for `:username` as an SVG image. Always uses t
 
 Unknown values silently fall back to the default, so the image never breaks.
 
-The username must be a valid GitHub login (alphanumeric with single hyphens, 1–39 chars). This endpoint always renders the **latest rolling year**; use `/api/contributions?year=` for historical data.
+The username must pass ContribKit's own check: alphanumeric, hyphens allowed inside, 1–39 chars. It is deliberately looser than GitHub's rule — consecutive hyphens pass here and 404 at GitHub. This endpoint always renders the **latest rolling year**; use `/api/contributions?year=` for historical data.
 
 ### Example
 
@@ -64,7 +64,7 @@ Returns the raw contribution data as JSON.
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `user` | yes | GitHub username (alphanumeric + single hyphens, 1–39 chars) |
+| `user` | yes | GitHub username (alphanumeric, hyphens inside, 1–39 chars; consecutive hyphens are accepted here and 404 at GitHub) |
 | `year` | no | Integer year in `2005 … current`. Omitted = latest rolling year |
 
 ```bash
@@ -76,6 +76,10 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
 ```json
 {
   "username": "torvalds",
+  "days": [
+    { "date": "2024-01-01", "level": 0, "count": 0 },
+    { "date": "2024-01-02", "level": 2, "count": 4 }
+  ],
   "cells": [
     { "date": "2024-01-01", "level": 0, "count": 0 },
     { "date": "2024-01-02", "level": 2, "count": 4 }
@@ -84,9 +88,12 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
 }
 ```
 
+- `days` is the field to read. **`cells` is a deprecated alias** for the same array, kept so consumers written
+  against the original shape keep working; it will be removed in a release that says so.
 - `level` is `0`–`4` (GitHub's intensity bucket).
-- `count` is the exact contribution count for that day, or `null` when GitHub doesn't expose a tooltip for the cell.
-- `total` is the sum of all daily counts, or `null` when no counts are available.
+- `count` is the exact contribution count for that day, or `null` when GitHub doesn't expose a tooltip for the Cell.
+- `total` is the sum of the counts that were recovered, or `null` when none were. It is not GitHub's own headline
+  figure — nothing reads that — so treat it as complete only when every `count` is non-`null`.
 
 ### Errors
 
@@ -163,6 +170,9 @@ Every response (set by the middleware) includes:
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=()` |
 | `Cross-Origin-Opener-Policy` | `same-origin` |
 | `Cross-Origin-Resource-Policy` | `same-origin` |
+| `Cross-Origin-Embedder-Policy` | `unsafe-none` |
+
+**`/user/:username.svg` is the one exception:** it is served with `Cross-Origin-Resource-Policy: cross-origin`, so a browser will render it in an `<img>` on any site. Every other response — the pages and all of `/api/*` — stays `same-origin`. See [ADR 0017](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md).
 
 ---
 

@@ -48,11 +48,11 @@ The repository never throws. Network and HTTP outcomes are converted to a domain
 
 | Condition | Result |
 |-----------|--------|
-| `fetch` throws (network error) | `network(message)` |
+| `fetch` throws (network error) | `network({ message })` |
 | `404` | `notFound(username)` |
-| other non-OK status | `network("GitHub returned <status>", status)` |
-| OK but no cells parsed | `parse("Could not parse contributions")` |
-| OK with cells | `ContributionCalendar` |
+| other non-OK status | `network({ message: "GitHub returned <status>", status })` |
+| OK but no Contribution Days parsed | `parse("Could not parse contributions")` |
+| OK with Contribution Days | `ContributionCalendar` |
 
 A successful result is `{ username, days, total }`, where `days` are the parsed `ContributionDay`s and `total` is the summed yearly count (or `null`).
 
@@ -70,6 +70,6 @@ The Flutter app has its own implementation (`infrastructure/github/contribution_
 
 ## See also
 
-- **[HTML Parsing](HTML-Parsing)** covers how cells and counts are extracted.
+- **[HTML Parsing](HTML-Parsing)** covers how Contribution Days and counts are extracted.
 - **[Calendar Grid](Calendar-Grid)** covers how parsed days become a grid.
 - **[Troubleshooting](Troubleshooting)** covers what to do when fetching fails.
