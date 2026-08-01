@@ -1,3 +1,10 @@
+# [contribkit-web-v1.11.10](https://github.com/fbuireu/contribKit/compare/web-v1.11.9...web-v1.11.10) (2026-08-01)
+
+
+### Bug Fixes
+
+* **web:** stop the export code preview from overflowing the viewport ([f93ec5f](https://github.com/fbuireu/contribKit/commit/f93ec5fcec373e6696f0715cb2484b607d464072))
+
 # [contribkit-web-v1.11.9](https://github.com/fbuireu/contribKit/compare/web-v1.11.8...web-v1.11.9) (2026-08-01)
 
 
