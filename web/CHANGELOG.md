@@ -1,3 +1,10 @@
+# [contribkit-web-v1.11.9](https://github.com/fbuireu/contribKit/compare/web-v1.11.8...web-v1.11.9) (2026-08-01)
+
+
+### Bug Fixes
+
+* **deps:** update astro monorepo ([#85](https://github.com/fbuireu/contribKit/issues/85)) ([e7b621b](https://github.com/fbuireu/contribKit/commit/e7b621bd04a02da36da70c9e7fe6e087bec82619))
+
 # [contribkit-web-v1.11.8](https://github.com/fbuireu/contribKit/compare/web-v1.11.7...web-v1.11.8) (2026-07-23)
 
 
