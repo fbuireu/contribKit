@@ -58,7 +58,7 @@
 		"@types/node": "26.1.1",
 		"@vitest/coverage-istanbul": "4.1.10",
 		"happy-dom": "20.10.6",
-		"semantic-release": "25.0.6",
+		"semantic-release": "25.0.8",
 		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
 		"vitest": "4.1.10",
