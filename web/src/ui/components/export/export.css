@@ -13,6 +13,7 @@
 
 	.export-preview {
 		min-height: 22.5rem;
+		min-width: 0;
 	}
 
 	.export-tabs {
