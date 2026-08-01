@@ -55,13 +55,20 @@ jobs:
         run: pnpm exec astro build
 
       - name: Deploy to Cloudflare Workers
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           INPUTS_WORKER_NAME: ${{ inputs.worker_name }}
           INPUTS_WRANGLER_ENV: ${{ inputs.wrangler_env }}
           DEPLOY_MESSAGE: ${{ github.sha }} - ${{ github.event_name }}
-        run: |
-          NAME_FLAG=""
-          if [ -n "${INPUTS_WORKER_NAME}" ]; then
-            NAME_FLAG="--name ${INPUTS_WORKER_NAME}"
-          fi
-          pnpm exec wrangler deploy --env "${INPUTS_WRANGLER_ENV}" $NAME_FLAG --message "$DEPLOY_MESSAGE"
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 15
+          shell: bash
+          command: |
+            cd web
+            NAME_FLAG=""
+            if [ -n "${INPUTS_WORKER_NAME}" ]; then
+              NAME_FLAG="--name ${INPUTS_WORKER_NAME}"
+            fi
+            pnpm exec wrangler deploy --env "${INPUTS_WRANGLER_ENV}" $NAME_FLAG --message "$DEPLOY_MESSAGE"

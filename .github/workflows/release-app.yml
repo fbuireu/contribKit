@@ -211,7 +211,14 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload to Google Play
-        working-directory: app/android
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           PLAY_JSON_KEY_PATH: ${{ runner.temp }}/play-service-account.json
-        run: bundle exec fastlane deploy track:"${{ inputs.track }}"
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          shell: bash
+          command: |
+            cd app/android
+            bundle exec fastlane deploy track:"${{ inputs.track }}"
