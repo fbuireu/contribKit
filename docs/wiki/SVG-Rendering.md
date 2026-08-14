@@ -115,9 +115,15 @@ The landing page has **no reactive framework**. The DOM itself is the source of 
 **1. State.** Two singletons in `ui/utils/state.ts` hold the fetched data: `getDays()` / `setDays()` and the username. The active **shape** and **palette** are read straight from the DOM, from whichever control carries the `.active` class (`ui/utils/render.ts`):
 
 ```ts
-getActivePalette = () => $("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY;
+getActivePalette = () => paletteByKey($("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY);
 getActiveShape   = () => $("#shape-list  .shape-btn.active")?.dataset.key   ?? DEFAULT_CELL_SHAPE;
 ```
+
+`getActivePalette` returns a `Palette`, not a key, and it goes through `paletteByKey` — the same guarded lookup the
+SVG endpoint uses. A `data-key` is markup, so it can name a palette `shared/palettes.json` does not define; the
+three callers indexed `PALETTES` directly and would have thrown a `TypeError` reading `.colors` of `undefined`. It
+also means the key it reports is the key it used, so the label under the picker cannot disagree with the colours on
+screen.
 
 **2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_PRESET` 13/3, `CUSTOMIZE_GRID_PRESET` 12/3, `EXPORT_GRID_PRESET` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
 

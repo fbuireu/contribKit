@@ -1,7 +1,7 @@
 import type { ContributionDay } from "@domain/entities/types";
 import type { ContributionStats } from "@domain/services/contribution-stats";
 import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
-import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
+import { DEFAULT_PALETTE_KEY, type Palette, paletteByKey } from "@domain/value-objects/palette";
 import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES } from "@ui/components/export/code-preview";
 import { DEFAULT_EXPORT_FORMAT, ExportFormatKey } from "@ui/components/export/export-formats";
 import { formatTotalContributions } from "@ui/components/grid/contribution";
@@ -11,8 +11,10 @@ import { renderCalendarString } from "@ui/components/grid/render-svg";
 import { formatHeroError } from "./contribution-errors";
 import { getDays, getUsername } from "./state";
 
-export const getActivePalette = (): string =>
-	document.querySelector<HTMLElement>("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY;
+export const getActivePalette = (): Palette =>
+	paletteByKey(
+		document.querySelector<HTMLElement>("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY,
+	);
 
 export const getActiveShape = (): string =>
 	document.querySelector<HTMLElement>("#shape-list .shape-btn.active")?.dataset.key ?? DEFAULT_CELL_SHAPE;
@@ -21,7 +23,7 @@ export const getActiveExportTab = (): string =>
 	document.querySelector<HTMLElement>('#export-tabs [aria-selected="true"]')?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
 
 export function renderWidget(): void {
-	const palette = PALETTES[getActivePalette()].colors;
+	const palette = getActivePalette().colors;
 	const phoneScreen = document.getElementById("phone-screen");
 	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4]);
 	const widgetGrid = document.getElementById("widget-mini-grid");
@@ -32,7 +34,7 @@ export function renderWidget(): void {
 }
 
 export function renderCustomize(): void {
-	const palette = PALETTES[getActivePalette()].colors;
+	const palette = getActivePalette().colors;
 	const shape = getActiveShape();
 	const days = getDays();
 	const customGrid = document.getElementById("custom-grid-container");
@@ -45,7 +47,7 @@ export function renderCustomize(): void {
 		square.style.background = palette[index] ?? palette[0];
 	});
 	const paletteLabelEl = document.getElementById("custom-palette-label");
-	if (paletteLabelEl) paletteLabelEl.textContent = getActivePalette();
+	if (paletteLabelEl) paletteLabelEl.textContent = getActivePalette().key;
 	const shapeLabelEl = document.getElementById("custom-shape-label");
 	if (shapeLabelEl) shapeLabelEl.textContent = shape;
 	renderExportPreview();
@@ -58,7 +60,7 @@ export function renderExportPreview(): void {
 	preview.innerHTML = "";
 	const card = document.createElement("div");
 	card.className = "preview-card";
-	const palette = PALETTES[getActivePalette()].colors;
+	const palette = getActivePalette().colors;
 	const shape = getActiveShape();
 	const exportTab = getActiveExportTab();
 	const days = getDays();
@@ -81,7 +83,7 @@ export function renderExportPreview(): void {
 	} else {
 		card.classList.add("code-preview");
 		const isSvgTab = exportTab === ExportFormatKey.Svg;
-		const paletteKey = getActivePalette();
+		const paletteKey = getActivePalette().key;
 		card.appendChild(
 			buildCodeBlock(isSvgTab ? SVG_LINES : buildMarkdownLines({ username, palette: paletteKey, shape })),
 		);

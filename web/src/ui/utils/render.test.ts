@@ -1,8 +1,10 @@
 // @vitest-environment happy-dom
 
+import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
 	getActiveExportTab,
+	getActivePalette,
 	renderCustomize,
 	renderExportPreview,
 	setHeroError,
@@ -75,5 +77,38 @@ describe("renderExportPreview", () => {
 		renderExportPreview();
 		expect(document.querySelector("#export-preview .code-preview")).not.toBeNull();
 		expect(document.querySelector("#export-preview .copy-btn")).not.toBeNull();
+	});
+});
+
+describe("getActivePalette", () => {
+	const withActiveKey = (key: string) => {
+		document.body.innerHTML = `<div id="palette-list"><div class="palette-row active" data-key="${key}"></div></div>`;
+	};
+
+	it("reads the key the markup marks active", () => {
+		withActiveKey("catppuccin");
+
+		expect(getActivePalette().key).toBe("catppuccin");
+		expect(getActivePalette().colors).toEqual(PALETTES.catppuccin.colors);
+	});
+
+	it("falls back to the default when no row is active", () => {
+		document.body.innerHTML = '<div id="palette-list"></div>';
+
+		expect(getActivePalette().key).toBe(DEFAULT_PALETTE_KEY);
+	});
+
+	it("falls back rather than throwing when the markup names a palette that does not exist", () => {
+		withActiveKey("not-a-palette");
+
+		expect(() => getActivePalette()).not.toThrow();
+		expect(getActivePalette().key).toBe(DEFAULT_PALETTE_KEY);
+	});
+
+	it("reports the key it actually used, so the label cannot disagree with the colours", () => {
+		withActiveKey("not-a-palette");
+		const palette = getActivePalette();
+
+		expect(palette.colors).toEqual(PALETTES[palette.key].colors);
 	});
 });

@@ -19,8 +19,11 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
   per-component `<script>` blocks.
 - **CSS is colocated**: `Hero.astro` imports `./hero.css`, and so on.
 - **Palette colours and Cell Shapes come from `@domain/value-objects/`.** Never a hex literal, never a bare shape
-  string. `render-svg.ts` still re-guards with `isCellShape` before indexing, because its `shape` prop is typed
-  `string` — it is fed from a DOM `dataset`, which cannot be trusted to hold one.
+  string. Anything fed from a DOM `dataset` is re-guarded before it is used as a key: `render-svg.ts` calls
+  `isCellShape`, and `getActivePalette` in `ui/utils/render.ts` returns a `Palette` through `paletteByKey` rather
+  than a key its callers would index `PALETTES` with. The shape path had that guard from the start and the palette
+  path did not, so a `data-key` naming a palette `shared/palettes.json` does not define threw a `TypeError` in
+  three renderers instead of falling back.
 - **The number in the hero goes through `formatTotalContributions`**, in `grid/contribution.ts`, which is the same
   function the SSR page and the client renderer call. It prints `unknown` for a `null` total. Never interpolate
   `stats.totalContributions` directly.
