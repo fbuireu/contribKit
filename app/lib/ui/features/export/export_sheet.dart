@@ -3,6 +3,7 @@ import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_sheet.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
@@ -57,6 +58,7 @@ class ExportSheet extends ConsumerStatefulWidget {
 class _ExportSheetState extends ConsumerState<ExportSheet> {
   _Fmt _selected = _Fmt.png;
   bool _exporting = false;
+  String? _exportError;
 
   RenderOptions get _options => RenderOptions(
     palette: widget.palette,
@@ -67,7 +69,10 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
 
   Future<void> _save() async {
     if (_exporting) return;
-    setState(() => _exporting = true);
+    setState(() {
+      _exporting = true;
+      _exportError = null;
+    });
     final user = widget.calendar.username.value;
     final year = widget.calendar.year.value;
     try {
@@ -111,10 +116,16 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
           );
           await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
       }
+    } catch (error) {
+      if (mounted) setState(() => _exportError = _describe(error));
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
   }
+
+  static String _describe(Object error) => error is ExportFailure
+      ? 'Export failed: ${error.message}'
+      : 'Export failed. Please try again.';
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +164,16 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                   onTap: () => setState(() => _selected = fmt),
                 ),
               ),
+            if (_exportError != null) ...[
+              const SizedBox(height: Tokens.space2),
+              Text(
+                _exportError!,
+                style: AppTextStyles.mono(
+                  fontSize: Tokens.textSm,
+                  color: colors.destructive,
+                ),
+              ),
+            ],
             const SizedBox(height: Tokens.space2),
             Row(
               spacing: Tokens.space2,

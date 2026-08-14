@@ -3,6 +3,7 @@ import 'package:contribkit/ui/widgets/app_icons.dart';
 
 import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
@@ -97,6 +98,7 @@ class _ExportFormatButton extends StatelessWidget {
 class _ExportPanelState extends ConsumerState<ExportPanel> {
   bool _exporting = false;
   bool _copied = false;
+  String? _exportError;
 
   RenderOptions get _options => RenderOptions(
     palette: widget.palette,
@@ -111,7 +113,10 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
     required String mimeType,
   }) async {
     if (_exporting) return;
-    setState(() => _exporting = true);
+    setState(() {
+      _exporting = true;
+      _exportError = null;
+    });
 
     try {
       final bytes = await useCase(calendar: widget.calendar, options: _options);
@@ -121,14 +126,23 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
         mimeType: mimeType,
       );
       await SharePlus.instance.share(ShareParams(files: [xFile]));
+    } catch (error) {
+      if (mounted) setState(() => _exportError = _describe(error));
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
   }
 
+  static String _describe(Object error) => error is ExportFailure
+      ? 'Export failed: ${error.message}'
+      : 'Export failed. Please try again.';
+
   Future<void> _copyMarkdown(ExportCalendar useCase) async {
     if (_exporting) return;
-    setState(() => _exporting = true);
+    setState(() {
+      _exporting = true;
+      _exportError = null;
+    });
 
     try {
       final bytes = await useCase(calendar: widget.calendar, options: _options);
@@ -139,6 +153,8 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
           if (mounted) setState(() => _copied = false);
         });
       }
+    } catch (error) {
+      if (mounted) setState(() => _exportError = _describe(error));
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
@@ -165,6 +181,14 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
               color: AppColors.of(context).mutedForeground,
             ),
           ),
+          if (_exportError != null)
+            Text(
+              _exportError!,
+              style: TextStyle(
+                fontSize: Tokens.textSm,
+                color: AppColors.of(context).destructive,
+              ),
+            ),
           Row(
             spacing: Tokens.space2,
             children: [
