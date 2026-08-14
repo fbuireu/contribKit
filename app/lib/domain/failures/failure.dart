@@ -26,6 +26,14 @@ final class RateLimitedFailure extends Failure {
   String toString() => 'RateLimitedFailure: resets at $resetAt';
 }
 
+final class ParseFailure extends Failure {
+  const ParseFailure({required this.message});
+  final String message;
+
+  @override
+  String toString() => 'ParseFailure: $message';
+}
+
 final class CacheFailure extends Failure {
   const CacheFailure({required this.message});
   final String message;

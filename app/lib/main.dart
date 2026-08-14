@@ -72,9 +72,7 @@ void callbackDispatcher() {
         cellShape: cellShape,
         cellSize: cellSize,
       );
-    } catch (_) {
-      // Best-effort — returning true so WorkManager doesn't retry.
-    }
+    } catch (_) {}
 
     return true;
   });
@@ -85,6 +83,7 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await Hive.initFlutter();
+  await Hive.deleteBoxFromDisk(legacyContributionCacheBoxName);
 
   await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(

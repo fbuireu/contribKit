@@ -58,9 +58,7 @@ abstract final class CalendarWidgetService {
         HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedMedium),
         HomeWidget.updateWidget(qualifiedAndroidName: _qualifiedSmall),
       ]);
-    } catch (_) {
-      // Best-effort — never crash the app over a widget update.
-    }
+    } catch (_) {}
   }
 
   static int _calculateStreak(ContributionCalendar calendar) {
@@ -75,17 +73,19 @@ abstract final class CalendarWidgetService {
 
     var cursor = todayDate;
 
-    // If today has no contributions yet, start streak check from yesterday.
     if ((countByDate[cursor] ?? 0) == 0) {
-      cursor = cursor.subtract(const Duration(days: 1));
+      cursor = _previousDay(cursor);
     }
 
     var streak = 0;
     while ((countByDate[cursor] ?? 0) > 0) {
       streak++;
-      cursor = cursor.subtract(const Duration(days: 1));
+      cursor = _previousDay(cursor);
     }
 
     return streak;
   }
+
+  static DateTime _previousDay(DateTime date) =>
+      DateTime(date.year, date.month, date.day - 1);
 }

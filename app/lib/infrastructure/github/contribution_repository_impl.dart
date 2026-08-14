@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
@@ -6,13 +7,15 @@ import 'package:contribkit/domain/entities/contribution_week.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/services/contribution_level_service.dart';
+import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/github/dtos/contribution_calendar_dto.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
-const _cacheBoxName = 'contribution_cache';
+const _cacheBoxName = 'contribution_cache_v2';
+const legacyContributionCacheBoxName = 'contribution_cache';
 
 final class GitHubContributionRepository implements ContributionRepository {
   GitHubContributionRepository({http.Client? httpClient})
@@ -22,13 +25,10 @@ final class GitHubContributionRepository implements ContributionRepository {
 
   static const _currentYearTtl = Duration(hours: 1);
 
-  // GitHub renders contributions as <td class="ContributionCalendar-day">
-  // with a sibling <tool-tip> containing the count in plain text.
-  static final _tdRegex = RegExp(
-    r'<td\b[^>]*class="ContributionCalendar-day"[^>]*>',
-  );
+  static final _tdRegex = RegExp(r'<td\b[^>]*ContributionCalendar-day[^>]*>');
   static final _idAttr = RegExp(r'\bid="([^"]+)"');
   static final _dateAttr = RegExp(r'\bdata-date="([^"]+)"');
+  static final _levelAttr = RegExp(r'\bdata-level="(\d)"');
   static final _tooltipRegex = RegExp(
     r'<tool-tip\b[^>]*for="([^"]+)"[^>]*>([^<]+)</tool-tip>',
   );
@@ -50,12 +50,16 @@ final class GitHubContributionRepository implements ContributionRepository {
 
   @override
   Future<void> invalidateCache(Username username) async {
-    final box = await _openBox();
-    final keys = box.keys
-        .whereType<String>()
-        .where((k) => k.startsWith('${username.value}:'))
-        .toList();
-    await box.deleteAll(keys);
+    try {
+      final box = await _openBox();
+      final keys = box.keys
+          .whereType<String>()
+          .where((k) => k.startsWith('${username.value}:'))
+          .toList();
+      await box.deleteAll(keys);
+    } catch (e) {
+      throw CacheFailure(message: e.toString());
+    }
   }
 
   static const _timeout = Duration(seconds: 20);
@@ -83,6 +87,9 @@ final class GitHubContributionRepository implements ContributionRepository {
       if (response.statusCode == 404) {
         throw NotFoundFailure(username: username.value);
       }
+      if (response.statusCode == 429) {
+        throw RateLimitedFailure(resetAt: _resetAtFrom(response.headers));
+      }
       if (response.statusCode != 200) {
         throw NetworkFailure(message: 'HTTP ${response.statusCode}');
       }
@@ -96,9 +103,21 @@ final class GitHubContributionRepository implements ContributionRepository {
     }
   }
 
+  static DateTime? _resetAtFrom(Map<String, String> headers) {
+    final retryAfter = headers['retry-after'];
+    if (retryAfter == null) return null;
+    final trimmed = retryAfter.trim();
+    final seconds = int.tryParse(trimmed);
+    if (seconds != null) return DateTime.now().add(Duration(seconds: seconds));
+    try {
+      return HttpDate.parse(trimmed);
+    } catch (_) {
+      return DateTime.tryParse(trimmed);
+    }
+  }
+
   ContributionCalendar _parseHtml(String html, Username username, Year year) {
-    // Pass 1: id → date from <td class="ContributionCalendar-day">
-    final idToDate = <String, DateTime>{};
+    final idToDay = <String, ({DateTime date, int? level})>{};
     for (final tdMatch in _tdRegex.allMatches(html)) {
       final td = tdMatch.group(0)!;
       final idMatch = _idAttr.firstMatch(td);
@@ -108,16 +127,21 @@ final class GitHubContributionRepository implements ContributionRepository {
       final date = DateTime.tryParse(dateMatch.group(1)!);
       if (date == null || date.year != year.value) continue;
 
-      idToDate[idMatch.group(1)!] = date;
+      final levelMatch = _levelAttr.firstMatch(td);
+      idToDay[idMatch.group(1)!] = (
+        date: date,
+        level: levelMatch == null ? null : int.tryParse(levelMatch.group(1)!),
+      );
     }
 
-    if (idToDate.isEmpty) throw NotFoundFailure(username: username.value);
+    if (idToDay.isEmpty) {
+      throw const ParseFailure(message: 'Could not parse contributions');
+    }
 
-    // Pass 2: id → count from <tool-tip for="...">N contribution(s)…</tool-tip>
     final idToCount = <String, int>{};
-    for (final tipMatch in _tooltipRegex.allMatches(html)) {
-      final forId = tipMatch.group(1)!;
-      final text = tipMatch.group(2)!.trim();
+    for (final tooltipMatch in _tooltipRegex.allMatches(html)) {
+      final forId = tooltipMatch.group(1)!;
+      final text = tooltipMatch.group(2)!.trim();
       final numMatch = _countPrefix.firstMatch(text);
       idToCount[forId] = numMatch != null
           ? (int.tryParse(numMatch.group(1)!) ?? 0)
@@ -125,8 +149,14 @@ final class GitHubContributionRepository implements ContributionRepository {
     }
 
     final rawDays =
-        idToDate.entries
-            .map((e) => (date: e.value, count: idToCount[e.key] ?? 0))
+        idToDay.entries
+            .map(
+              (e) => (
+                date: e.value.date,
+                level: e.value.level,
+                count: idToCount[e.key] ?? 0,
+              ),
+            )
             .toList()
           ..sort((a, b) => a.date.compareTo(b.date));
 
@@ -137,10 +167,12 @@ final class GitHubContributionRepository implements ContributionRepository {
           (d) => ContributionDay(
             date: d.date,
             count: d.count,
-            level: ContributionLevelService.levelFor(
-              count: d.count,
-              yearMax: yearMax,
-            ),
+            level:
+                _levelFromIndex(d.level) ??
+                ContributionLevelService.levelFor(
+                  count: d.count,
+                  yearMax: yearMax,
+                ),
           ),
         )
         .toList();
@@ -148,24 +180,48 @@ final class GitHubContributionRepository implements ContributionRepository {
     return ContributionCalendar(
       username: username,
       year: year,
-      weeks: _groupIntoWeeks(days),
+      weeks: _groupIntoWeeks(days, year.value),
       totalContributions: rawDays.fold(0, (s, d) => s + d.count),
     );
   }
 
-  List<ContributionWeek> _groupIntoWeeks(List<ContributionDay> days) {
+  static ContributionLevel? _levelFromIndex(int? index) =>
+      index != null && index >= 0 && index < ContributionLevel.values.length
+      ? ContributionLevel.values[index]
+      : null;
+
+  static const _weeksPerYear = 53;
+  static const _daysPerWeek = 7;
+
+  List<ContributionWeek> _groupIntoWeeks(List<ContributionDay> days, int year) {
+    final byDate = {
+      for (final day in days)
+        DateTime(day.date.year, day.date.month, day.date.day): day,
+    };
+
+    final firstOfYear = DateTime(year, 1, 1);
+    final start = DateTime(year, 1, 1 - (firstOfYear.weekday % _daysPerWeek));
+
     final weeks = <ContributionWeek>[];
-    var current = <ContributionDay>[];
-
-    for (final day in days) {
-      if (current.isNotEmpty && day.date.weekday == DateTime.sunday) {
-        weeks.add(ContributionWeek(days: current));
-        current = [];
+    for (var week = 0; week < _weeksPerYear; week++) {
+      final weekDays = <ContributionDay>[];
+      for (var day = 0; day < _daysPerWeek; day++) {
+        final date = DateTime(
+          start.year,
+          start.month,
+          start.day + week * _daysPerWeek + day,
+        );
+        weekDays.add(
+          byDate[date] ??
+              ContributionDay(
+                date: date,
+                count: 0,
+                level: ContributionLevel.none,
+              ),
+        );
       }
-      current.add(day);
+      weeks.add(ContributionWeek(days: weekDays));
     }
-    if (current.isNotEmpty) weeks.add(ContributionWeek(days: current));
-
     return weeks;
   }
 
@@ -206,9 +262,7 @@ final class GitHubContributionRepository implements ContributionRepository {
         'cachedAt': DateTime.now().toIso8601String(),
         'json': jsonEncode(dto),
       });
-    } catch (_) {
-      // Cache write failures are non-fatal.
-    }
+    } catch (_) {}
   }
 
   ContributionCalendar _toDomain(
@@ -231,10 +285,9 @@ final class GitHubContributionRepository implements ContributionRepository {
         return ContributionDay(
           date: date,
           count: count,
-          level: ContributionLevelService.levelFor(
-            count: count,
-            yearMax: yearMax,
-          ),
+          level:
+              _levelFromIndex(dayDto.level) ??
+              ContributionLevelService.levelFor(count: count, yearMax: yearMax),
         );
       }).toList();
       return ContributionWeek(days: days);
@@ -258,7 +311,7 @@ final class GitHubContributionRepository implements ContributionRepository {
                   (d) => {
                     'date': d.date.toIso8601String().substring(0, 10),
                     'contributionCount': d.count,
-                    'color': '#000000',
+                    'level': d.level.index,
                   },
                 )
                 .toList(),

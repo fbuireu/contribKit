@@ -31,7 +31,7 @@ final class ContributionDayDto {
   const ContributionDayDto({
     required this.date,
     required this.contributionCount,
-    required this.color,
+    this.level,
   });
 
   factory ContributionDayDto.fromJson(Map<String, dynamic> json) =>
@@ -39,5 +39,5 @@ final class ContributionDayDto {
 
   final String date;
   final int contributionCount;
-  final String color;
+  final int? level;
 }

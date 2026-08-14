@@ -26,5 +26,5 @@ ContributionDayDto _$ContributionDayDtoFromJson(Map<String, dynamic> json) =>
     ContributionDayDto(
       date: json['date'] as String,
       contributionCount: (json['contributionCount'] as num).toInt(),
-      color: json['color'] as String,
+      level: (json['level'] as num?)?.toInt(),
     );
