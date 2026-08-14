@@ -68,7 +68,8 @@ representations differ because the languages do. Anything serialising a level ha
 | `ContributionDay.count` | `int?` | `number \| null` |
 | Total | `int?` | `number \| null` |
 
-**An unknown Count is `null`, and `null` is not `0`** — the glossary's distinction, now expressible on both sides.
+**An unknown Count is `null`, and `null` is not `0`** — the glossary's distinction, now expressible on both sides
+([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)).
 A day whose tool-tip carried no number, and a day the scrape never mentioned, both arrive as `null`; the Contribution
 Grid pads with `null` too, because a day outside the requested Year is not a day with no contributions.
 
