@@ -95,10 +95,18 @@ always 53×7, so `weeks.length` is a constant and never a partial year
 - **`bestMonth` is a month number, 1–12**, straight out of `DateTime.month`. It was called `bestMonthIndex`, which
   invited a zero-based read and an off-by-one against any month-name table. The field is `null` only when no day in
   the calendar has a count above zero.
-- **The current streak walks backwards from today, in local time.** `_dateOnly` truncates `DateTime.now()`, trailing
-  days after today are skipped, and **today itself is skipped while its count is still `0`** — otherwise a streak
-  would appear to break at midnight over a day that has not happened yet. The web's `computeContributionStats` makes
-  the same allowance, keyed on the level rather than the count.
+- **`StreakService.currentFor` owns the current streak, and it is the only copy.** `ContributionStatsService` and
+  `CalendarWidgetService` both call it, so the Viewer and the Home Screen Widget cannot drift apart. It takes
+  `today` rather than reading the clock, which is what makes it testable at all — the rule had no test before,
+  precisely because there was no way to say what day it was.
+- **It anchors on the last day belonging to the calendar's Year, capped at today.** That is the whole fix for past
+  Years. The Contribution Grid pads the days on either side of the Year with `count: 0`, so a walk back from
+  `DateTime.now()` — or from the end of the padded day list — hit a zero immediately and returned **0** for every
+  past Year. `StatsPanel` labels that figure `FINAL`, so a year that closed on a forty-day run read as `FINAL 0 day
+  streak`. Days outside `calendar.year` are dropped before the walk begins.
+- **Trailing days after the anchor are skipped, and the anchor day itself is skipped while its count is `0`** —
+  otherwise a streak would appear to break at midnight over a day that has not happened yet. The web's
+  `computeContributionStats` makes the same allowance, keyed on the level rather than the count.
 
 ## Gotchas
 

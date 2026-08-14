@@ -1,4 +1,5 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
+import 'package:contribkit/domain/services/streak_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
@@ -47,7 +48,10 @@ abstract final class CalendarWidgetService {
           _usernameKey,
           calendar.username.value,
         ),
-        HomeWidget.saveWidgetData<int>(_streakKey, _calculateStreak(calendar)),
+        HomeWidget.saveWidgetData<int>(
+          _streakKey,
+          StreakService.currentFor(calendar: calendar, today: DateTime.now()),
+        ),
         HomeWidget.saveWidgetData<int>(
           _totalContributionsKey,
           calendar.totalContributions,
@@ -60,32 +64,4 @@ abstract final class CalendarWidgetService {
       ]);
     } catch (_) {}
   }
-
-  static int _calculateStreak(ContributionCalendar calendar) {
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-
-    final countByDate = <DateTime, int>{
-      for (final week in calendar.weeks)
-        for (final day in week.days)
-          DateTime(day.date.year, day.date.month, day.date.day): day.count,
-    };
-
-    var cursor = todayDate;
-
-    if ((countByDate[cursor] ?? 0) == 0) {
-      cursor = _previousDay(cursor);
-    }
-
-    var streak = 0;
-    while ((countByDate[cursor] ?? 0) > 0) {
-      streak++;
-      cursor = _previousDay(cursor);
-    }
-
-    return streak;
-  }
-
-  static DateTime _previousDay(DateTime date) =>
-      DateTime(date.year, date.month, date.day - 1);
 }

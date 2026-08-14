@@ -1,9 +1,12 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/entities/contribution_day.dart';
+import 'package:contribkit/domain/services/streak_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_stats.dart';
 
 abstract final class ContributionStatsService {
-  static ContributionStats compute(ContributionCalendar calendar) {
+  static ContributionStats compute(
+    ContributionCalendar calendar, {
+    DateTime? today,
+  }) {
     final allDays = calendar.weeks.expand((w) => w.days).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
 
@@ -63,7 +66,10 @@ abstract final class ContributionStatsService {
     }
 
     return ContributionStats(
-      currentStreak: _currentStreak(allDays),
+      currentStreak: StreakService.currentFor(
+        calendar: calendar,
+        today: today ?? DateTime.now(),
+      ),
       longestStreak: longestStreak,
       bestDayCount: bestCount,
       bestDayDate: bestDate,
@@ -73,30 +79,4 @@ abstract final class ContributionStatsService {
       bestMonth: bestMonth,
     );
   }
-
-  static int _currentStreak(List<ContributionDay> sortedDays) {
-    if (sortedDays.isEmpty) return 0;
-
-    final today = _dateOnly(DateTime.now());
-
-    var i = sortedDays.length - 1;
-    while (i >= 0 && _dateOnly(sortedDays[i].date).isAfter(today)) {
-      i--;
-    }
-    if (i < 0) return 0;
-
-    if (_dateOnly(sortedDays[i].date) == today && sortedDays[i].count == 0) {
-      i--;
-    }
-    if (i < 0) return 0;
-
-    int streak = 0;
-    while (i >= 0 && sortedDays[i].count > 0) {
-      streak++;
-      i--;
-    }
-    return streak;
-  }
-
-  static DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 }
