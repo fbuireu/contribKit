@@ -1,3 +1,10 @@
+# [contribkit-web-v1.12.0](https://github.com/fbuireu/contribKit/compare/web-v1.11.11...web-v1.12.0) (2026-08-13)
+
+
+### Features
+
+* **web:** add text-scale meta tag ([542c1cd](https://github.com/fbuireu/contribKit/commit/542c1cd2eec6aea82566bfb42a4fa2a5de411468))
+
 # [contribkit-web-v1.11.11](https://github.com/fbuireu/contribKit/compare/web-v1.11.10...web-v1.11.11) (2026-08-01)
 
 
