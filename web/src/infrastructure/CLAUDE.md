@@ -82,10 +82,16 @@ that state; do not read "no logs" as "no errors".
 
 `getLogger(executionContext)` binds the client to the Worker's `ExecutionContext` when one is passed. Without it the
 writes are still issued but are not tied to the request's lifetime, so a Worker can be torn down before they flush.
-Callers pass **`Astro.locals.cfContext`**, which is where `@astrojs/cloudflare` puts it. The old `locals.runtime.*`
+Callers reach it through **`loggerFor(locals)`**, which performs the `Astro.locals.cfContext` cast — where
+`@astrojs/cloudflare` puts the context — in the one place that should know about it. The old `locals.runtime.*`
 accessors are still defined, as getters that throw: `runtime.ctx` tells you to use `cfContext`, and `runtime.env`
 tells you to `import { env } from "cloudflare:workers"` — which is exactly what `middleware.ts` does for the rate
-limiter binding. Both API routes and the landing page pass the context; keep doing that.
+limiter binding. Both API routes, the landing page and the 500 page go through `loggerFor`; keep doing that rather than casting
+`locals` again.
+
+`log-contributions-failure.ts` is the companion helper for the one failure every data surface can see. It takes the
+logger as a parameter the way `log-server-error.ts` does, and it owns the `SERVER_ERROR_STATUS` threshold itself, so
+a caller states what happened and where, and never whether it is worth reporting.
 
 `log-server-error.ts` is the narrow helper the 500 page uses. `describeError` handles `Error`, falsy, object and
 everything else, and **the object branch is wrapped in a `try`** — `JSON.stringify` throws on a circular reference

@@ -1,5 +1,5 @@
 ---
-import { getLogger } from "@infrastructure/logging/better-stack-logger";
+import { loggerFor } from "@infrastructure/logging/better-stack-logger";
 import { logServerError } from "@infrastructure/logging/log-server-error";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
@@ -15,8 +15,7 @@ const metadata: Metadata = {
 };
 
 const error = (Astro.props as { error?: unknown }).error;
-const executionContext = (Astro.locals as { cfContext?: ExecutionContext }).cfContext;
-logServerError({ logger: getLogger(executionContext), error, path });
+logServerError({ logger: loggerFor(Astro.locals), error, path });
 
 const terminal: TerminalLine[] = [
 	{ kind: TerminalLineKind.Command, text: `contribkit render ${path}` },

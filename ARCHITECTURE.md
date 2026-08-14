@@ -130,7 +130,8 @@ in [§7](#7-where-things-live).
 Any failure short-circuits: `isFailure` guards the result and `statusFor` / `messageFor` in
 `web/src/application/http/failure-http.ts` turn it into a response. Anything at or above `SERVER_ERROR_STATUS` is
 also reported to Better Stack with the username, kind and endpoint — from all three data consumers, the landing page
-included. This endpoint is deliberately **not** rate-limited — README embeds arrive through
+included. That reporting is one call to `logContributionsFailure`, which applies the threshold itself, rather than a
+condition each route repeats. This endpoint is deliberately **not** rate-limited — README embeds arrive through
 GitHub's shared image proxy, so a per-IP limit would throttle every reader at once
 ([ADR 0010](./docs/adr/0010-rate-limit-only-the-json-api.md)).
 

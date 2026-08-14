@@ -1,4 +1,4 @@
-import { messageFor, SERVER_ERROR_STATUS, statusFor } from "@application/http/failure-http";
+import { messageFor, statusFor } from "@application/http/failure-http";
 import { renderCalendarSvg } from "@application/use-cases/render-calendar-svg";
 import { isFailure } from "@domain/failures/failure";
 import { buildRollingGrid } from "@domain/services/calendar-grid";
@@ -6,7 +6,8 @@ import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-o
 import { DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EmbedParam } from "@domain/value-objects/embed";
 import { paletteByKey } from "@domain/value-objects/palette";
 import { parseUsername } from "@domain/value-objects/username";
-import { getLogger } from "@infrastructure/logging/better-stack-logger";
+import { loggerFor } from "@infrastructure/logging/better-stack-logger";
+import { ContributionsEndpoint, logContributionsFailure } from "@infrastructure/logging/log-contributions-failure";
 import { svgStringRenderer } from "@infrastructure/rendering/svg-string-renderer";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
@@ -34,19 +35,14 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 	const calendar = await loadContributions({ username, year: null });
 	if (isFailure(calendar)) {
 		const status = statusFor(calendar);
-		if (status >= SERVER_ERROR_STATUS) {
-			const executionContext = (locals as { cfContext?: ExecutionContext }).cfContext;
-			getLogger(executionContext).error({
-				message: "GitHub contributions fetch failed",
-				context: {
-					username: username.value,
-					kind: calendar.kind,
-					reason: messageFor(calendar),
-					status,
-					endpoint: "svg",
-				},
-			});
-		}
+		logContributionsFailure({
+			logger: loggerFor(locals),
+			username: username.value,
+			kind: calendar.kind,
+			reason: messageFor(calendar),
+			status,
+			endpoint: ContributionsEndpoint.Svg,
+		});
 		return new Response(messageFor(calendar), {
 			status,
 			headers: { "Content-Type": "text/plain" },

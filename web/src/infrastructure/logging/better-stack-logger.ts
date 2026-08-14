@@ -48,3 +48,6 @@ export function getLogger(executionContext?: ExecutionContext): Logger {
 		error: (params) => write({ level: "error", ...params }),
 	};
 }
+
+export const loggerFor = (locals: unknown): Logger =>
+	getLogger((locals as { cfContext?: ExecutionContext } | undefined)?.cfContext);

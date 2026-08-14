@@ -110,11 +110,16 @@ nothing else, so the calendar embeds outside GitHub
 
 ## Gotchas
 
-- **Every route that can see a 5xx logs it, including the landing page.** All three compare against
-  `SERVER_ERROR_STATUS` from `failure-http` and log `username`, `kind`, `reason`, `status` and an `endpoint` tag
-  (`"api"`, `"svg"`, `"page"`) — the tag is the only thing distinguishing them in Better Stack. The page could only
-  start doing this once `loadInitialContributions` carried the failure's `kind`; before that a GitHub outage on `/`
-  produced no log line at all.
+- **Every route that can see a 5xx logs it, including the landing page — through one call.**
+  `logContributionsFailure` takes the `username`, `kind`, `reason`, `status` and an `endpoint` tag
+  (`ContributionsEndpoint.Api` / `.Svg` / `.Page`), and **decides for itself whether the status is worth logging**,
+  so no route carries the `SERVER_ERROR_STATUS` comparison any more. The tag is the only thing distinguishing the
+  three in Better Stack. Each route used to spell the whole obligation out — the threshold, the `cfContext` cast and
+  the five context fields — which is twelve near-identical lines written three times, and nothing made them agree.
+  The page could only start logging at all once `loadInitialContributions` carried the failure's `kind`; before that
+  a GitHub outage on `/` produced no log line.
+- **`loggerFor(Astro.locals)` is how a route gets a logger.** It is the only place that knows the execution context
+  hides behind a cast on `locals`; four files performed that cast by hand before it existed.
 - **`500.astro` logs as a side effect of rendering.** `logServerError` runs in the frontmatter, so anything that
   renders the 500 page twice reports twice. It reads the throwable from `Astro.props.error`, which Astro populates
   only when it invokes the page as an error handler — visiting `/500` by hand logs `undefined`.

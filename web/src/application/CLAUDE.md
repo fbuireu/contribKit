@@ -66,8 +66,10 @@ The single mapping from a domain `Failure` to HTTP. Never inline either function
 - **`Network` and `Parse` both map to 502**, deliberately. To a caller, "GitHub was unreachable" and "GitHub's HTML
   no longer parses" are the same class of problem — upstream is not usable right now — and both are logged with
   their `kind`, so the distinction survives where it matters.
-- **`SERVER_ERROR_STATUS` lives here too**, and is the threshold all three routes log above. It is exported rather
-  than written as `500` in each of them so that "what counts as our problem" is one decision, not three.
+- **`SERVER_ERROR_STATUS` lives here too**, and is the threshold above which a failure is worth logging. The routes
+  no longer read it: `logContributionsFailure` in `infrastructure/logging/` applies it, so "what counts as our
+  problem" is one decision applied in one place rather than a constant three callers had to remember to compare
+  against.
 
 ## Gotchas
 

@@ -1,12 +1,12 @@
 ---
-import { SERVER_ERROR_STATUS } from "@application/http/failure-http";
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { computeContributionStats } from "@domain/services/contribution-stats";
 import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
-import { getLogger } from "@infrastructure/logging/better-stack-logger";
+import { loggerFor } from "@infrastructure/logging/better-stack-logger";
+import { ContributionsEndpoint, logContributionsFailure } from "@infrastructure/logging/log-contributions-failure";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import Customize from "@ui/components/customize/Customize.astro";
@@ -70,17 +70,14 @@ const requestedYear = Astro.url.searchParams.get("year");
 const initial = await loadInitial({ username, year: requestedYear });
 const resolvedYear = initial.ok ? initial.data.year : currentYear;
 
-if (!initial.ok && initial.status >= SERVER_ERROR_STATUS) {
-	const executionContext = (Astro.locals as { cfContext?: ExecutionContext }).cfContext;
-	getLogger(executionContext).error({
-		message: "GitHub contributions fetch failed",
-		context: {
-			username,
-			kind: initial.kind,
-			reason: initial.message,
-			status: initial.status,
-			endpoint: "page",
-		},
+if (!initial.ok) {
+	logContributionsFailure({
+		logger: loggerFor(Astro.locals),
+		username,
+		kind: initial.kind,
+		reason: initial.message,
+		status: initial.status,
+		endpoint: ContributionsEndpoint.Page,
 	});
 }
 
