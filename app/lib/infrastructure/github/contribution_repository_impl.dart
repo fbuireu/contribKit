@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
-import 'package:contribkit/domain/entities/contribution_week.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
+import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/services/contribution_level_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
@@ -185,7 +185,7 @@ final class GitHubContributionRepository implements ContributionRepository {
     return ContributionCalendar(
       username: username,
       year: year,
-      weeks: _groupIntoWeeks(days, year.value),
+      weeks: ContributionGridService.buildFor(days: days, year: year.value),
       totalContributions: _totalFor(days),
     );
   }
@@ -207,41 +207,6 @@ final class GitHubContributionRepository implements ContributionRepository {
       index != null && index >= 0 && index < ContributionLevel.values.length
       ? ContributionLevel.values[index]
       : null;
-
-  static const _weeksPerYear = 53;
-  static const _daysPerWeek = 7;
-
-  List<ContributionWeek> _groupIntoWeeks(List<ContributionDay> days, int year) {
-    final byDate = {
-      for (final day in days)
-        DateTime(day.date.year, day.date.month, day.date.day): day,
-    };
-
-    final firstOfYear = DateTime(year, 1, 1);
-    final start = DateTime(year, 1, 1 - (firstOfYear.weekday % _daysPerWeek));
-
-    final weeks = <ContributionWeek>[];
-    for (var week = 0; week < _weeksPerYear; week++) {
-      final weekDays = <ContributionDay>[];
-      for (var day = 0; day < _daysPerWeek; day++) {
-        final date = DateTime(
-          start.year,
-          start.month,
-          start.day + week * _daysPerWeek + day,
-        );
-        weekDays.add(
-          byDate[date] ??
-              ContributionDay(
-                date: date,
-                count: null,
-                level: ContributionLevel.none,
-              ),
-        );
-      }
-      weeks.add(ContributionWeek(days: weekDays));
-    }
-    return weeks;
-  }
 
   Future<ContributionCalendar?> _readCache(String key, Year year) async {
     try {
@@ -297,23 +262,25 @@ final class GitHubContributionRepository implements ContributionRepository {
         ? 0
         : allCounts.reduce((a, b) => a > b ? a : b);
 
-    final weeks = dto.weeks.map((weekDto) {
-      final days = weekDto.contributionDays.map((dayDto) {
-        final date = DateTime.parse(dayDto.date);
-        final count = dayDto.contributionCount;
-        return ContributionDay(
-          date: date,
-          count: count,
-          level:
-              _levelFromIndex(dayDto.level) ??
-              ContributionLevelService.levelFor(
-                count: count ?? 0,
-                yearMax: yearMax,
-              ),
-        );
-      }).toList();
-      return ContributionWeek(days: days);
+    final days = dto.weeks.expand((weekDto) => weekDto.contributionDays).map((
+      dayDto,
+    ) {
+      final count = dayDto.contributionCount;
+      return ContributionDay(
+        date: DateTime.parse(dayDto.date),
+        count: count,
+        level:
+            _levelFromIndex(dayDto.level) ??
+            ContributionLevelService.levelFor(
+              count: count ?? 0,
+              yearMax: yearMax,
+            ),
+      );
     }).toList();
+    final weeks = ContributionGridService.buildFor(
+      days: days,
+      year: year.value,
+    );
 
     return ContributionCalendar(
       username: username,

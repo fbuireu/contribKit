@@ -143,7 +143,7 @@ GitHub's shared image proxy, so a per-IP limit would throttle every reader at on
 | 2 | `FetchContributions.call(...)` | application | One class, one public `call` |
 | 3 | `GitHubContributionRepository.fetchCalendar(...)` | infrastructure | Hive cache first — 1h TTL for the current year, indefinite for past years ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)) |
 | 4 | DTO → entity at the boundary | infrastructure/github/dtos | A DTO never leaves the layer |
-| 5 | Grid padded to 53×7 | infrastructure | `_groupIntoWeeks` in the app's contribution repository pads dates outside the requested year as empty days, so week counts never vary ([ADR 0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md)). The web builds its grid in the domain layer instead |
+| 5 | Grid padded to 53×7 | domain | `ContributionGridService.buildFor` pads dates outside the requested year with an unknown Count, so week counts never vary ([ADR 0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md)). Both the fresh fetch and the cache read go through it, and the web builds its grid in its own domain layer |
 | 6 | `ContributionStats` derived | domain/services | Streaks, best day, best month, weekly average, active days |
 
 Separately, `callbackDispatcher` in `app/lib/main.dart` runs every 24 hours under WorkManager to refresh the

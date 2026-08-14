@@ -41,10 +41,10 @@ equivalent, and the differences are the whole reason this section exists:
 | A `<td>` with no `id` | kept, `count: null` | **dropped** — the id is the join key |
 | A day outside the requested year | kept | **dropped** (`date.year != year.value`) |
 | Missing `data-level` | day dropped, grid backfills it | derived by `ContributionLevelService` |
-| Unknown Count | `null` | **`0`** — the app has no way to say "unknown" |
+| Unknown Count | `null` | `null` |
 | HTTP 429 | `network(…, 429)` | `RateLimitedFailure`, with `resetAt` from `Retry-After` |
 | Timeout | none set | 20 s → `NetworkFailure` |
-| Grid construction | in the domain layer | **here**, in `_groupIntoWeeks` |
+| Grid construction | in the domain layer | in the domain layer, `ContributionGridService` |
 
 **Two passes over the HTML, joined on the `<td>`'s `id`.** Pass one builds `id → (date, level?)` from every `<td>`
 carrying `ContributionCalendar-day`; pass two builds `id → count` from every `<tool-tip for="…">`, taking the
@@ -53,7 +53,7 @@ leading digits of its text. A tool-tip with no leading number yields `0`, not a 
 **An empty first pass is a `ParseFailure`, never an empty calendar** — a calendar of zeros is a lie a reader cannot
 detect ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-html.md)).
 
-`_groupIntoWeeks` always emits 53 × 7 days, starting from the Sunday on or before 1 January
+`ContributionGridService.buildFor` always emits 53 × 7 days, starting from the Sunday on or before 1 January
 (`firstOfYear.weekday % 7` — Dart weekdays run 1 = Monday … 7 = Sunday, so Sunday maps to 0). Dates with no parsed
 day become `count: null, level: none` — an unknown Count, not a measured zero
 ([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)).
@@ -77,9 +77,10 @@ the streak walk in `ui/features/widget/calendar_widget_service.dart`, which had 
   "improve" this into a throw: a bad cache entry must never make the app unusable.
 - **A cache write that throws is swallowed entirely.** Failing to cache is not failing to fetch.
 - `invalidateCache(username)` deletes every key with that username prefix, so it clears all years at once.
-- **A cache hit does not go through `_groupIntoWeeks`.** `_toDto` stores the whole 53 × 7 grid, padding included, so
-  `_toDomain` rebuilds the weeks straight from the DTO. The two paths therefore have to agree about the grid on their
-  own — and when the walk was building the wrong dates, the cache faithfully stored the wrong grid too.
+- **A cache hit builds the same lattice as a fresh fetch.** `_toDomain` flattens the stored weeks back to days and
+  hands them to `ContributionGridService`, rather than trusting the shape it read. It used to map the DTO's weeks
+  straight through, so the grid invariant held on the cached path only because `_toDto` had written it correctly —
+  and when the walk was building the wrong dates, the cache faithfully stored the wrong grid and served it back.
 
 ## `persistence/` — settings
 
