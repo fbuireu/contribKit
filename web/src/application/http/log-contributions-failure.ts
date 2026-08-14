@@ -1,6 +1,9 @@
-import { SERVER_ERROR_STATUS } from "@application/http/failure-http";
 import type { Failure } from "@domain/failures/failure";
-import type { ServerErrorLogger } from "./log-server-error";
+import { SERVER_ERROR_STATUS } from "./failure-http";
+
+export interface FailureLogger {
+	error(params: { message: string; context?: Record<string, unknown> }): void;
+}
 
 export const ContributionsEndpoint = {
 	Api: "api",
@@ -11,7 +14,7 @@ export const ContributionsEndpoint = {
 export type ContributionsEndpoint = (typeof ContributionsEndpoint)[keyof typeof ContributionsEndpoint];
 
 export interface LogContributionsFailureParams {
-	logger: ServerErrorLogger;
+	logger: FailureLogger;
 	username: string;
 	kind: Failure["kind"];
 	status: number;

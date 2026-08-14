@@ -61,6 +61,11 @@ page can log what the two API routes log.** Drop it and a GitHub outage on `/` b
 outage on `/api/contributions` is recorded — which is exactly what happened before it was added. Anything reaching
 for a whole `Failure` after calling this is a sign the wrong use case was picked.
 
+`http/log-contributions-failure.ts` turns a failed fetch into a log line, and owns the `SERVER_ERROR_STATUS`
+threshold so no route repeats the comparison. It declares its own `FailureLogger` port — three lines, structurally
+satisfied by the Better Stack logger — rather than importing one from `infrastructure/`, which is the direction the
+layer map forbids. It lived in `infrastructure/logging/` for exactly one commit before that was noticed.
+
 ## `http/failure-http.ts`
 
 The single mapping from a domain `Failure` to HTTP. Never inline either function, and never write a `switch` over

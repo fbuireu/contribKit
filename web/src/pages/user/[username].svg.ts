@@ -1,4 +1,5 @@
 import { messageFor, statusFor } from "@application/http/failure-http";
+import { ContributionsEndpoint, logContributionsFailure } from "@application/http/log-contributions-failure";
 import { isFailure } from "@domain/failures/failure";
 import { buildRollingGrid } from "@domain/services/calendar-grid";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
@@ -6,7 +7,6 @@ import { DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EmbedParam } from "@doma
 import { paletteByKey } from "@domain/value-objects/palette";
 import { parseUsername } from "@domain/value-objects/username";
 import { loggerFor } from "@infrastructure/logging/better-stack-logger";
-import { ContributionsEndpoint, logContributionsFailure } from "@infrastructure/logging/log-contributions-failure";
 import { svgStringRenderer } from "@infrastructure/rendering/svg-string-renderer";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";

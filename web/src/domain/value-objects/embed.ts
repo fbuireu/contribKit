@@ -30,6 +30,7 @@ export const DEFAULT_EMBED_QUERY: EmbedQuery = {
 export interface BuildEmbedUrlParams extends Partial<EmbedQuery> {
 	username: string;
 	origin?: string;
+	keepDefaults?: boolean;
 }
 
 export const embedPathFor = (username: string): string => `/${EMBED_SEGMENT}/${username}${EMBED_EXTENSION}`;
@@ -40,13 +41,14 @@ export const buildEmbedUrl = ({
 	shape,
 	background,
 	origin = EMBED_ORIGIN,
+	keepDefaults = false,
 }: BuildEmbedUrlParams): string => {
 	const query = [
 		[EmbedParam.Palette, palette, DEFAULT_EMBED_QUERY.palette],
 		[EmbedParam.Shape, shape, DEFAULT_EMBED_QUERY.shape],
 		[EmbedParam.Background, background, DEFAULT_EMBED_QUERY.background],
 	]
-		.filter(([, value, fallback]) => value !== undefined && value !== fallback)
+		.filter(([, value, fallback]) => value !== undefined && (keepDefaults || value !== fallback))
 		.map(([name, value]) => `${name}=${encodeURIComponent(value as string)}`)
 		.join("&");
 

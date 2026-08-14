@@ -1,4 +1,4 @@
-import { ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "@ui/utils/dom-contract";
 export const RovingOrientation = {
 	Horizontal: "horizontal",
 	Both: "both",
@@ -24,10 +24,10 @@ export interface ActivateRadioParams {
 
 export function activateRadio({ buttons, target }: ActivateRadioParams): void {
 	buttons.forEach((button) => {
-		button.classList.remove("active");
+		button.classList.remove(ClassName.Active);
 		button.setAttribute("aria-checked", "false");
 	});
-	target.classList.add("active");
+	target.classList.add(ClassName.Active);
 	target.setAttribute("aria-checked", "true");
 	setRovingFocus({ elements: buttons, target });
 }
@@ -39,10 +39,10 @@ export interface ActivateTabParams {
 
 export function activateTab({ tabs, target }: ActivateTabParams): void {
 	tabs.forEach((tab) => {
-		tab.classList.remove("active");
+		tab.classList.remove(ClassName.Active);
 		tab.setAttribute("aria-selected", "false");
 	});
-	target.classList.add("active");
+	target.classList.add(ClassName.Active);
 	target.setAttribute("aria-selected", "true");
 	setRovingFocus({ elements: tabs, target });
 	const panel = document.getElementById(ElementId.ExportPreview);
@@ -78,7 +78,7 @@ export function initRovingGroup({
 	onActivate,
 	orientation = RovingOrientation.Both,
 }: InitRovingGroupParams): void {
-	const active = [...elements].find((element) => element.classList.contains("active")) ?? elements[0];
+	const active = [...elements].find((element) => element.classList.contains(ClassName.Active)) ?? elements[0];
 	if (active) setRovingFocus({ elements, target: active });
 	elements.forEach((element, index) => {
 		element.addEventListener("click", () => {

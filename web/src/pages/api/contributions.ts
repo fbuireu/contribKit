@@ -1,9 +1,9 @@
 import { messageFor, statusFor } from "@application/http/failure-http";
+import { ContributionsEndpoint, logContributionsFailure } from "@application/http/log-contributions-failure";
 import { isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
 import { loggerFor } from "@infrastructure/logging/better-stack-logger";
-import { ContributionsEndpoint, logContributionsFailure } from "@infrastructure/logging/log-contributions-failure";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
 import { loadContributions } from "../_contributions";

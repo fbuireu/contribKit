@@ -8,7 +8,7 @@ import { formatTotalContributions } from "@ui/components/grid/contribution";
 import { CUSTOMIZE_GRID_PRESET, EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
-import { ElementId, Selector } from "@ui/utils/dom-contract";
+import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
 import { formatHeroError } from "./contribution-errors";
 import { getDays, getUsername } from "./state";
 
@@ -66,7 +66,7 @@ export function renderExportPreview(): void {
 	const username = getUsername();
 
 	if (exportTab === ExportFormatKey.Png) {
-		card.classList.add("png-preview");
+		card.classList.add(ClassName.PngPreview);
 		const checker = document.createElement("div");
 		checker.className = "preview-checker";
 		checker.setAttribute("aria-hidden", "true");
@@ -80,7 +80,7 @@ export function renderExportPreview(): void {
 		tag.textContent = `${username}.png`;
 		card.appendChild(tag);
 	} else {
-		card.classList.add("code-preview");
+		card.classList.add(ClassName.CodePreview);
 		const isSvgTab = exportTab === ExportFormatKey.Svg;
 		const paletteKey = getActivePalette().key;
 		card.appendChild(
@@ -90,7 +90,7 @@ export function renderExportPreview(): void {
 			? renderCalendarString({ days, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false })
 			: markdownSnippet({ username, palette: paletteKey, shape });
 		const copyButton = document.createElement("button");
-		copyButton.className = "copy-btn mono";
+		copyButton.className = `${ClassName.CopyButton} mono`;
 		copyButton.textContent = "copy";
 		copyButton.addEventListener("click", () => {
 			navigator.clipboard.writeText(plainText).then(() => {

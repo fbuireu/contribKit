@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 
 import { GRID_CELL_COUNT } from "@domain/services/dates";
-import { PALETTES } from "@domain/value-objects/palette";
+import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
+import { EmbedParam } from "@domain/value-objects/embed";
+import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES, userSvgUrl } from "./code-preview";
 
@@ -89,5 +91,24 @@ describe("buildCodeBlock", () => {
 	it("renders a non-breaking space for empty lines", () => {
 		const pre = buildCodeBlock([[]]);
 		expect(pre.querySelector(".code-line")?.innerHTML).toBe("&nbsp;");
+	});
+});
+
+describe("buildMarkdownLines with the defaults the page opens on", () => {
+	it("does not print the same line twice", () => {
+		const lines = buildMarkdownLines({ username: "torvalds", palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE })
+			.map((line) => line.map(([, text]) => text).join(""))
+			.filter((line) => line.startsWith("!["));
+
+		expect(new Set(lines).size).toBe(lines.length);
+	});
+
+	it("shows the options on the line that says it has options", () => {
+		const lines = buildMarkdownLines({ username: "torvalds", palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE })
+			.map((line) => line.map(([, text]) => text).join(""))
+			.filter((line) => line.startsWith("!["));
+
+		expect(lines[1]).toContain(`?${EmbedParam.Palette}=`);
+		expect(lines[1]).toContain(`&${EmbedParam.Shape}=`);
 	});
 });

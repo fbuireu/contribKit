@@ -1,4 +1,5 @@
 ---
+import { ContributionsEndpoint, logContributionsFailure } from "@application/http/log-contributions-failure";
 import { DaySource, daySourceFor, resolveViewerIdentity } from "@application/use-cases/resolve-initial-view";
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
@@ -6,7 +7,6 @@ import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
 import { loggerFor } from "@infrastructure/logging/better-stack-logger";
-import { ContributionsEndpoint, logContributionsFailure } from "@infrastructure/logging/log-contributions-failure";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import Customize from "@ui/components/customize/Customize.astro";

@@ -1,7 +1,8 @@
 # web/src/infrastructure
 
 Implementations of `domain/` interfaces. The only layer allowed to reach the network, and the only one that knows
-it is running inside a Cloudflare Worker. Never imports from `ui/`, `pages/` or `application/`.
+it is running inside a Cloudflare Worker. Never imports from `ui/`, `pages/` or `application/` — a docs-contract assertion checks every layer's import
+direction now, because this rule was stated for a year and enforced by nothing.
 
 ## Invariants & rules
 

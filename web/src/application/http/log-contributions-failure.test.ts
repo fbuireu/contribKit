@@ -1,6 +1,6 @@
-import { SERVER_ERROR_STATUS } from "@application/http/failure-http";
 import { FailureKind } from "@domain/failures/failure";
 import { describe, expect, it, vi } from "vitest";
+import { SERVER_ERROR_STATUS } from "./failure-http";
 import { ContributionsEndpoint, logContributionsFailure } from "./log-contributions-failure";
 
 const loggerSpy = () => ({ error: vi.fn() });

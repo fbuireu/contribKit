@@ -32,8 +32,10 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 `page-init.ts` is a module-scoped singleton, not a component. It owns the whole interactive page:
 
 - **The markup contract is declared, in `utils/dom-contract.ts`.** `ElementId`, `ClassName` and `Selector` are the
-  one spelling of every id and class the client reads, and the six components that own those nodes interpolate the
-  same constants (`id={ElementId.HeroGrid}`) rather than typing the string twice. Twenty-nine literals used to cross
+  one spelling of every id and class that crosses the `.astro` ↔ `.ts` boundary, and **both sides use them** — the
+  components interpolate (`id={ElementId.HeroGrid}`, `class={ClassName.BarTag}`) and the client reads through
+  `Selector`. `roving.ts` writing `"active"` as a literal while `render.ts` read it through `Selector` was the
+  same one-way contract in miniature: renaming the constant would have changed the read and not the write. Twenty-nine literals used to cross
   the `.astro` ↔ `.ts` boundary with nothing tying them together, and every consumer is written as `if (el) …`, so
   renaming an id in a component silently turned a renderer into a no-op — the page kept working and simply stopped
   updating. Add a node the client touches, and add its id here in the same change.

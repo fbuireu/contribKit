@@ -1,7 +1,7 @@
 ---
 import { SUGGESTED_USERNAMES } from "@domain/value-objects/username";
 import { MIN_YEAR } from "@domain/value-objects/year";
-import { ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "@ui/utils/dom-contract";
 import "./hero.css";
 import type { ContributionStats } from "@domain/services/contribution-stats";
 import { formatTotalContributions } from "@ui/components/grid/contribution";
@@ -104,7 +104,7 @@ const { heroSVG, stats, palette, username, year = currentYear, error = null } = 
             <span class="mono dimmer" aria-hidden="true">·</span>
             <span class="mono dim" id={ElementId.HeroYearRange}>last year</span>
           </div>
-          <div class="bar-tag">
+          <div class={ClassName.BarTag}>
             <span class="mono">{formatTotalContributions(stats.totalContributions)}</span> contributions
           </div>
         </div>
@@ -115,11 +115,11 @@ const { heroSVG, stats, palette, username, year = currentYear, error = null } = 
           <div class="legend" role="img" aria-label="Contribution level: less to more">
             <span class="mono dimmer" aria-hidden="true">less</span>
             {palette.map((color) => (
-              <span class="legend-sq" style={`background:${color};border-radius:0.125rem`} aria-hidden="true"></span>
+              <span class={ClassName.LegendSquare} style={`background:${color};border-radius:0.125rem`} aria-hidden="true"></span>
             ))}
             <span class="mono dimmer" aria-hidden="true">more</span>
           </div>
-          <div class="legend-stats">
+          <div class={ClassName.LegendStats}>
             <span><b class="mono">{stats.currentStreak}</b> day streak</span>
             <span class="sep" aria-hidden="true">·</span>
             <span><b class="mono">{stats.longestStreak}</b> longest</span>

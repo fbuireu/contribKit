@@ -1,5 +1,5 @@
 ---
-import { ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "@ui/utils/dom-contract";
 import "./export.css";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { ExportFormatKey } from "./export-formats";
@@ -42,7 +42,7 @@ const EXPORT_FORMATS = [
         ))}
       </div>
       <div class="export-preview" id={ElementId.ExportPreview} role="tabpanel" aria-labelledby="export-tab-png">
-        <div class="preview-card png-preview">
+        <div class={`preview-card ${ClassName.PngPreview}`}>
           <div class="preview-checker" aria-hidden="true"></div>
           <div class="preview-content">
             <Fragment set:html={exportSvg} />

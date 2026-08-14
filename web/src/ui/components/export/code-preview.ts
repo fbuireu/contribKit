@@ -109,7 +109,7 @@ export function buildMarkdownLines({ username, palette, shape }: BuildMarkdownLi
 		[],
 		[["c-comment", "<!-- or with options -->"]],
 		[],
-		imageLine(buildEmbedUrl({ username, palette, shape })),
+		imageLine(buildEmbedUrl({ username, palette, shape, keepDefaults: true })),
 	];
 }
 

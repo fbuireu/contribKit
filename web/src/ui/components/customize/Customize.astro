@@ -1,5 +1,5 @@
 ---
-import { ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "@ui/utils/dom-contract";
 import "./customize.css";
 import { CELL_SHAPES } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
@@ -36,7 +36,7 @@ const palettes = Object.values(PALETTES);
           <div class="palette-list" id={ElementId.PaletteList} role="radiogroup" aria-label="Color palette">
             {palettes.map(({ key, name, colors }, index) => (
               <button
-                class:list={['palette-row', { active: index === 0 }]}
+                class:list={[ClassName.PaletteRow, { [ClassName.Active]: index === 0 }]}
                 role="radio"
                 aria-checked={index === 0 ? 'true' : 'false'}
                 data-key={key}
@@ -58,7 +58,7 @@ const palettes = Object.values(PALETTES);
           <div class="shape-list" id={ElementId.ShapeList} role="radiogroup" aria-label="Cell shape">
             {CELL_SHAPES.map((kind, index) => (
               <button
-                class:list={['shape-btn', { active: index === 0 }]}
+                class:list={[ClassName.ShapeButton, { [ClassName.Active]: index === 0 }]}
                 role="radio"
                 aria-checked={index === 0 ? 'true' : 'false'}
                 data-key={kind}
