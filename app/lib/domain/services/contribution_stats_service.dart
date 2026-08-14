@@ -14,11 +14,11 @@ abstract final class ContributionStatsService {
       return const ContributionStats(
         currentStreak: 0,
         longestStreak: 0,
-        bestDayCount: 0,
+        bestDayCount: null,
         bestDayDate: null,
         totalDaysActive: 0,
-        weeklyAverage: 0,
-        bestMonthContributions: 0,
+        weeklyAverage: null,
+        bestMonthContributions: null,
         bestMonth: null,
       );
     }
@@ -48,7 +48,9 @@ abstract final class ContributionStatsService {
     final total = calendar.totalContributions;
     final weeklyAverage = weekCount > 0 && total != null
         ? total / weekCount
-        : 0.0;
+        : null;
+
+    final incomplete = allDays.any((day) => day.isActive && day.count == null);
 
     final monthTotals = <int, int>{};
     for (final day in allDays) {
@@ -59,8 +61,8 @@ abstract final class ContributionStatsService {
       }
     }
     int? bestMonth;
-    int bestMonthContributions = 0;
-    if (monthTotals.isNotEmpty) {
+    int? bestMonthContributions;
+    if (monthTotals.isNotEmpty && !incomplete) {
       final best = monthTotals.entries.reduce(
         (a, b) => a.value >= b.value ? a : b,
       );
@@ -74,7 +76,7 @@ abstract final class ContributionStatsService {
         today: today ?? DateTime.now(),
       ),
       longestStreak: longestStreak,
-      bestDayCount: bestCount,
+      bestDayCount: incomplete ? null : bestCount,
       bestDayDate: bestDate,
       totalDaysActive: totalActive,
       weeklyAverage: weeklyAverage,

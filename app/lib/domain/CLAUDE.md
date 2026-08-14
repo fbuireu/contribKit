@@ -87,6 +87,17 @@ The week-based shape is what makes `ContributionStatsService`'s `weeklyAverage` 
 always 53×7, so `weeks.length` is a constant and never a partial year
 ([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)).
 
+**Every figure derived from Counts is nullable, and `null` means "not knowable" rather than zero.** `weeklyAverage`
+is `null` when Total Contributions is; `bestDayCount` and `bestMonthContributions` are `null` the moment any active
+day has an unknown Count, because the largest Count *seen* is a lower bound and reporting it as the best day is the
+same lie `_totalFor` refuses to tell. `currentStreak`, `longestStreak`, `totalDaysActive` and `bestMonth` stay
+non-nullable: they count *days*, which the Contribution Level answers on its own.
+
+**Five of the eight figures have no reader.** `StatsPanel` renders `currentStreak`, `longestStreak` and the
+calendar's own `totalContributions`, and nothing else in `lib/` touches the rest. They are computed on every call
+for a surface that does not exist yet — which is exactly why their handling of an unknown Count was wrong for a
+while with nothing going visibly wrong.
+
 ## Services
 
 - **`ContributionLevelService.levelFor({ count, yearMax })`** buckets a count into a level by ratio: `0` → `none`,

@@ -12,11 +12,11 @@ final class ContributionStats {
 
   final int currentStreak;
   final int longestStreak;
-  final int bestDayCount;
+  final int? bestDayCount;
   final DateTime? bestDayDate;
   final int totalDaysActive;
-  final double weeklyAverage;
-  final int bestMonthContributions;
+  final double? weeklyAverage;
+  final int? bestMonthContributions;
 
   final int? bestMonth;
 }

@@ -42,21 +42,61 @@ ContributionCalendar _calendar(List<(DateTime, int)> dayData) {
 
 DateTime _d(int month, int day) => DateTime(2024, month, day);
 
+ContributionCalendar _calendarWithUnknownCount() {
+  final days = [
+    ContributionDay(
+      date: DateTime(2024, 6, 3),
+      count: 5,
+      level: ContributionLevel.high,
+    ),
+    ContributionDay(
+      date: DateTime(2024, 6, 4),
+      count: null,
+      level: ContributionLevel.high,
+    ),
+  ];
+
+  return ContributionCalendar(
+    username: Username('testuser'),
+    year: Year(2024),
+    weeks: [ContributionWeek(days: days)],
+    totalContributions: null,
+  );
+}
+
 void main() {
   group('ContributionStatsService.compute', () {
-    test('returns zeros for an empty calendar', () {
+    test('counts nothing, and measures nothing, for an empty calendar', () {
       final cal = _calendar([]);
       final stats = ContributionStatsService.compute(cal);
 
       expect(stats.currentStreak, 0);
       expect(stats.longestStreak, 0);
-      expect(stats.bestDayCount, 0);
-      expect(stats.bestDayDate, isNull);
       expect(stats.totalDaysActive, 0);
-      expect(stats.weeklyAverage, 0.0);
-      expect(stats.bestMonthContributions, 0);
+      expect(stats.bestDayDate, isNull);
       expect(stats.bestMonth, isNull);
+      expect(stats.bestDayCount, isNull);
+      expect(stats.weeklyAverage, isNull);
+      expect(stats.bestMonthContributions, isNull);
     });
+
+    test(
+      'reports no derived figure when an active day has an unknown Count',
+      () {
+        final cal = _calendarWithUnknownCount();
+        final stats = ContributionStatsService.compute(cal);
+
+        expect(stats.bestDayCount, isNull);
+        expect(stats.bestMonthContributions, isNull);
+        expect(
+          stats.totalDaysActive,
+          greaterThan(0),
+          reason:
+              'the day is still active — only the figures derived from '
+              'Counts are unknowable',
+        );
+      },
+    );
 
     test('counts a single active day correctly', () {
       final cal = _calendar([(_d(6, 15), 5)]);
