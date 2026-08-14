@@ -15,7 +15,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 
 ## Versions (pinned — match exactly)
 
-- pnpm **11.18.0** — always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
+- pnpm **11.21.0** — always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
   `pnpm/action-setup` resolves everywhere it runs — `ci-web.yml` and `release-app.yml` pass
   `package_json_file: package.json` explicitly, and the `prepare-web-env` composite action passes nothing, which
   defaults to the same root manifest. `app/package.json` deliberately declares none, which a docs guard asserts.
