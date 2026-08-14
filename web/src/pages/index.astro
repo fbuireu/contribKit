@@ -1,10 +1,10 @@
 ---
+import { DaySource, daySourceFor, resolveViewerIdentity } from "@application/use-cases/resolve-initial-view";
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
-import { computeContributionStats } from "@domain/services/contribution-stats";
+import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
-import { DEFAULT_USERNAME, isUsername, parseUsername } from "@domain/value-objects/username";
 import { loggerFor } from "@infrastructure/logging/better-stack-logger";
 import { ContributionsEndpoint, logContributionsFailure } from "@infrastructure/logging/log-contributions-failure";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
@@ -59,11 +59,10 @@ const SCHEMA = [
 	},
 ];
 
-const requestedUsername = Astro.url.searchParams.get("user")?.trim();
-const savedRaw = Astro.cookies.get(USERNAME_COOKIE)?.value?.trim();
-const savedUsername = savedRaw && isUsername(parseUsername(savedRaw)) ? savedRaw : undefined;
-const username = requestedUsername || savedUsername || DEFAULT_USERNAME;
-const isExplicit = Boolean(requestedUsername || savedUsername);
+const { username, isExplicit, cacheControl } = resolveViewerIdentity({
+	requestedUsername: Astro.url.searchParams.get("user"),
+	savedUsername: Astro.cookies.get(USERNAME_COOKIE)?.value,
+});
 const currentYear = new Date().getFullYear();
 const requestedYear = Astro.url.searchParams.get("year");
 
@@ -83,17 +82,22 @@ if (!initial.ok) {
 
 let days: ContributionDay[];
 let heroError: string | null = null;
-if (initial.ok) {
-	days = initial.data.days;
-} else if (isExplicit) {
-	days = buildGridFromApi({ days: [], year: currentYear });
-	heroError = contributionError(initial.status);
-} else {
-	days = generateData();
+switch (daySourceFor({ loaded: initial.ok, isExplicit })) {
+	case DaySource.Loaded:
+		days = initial.ok ? initial.data.days : [];
+		break;
+	case DaySource.Empty:
+		days = buildGridFromApi({ days: [], year: currentYear });
+		heroError = initial.ok ? null : contributionError(initial.status);
+		break;
+	default:
+		days = generateData();
 }
 
-const stats = computeContributionStats(days);
-if (initial.ok && initial.data.total != null) stats.totalContributions = initial.data.total;
+const stats = statsWithScrapedTotal({
+	days,
+	scrapedTotal: initial.ok ? initial.data.total : null,
+});
 
 const heroSVG = renderCalendarString({
 	days,
@@ -112,10 +116,7 @@ const exportSvg = renderCalendarString({
 
 const initialDaysForClient = days;
 
-Astro.response.headers.set(
-	"Cache-Control",
-	isExplicit ? "private, max-age=3600, stale-while-revalidate=86400" : "private, no-store",
-);
+Astro.response.headers.set("Cache-Control", cacheControl);
 ---
 
 <BaseLayout metadata={metadata}>

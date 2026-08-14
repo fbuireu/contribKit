@@ -36,3 +36,14 @@ export function computeContributionStats(days: readonly ContributionDay[]): Cont
 	}
 	return { totalContributions: hasUnknownCount ? null : knownTotal, currentStreak, longestStreak };
 }
+
+export interface StatsWithScrapedTotalParams {
+	days: readonly ContributionDay[];
+	scrapedTotal?: number | null;
+}
+
+export const statsWithScrapedTotal = ({ days, scrapedTotal }: StatsWithScrapedTotalParams): ContributionStats => {
+	const stats = computeContributionStats(days);
+	if (scrapedTotal != null) stats.totalContributions = scrapedTotal;
+	return stats;
+};

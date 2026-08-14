@@ -1,5 +1,5 @@
 import { buildGridFromApi } from "@domain/services/calendar-grid";
-import { computeContributionStats } from "@domain/services/contribution-stats";
+import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { generateData } from "@ui/components/grid/calendar";
@@ -82,8 +82,7 @@ async function renderFromGitHub({ username, updateHistory = true }: RenderFromGi
 			setDays(buildGridFromApi({ days: data.days, year }));
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
-			const stats = computeContributionStats(data.days);
-			if (data.total != null) stats.totalContributions = data.total;
+			const stats = statsWithScrapedTotal({ days: data.days, scrapedTotal: data.total });
 			updateHeroStats(stats);
 			updateYearRange(getDays());
 			renderExportPreview();

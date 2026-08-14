@@ -95,10 +95,11 @@ test helper reintroduces the same bug in the test rather than the code.
 - **`computeContributionStats().totalContributions` is `number | null`, and `null` means "not knowable".** It adds
   only known Counts, and the moment a day at level 1 or above has `count: null` it discards the sum entirely and
   returns `null` — a total that skipped unknown days would be a lower bound presented as a measurement. A level-0
-  day with an unknown Count does **not** void it, because GitHub's level 0 is zero. Both call sites — the server
-  render in `pages/index.astro` and the client refresh in `ui/utils/page-init.ts` — still overwrite the field with
-  `ContributionCalendar.total` when the scraper found one, and `ui/` renders the `null` as the word `unknown`
-  rather than a figure. It summed `count ?? 0` and printed the result as exact until that changed; do not put the
+  day with an unknown Count does **not** void it, because GitHub's level 0 is zero. **`statsWithScrapedTotal` is where that gets reconciled**: it computes the
+  stats and then lets a scraped `ContributionCalendar.total` beat the sum, because GitHub's own figure is a
+  measurement and ours is at best a lower bound. Both call sites — the server render in `pages/index.astro` and the
+  client refresh in `ui/utils/page-init.ts` — go through it rather than mutating the returned object themselves,
+  which is what they each used to do. `ui/` renders the `null` as the word `unknown` rather than a figure. It summed `count ?? 0` and printed the result as exact until that changed; do not put the
   `??` back.
 - **`clampLevel` lives in `value-objects/contribution-level.ts`, not in `services/`.** It is a value-object
   constructor that happens to be total.

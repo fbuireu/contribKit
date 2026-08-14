@@ -23,6 +23,12 @@ Cloudflare or `fetch` — everything reaches it through a closure. Stateless: st
 | `renderCalendarSvg(renderer)({ calendar, options })` | `string` | Likewise a pass-through onto the injected `SvgRenderer`. It has no failure path of its own — a renderer that throws throws through it. |
 | `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | The one with real logic: it defaults, validates, loads and builds the 53×7 grid. |
 
+`resolve-initial-view.ts` sits alongside them and is not a use case in the curried sense — it takes no
+dependencies. It holds the landing page's request policy: `resolveViewerIdentity` (username precedence, whether the
+visitor asked for anyone, and the resulting `Cache-Control`) and `daySourceFor` (which of the three day sources a
+result and that flag imply). It returns decisions rather than markup, so it stays clear of `ui/` and stays testable
+— which is the whole point, since the frontmatter that used to hold these rules is unreachable from vitest.
+
 The two thin ones are deliberately thin. They are the seam that keeps `pages/` from importing a domain interface
 *and* calling it, and the place a cross-cutting concern would go if one ever appeared. Do not "simplify" them away.
 

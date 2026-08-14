@@ -129,13 +129,20 @@ nothing else, so the calendar embeds outside GitHub
 - **`/api/health` returns 503, not 200, when anything is missing.** It checks four keys — the analytics ID, both
   Better Stack variables and the `API_RATE_LIMITER` binding — and reports `"ok"` only when all four are present. A
   local run or a preview deployment is expected to fail it.
-- **The landing page distinguishes an asked-for user from the default.** `?user=` wins, then the `USERNAME_COOKIE`,
-  then `DEFAULT_USERNAME`. `isExplicit` is true only for the first two, and it decides what a failure looks like: an
-  explicit user gets an empty grid plus an error message, while a first-time visitor gets a generated placeholder
-  grid and no error at all. Never surface a fetch failure for a user nobody asked for.
-- **The landing page overwrites the computed total with the scraped one** whenever the scrape produced one at all,
-  by mutating the object `computeContributionStats` returned. The check is `!= null`, not truthiness: a scraped
-  total of `0` is a fact and has to win over a sum, and it used to lose.
+- **The landing page distinguishes an asked-for user from the default, and `resolveViewerIdentity` decides it.**
+  `?user=` wins, then the `USERNAME_COOKIE`, then `DEFAULT_USERNAME`; `isExplicit` is true only for the first two,
+  and it decides what a failure looks like — `daySourceFor` turns it into `Loaded`, `Empty` or `Placeholder`. An
+  explicit user gets an empty grid plus an error message; a first-time visitor gets a generated placeholder grid
+  and no error at all. Never surface a fetch failure for a user nobody asked for, and never show the placeholder to
+  someone who asked — that would be inventing data for them.
+  The frontmatter spelled all of this out, along with the cache decision, and **nothing could test it**: vitest does
+  not load `.astro`. It now passes what it read to those two functions and renders what they return.
+- **A saved username is validated and the validated value is what gets used.** The cookie went through
+  `parseUsername` and then the *raw* string was used anyway, so the parse was decoration.
+- **The scraped total wins over the computed sum**, and that rule lives in `statsWithScrapedTotal` in the domain,
+  because it is a claim about what a Total Contributions is rather than a page concern. The check is `!= null`, not
+  truthiness: a scraped total of `0` is a fact and has to beat a sum, and it used to lose. The page and
+  `page-init.ts` had a copy each.
 - **The SVG route parses its query string after the fetch, not before.** Nothing can fail there — every field is
   `.catch(default)` — so the order is harmless, but it is the reverse of `/api/contributions`, which validates
   first precisely because its inputs can be rejected.
