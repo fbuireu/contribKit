@@ -1,20 +1,11 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/services/streak_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
-import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/ui/features/widget/home_screen_widget_payload.dart';
 import 'package:home_widget/home_widget.dart';
 
 abstract final class CalendarWidgetService {
-  static const _levelsKey = 'widget_levels';
-  static const _weeksKey = 'widget_weeks';
-  static const _colorsKey = 'widget_colors';
-  static const _shapeKey = 'widget_shape';
-  static const _usernameKey = 'widget_username';
-  static const _streakKey = 'widget_streak';
-  static const _totalContributionsKey = 'widget_total_contributions';
-
   static const _qualifiedMedium =
       'com.fbuireu.contribkit.ContribKitWidgetProvider';
   static const _qualifiedSmall =
@@ -26,35 +17,42 @@ abstract final class CalendarWidgetService {
     required CellShape cellShape,
     CellSize cellSize = CellSize.normal,
   }) async {
+    final payload = HomeScreenWidgetPayload.from(
+      calendar: calendar,
+      palette: palette,
+      cellShape: cellShape,
+      today: DateTime.now(),
+    );
+
     try {
-      final levels = StringBuffer();
-      for (final week in calendar.weeks) {
-        for (var i = 0; i < 7; i++) {
-          levels.write(i < week.days.length ? week.days[i].level.index : 0);
-        }
-      }
-
-      final colors = [
-        for (final level in ContributionLevel.values)
-          palette.colorFor(level).argb,
-      ].join(',');
-
       await Future.wait([
-        HomeWidget.saveWidgetData<String>(_levelsKey, levels.toString()),
-        HomeWidget.saveWidgetData<int>(_weeksKey, calendar.weeks.length),
-        HomeWidget.saveWidgetData<String>(_colorsKey, colors),
-        HomeWidget.saveWidgetData<String>(_shapeKey, cellShape.name),
         HomeWidget.saveWidgetData<String>(
-          _usernameKey,
-          calendar.username.value,
+          HomeScreenWidgetKey.levels,
+          payload.levels,
         ),
         HomeWidget.saveWidgetData<int>(
-          _streakKey,
-          StreakService.currentFor(calendar: calendar, today: DateTime.now()),
+          HomeScreenWidgetKey.weeks,
+          payload.weeks,
+        ),
+        HomeWidget.saveWidgetData<String>(
+          HomeScreenWidgetKey.colors,
+          payload.colors,
+        ),
+        HomeWidget.saveWidgetData<String>(
+          HomeScreenWidgetKey.shape,
+          payload.shape,
+        ),
+        HomeWidget.saveWidgetData<String>(
+          HomeScreenWidgetKey.username,
+          payload.username,
         ),
         HomeWidget.saveWidgetData<int>(
-          _totalContributionsKey,
-          calendar.totalContributions,
+          HomeScreenWidgetKey.streak,
+          payload.streak,
+        ),
+        HomeWidget.saveWidgetData<int>(
+          HomeScreenWidgetKey.totalContributions,
+          payload.totalContributions,
         ),
       ]);
 
