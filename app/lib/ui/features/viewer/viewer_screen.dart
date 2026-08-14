@@ -445,7 +445,7 @@ class _CalendarCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final gridBg =
-        BackgroundPresets.colors[state.cardBackground] ?? colors.card;
+        BackgroundPresets.colors[state.backgroundPreset] ?? colors.card;
 
     return AppCard(
       padding: EdgeInsets.zero,

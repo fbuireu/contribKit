@@ -55,7 +55,7 @@ void main() {
       expect(stats.totalDaysActive, 0);
       expect(stats.weeklyAverage, 0.0);
       expect(stats.bestMonthContributions, 0);
-      expect(stats.bestMonthIndex, isNull);
+      expect(stats.bestMonth, isNull);
     });
 
     test('counts a single active day correctly', () {
@@ -66,7 +66,7 @@ void main() {
       expect(stats.bestDayCount, 5);
       expect(stats.bestDayDate, _d(6, 15));
       expect(stats.totalDaysActive, 1);
-      expect(stats.bestMonthIndex, 6);
+      expect(stats.bestMonth, 6);
       expect(stats.bestMonthContributions, 5);
     });
 
@@ -75,7 +75,7 @@ void main() {
         (_d(3, 1), 2),
         (_d(3, 2), 3),
         (_d(3, 3), 1),
-        (_d(3, 4), 0), // break
+        (_d(3, 4), 0),
         (_d(3, 5), 4),
         (_d(3, 6), 5),
       ]);
@@ -105,21 +105,18 @@ void main() {
     test('identifies the best month', () {
       final cal = _calendar([
         (_d(1, 5), 5),
-        (_d(1, 6), 5), // January: 10 total
+        (_d(1, 6), 5),
         (_d(2, 1), 8),
-        (_d(2, 2), 8), // February: 16 total
-        (_d(3, 1), 3), // March: 3 total
+        (_d(2, 2), 8),
+        (_d(3, 1), 3),
       ]);
       final stats = ContributionStatsService.compute(cal);
-      expect(stats.bestMonthIndex, 2);
+      expect(stats.bestMonth, 2);
       expect(stats.bestMonthContributions, 16);
     });
 
     test('weekly average equals total divided by week count', () {
-      final cal = _calendar([
-        (_d(1, 7), 6), // Sunday → new week
-        (_d(1, 14), 4), // Sunday → new week
-      ]);
+      final cal = _calendar([(_d(1, 7), 6), (_d(1, 14), 4)]);
       final stats = ContributionStatsService.compute(cal);
       expect(stats.weeklyAverage, closeTo(10.0 / cal.weeks.length, 0.01));
     });

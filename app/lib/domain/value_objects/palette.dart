@@ -3,6 +3,7 @@ import 'package:contribkit/domain/value_objects/contribution_level.dart';
 
 final class Palette {
   const Palette({
+    required this.key,
     required this.name,
     required this.none,
     required this.noneLight,
@@ -11,6 +12,8 @@ final class Palette {
     required this.high,
     required this.veryHigh,
   });
+
+  final String key;
 
   final String name;
 
@@ -34,6 +37,7 @@ final class Palette {
   @override
   bool operator ==(Object other) =>
       other is Palette &&
+      other.key == key &&
       other.name == name &&
       other.none == none &&
       other.noneLight == noneLight &&
@@ -44,8 +48,8 @@ final class Palette {
 
   @override
   int get hashCode =>
-      Object.hash(name, none, noneLight, low, medium, high, veryHigh);
+      Object.hash(key, name, none, noneLight, low, medium, high, veryHigh);
 
   @override
-  String toString() => 'Palette($name)';
+  String toString() => 'Palette($key)';
 }

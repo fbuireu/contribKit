@@ -7,7 +7,7 @@ final class ContributionStats {
     required this.totalDaysActive,
     required this.weeklyAverage,
     required this.bestMonthContributions,
-    required this.bestMonthIndex,
+    required this.bestMonth,
   });
 
   final int currentStreak;
@@ -18,5 +18,5 @@ final class ContributionStats {
   final double weeklyAverage;
   final int bestMonthContributions;
 
-  final int? bestMonthIndex;
+  final int? bestMonth;
 }

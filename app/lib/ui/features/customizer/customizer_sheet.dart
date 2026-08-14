@@ -149,7 +149,7 @@ class _CustomizerSheetState extends ConsumerState<CustomizerSheet> {
                               palette: state.palette!,
                               cellShape: state.cellShape,
                               cellSize: state.cellSize,
-                              cardBackground: state.cardBackground,
+                              backgroundPreset: state.backgroundPreset,
                             ),
                             const SizedBox(height: Tokens.space5),
                           ],
@@ -171,8 +171,8 @@ class _CustomizerSheetState extends ConsumerState<CustomizerSheet> {
                           ),
                           const SizedBox(height: Tokens.space5),
                           BackgroundPicker(
-                            selected: state.cardBackground,
-                            onSelected: notifier.setCardBackground,
+                            selected: state.backgroundPreset,
+                            onSelected: notifier.setBackgroundPreset,
                           ),
                           const SizedBox(height: Tokens.space6),
                           AppButton(
@@ -199,19 +199,19 @@ class _CalendarPreview extends StatelessWidget {
     required this.palette,
     required this.cellShape,
     required this.cellSize,
-    required this.cardBackground,
+    required this.backgroundPreset,
   });
 
   final ContributionCalendar calendar;
   final Palette palette;
   final CellShape cellShape;
   final CellSize cellSize;
-  final BackgroundPreset cardBackground;
+  final BackgroundPreset backgroundPreset;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final gridBg = BackgroundPresets.colors[cardBackground] ?? colors.card;
+    final gridBg = BackgroundPresets.colors[backgroundPreset] ?? colors.card;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: gridBg,

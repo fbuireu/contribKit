@@ -16,7 +16,7 @@ abstract final class ContributionStatsService {
         totalDaysActive: 0,
         weeklyAverage: 0,
         bestMonthContributions: 0,
-        bestMonthIndex: null,
+        bestMonth: null,
       );
     }
 
@@ -52,13 +52,13 @@ abstract final class ContributionStatsService {
             (monthTotals[day.date.month] ?? 0) + day.count;
       }
     }
-    int? bestMonthIndex;
+    int? bestMonth;
     int bestMonthContributions = 0;
     if (monthTotals.isNotEmpty) {
       final best = monthTotals.entries.reduce(
         (a, b) => a.value >= b.value ? a : b,
       );
-      bestMonthIndex = best.key;
+      bestMonth = best.key;
       bestMonthContributions = best.value;
     }
 
@@ -70,7 +70,7 @@ abstract final class ContributionStatsService {
       totalDaysActive: totalActive,
       weeklyAverage: weeklyAverage,
       bestMonthContributions: bestMonthContributions,
-      bestMonthIndex: bestMonthIndex,
+      bestMonth: bestMonth,
     );
   }
 
@@ -85,7 +85,6 @@ abstract final class ContributionStatsService {
     }
     if (i < 0) return 0;
 
-    // If today has 0 contributions (day not over yet), start from yesterday.
     if (_dateOnly(sortedDays[i].date) == today && sortedDays[i].count == 0) {
       i--;
     }

@@ -12,8 +12,8 @@ abstract interface class SettingsRepository {
   Future<Year?> getLastYear();
   Future<void> saveLastYear(Year year);
 
-  Future<String?> getSavedPaletteName();
-  Future<void> savePaletteName(String name);
+  Future<String?> getSavedPaletteKey();
+  Future<void> savePaletteKey(String key);
 
   Future<CellShape?> getSavedCellShape();
   Future<void> saveCellShape(CellShape shape);
@@ -21,8 +21,8 @@ abstract interface class SettingsRepository {
   Future<CellSize?> getSavedCellSize();
   Future<void> saveCellSize(CellSize size);
 
-  Future<String?> getSavedCardBackground();
-  Future<void> saveCardBackground(String presetName);
+  Future<String?> getSavedBackgroundPreset();
+  Future<void> saveBackgroundPreset(String presetName);
 
   Future<AppThemeMode?> getThemeMode();
   Future<void> saveThemeMode(AppThemeMode mode);

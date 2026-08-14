@@ -39,14 +39,15 @@ void callbackDispatcher() {
       final username = Username(usernameStr);
       final yearVal = box.get('lastYear') as int? ?? DateTime.now().year;
       final year = Year(yearVal);
-      final paletteName = box.get('paletteName') as String?;
+      final paletteKey =
+          (box.get('paletteKey') ?? box.get('paletteName')) as String?;
       final cellShapeName = box.get('cellShape') as String?;
       final cellSizeName = box.get('cellSize') as String?;
 
       final allPalettes = await AssetPaletteRepository().loadAll();
-      final palette = paletteName != null
+      final palette = paletteKey != null
           ? allPalettes.firstWhere(
-              (p) => p.name == paletteName,
+              (p) => p.key == paletteKey || p.name == paletteKey,
               orElse: () => allPalettes.first,
             )
           : allPalettes.first;

@@ -8,7 +8,6 @@ import 'package:contribkit/ui/di/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// In-memory fake — no Hive, no disk I/O.
 final class _FakeSettingsRepository implements SettingsRepository {
   @override
   Future<Username?> getLastUsername() async => null;
@@ -23,10 +22,10 @@ final class _FakeSettingsRepository implements SettingsRepository {
   Future<void> saveLastYear(Year year) async {}
 
   @override
-  Future<String?> getSavedPaletteName() async => null;
+  Future<String?> getSavedPaletteKey() async => null;
 
   @override
-  Future<void> savePaletteName(String name) async {}
+  Future<void> savePaletteKey(String key) async {}
 
   @override
   Future<CellShape?> getSavedCellShape() async => null;
@@ -41,10 +40,10 @@ final class _FakeSettingsRepository implements SettingsRepository {
   Future<void> saveCellSize(CellSize size) async {}
 
   @override
-  Future<String?> getSavedCardBackground() async => null;
+  Future<String?> getSavedBackgroundPreset() async => null;
 
   @override
-  Future<void> saveCardBackground(String presetName) async {}
+  Future<void> saveBackgroundPreset(String presetName) async {}
 
   @override
   Future<AppThemeMode?> getThemeMode() async => null;

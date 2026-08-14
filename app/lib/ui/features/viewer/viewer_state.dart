@@ -23,7 +23,7 @@ abstract class ViewerState with _$ViewerState {
     Palette? palette,
     @Default(CellShape.rounded) CellShape cellShape,
     @Default(CellSize.normal) CellSize cellSize,
-    @Default(BackgroundPreset.system) BackgroundPreset cardBackground,
+    @Default(BackgroundPreset.system) BackgroundPreset backgroundPreset,
     @Default(null) Failure? error,
   }) = _ViewerState;
 

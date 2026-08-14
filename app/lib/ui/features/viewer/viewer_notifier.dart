@@ -36,16 +36,16 @@ class ViewerNotifier extends _$ViewerNotifier {
 
       final username = await repo.getLastUsername();
       final year = await repo.getLastYear();
-      final paletteName = await repo.getSavedPaletteName();
+      final paletteKey = await repo.getSavedPaletteKey();
       final shape = await repo.getSavedCellShape();
       final cellSizeSaved = await repo.getSavedCellSize();
-      final backgroundName = await repo.getSavedCardBackground();
+      final backgroundName = await repo.getSavedBackgroundPreset();
 
       final resolvedPalette = allPalettes.isEmpty
           ? state.palette
-          : (paletteName != null
+          : (paletteKey != null
                 ? allPalettes.firstWhere(
-                    (p) => p.name == paletteName,
+                    (p) => p.key == paletteKey || p.name == paletteKey,
                     orElse: () => allPalettes.first,
                   )
                 : allPalettes.first);
@@ -56,7 +56,7 @@ class ViewerNotifier extends _$ViewerNotifier {
         palette: resolvedPalette,
         cellShape: shape ?? CellShape.rounded,
         cellSize: cellSizeSaved ?? CellSize.normal,
-        cardBackground: backgroundName != null
+        backgroundPreset: backgroundName != null
             ? BackgroundPresets.byName(backgroundName)
             : BackgroundPreset.system,
       );
@@ -115,7 +115,7 @@ class ViewerNotifier extends _$ViewerNotifier {
 
   void setPalette(Palette palette) {
     state = state.copyWith(palette: palette);
-    ref.read(settingsRepositoryProvider).savePaletteName(palette.name);
+    ref.read(settingsRepositoryProvider).savePaletteKey(palette.key);
     _updateWidget();
   }
 
@@ -131,9 +131,9 @@ class ViewerNotifier extends _$ViewerNotifier {
     _updateWidget();
   }
 
-  void setCardBackground(BackgroundPreset bg) {
-    state = state.copyWith(cardBackground: bg);
-    ref.read(settingsRepositoryProvider).saveCardBackground(bg.name);
+  void setBackgroundPreset(BackgroundPreset bg) {
+    state = state.copyWith(backgroundPreset: bg);
+    ref.read(settingsRepositoryProvider).saveBackgroundPreset(bg.name);
   }
 
   void setYear(Year year) {
