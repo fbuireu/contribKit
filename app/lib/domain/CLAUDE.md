@@ -115,6 +115,19 @@ always 53×7, so `weeks.length` is a constant and never a partial year
   otherwise a streak would appear to break at midnight over a day that has not happened yet. The web's
   `computeContributionStats` makes the same allowance, keyed on the level rather than the count.
 
+## `CellGeometryService` — one Cell, four renderers
+
+The maths a Cell Shape is drawn with lives here, not in whichever renderer needs it: `cornerRadiusFor`,
+`dotRadiusFor` and `hexVerticesFor`. The on-screen Cell, the SVG Export and the PNG Export all call it.
+
+**It exists because the four copies had drifted.** The dot radius and the hex vertices agreed everywhere, but the
+rounded corner did not: the exports and the Android widget scaled it with the Cell Size (`cell * 0.2`) while the
+screen drew a fixed `2.0`. At the `large` Cell Size that is 2.8 against 2.0 — you chose a look, exported it, and
+the corners changed. The screen was the outlier, so the screen moved.
+
+`ContribKitWidgetProvider.kt` is the fourth copy and cannot import Dart, so it stays a deliberate mirror. If a
+constant here changes, that file changes in the same commit.
+
 ## Gotchas
 
 - **`Username` accepts consecutive hyphens; GitHub does not.** `a--b` constructs cleanly and then 404s upstream. The

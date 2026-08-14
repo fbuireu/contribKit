@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'package:contribkit/domain/services/cell_geometry_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:contribkit/ui/widgets/app_tooltip.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
@@ -83,7 +83,9 @@ class _CellShape extends StatelessWidget {
         CellShape.rounded => DecoratedBox(
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(Tokens.radiusSm * 0.5),
+            borderRadius: BorderRadius.circular(
+              CellGeometryService.cornerRadiusFor(size),
+            ),
           ),
         ),
         CellShape.circle => DecoratedBox(
@@ -115,8 +117,10 @@ class _DotPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final r =
-        (levelIndex == 0 ? 1.4 : 1.4 + levelIndex * 1.0) * (cellSize / 10.0);
+    final r = CellGeometryService.dotRadiusFor(
+      levelIndex: levelIndex,
+      cellSize: cellSize,
+    );
     canvas.drawCircle(
       Offset(size.width / 2, size.height / 2),
       r,
@@ -142,14 +146,16 @@ class _HexPainter extends CustomPainter {
     final cy = size.height / 2;
     final r = size.width / 2;
     final path = Path();
-    for (var i = 0; i < 6; i++) {
-      final angle = (math.pi / 3) * i + math.pi / 6;
-      final x = cx + r * math.cos(angle);
-      final y = cy + r * math.sin(angle);
+    final vertices = CellGeometryService.hexVerticesFor(
+      centerX: cx,
+      centerY: cy,
+      radius: r,
+    );
+    for (var i = 0; i < vertices.length; i++) {
       if (i == 0) {
-        path.moveTo(x, y);
+        path.moveTo(vertices[i].x, vertices[i].y);
       } else {
-        path.lineTo(x, y);
+        path.lineTo(vertices[i].x, vertices[i].y);
       }
     }
     path.close();

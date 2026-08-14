@@ -1,3 +1,4 @@
+import 'package:contribkit/domain/services/cell_geometry_service.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -47,14 +48,21 @@ final class PngExportRepository implements ExportRepository {
               canvas.drawRect(rect, paint);
             case CellShape.rounded:
               canvas.drawRRect(
-                ui.RRect.fromRectXY(rect, cell * 0.2, cell * 0.2),
+                ui.RRect.fromRectXY(
+                  rect,
+                  CellGeometryService.cornerRadiusFor(cell),
+                  CellGeometryService.cornerRadiusFor(cell),
+                ),
                 paint,
               );
             case CellShape.circle:
               canvas.drawCircle(rect.center, cell / 2, paint);
             case CellShape.dot:
               final li = day.level.index;
-              final r = (li == 0 ? 1.4 : 1.4 + li * 1.0) * (cell / 10.0);
+              final r = CellGeometryService.dotRadiusFor(
+                levelIndex: li,
+                cellSize: cell,
+              );
               canvas.drawCircle(rect.center, r, paint);
             case CellShape.hex:
               final path = _hexPath(x + cell / 2, y + cell / 2, cell / 2);
