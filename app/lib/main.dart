@@ -7,6 +7,7 @@ import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material, ThemeMode;
 import 'package:flutter/services.dart';
@@ -118,16 +119,19 @@ class ContribKitApp extends ConsumerWidget {
       darkTheme: ShadThemeData(
         brightness: Brightness.dark,
         colorScheme: const ShadSlateColorScheme.dark().copyWith(
-          background: const Color(0xFF09090B),
-          card: const Color(0xFF0D0D10),
-          cardForeground: const Color(0xFFF4F4F5),
-          muted: const Color(0xFF111114),
-          mutedForeground: const Color(0xFFA1A1AA),
-          border: const Color(0xFF1A1A1D),
-          input: const Color(0xFF1A1A1D),
-          primary: const Color(0xFF39D353),
-          primaryForeground: const Color(0xFF09090B),
-          ring: const Color(0xFF39D353),
+          background: AppColors.dark.background,
+          foreground: AppColors.dark.foreground,
+          card: AppColors.dark.card,
+          cardForeground: AppColors.dark.cardForeground,
+          muted: AppColors.dark.muted,
+          mutedForeground: AppColors.dark.mutedForeground,
+          border: AppColors.dark.border,
+          input: AppColors.dark.border,
+          primary: AppColors.dark.accent,
+          primaryForeground: AppColors.dark.accentForeground,
+          destructive: AppColors.dark.destructive,
+          destructiveForeground: AppColors.dark.destructiveForeground,
+          ring: AppColors.dark.ring,
         ),
         radius: BorderRadius.circular(Tokens.radiusMd),
         textTheme: googleFontTextTheme,
@@ -135,14 +139,19 @@ class ContribKitApp extends ConsumerWidget {
       theme: ShadThemeData(
         brightness: Brightness.light,
         colorScheme: const ShadSlateColorScheme.light().copyWith(
-          background: const Color(0xFFFAFAFA),
-          muted: const Color(0xFFF4F4F5),
-          mutedForeground: const Color(0xFF52525A),
-          border: const Color(0xFFE4E4E7),
-          input: const Color(0xFFE4E4E7),
-          primary: const Color(0xFF1A7F37),
-          primaryForeground: const Color(0xFFFFFFFF),
-          ring: const Color(0xFF1A7F37),
+          background: AppColors.light.background,
+          foreground: AppColors.light.foreground,
+          card: AppColors.light.card,
+          cardForeground: AppColors.light.cardForeground,
+          muted: AppColors.light.muted,
+          mutedForeground: AppColors.light.mutedForeground,
+          border: AppColors.light.border,
+          input: AppColors.light.border,
+          primary: AppColors.light.accent,
+          primaryForeground: AppColors.light.accentForeground,
+          destructive: AppColors.light.destructive,
+          destructiveForeground: AppColors.light.destructiveForeground,
+          ring: AppColors.light.ring,
         ),
         radius: BorderRadius.circular(Tokens.radiusMd),
         textTheme: googleFontTextTheme,
@@ -154,11 +163,14 @@ class ContribKitApp extends ConsumerWidget {
                     ? SystemUiOverlayStyle.dark
                     : SystemUiOverlayStyle.light)
                 .copyWith(
-                  statusBarColor: const Color(0x00000000),
-                  systemNavigationBarColor: const Color(0x00000000),
+                  statusBarColor: AppColors.transparent,
+                  systemNavigationBarColor: AppColors.transparent,
                   systemNavigationBarContrastEnforced: false,
                 ),
-        child: const Material(color: Color(0x00000000), child: ViewerScreen()),
+        child: const Material(
+          color: AppColors.transparent,
+          child: ViewerScreen(),
+        ),
       ),
     );
   }

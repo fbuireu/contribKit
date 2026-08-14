@@ -1,8 +1,8 @@
 import 'package:contribkit/ui/theme/app_colors.dart';
+import 'package:contribkit/ui/widgets/app_tooltip.dart';
 import 'package:contribkit/ui/theme/background_presets.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 
 class BackgroundPicker extends StatelessWidget {
   const BackgroundPicker({
@@ -24,7 +24,7 @@ class BackgroundPicker extends StatelessWidget {
           'Background',
           style: TextStyle(
             fontSize: Tokens.textSm,
-            color: ShadTheme.of(context).colorScheme.mutedForeground,
+            color: AppColors.of(context).mutedForeground,
           ),
         ),
         const SizedBox(height: Tokens.space2),
@@ -65,8 +65,8 @@ class _BackgroundSwatch extends StatelessWidget {
     final swatchColor = BackgroundPresets.colors[preset] ?? systemColor;
     final label = BackgroundPresets.labels[preset]!;
 
-    return ShadTooltip(
-      builder: (_) => Text(label),
+    return AppTooltip(
+      message: Text(label),
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
@@ -78,8 +78,8 @@ class _BackgroundSwatch extends StatelessWidget {
             borderRadius: BorderRadius.circular(Tokens.radiusSm),
             border: Border.all(
               color: isSelected
-                  ? ShadTheme.of(context).colorScheme.primary
-                  : ShadTheme.of(context).colorScheme.border,
+                  ? AppColors.of(context).accent
+                  : AppColors.of(context).border,
               width: isSelected
                   ? Tokens.swatchBorderSelected
                   : Tokens.swatchBorderDefault,

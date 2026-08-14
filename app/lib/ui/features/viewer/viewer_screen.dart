@@ -1,4 +1,7 @@
 import 'package:contribkit/domain/failures/failure.dart';
+import 'package:intl/intl.dart' show NumberFormat;
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
@@ -20,7 +23,6 @@ import 'package:contribkit/ui/widgets/app_text_field.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 
 class ViewerScreen extends ConsumerStatefulWidget {
   const ViewerScreen({super.key});
@@ -113,8 +115,6 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   }
 }
 
-// ─── App bar ─────────────────────────────────────────────────────────────────
-
 class _Header extends ConsumerWidget {
   const _Header({required this.colors});
 
@@ -134,7 +134,11 @@ class _Header extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Image.asset('assets/images/logo.png', height: 22, width: 22),
+          Image.asset(
+            'assets/images/logo.png',
+            height: Tokens.logoSize,
+            width: Tokens.logoSize,
+          ),
           const SizedBox(width: Tokens.space2),
           Text(
             'ContribKit',
@@ -148,21 +152,23 @@ class _Header extends ConsumerWidget {
           const Spacer(),
           AppButton.ghost(
             onPressed: () => TipJarSheet.show(context),
-            size: ShadButtonSize.sm,
-            child: Icon(LucideIcons.heart, size: 16, color: colors.accent),
+            size: AppButtonSize.sm,
+            child: Icon(
+              LucideIcons.heart,
+              size: Tokens.iconSm,
+              color: colors.accent,
+            ),
           ),
           AppButton.ghost(
             onPressed: () => ref.read(themeModeProvider.notifier).cycle(),
-            size: ShadButtonSize.sm,
-            child: Icon(icon, size: 16),
+            size: AppButtonSize.sm,
+            child: Icon(icon, size: Tokens.iconSm),
           ),
         ],
       ),
     );
   }
 }
-
-// ─── Username input ───────────────────────────────────────────────────────────
 
 class _UsernameInput extends StatelessWidget {
   const _UsernameInput({
@@ -199,14 +205,15 @@ class _UsernameInput extends StatelessWidget {
                 enabled: !isLoading,
               ),
             ),
-            ShadButton.ghost(
+            AppButton.ghost(
+              enabled: !isLoading,
               onPressed: isLoading ? null : () => onSubmit(controller.text),
-              size: ShadButtonSize.sm,
+              size: AppButtonSize.sm,
               child: isLoading
                   ? const _PulsingDots(dotSize: 5)
                   : Icon(
                       LucideIcons.arrowRight,
-                      size: 16,
+                      size: Tokens.iconSm,
                       color: colors.mutedForeground,
                     ),
             ),
@@ -217,7 +224,7 @@ class _UsernameInput extends StatelessWidget {
             error,
             style: TextStyle(
               fontSize: Tokens.textSm,
-              color: ShadTheme.of(context).colorScheme.destructive,
+              color: AppColors.of(context).destructive,
             ),
           ),
         _Suggestions(
@@ -302,7 +309,7 @@ class _SuggestionChipState extends State<_SuggestionChip> {
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedContainer(
         duration: Tokens.durationFast,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        padding: Tokens.badgePadding,
         decoration: BoxDecoration(
           color: _pressed ? widget.colors.border : widget.colors.muted,
           border: Border.all(color: widget.colors.border),
@@ -321,8 +328,6 @@ class _SuggestionChipState extends State<_SuggestionChip> {
     );
   }
 }
-
-// ─── Year pills ───────────────────────────────────────────────────────────────
 
 class _YearPills extends ConsumerWidget {
   const _YearPills();
@@ -382,7 +387,7 @@ class _YearPill extends StatelessWidget {
           vertical: Tokens.space2,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? colors.muted : const Color(0x00000000),
+          color: isSelected ? colors.muted : AppColors.transparent,
           borderRadius: BorderRadius.circular(Tokens.radiusFull),
           border: Border.all(color: colors.border),
         ),
@@ -398,8 +403,6 @@ class _YearPill extends StatelessWidget {
     );
   }
 }
-
-// ─── Body ─────────────────────────────────────────────────────────────────────
 
 class _Body extends ConsumerWidget {
   const _Body({required this.state});
@@ -431,8 +434,6 @@ class _Body extends ConsumerWidget {
     );
   }
 }
-
-// ─── Calendar card ────────────────────────────────────────────────────────────
 
 final _contribFmt = NumberFormat.decimalPattern();
 
@@ -486,10 +487,7 @@ class _CalendarCard extends ConsumerWidget {
                       border: Border.all(color: colors.border),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: Tokens.space2,
-                        vertical: 2,
-                      ),
+                      padding: Tokens.pillPadding,
                       child: Text(
                         'cached',
                         style: AppTextStyles.mono(
@@ -506,8 +504,8 @@ class _CalendarCard extends ConsumerWidget {
                       : () => ref
                             .read(viewerProvider.notifier)
                             .refreshContributions(),
-                  size: ShadButtonSize.sm,
-                  child: const Icon(LucideIcons.refreshCw, size: 14),
+                  size: AppButtonSize.sm,
+                  child: const Icon(LucideIcons.refreshCw, size: Tokens.iconXs),
                 ),
               ],
             ),
@@ -527,8 +525,6 @@ class _CalendarCard extends ConsumerWidget {
   }
 }
 
-// ─── Action row ───────────────────────────────────────────────────────────────
-
 class _ActionRow extends StatelessWidget {
   const _ActionRow({required this.state});
 
@@ -546,7 +542,7 @@ class _ActionRow extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(LucideIcons.sliders, size: 16),
+                Icon(LucideIcons.sliders, size: Tokens.iconSm),
                 SizedBox(width: Tokens.space2),
                 Text('Customize'),
               ],
@@ -566,7 +562,7 @@ class _ActionRow extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(LucideIcons.download, size: 16),
+                Icon(LucideIcons.download, size: Tokens.iconSm),
                 SizedBox(width: Tokens.space2),
                 Text('Export'),
               ],
@@ -577,8 +573,6 @@ class _ActionRow extends StatelessWidget {
     );
   }
 }
-
-// ─── Loading / empty / error states ──────────────────────────────────────────
 
 class _Loader extends StatelessWidget {
   const _Loader();
@@ -597,8 +591,6 @@ class _PulsingDots extends StatelessWidget {
 
   final double dotSize;
 
-  static const _delays = [0, 160, 320];
-
   @override
   Widget build(BuildContext context) {
     final color = AppColors.of(context).mutedForeground;
@@ -606,7 +598,7 @@ class _PulsingDots extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: dotSize * 0.8,
       children: [
-        for (final delay in _delays)
+        for (final delay in Tokens.pulseDotDelays)
           Container(
                 width: dotSize,
                 height: dotSize,
@@ -616,15 +608,15 @@ class _PulsingDots extends StatelessWidget {
               .scaleXY(
                 begin: 0.4,
                 end: 1.0,
-                duration: 500.ms,
-                delay: Duration(milliseconds: delay),
+                duration: Tokens.durationEntrance,
+                delay: delay,
                 curve: Curves.easeInOut,
               )
               .fade(
                 begin: 0.3,
                 end: 1.0,
-                duration: 500.ms,
-                delay: Duration(milliseconds: delay),
+                duration: Tokens.durationEntrance,
+                delay: delay,
                 curve: Curves.easeInOut,
               ),
       ],
@@ -640,8 +632,13 @@ class _ErrorState extends StatelessWidget {
   String _message() => switch (failure) {
     NotFoundFailure(:final username) => 'User "$username" not found.',
     RateLimitedFailure() => 'GitHub rate limit exceeded. Try again later.',
+    ParseFailure() =>
+      'GitHub changed its contributions page. Please update the app.',
     NetworkFailure(:final message) => 'Network error: $message',
-    _ => 'Something went wrong. Please try again.',
+    CacheFailure() => 'Could not read saved data. Please try again.',
+    ExportFailure(:final message) => 'Export failed: $message',
+    PurchaseFailure(:final message) => 'Purchase failed: $message',
+    UnexpectedFailure() => 'Something went wrong. Please try again.',
   };
 
   @override
@@ -652,7 +649,7 @@ class _ErrorState extends StatelessWidget {
         _message(),
         style: TextStyle(
           fontSize: Tokens.textBase,
-          color: ShadTheme.of(context).colorScheme.destructive,
+          color: AppColors.of(context).destructive,
         ),
         textAlign: TextAlign.center,
       ),

@@ -22,7 +22,7 @@ class CustomizerSheet extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) {
     return showGeneralDialog<void>(
       context: context,
-      barrierColor: const Color(0x80000000),
+      barrierColor: AppColors.scrim,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
       transitionDuration: Tokens.durationSlow,
@@ -110,8 +110,8 @@ class _CustomizerSheetState extends ConsumerState<CustomizerSheet> {
                         vertical: Tokens.space3,
                       ),
                       child: Container(
-                        width: 36,
-                        height: 4,
+                        width: Tokens.dragHandleWidth,
+                        height: Tokens.dragHandleHeight,
                         decoration: BoxDecoration(
                           color: colors.border,
                           borderRadius: BorderRadius.circular(

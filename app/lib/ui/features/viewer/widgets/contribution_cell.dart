@@ -1,4 +1,7 @@
 import 'dart:math' as math;
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:contribkit/ui/widgets/app_tooltip.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
 
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
@@ -6,7 +9,6 @@ import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 
 class ContributionCell extends StatelessWidget {
   const ContributionCell({
@@ -26,7 +28,7 @@ class ContributionCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = ShadTheme.of(context).brightness == Brightness.dark;
+    final isDark = AppColors.isDark(context);
     final domainColor = palette.colorFor(day.level, isDark: isDark);
     final color = Color(domainColor.argb);
 
@@ -34,9 +36,8 @@ class ContributionCell extends StatelessWidget {
         '${day.date.toIso8601String().substring(0, 10)}: '
         '${day.count} contribution${day.count == 1 ? '' : 's'}';
 
-    return ShadTooltip(
-      builder: (_) =>
-          Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),
+    return AppTooltip(
+      message: Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),
       child:
           _CellShape(
                 color: color,

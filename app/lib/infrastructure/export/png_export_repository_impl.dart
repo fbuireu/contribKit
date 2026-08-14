@@ -5,7 +5,6 @@ import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
-import 'package:flutter/widgets.dart';
 
 final class PngExportRepository implements ExportRepository {
   static const _pixelRatio = 3.0;
@@ -27,10 +26,10 @@ final class PngExportRepository implements ExportRepository {
       final pxH = (logicalHeight * _pixelRatio).ceil();
 
       final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
+      final canvas = ui.Canvas(recorder);
       canvas.scale(_pixelRatio);
 
-      final paint = Paint()..isAntiAlias = true;
+      final paint = ui.Paint()..isAntiAlias = true;
 
       for (var wi = 0; wi < weeks.length; wi++) {
         final week = weeks[wi];
@@ -41,14 +40,14 @@ final class PngExportRepository implements ExportRepository {
           final domainColor = options.palette.colorFor(day.level, isDark: true);
           paint.color = ui.Color(domainColor.argb);
 
-          final rect = Rect.fromLTWH(x, y, cell, cell);
+          final rect = ui.Rect.fromLTWH(x, y, cell, cell);
 
           switch (options.shape) {
             case CellShape.square:
               canvas.drawRect(rect, paint);
             case CellShape.rounded:
               canvas.drawRRect(
-                RRect.fromRectXY(rect, cell * 0.2, cell * 0.2),
+                ui.RRect.fromRectXY(rect, cell * 0.2, cell * 0.2),
                 paint,
               );
             case CellShape.circle:
@@ -81,8 +80,8 @@ final class PngExportRepository implements ExportRepository {
   }
 }
 
-Path _hexPath(double cx, double cy, double r) {
-  final path = Path();
+ui.Path _hexPath(double cx, double cy, double r) {
+  final path = ui.Path();
   for (var i = 0; i < 6; i++) {
     final angle = (math.pi / 3) * i + math.pi / 6;
     final x = cx + r * math.cos(angle);

@@ -1,6 +1,16 @@
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+enum AppButtonSize {
+  sm(ShadButtonSize.sm),
+  md(ShadButtonSize.regular),
+  lg(ShadButtonSize.lg);
+
+  const AppButtonSize(this.shadSize);
+
+  final ShadButtonSize shadSize;
+}
+
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -36,14 +46,14 @@ class AppButton extends StatelessWidget {
 
   final VoidCallback? onPressed;
   final Widget child;
-  final ShadButtonSize? size;
+  final AppButtonSize? size;
   final bool enabled;
   final ShadButtonVariant _variant;
 
   @override
   Widget build(BuildContext context) => ShadButton.raw(
     variant: _variant,
-    size: size,
+    size: size?.shadSize,
     enabled: enabled && onPressed != null,
     onPressed: onPressed,
     child: child,

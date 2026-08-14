@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:contribkit/ui/widgets/app_icons.dart';
 
 import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
@@ -14,7 +15,6 @@ import 'package:contribkit/ui/widgets/app_card.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ExportPanel extends ConsumerStatefulWidget {
@@ -135,7 +135,7 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
       await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
       if (mounted) {
         setState(() => _copied = true);
-        Future.delayed(const Duration(milliseconds: 1500), () {
+        Future.delayed(Tokens.durationCopiedFeedback, () {
           if (mounted) setState(() => _copied = false);
         });
       }
@@ -162,7 +162,7 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
             'Export',
             style: TextStyle(
               fontSize: Tokens.textSm,
-              color: ShadTheme.of(context).colorScheme.mutedForeground,
+              color: AppColors.of(context).mutedForeground,
             ),
           ),
           Row(
@@ -204,14 +204,14 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
               const Spacer(),
               AppButton.ghost(
                 onPressed: _exporting ? null : () => _copyMarkdown(md),
-                size: ShadButtonSize.sm,
+                size: AppButtonSize.sm,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   spacing: Tokens.space1,
                   children: [
                     Icon(
                       _copied ? LucideIcons.check : LucideIcons.copy,
-                      size: 14,
+                      size: Tokens.iconXs,
                     ),
                     Text(_copied ? 'Copied' : 'Copy MD'),
                   ],

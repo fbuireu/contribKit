@@ -40,8 +40,8 @@ final class AppColors {
     border: Color(0xFF1A1A1D),
     accent: Color(0xFF39D353),
     accentForeground: Color(0xFF09090B),
-    destructive: Color(0xFF7F1D1D),
-    destructiveForeground: Color(0xFFF4F4F5),
+    destructive: Color(0xFFEF4444),
+    destructiveForeground: Color(0xFFF8FAFC),
     ring: Color(0xFF39D353),
   );
 
@@ -56,12 +56,15 @@ final class AppColors {
     accent: Color(0xFF1A7F37),
     accentForeground: Color(0xFFFFFFFF),
     destructive: Color(0xFFEF4444),
-    destructiveForeground: Color(0xFFFFFFFF),
+    destructiveForeground: Color(0xFFF8FAFC),
     ring: Color(0xFF1A7F37),
   );
 
-  static AppColors of(BuildContext context) {
-    final brightness = ShadTheme.of(context).brightness;
-    return brightness == Brightness.dark ? dark : light;
-  }
+  static const Color transparent = Color(0x00000000);
+  static const Color scrim = Color(0x80000000);
+
+  static bool isDark(BuildContext context) =>
+      ShadTheme.of(context).brightness == Brightness.dark;
+
+  static AppColors of(BuildContext context) => isDark(context) ? dark : light;
 }

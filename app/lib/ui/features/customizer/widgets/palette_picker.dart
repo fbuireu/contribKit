@@ -1,9 +1,10 @@
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/ui/widgets/app_tooltip.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 
 class PalettePicker extends ConsumerWidget {
   const PalettePicker({
@@ -30,7 +31,7 @@ class PalettePicker extends ConsumerWidget {
             'Palette',
             style: TextStyle(
               fontSize: Tokens.textSm,
-              color: ShadTheme.of(context).colorScheme.mutedForeground,
+              color: AppColors.of(context).mutedForeground,
             ),
           ),
           SingleChildScrollView(
@@ -66,8 +67,8 @@ class _PaletteSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ShadTooltip(
-      builder: (_) => Text(palette.name),
+    return AppTooltip(
+      message: Text(palette.name),
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
@@ -77,15 +78,15 @@ class _PaletteSwatch extends StatelessWidget {
             borderRadius: BorderRadius.circular(Tokens.radiusMd),
             border: Border.all(
               color: isSelected
-                  ? ShadTheme.of(context).colorScheme.primary
-                  : ShadTheme.of(context).colorScheme.border,
+                  ? AppColors.of(context).accent
+                  : AppColors.of(context).border,
               width: isSelected
                   ? Tokens.swatchBorderSelected
                   : Tokens.swatchBorderDefault,
             ),
           ),
           child: Row(
-            spacing: Tokens.cellGap,
+            spacing: Tokens.swatchGap,
             children:
                 [
                       palette.none,

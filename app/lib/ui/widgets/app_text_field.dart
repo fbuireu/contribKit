@@ -1,3 +1,4 @@
+import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -23,7 +24,7 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mutedColor = ShadTheme.of(context).colorScheme.mutedForeground;
+    final mutedColor = AppColors.of(context).mutedForeground;
     return ShadInput(
       controller: controller,
       focusNode: focusNode,

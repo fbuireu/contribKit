@@ -28,10 +28,31 @@ abstract final class Tokens {
   static const Duration durationFast = Duration(milliseconds: 120);
   static const Duration durationBase = Duration(milliseconds: 200);
   static const Duration durationSlow = Duration(milliseconds: 320);
+  static const Duration durationEntrance = Duration(milliseconds: 500);
+  static const Duration durationBreathe = Duration(milliseconds: 800);
+  static const Duration durationSpin = Duration(milliseconds: 900);
+  static const Duration durationCopiedFeedback = Duration(milliseconds: 1500);
+  static const Duration cellStaggerStep = Duration(milliseconds: 8);
+  static const List<Duration> pulseDotDelays = [
+    Duration.zero,
+    Duration(milliseconds: 160),
+    Duration(milliseconds: 320),
+  ];
 
-  static const double cellSize = 11;
-  static const double cellGap = 2;
-  static const double cellStep = cellSize + cellGap;
+  static const double swatchGap = 2;
+
+  static const double iconXs = 14;
+  static const double iconSm = 16;
+  static const double iconMd = 18;
+  static const double iconLg = 20;
+
+  static const double dragHandleWidth = 36;
+  static const double dragHandleHeight = 4;
+  static const double formatTileSize = 44;
+  static const double tipTileHeight = 68;
+  static const double logoSize = 22;
+  static const double emojiSize = 22;
+  static const double hairlineGap = 2;
 
   static const double swatchSize = 14;
   static const double swatchBorderSelected = 2;
@@ -40,4 +61,16 @@ abstract final class Tokens {
   static const double animScaleBegin = 0.6;
 
   static const EdgeInsets gridPadding = EdgeInsets.all(space4);
+  static const EdgeInsets badgePadding = EdgeInsets.symmetric(
+    horizontal: 10,
+    vertical: 3,
+  );
+  static const EdgeInsets filenamePadding = EdgeInsets.symmetric(
+    horizontal: space2,
+    vertical: 3,
+  );
+  static const EdgeInsets pillPadding = EdgeInsets.symmetric(
+    horizontal: space2,
+    vertical: 2,
+  );
 }

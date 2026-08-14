@@ -1,7 +1,8 @@
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
+import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 
 class SizePicker extends StatelessWidget {
   const SizePicker({
@@ -28,7 +29,7 @@ class SizePicker extends StatelessWidget {
           'Cell size',
           style: TextStyle(
             fontSize: Tokens.textSm,
-            color: ShadTheme.of(context).colorScheme.mutedForeground,
+            color: AppColors.of(context).mutedForeground,
           ),
         ),
         const SizedBox(height: Tokens.space2),
@@ -37,14 +38,18 @@ class SizePicker extends StatelessWidget {
             for (final size in CellSize.values) ...[
               if (size != CellSize.values.first)
                 const SizedBox(width: Tokens.space2),
-              ShadButton.raw(
-                variant: size == selected
-                    ? ShadButtonVariant.primary
-                    : ShadButtonVariant.outline,
-                size: ShadButtonSize.sm,
-                onPressed: () => onSelected(size),
-                child: Text(_labels[size]!),
-              ),
+              if (size == selected)
+                AppButton(
+                  size: AppButtonSize.sm,
+                  onPressed: () => onSelected(size),
+                  child: Text(_labels[size]!),
+                )
+              else
+                AppButton.outline(
+                  size: AppButtonSize.sm,
+                  onPressed: () => onSelected(size),
+                  child: Text(_labels[size]!),
+                ),
             ],
           ],
         ),

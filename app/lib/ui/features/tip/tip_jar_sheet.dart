@@ -1,18 +1,19 @@
 import 'package:contribkit/domain/value_objects/tip_product.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:contribkit/ui/widgets/app_icons.dart';
+import 'package:contribkit/ui/widgets/app_sheet.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 
 class TipJarSheet extends ConsumerStatefulWidget {
   const TipJarSheet({super.key});
 
-  static Future<void> show(BuildContext context) => showShadSheet(
+  static Future<void> show(BuildContext context) => AppSheet.showBottom(
     context: context,
-    side: ShadSheetSide.bottom,
     builder: (_) => const TipJarSheet(),
   );
 
@@ -61,7 +62,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
     setState(() {
       _purchasingId = product.id;
       _successId = null;
-      _errorId = null; // limpia error previo al reintentar
+      _errorId = null;
     });
     try {
       await ref.read(purchaseTipProvider).call(product);
@@ -83,7 +84,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return ShadSheet(
+    return AppSheet(
       title: const Text('Support ContribKit'),
       description: const Text(
         'ContribKit is free and open-source. A small tip helps keep it alive.',
@@ -114,7 +115,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
             'Could not load products. Check your connection.',
             style: TextStyle(
               fontSize: Tokens.textSm,
-              color: ShadTheme.of(context).colorScheme.destructive,
+              color: AppColors.of(context).destructive,
             ),
             textAlign: TextAlign.center,
           ),
@@ -206,7 +207,10 @@ class _TierCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 22, height: 1)),
+            Text(
+              emoji,
+              style: const TextStyle(fontSize: Tokens.emojiSize, height: 1),
+            ),
             const SizedBox(width: Tokens.space2),
             Expanded(
               child: Column(
@@ -232,17 +236,29 @@ class _TierCard extends StatelessWidget {
               ),
             ),
             if (isPurchasing)
-              Icon(LucideIcons.loader2, size: 18, color: colors.mutedForeground)
+              Icon(
+                    LucideIcons.loader2,
+                    size: Tokens.iconMd,
+                    color: colors.mutedForeground,
+                  )
                   .animate(onPlay: (c) => c.repeat())
-                  .rotate(duration: 900.ms, curve: Curves.linear)
+                  .rotate(duration: Tokens.durationSpin, curve: Curves.linear)
             else if (isSuccess)
-              Icon(LucideIcons.check, size: 18, color: colors.foreground)
+              Icon(
+                LucideIcons.check,
+                size: Tokens.iconMd,
+                color: colors.foreground,
+              )
             else if (isError)
-              Icon(LucideIcons.alertCircle, size: 18, color: colors.destructive)
+              Icon(
+                LucideIcons.alertCircle,
+                size: Tokens.iconMd,
+                color: colors.destructive,
+              )
             else
               Icon(
                 LucideIcons.chevronRight,
-                size: 16,
+                size: Tokens.iconSm,
                 color: colors.mutedForeground,
               ),
           ],
@@ -259,7 +275,7 @@ class _SkeletonTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     return Container(
-          height: 68,
+          height: Tokens.tipTileHeight,
           decoration: BoxDecoration(
             color: colors.muted,
             borderRadius: BorderRadius.circular(Tokens.radiusMd),
@@ -267,6 +283,11 @@ class _SkeletonTile extends StatelessWidget {
           ),
         )
         .animate(onPlay: (c) => c.repeat(reverse: true))
-        .fade(begin: 0.4, end: 1.0, duration: 800.ms, curve: Curves.easeInOut);
+        .fade(
+          begin: 0.4,
+          end: 1.0,
+          duration: Tokens.durationBreathe,
+          curve: Curves.easeInOut,
+        );
   }
 }

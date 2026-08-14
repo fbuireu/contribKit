@@ -1,7 +1,8 @@
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
+import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 
 class ShapePicker extends StatelessWidget {
   const ShapePicker({
@@ -31,7 +32,7 @@ class ShapePicker extends StatelessWidget {
           'Cell shape',
           style: TextStyle(
             fontSize: Tokens.textSm,
-            color: ShadTheme.of(context).colorScheme.mutedForeground,
+            color: AppColors.of(context).mutedForeground,
           ),
         ),
         Wrap(
@@ -63,10 +64,11 @@ class _ShapeButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => ShadButton.raw(
-    variant: isSelected ? ShadButtonVariant.primary : ShadButtonVariant.outline,
-    size: ShadButtonSize.sm,
-    onPressed: onTap,
-    child: Text(label),
-  );
+  Widget build(BuildContext context) => isSelected
+      ? AppButton(size: AppButtonSize.sm, onPressed: onTap, child: Text(label))
+      : AppButton.outline(
+          size: AppButtonSize.sm,
+          onPressed: onTap,
+          child: Text(label),
+        );
 }

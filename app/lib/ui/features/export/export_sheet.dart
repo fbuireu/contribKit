@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:contribkit/ui/widgets/app_icons.dart';
+import 'package:contribkit/ui/widgets/app_sheet.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
@@ -14,7 +16,6 @@ import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
 enum _Fmt { png, svg, md }
@@ -39,9 +40,8 @@ class ExportSheet extends ConsumerStatefulWidget {
     required Palette palette,
     required CellShape cellShape,
     required CellSize cellSize,
-  }) => showShadSheet(
+  }) => AppSheet.showBottom(
     context: context,
-    side: ShadSheetSide.bottom,
     builder: (_) => ExportSheet(
       calendar: calendar,
       palette: palette,
@@ -121,7 +121,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
     final colors = AppColors.of(context);
     final user = widget.calendar.username.value;
 
-    return ShadSheet(
+    return AppSheet(
       title: const Text('Export'),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
@@ -159,7 +159,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
               children: [
                 AppButton.outline(
                   onPressed: _exporting ? null : _save,
-                  child: const Icon(LucideIcons.share, size: 18),
+                  child: const Icon(LucideIcons.share, size: Tokens.iconMd),
                 ),
                 Expanded(
                   child: AppButton(
@@ -168,7 +168,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(LucideIcons.download, size: 16),
+                        const Icon(LucideIcons.download, size: Tokens.iconSm),
                         const SizedBox(width: Tokens.space2),
                         Text('Save ${_selected.name.toUpperCase()}'),
                       ],
@@ -240,10 +240,7 @@ class _ExportPreview extends StatelessWidget {
                   border: Border.all(color: colors.border),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: Tokens.space2,
-                    vertical: 3,
-                  ),
+                  padding: Tokens.filenamePadding,
                   child: Text(
                     filename,
                     style: AppTextStyles.mono(
@@ -380,7 +377,7 @@ class _FormatTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: Tokens.hairlineGap),
                   Text(
                     m.detail,
                     style: TextStyle(
@@ -427,8 +424,8 @@ class _FmtIcon extends StatelessWidget {
         : colors.border;
 
     return Container(
-      width: 44,
-      height: 44,
+      width: Tokens.formatTileSize,
+      height: Tokens.formatTileSize,
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(Tokens.radiusMd),
@@ -436,8 +433,16 @@ class _FmtIcon extends StatelessWidget {
       ),
       child: Center(
         child: switch (fmt) {
-          _Fmt.png => Icon(LucideIcons.image, size: 20, color: iconColor),
-          _Fmt.svg => Icon(LucideIcons.penLine, size: 20, color: iconColor),
+          _Fmt.png => Icon(
+            LucideIcons.image,
+            size: Tokens.iconLg,
+            color: iconColor,
+          ),
+          _Fmt.svg => Icon(
+            LucideIcons.penLine,
+            size: Tokens.iconLg,
+            color: iconColor,
+          ),
           _Fmt.md => Text(
             'M↓',
             style: AppTextStyles.mono(

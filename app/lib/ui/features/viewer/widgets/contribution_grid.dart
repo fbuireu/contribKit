@@ -40,7 +40,7 @@ class ContributionGrid extends StatelessWidget {
                     palette: palette,
                     shape: shape,
                     cellSize: cellSize,
-                    animationDelay: Duration(milliseconds: wi * 8),
+                    animationDelay: Tokens.cellStaggerStep * wi,
                   ),
               ],
             ),

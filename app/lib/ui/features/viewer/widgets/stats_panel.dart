@@ -99,7 +99,7 @@ class _StatTile extends StatelessWidget {
               color: accent ? colors.accent : colors.foreground,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: Tokens.hairlineGap),
           Text(
             unit,
             style: TextStyle(
