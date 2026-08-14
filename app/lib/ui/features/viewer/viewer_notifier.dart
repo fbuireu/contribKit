@@ -1,3 +1,4 @@
+import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
@@ -41,21 +42,19 @@ class ViewerNotifier extends _$ViewerNotifier {
       final cellSizeSaved = await repo.getSavedCellSize();
       final backgroundName = await repo.getSavedBackgroundPreset();
 
-      final resolvedPalette = allPalettes.isEmpty
-          ? state.palette
-          : (paletteKey != null
-                ? allPalettes.firstWhere(
-                    (p) => p.key == paletteKey || p.name == paletteKey,
-                    orElse: () => allPalettes.first,
-                  )
-                : allPalettes.first);
+      final resolvedPalette =
+          PaletteService.resolve(
+            palettes: allPalettes,
+            storedKey: paletteKey,
+          ) ??
+          state.palette;
 
       state = state.copyWith(
         username: username,
         year: year,
         palette: resolvedPalette,
-        cellShape: shape ?? CellShape.rounded,
-        cellSize: cellSizeSaved ?? CellSize.normal,
+        cellShape: shape ?? CellShape.fallback,
+        cellSize: cellSizeSaved ?? CellSize.fallback,
         backgroundPreset: backgroundName != null
             ? BackgroundPresets.byName(backgroundName)
             : BackgroundPreset.system,

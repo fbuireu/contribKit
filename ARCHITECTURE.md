@@ -147,9 +147,10 @@ GitHub's shared image proxy, so a per-IP limit would throttle every reader at on
 | 6 | `ContributionStats` derived | domain/services | Streaks, best day, best month, weekly average, active days |
 
 Separately, `callbackDispatcher` in `app/lib/main.dart` runs every 24 hours under WorkManager to refresh the
-home-screen widget. It is a **background isolate**: it opens Hive and reads the settings box by key directly rather
-than going through `SettingsRepository`, so it survives a rename silently and has to be updated by hand. This is the
-first of the three traps named in [CLAUDE.md](./CLAUDE.md#maintenance-contract).
+home-screen widget. It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
+hand — but it reads settings through `SettingsRepository` like everything else, so a renamed key breaks it at
+compile time. It read the box by string literal until that changed, which is the first of the three traps named in
+[CLAUDE.md](./CLAUDE.md#maintenance-contract).
 
 ## 4. Failures
 
@@ -286,7 +287,7 @@ opens a file in that exact folder, so a deeper split costs reach.
 | **Add a `Failure` kind** | The sealed set (`web/src/domain/failures/failure.ts` or `app/lib/domain/failures/failure.dart`), every exhaustive match over it — on the web `web/src/application/http/failure-http.ts` — and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved. Never widen a match with `_`. |
 | **Change how contributions are fetched or parsed** | **Both** clients. The parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)), so a fix in one is a bug left in the other. Levels come from GitHub's `data-level`, not from the count. |
 | **Add a web query parameter** | `querySchema` in the route, with a `.catch(default)`; the render options in `web/src/domain/services/types.ts`; then `web/README.md` and `docs/wiki/API-Reference.md`. |
-| **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, **plus a legacy-key fallback and a migration test**, plus the direct `box.get` in the background isolate in `app/lib/main.dart`. A rename is not done until all three agree. |
+| **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, **plus a legacy-key fallback and a migration test**. The background isolate reads through the same repository, so it follows automatically. |
 | **Change what a cached calendar means** | Bump `_cacheBoxName` in the app's contribution repository — past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)). |
 | **Introduce or redefine a domain word** | [CONTEXT.md](./CONTEXT.md) first, then the identifiers. The glossary is prescriptive: if the code says something an `_Avoid_` list names, the code is what is wrong. |
 

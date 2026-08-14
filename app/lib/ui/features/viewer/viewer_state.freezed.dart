@@ -217,7 +217,7 @@ return $default(_that.username,_that.calendar,_that.fromCache,_that.isExporting,
 
 
 class _ViewerState extends ViewerState {
-  const _ViewerState({this.username = null, this.calendar = null, this.fromCache = false, this.isExporting = false, this.isLoadingCalendar = false, this.year, this.isLoadingSettings = false, this.palette, this.cellShape = CellShape.rounded, this.cellSize = CellSize.normal, this.backgroundPreset = BackgroundPreset.system, this.error = null}): super._();
+  const _ViewerState({this.username = null, this.calendar = null, this.fromCache = false, this.isExporting = false, this.isLoadingCalendar = false, this.year, this.isLoadingSettings = false, this.palette, this.cellShape = CellShape.fallback, this.cellSize = CellSize.fallback, this.backgroundPreset = BackgroundPreset.system, this.error = null}): super._();
   
 
 @override@JsonKey() final  Username? username;

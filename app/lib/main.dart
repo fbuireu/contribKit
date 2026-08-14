@@ -1,8 +1,9 @@
+import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
+import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
-import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
@@ -28,51 +29,29 @@ void callbackDispatcher() {
     if (task != _widgetRefreshTask) return true;
 
     WidgetsFlutterBinding.ensureInitialized();
-    await Hive.initFlutter();
-
-    const settingsBox = 'settings';
-    final box = await Hive.openBox<dynamic>(settingsBox);
-
-    final usernameStr = box.get('lastUsername') as String?;
-    if (usernameStr == null) return true;
 
     try {
-      final username = Username(usernameStr);
-      final yearVal = box.get('lastYear') as int? ?? DateTime.now().year;
-      final year = Year(yearVal);
-      final paletteKey =
-          (box.get('paletteKey') ?? box.get('paletteName')) as String?;
-      final cellShapeName = box.get('cellShape') as String?;
-      final cellSizeName = box.get('cellSize') as String?;
+      await Hive.initFlutter();
 
-      final allPalettes = await AssetPaletteRepository().loadAll();
-      final palette = paletteKey != null
-          ? allPalettes.firstWhere(
-              (p) => p.key == paletteKey || p.name == paletteKey,
-              orElse: () => allPalettes.first,
-            )
-          : allPalettes.first;
-      final cellShape = cellShapeName != null
-          ? CellShape.values.firstWhere(
-              (s) => s.name == cellShapeName,
-              orElse: () => CellShape.rounded,
-            )
-          : CellShape.rounded;
-      final cellSize = cellSizeName != null
-          ? CellSize.values.firstWhere(
-              (s) => s.name == cellSizeName,
-              orElse: () => CellSize.normal,
-            )
-          : CellSize.normal;
+      final settings = HiveSettingsRepository();
+      final username = await settings.getLastUsername();
+      if (username == null) return true;
 
-      final (:calendar, :fromCache) = await GitHubContributionRepository()
+      final year = await settings.getLastYear() ?? Year.current;
+      final palette = PaletteService.resolve(
+        palettes: await AssetPaletteRepository().loadAll(),
+        storedKey: await settings.getSavedPaletteKey(),
+      );
+      if (palette == null) return true;
+
+      final (:calendar, fromCache: _) = await GitHubContributionRepository()
           .fetchCalendar(username: username, year: year);
 
       await CalendarWidgetService.update(
         calendar: calendar,
         palette: palette,
-        cellShape: cellShape,
-        cellSize: cellSize,
+        cellShape: await settings.getSavedCellShape() ?? CellShape.fallback,
+        cellSize: await settings.getSavedCellSize() ?? CellSize.fallback,
       );
     } catch (_) {}
 

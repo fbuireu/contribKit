@@ -40,7 +40,8 @@ not as a precedent — the next stateful thing goes in its feature.
   single interface with three implementations. They cannot be collapsed — Riverpod keys on the provider, not the
   return type — so a new format is a new provider plus a new branch wherever the format is chosen.
 - **The background isolate has no `ProviderScope`, and therefore no providers at all.** `callbackDispatcher` in
-  `app/lib/main.dart` constructs `AssetPaletteRepository()` and `GitHubContributionRepository()` by hand. Adding a
+  `app/lib/main.dart` constructs `AssetPaletteRepository()`, `GitHubContributionRepository()` and
+  `HiveSettingsRepository()` by hand. Adding a
   constructor argument to either means editing `main.dart` too — the analyzer catches that particular case, but not
   a *behavioural* dependency that only the provider sets up.
 - **`providers.dart` is the seam a test overrides.** Prefer `ProviderScope(overrides: [...])` over reaching into a

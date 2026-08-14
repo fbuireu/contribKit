@@ -1,1 +1,9 @@
-enum CellShape { square, rounded, circle, dot, hex }
+enum CellShape {
+  square,
+  rounded,
+  circle,
+  dot,
+  hex;
+
+  static const CellShape fallback = CellShape.rounded;
+}

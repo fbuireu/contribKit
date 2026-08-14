@@ -3,6 +3,8 @@ enum CellSize {
   normal,
   large;
 
+  static const CellSize fallback = CellSize.normal;
+
   double get pixels => switch (this) {
     CellSize.compact => 9.0,
     CellSize.normal => 11.0,

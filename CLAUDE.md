@@ -113,7 +113,7 @@ Propose an ADR in [`docs/adr/`](./docs/adr/) when a decision is **hard to revers
 
 Three traps worth naming, because all three have already happened here:
 
-- **A rename is not done until the storage key, the background isolate, and the generated code agree.** `main.dart` reads Hive directly instead of going through the repository, so it survives renames and silently drifts.
+- **A rename is not done until the storage key, the background isolate, and the generated code agree.** `main.dart`'s WorkManager isolate used to read Hive directly, so it survived renames and drifted silently; it now goes through `HiveSettingsRepository` like everything else, which is what makes a renamed key a compile error there rather than a widget that quietly stops updating.
 - **A doc claim you did not verify is a doc claim that is wrong.** ADRs here have asserted exhaustive matching that a wildcard disabled, a shared token nothing reads, and a launch year off by three. Check literally, against the file.
 - **A guard that never runs is not a guard.** Both CI workflows are path-filtered, so the docs contract needs an entry point in each: `ci-web.yml` runs it because `docs/**`, `shared/**` and `*.md` are in its trigger list, and `ci-app.yml` carries a `Docs Contract` job because nothing under `app/**` triggers the web workflow — and half the assertions are about the Flutter side. Removing either disables it silently.
 
