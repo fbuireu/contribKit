@@ -4,7 +4,7 @@
 
 # ContribKit · App
 
-**The iOS & Android app — render your contribution calendar, customize it, and pin it to your home screen as a widget.**
+**The iOS & Android app — render your contribution calendar, customize it, and, on Android, pin it to your home screen as a widget.**
 
 [![CI App](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-app.yml?style=flat-square&logo=github&label=CI%20App)](https://github.com/fbuireu/contribkit/actions/workflows/ci-app.yml)
 [![Codecov](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?style=flat-square&logo=codecov)](https://codecov.io/gh/fbuireu/contribkit)
@@ -29,9 +29,9 @@
 
 ## Features
 
-- 📱 **Native iOS & Android:** one Flutter codebase, platform-respecting widgets on both
-- 🎨 **All 11 palettes & 5 shapes:** the same design tokens as the web, loaded from [`shared/`](../shared)
-- 🧿 **Home-screen widgets:** small (streak counter), medium (full grid), large (both)
+- 📱 **Native iOS & Android:** one Flutter codebase; home-screen widgets on Android only
+- 🎨 **All 11 palettes & 5 shapes:** palettes are loaded from [`shared/`](../shared); the shapes are a hardcoded `CellShape` enum, because nothing in Dart reads `shapes.json` ([ADR 0002](../docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
+- 🧿 **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
 - 🔋 **Daily background refresh:** fetches once a day, easy on the battery
 - 📤 **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
 - 🔓 **No login:** just a username — only public contribution data
@@ -54,17 +54,17 @@
 
 ## Architecture
 
-Same DDD-ish layering as the web; each layer documents its rules in a colocated `CONTEXT.md`:
+Same DDD-ish layering as the web; each layer documents its rules in a colocated `CLAUDE.md`:
 
 | Layer                                                    | Role                                                                  |
 | --------------------------------------------------------- | --------------------------------------------------------------------- |
-| **[domain](lib/domain/CONTEXT.md)**                       | Pure Dart business core: entities, value objects, typed `Failure`s    |
-| **[application](lib/application/CONTEXT.md)**             | One class per use case, dependencies via constructor                  |
-| **[infrastructure](lib/infrastructure/CONTEXT.md)**       | GitHub client, Hive persistence, export implementations               |
-| **[infrastructure/github/dtos](lib/infrastructure/github/dtos/CONTEXT.md)** | JSON DTOs, converted to entities at the boundary    |
-| **[ui](lib/ui/CONTEXT.md)**                               | Widgets + Riverpod providers — the only Flutter-aware layer           |
-| **[ui/di](lib/ui/di/CONTEXT.md)**                         | All dependency wiring                                                 |
-| **[ui/theme](lib/ui/theme/CONTEXT.md)**                   | Design tokens and semantic colors                                     |
+| **[domain](lib/domain/CLAUDE.md)**                       | Pure Dart business core: entities, value objects, typed `Failure`s    |
+| **[application](lib/application/CLAUDE.md)**             | One class per use case, dependencies via constructor                  |
+| **[infrastructure](lib/infrastructure/CLAUDE.md)**       | GitHub client, Hive persistence, export implementations               |
+| **[infrastructure/github/dtos](lib/infrastructure/github/dtos/CLAUDE.md)** | JSON DTOs, converted to entities at the boundary    |
+| **[ui](lib/ui/CLAUDE.md)**                               | Widgets + Riverpod providers — the only Flutter-aware layer           |
+| **[ui/di](lib/ui/di/CLAUDE.md)**                         | All dependency wiring                                                 |
+| **[ui/theme](lib/ui/theme/CLAUDE.md)**                   | Design tokens and semantic colors                                     |
 
 ---
 
@@ -89,13 +89,12 @@ Git hooks are repo-wide — see **[Monorepo Development](../README.md#monorepo-d
 
 ## Home-Screen Widgets
 
-Three sizes following each OS's widget conventions:
+**Android only.** `app/ios` carries the `Runner` and `RunnerTests` targets and nothing else — there is no WidgetKit extension, so an iOS install has no home-screen widget. Two sizes ship:
 
-| Size   | Shows                       |
-| ------ | --------------------------- |
-| Small  | Streak counter              |
-| Medium | Full 53×7 contribution grid |
-| Large  | Both                        |
+| Size            | Provider                        | Shows                                                     |
+| --------------- | ------------------------------- | --------------------------------------------------------- |
+| Small (80×40dp) | `ContribKitSmallWidgetProvider` | Streak counter                                            |
+| Medium (250×110dp) | `ContribKitWidgetProvider`   | Username, streak badge, the grid image and the year total |
 
 Widgets render with whatever palette you set in the app and refresh once a day in the background (`workmanager`), so the grid stays current without draining the battery.
 
