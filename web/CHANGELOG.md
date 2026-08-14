@@ -1,3 +1,10 @@
+# [contribkit-web-v1.12.3](https://github.com/fbuireu/contribKit/compare/web-v1.12.2...web-v1.12.3) (2026-08-14)
+
+
+### Bug Fixes
+
+* **contribkit-web:** close the Palette seam the client walked around ([5983de5](https://github.com/fbuireu/contribKit/commit/5983de5c90cf41dbeb07fcd2fe5d26c350ba0bb6))
+
 # [contribkit-web-v1.12.2](https://github.com/fbuireu/contribKit/compare/web-v1.12.1...web-v1.12.2) (2026-08-14)
 
 
