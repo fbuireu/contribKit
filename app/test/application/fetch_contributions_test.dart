@@ -5,7 +5,6 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Hand-written fake — no mock framework in unit tests.
 final class _FakeContributionRepository implements ContributionRepository {
   _FakeContributionRepository({
     required this._calendar,

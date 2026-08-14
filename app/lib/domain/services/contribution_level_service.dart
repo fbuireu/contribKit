@@ -1,6 +1,5 @@
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 
-// GitHub's own bucketing algorithm is not published; this matches observed behavior.
 abstract final class ContributionLevelService {
   static ContributionLevel levelFor({
     required int count,
