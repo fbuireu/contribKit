@@ -1,3 +1,10 @@
+# [contribkit-web-v1.12.2](https://github.com/fbuireu/contribKit/compare/web-v1.12.1...web-v1.12.2) (2026-08-14)
+
+
+### Bug Fixes
+
+* **contribkit-web:** build a Contribution Grid for the Embed, which was rendering the transpose ([c37d742](https://github.com/fbuireu/contribKit/commit/c37d742e4f674c89b44429d01a3027b53c2b5a79))
+
 # [contribkit-web-v1.12.1](https://github.com/fbuireu/contribKit/compare/web-v1.12.0...web-v1.12.1) (2026-08-14)
 
 
