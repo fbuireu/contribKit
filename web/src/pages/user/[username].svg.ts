@@ -1,5 +1,4 @@
 import { messageFor, statusFor } from "@application/http/failure-http";
-import { renderCalendarSvg } from "@application/use-cases/render-calendar-svg";
 import { isFailure } from "@domain/failures/failure";
 import { buildRollingGrid } from "@domain/services/calendar-grid";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
@@ -20,8 +19,6 @@ const querySchema = z.object({
 	[EmbedParam.Shape]: z.string().catch(DEFAULT_EMBED_QUERY.shape),
 	[EmbedParam.Background]: z.string().regex(EMBED_BACKGROUND_PATTERN).catch(DEFAULT_EMBED_QUERY.background),
 });
-
-const renderSvg = renderCalendarSvg(svgStringRenderer);
 
 export const GET: APIRoute = async ({ params, url, locals }) => {
 	const username = parseUsername(params.username ?? "");
@@ -56,7 +53,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 	} = querySchema.parse(Object.fromEntries(url.searchParams));
 	const shape: CellShape = isCellShape(shapeParam) ? shapeParam : DEFAULT_CELL_SHAPE;
 	const grid = { ...calendar, days: buildRollingGrid({ days: calendar.days }) };
-	const svg = renderSvg({ calendar: grid, options: { palette: paletteByKey(paletteKey), shape, background } });
+	const svg = svgStringRenderer({ calendar: grid, options: { palette: paletteByKey(paletteKey), shape, background } });
 
 	return new Response(svg, {
 		headers: {

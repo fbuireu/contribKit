@@ -9,7 +9,7 @@ A second, near-identical renderer (`ui/components/grid/render-svg.ts`) runs in t
 ## Inputs
 
 ```
-renderCalendarSvg(svgStringRenderer)({ calendar, options })
+svgStringRenderer({ calendar, options })
 ```
 
 `options` carries:

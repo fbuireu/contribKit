@@ -29,10 +29,10 @@ domain/
   services/        calendar-grid, svg-geometry, cell-shapes, dates, contribution-stats, SvgRenderer type
   failures/        Failure union + constructors + isFailure
 application/
-  use-cases/       fetchContributions, renderCalendarSvg, loadInitialContributions
+  use-cases/       fetchContributions, loadInitialContributions, resolveViewerIdentity
   http/            failure-http (statusFor, messageFor)
 infrastructure/
-  github/          createGithubHtmlContributionsRepository (HTML scraping)
+  github/          githubHtmlContributionsRepository (HTML scraping)
   rendering/       svgStringRenderer
   logging/         better-stack-logger, logServerError
 ui/

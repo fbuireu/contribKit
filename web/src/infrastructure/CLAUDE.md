@@ -14,9 +14,10 @@ it is running inside a Cloudflare Worker. Never imports from `ui/`, `pages/` or 
 
 ## `github/` — scraping the contributions page
 
-`createGithubHtmlContributionsRepository()` returns the module-level `githubHtmlContributionsRepository` singleton.
-It is a factory over a constant on purpose: the seam is what lets a route depend on a function rather than an
-object, and what a future per-request variant would slot into.
+`githubHtmlContributionsRepository` is a module-level singleton, imported directly by
+`pages/_contributions.ts`. A factory used to wrap it — a function returning a constant, with a test asserting that
+its `fetch` was a function — and it was deleted: it constructed nothing, and a second adapter would be a new
+export here rather than a new branch inside a factory.
 
 **The request.** `buildUrl` hits `https://github.com/users/<login>/contributions`. When a `Year` is given it sets
 `from=<year>-01-01`, and it sets `to=<year>-12-31` **only for a past year** — the current year is left open so the

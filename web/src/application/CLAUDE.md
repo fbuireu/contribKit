@@ -11,16 +11,14 @@ Cloudflare or `fetch` — everything reaches it through a closure. Stateless: st
   per-request code, so the landing page used to rebuild its infrastructure on every visit until that composition
   moved into a module.
 - **Never throw.** Every use case returns `T | Failure`, or the `LoadContributionsResult` union described below.
-- **Two arguments means one destructured object.** `fetchContributions` and `renderCalendarSvg` take a single
-  params object each; that is the repo-wide convention, not a local one, and `domain/failures/failure.ts` obeys it
-  too.
+- **Two arguments means one destructured object.** `fetchContributions` takes a single params object; that is the
+  repo-wide convention, not a local one, and `domain/failures/failure.ts` obeys it too.
 
-## The three use cases
+## The use cases
 
 | Function | Returns | Notes |
 | --- | --- | --- |
 | `fetchContributions(repository)({ username, year })` | `ContributionCalendar \| Failure` | A pass-through onto `repository.fetch`. It exists so a route can depend on `@application/*` alone, not to add behaviour. |
-| `renderCalendarSvg(renderer)({ calendar, options })` | `string` | Likewise a pass-through onto the injected `SvgRenderer`. It has no failure path of its own — a renderer that throws throws through it. |
 | `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | The one with real logic: it defaults, validates, loads and builds the 53×7 grid. |
 
 `resolve-initial-view.ts` sits alongside them and is not a use case in the curried sense — it takes no
@@ -29,8 +27,18 @@ visitor asked for anyone, and the resulting `Cache-Control`) and `daySourceFor` 
 result and that flag imply). It returns decisions rather than markup, so it stays clear of `ui/` and stays testable
 — which is the whole point, since the frontmatter that used to hold these rules is unreachable from vitest.
 
-The two thin ones are deliberately thin. They are the seam that keeps `pages/` from importing a domain interface
-*and* calling it, and the place a cross-cutting concern would go if one ever appeared. Do not "simplify" them away.
+`fetchContributions` stays thin on purpose: it names the operation, and its return type is what
+`loadInitialContributions` takes as its dependency, so it is the arm the composition in `_contributions.ts` is
+built around.
+
+**`renderCalendarSvg` used to sit beside it and no longer does.** It was `renderer => params => renderer(params)`
+— the identity on a function — so `renderCalendarSvg(svgStringRenderer)` and `svgStringRenderer` were the same
+value, and the SVG route now calls the renderer directly. The guide claimed both thin use cases were the place a
+cross-cutting concern would go if one appeared. One appeared during a later pass — reporting a failed fetch — and
+it went to `infrastructure/logging/log-contributions-failure.ts` instead, because that is where the logger lives.
+There is also exactly one `SvgRenderer` and one `ContributionsRepository`, and no test substitutes either, so that
+seam was hypothetical rather than real. Re-adding a use case is cheap if a second renderer ever appears; carrying
+an identity function and a test asserting that JavaScript forwards arguments was not.
 
 ## `loadInitialContributions`, in order
 

@@ -92,12 +92,11 @@ Use cases are curried factory functions: they take repository/service implementa
 | Use case | Purpose |
 |----------|---------|
 | `fetchContributions(repo)({ username, year })` | Loads a `ContributionCalendar` for a user/year |
-| `renderCalendarSvg(renderer)({ calendar, options })` | Renders the SVG string for a calendar |
 | `loadInitialContributions(load)({ username?, year? })` | Validates input, loads, and returns the built 53×7 grid |
 
 ### Repositories are interfaces
 
-`domain/repositories/` declares interfaces only. Implementations live in `infrastructure/`, e.g. `createGithubHtmlContributionsRepository`. Network and parsing errors are converted to `Failure` at that boundary; a raw `Error` never escapes.
+`domain/repositories/` declares interfaces only. Implementations live in `infrastructure/`, e.g. `githubHtmlContributionsRepository`. Network and parsing errors are converted to `Failure` at that boundary; a raw `Error` never escapes.
 
 ---
 
