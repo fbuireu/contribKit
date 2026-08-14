@@ -72,7 +72,15 @@ The format, spelled out because both sides encode it positionally:
 | `widget_colors` | the Palette's five colours as ARGB ints, comma-joined, ordered by `ContributionLevel.values` |
 | `widget_weeks` | `calendar.weeks.length`, which the Kotlin side lays the grid out with |
 | `widget_shape` | the `CellShape` enum **name**, matched as a string in Kotlin |
-| `widget_username` · `widget_streak` · `widget_total_contributions` | as written |
+| `widget_username` · `widget_streak` | as written |
+| `widget_total_contributions` | **the finished sentence**, not a number — `"1,234 contributions this year"`, or `"contributions unknown"` |
+
+**Never send a `null` across this seam.** `home_widget` deletes the key when the value is null, and the Kotlin side
+cannot tell a deleted key from one that was never written — so an unknown Total Contributions arrived as a missing
+key, was read as `0`, and rendered as a blank footer indistinguishable from a measured zero. That defeated
+[ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md) at the one seam this module exists
+to declare. The total now crosses as a finished sentence, which also puts its wording in the same place as the
+on-screen one instead of duplicating a format string in Kotlin.
 
 **Reordering `ContributionLevel` silently recolours every Home Screen Widget**, because both payloads are indexed by
 position and Kotlin reads them positionally. It also changes what every cached calendar means. A test in

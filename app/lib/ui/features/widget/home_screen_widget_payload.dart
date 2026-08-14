@@ -4,6 +4,8 @@ import 'package:contribkit/domain/services/streak_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
+import 'package:intl/intl.dart';
 
 abstract final class HomeScreenWidgetKey {
   static const levels = 'widget_levels';
@@ -25,7 +27,7 @@ final class HomeScreenWidgetPayload {
     required this.shape,
     required this.username,
     required this.streak,
-    required this.totalContributions,
+    required this.totalContributionsText,
   });
 
   factory HomeScreenWidgetPayload.from({
@@ -40,7 +42,7 @@ final class HomeScreenWidgetPayload {
     shape: cellShape.name,
     username: calendar.username.value,
     streak: StreakService.currentFor(calendar: calendar, today: today),
-    totalContributions: calendar.totalContributions,
+    totalContributionsText: encodeTotal(calendar.totalContributions),
   );
 
   static String encodeLevels(ContributionCalendar calendar) {
@@ -57,6 +59,10 @@ final class HomeScreenWidgetPayload {
     return buffer.toString();
   }
 
+  static String encodeTotal(int? total) => total == null
+      ? unknownTotalPhrase
+      : '${formatTotalContributions(format: NumberFormat.decimalPattern(), total: total)} contributions this year';
+
   static String encodeColors(Palette palette) => [
     for (final level in ContributionLevel.values) palette.colorFor(level).argb,
   ].join(homeScreenWidgetColorSeparator);
@@ -67,5 +73,5 @@ final class HomeScreenWidgetPayload {
   final String shape;
   final String username;
   final int streak;
-  final int? totalContributions;
+  final String totalContributionsText;
 }

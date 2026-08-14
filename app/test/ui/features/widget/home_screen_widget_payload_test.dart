@@ -8,6 +8,7 @@ import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/ui/features/widget/home_screen_widget_payload.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -138,7 +139,7 @@ version in the same commit, or do not change the order.''',
       expect(payload.shape, 'hex');
     });
 
-    test('passes an unknown Total Contributions through as null', () {
+    test('sends the wording for an unknown Total, not an absent value', () {
       final calendar = _calendar();
       final payload = HomeScreenWidgetPayload.from(
         calendar: ContributionCalendar(
@@ -152,7 +153,28 @@ version in the same commit, or do not change the order.''',
         today: DateTime(2026, 8, 14),
       );
 
-      expect(payload.totalContributions, isNull);
+      expect(payload.totalContributionsText, unknownTotalPhrase);
+      expect(payload.totalContributionsText, isNotEmpty);
     });
+
+    test('sends a measured Total as a finished sentence', () {
+      final payload = HomeScreenWidgetPayload.from(
+        calendar: _calendar(),
+        palette: _palette,
+        cellShape: CellShape.rounded,
+        today: DateTime(2026, 8, 14),
+      );
+
+      expect(payload.totalContributionsText, '7 contributions this year');
+    });
+
+    test(
+      'never sends an empty string, which Kotlin cannot tell from absent',
+      () {
+        for (final total in [null, 0, 42]) {
+          expect(HomeScreenWidgetPayload.encodeTotal(total), isNotEmpty);
+        }
+      },
+    );
   });
 }

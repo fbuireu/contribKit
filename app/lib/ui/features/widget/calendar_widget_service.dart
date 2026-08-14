@@ -48,9 +48,9 @@ abstract final class CalendarWidgetService {
           HomeScreenWidgetKey.streak,
           payload.streak,
         ),
-        HomeWidget.saveWidgetData<int>(
+        HomeWidget.saveWidgetData<String>(
           HomeScreenWidgetKey.totalContributions,
-          payload.totalContributions,
+          payload.totalContributionsText,
         ),
       ]);
 

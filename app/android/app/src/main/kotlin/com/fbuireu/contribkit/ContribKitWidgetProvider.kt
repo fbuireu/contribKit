@@ -75,14 +75,11 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             }
             views.setTextViewText(R.id.widget_streak_count, streakInt.toString())
 
-            val totalInt = when (totalContributions) {
-                is Int -> totalContributions
-                is Long -> totalContributions.toInt()
-                else -> 0
-            }
-            if (totalInt > 0) {
-                val formatted = "%,d contributions this year".format(totalInt)
-                views.setTextViewText(R.id.widget_contributions, formatted)
+            // Dart sends the finished sentence, including the wording for a
+            // Count it could not measure. An older install stored an Int here.
+            val totalText = totalContributions as? String
+            if (totalText != null) {
+                views.setTextViewText(R.id.widget_contributions, totalText)
             }
 
             val levels = prefs.getString("widget_levels", null)
