@@ -14,8 +14,11 @@ import 'package:contribkit/infrastructure/github/dtos/contribution_calendar_dto.
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
-const _cacheBoxName = 'contribution_cache_v2';
-const legacyContributionCacheBoxName = 'contribution_cache';
+const _cacheBoxName = 'contribution_cache_v3';
+const legacyContributionCacheBoxNames = <String>[
+  'contribution_cache',
+  'contribution_cache_v2',
+];
 
 final class GitHubContributionRepository implements ContributionRepository {
   GitHubContributionRepository({http.Client? httpClient})
@@ -143,9 +146,8 @@ final class GitHubContributionRepository implements ContributionRepository {
       final forId = tooltipMatch.group(1)!;
       final text = tooltipMatch.group(2)!.trim();
       final numMatch = _countPrefix.firstMatch(text);
-      idToCount[forId] = numMatch != null
-          ? (int.tryParse(numMatch.group(1)!) ?? 0)
-          : 0;
+      final parsed = numMatch == null ? null : int.tryParse(numMatch.group(1)!);
+      if (parsed != null) idToCount[forId] = parsed;
     }
 
     final rawDays =
@@ -154,13 +156,16 @@ final class GitHubContributionRepository implements ContributionRepository {
               (e) => (
                 date: e.value.date,
                 level: e.value.level,
-                count: idToCount[e.key] ?? 0,
+                count: idToCount[e.key],
               ),
             )
             .toList()
           ..sort((a, b) => a.date.compareTo(b.date));
 
-    final yearMax = rawDays.fold(0, (max, d) => d.count > max ? d.count : max);
+    final yearMax = rawDays.fold(
+      0,
+      (max, d) => (d.count ?? 0) > max ? d.count! : max,
+    );
 
     final days = rawDays
         .map(
@@ -170,7 +175,7 @@ final class GitHubContributionRepository implements ContributionRepository {
             level:
                 _levelFromIndex(d.level) ??
                 ContributionLevelService.levelFor(
-                  count: d.count,
+                  count: d.count ?? 0,
                   yearMax: yearMax,
                 ),
           ),
@@ -181,8 +186,21 @@ final class GitHubContributionRepository implements ContributionRepository {
       username: username,
       year: year,
       weeks: _groupIntoWeeks(days, year.value),
-      totalContributions: rawDays.fold(0, (s, d) => s + d.count),
+      totalContributions: _totalFor(days),
     );
+  }
+
+  static int? _totalFor(List<ContributionDay> days) {
+    var total = 0;
+    for (final day in days) {
+      final count = day.count;
+      if (count == null) {
+        if (day.isActive) return null;
+        continue;
+      }
+      total += count;
+    }
+    return total;
   }
 
   static ContributionLevel? _levelFromIndex(int? index) =>
@@ -215,7 +233,7 @@ final class GitHubContributionRepository implements ContributionRepository {
           byDate[date] ??
               ContributionDay(
                 date: date,
-                count: 0,
+                count: null,
                 level: ContributionLevel.none,
               ),
         );
@@ -273,6 +291,7 @@ final class GitHubContributionRepository implements ContributionRepository {
     final allCounts = dto.weeks
         .expand((w) => w.contributionDays)
         .map((d) => d.contributionCount)
+        .whereType<int>()
         .toList();
     final yearMax = allCounts.isEmpty
         ? 0
@@ -287,7 +306,10 @@ final class GitHubContributionRepository implements ContributionRepository {
           count: count,
           level:
               _levelFromIndex(dayDto.level) ??
-              ContributionLevelService.levelFor(count: count, yearMax: yearMax),
+              ContributionLevelService.levelFor(
+                count: count ?? 0,
+                yearMax: yearMax,
+              ),
         );
       }).toList();
       return ContributionWeek(days: days);

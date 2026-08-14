@@ -1,3 +1,4 @@
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:flutter_animate/flutter_animate.dart';
@@ -473,7 +474,7 @@ class _CalendarCard extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '${_contribFmt.format(state.calendar!.totalContributions)} commits',
+                  '${formatTotalContributions(format: _contribFmt, total: state.calendar!.totalContributions)} commits',
                   style: AppTextStyles.mono(
                     fontSize: Tokens.textXs,
                     color: colors.accent,

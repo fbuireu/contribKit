@@ -50,7 +50,7 @@ final class SvgExportRepository implements ExportRepository {
         final color = options.palette.colorFor(day.level, isDark: true);
         final fill = color.toHex();
         final title =
-            '${day.date.toIso8601String().substring(0, 10)}: ${day.count}';
+            '${day.date.toIso8601String().substring(0, 10)}: ${day.count ?? 'unknown'}';
 
         switch (options.shape) {
           case CellShape.square:

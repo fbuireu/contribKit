@@ -15,7 +15,7 @@ final class ContributionCalendar {
 
   final List<ContributionWeek> weeks;
 
-  final int totalContributions;
+  final int? totalContributions;
 
   bool _listEquals(List<ContributionWeek> a, List<ContributionWeek> b) {
     if (a.length != b.length) return false;

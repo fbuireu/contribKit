@@ -32,9 +32,10 @@ class ContributionCell extends StatelessWidget {
     final domainColor = palette.colorFor(day.level, isDark: isDark);
     final color = Color(domainColor.argb);
 
+    final count = day.count;
     final tooltip =
         '${day.date.toIso8601String().substring(0, 10)}: '
-        '${day.count} contribution${day.count == 1 ? '' : 's'}';
+        '${count == null ? 'contributions unknown' : '$count contribution${count == 1 ? '' : 's'}'}';
 
     return AppTooltip(
       message: Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),

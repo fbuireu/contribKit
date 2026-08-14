@@ -152,6 +152,53 @@ void main() {
     });
   });
 
+  group('a Count nobody could read', () {
+    ContributionCalendar withUnknownCounts({required int year}) {
+      final firstOfYear = DateTime(year, 1, 1);
+      final start = DateTime(year, 1, 1 - (firstOfYear.weekday % 7));
+      final weeks = <ContributionWeek>[];
+      for (var week = 0; week < 53; week++) {
+        final days = <ContributionDay>[];
+        for (var day = 0; day < 7; day++) {
+          final date = DateTime(
+            start.year,
+            start.month,
+            start.day + week * 7 + day,
+          );
+          final active =
+              date.year == year && date.isAfter(DateTime(year, 12, 21));
+          days.add(
+            ContributionDay(
+              date: date,
+              count: null,
+              level: active ? ContributionLevel.high : ContributionLevel.none,
+            ),
+          );
+        }
+        weeks.add(ContributionWeek(days: days));
+      }
+      return ContributionCalendar(
+        username: Username('torvalds'),
+        year: Year(year),
+        weeks: weeks,
+        totalContributions: null,
+      );
+    }
+
+    test(
+      'still continues the streak, because the Contribution Level says active',
+      () {
+        expect(
+          StreakService.currentFor(
+            calendar: withUnknownCounts(year: 2019),
+            today: DateTime(2026, 8, 14),
+          ),
+          10,
+        );
+      },
+    );
+  });
+
   test(
     'the Viewer and the Home Screen Widget agree, because both ask this module',
     () {

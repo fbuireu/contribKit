@@ -65,14 +65,21 @@ representations differ because the languages do. Anything serialising a level ha
 | --- | --- | --- |
 | Calendar holds | `List<ContributionWeek>` | a flat `readonly ContributionDay[]` |
 | Calendar carries | `Username`, `Year`, `totalContributions` | `string` username, `days`, `total` |
-| `ContributionDay.count` | **`int` — non-nullable** | `number \| null` |
-| Total | `int` | `number \| null` |
+| `ContributionDay.count` | `int?` | `number \| null` |
+| Total | `int?` | `number \| null` |
 
-**The app cannot represent an unknown Count.** A day with no tool-tip becomes `0`, which is indistinguishable from a
-genuine zero — the one place the product does invent data, recorded rather than fixed
-([ADR 0008](../../../docs/adr/0008-the-mobile-app-fetches-github-directly.md)). Anything that would make that
-visible as an exact figure is a bug; anything that closes it means making `count` nullable and following the type
-through the DTOs, the stats service and the widget.
+**An unknown Count is `null`, and `null` is not `0`** — the glossary's distinction, now expressible on both sides.
+A day whose tool-tip carried no number, and a day the scrape never mentioned, both arrive as `null`; the Contribution
+Grid pads with `null` too, because a day outside the requested Year is not a day with no contributions.
+
+Two rules follow, and they are the whole reason the type changed:
+
+- **Activity is a Contribution Level question, not a Count question.** `ContributionDay.isActive` is
+  `level != ContributionLevel.none`. A day GitHub coloured but whose Count did not parse is active, and it neither
+  breaks a Streak nor drops out of `totalDaysActive`. It used to do both, because it arrived as `0`.
+- **Total Contributions is `null` the moment an active day has an unknown Count.** A sum that skipped those days
+  would be a lower bound presented as a measurement. `formatTotalContributions` in `ui/` prints it as `unknown`,
+  never as a figure — the same word, for the same reason, as the web's function of that name.
 
 The week-based shape is what makes `ContributionStatsService`'s `weeklyAverage` a simple division: the grid is
 always 53×7, so `weeks.length` is a constant and never a partial year
@@ -116,9 +123,9 @@ always 53×7, so `weeks.length` is a constant and never a partial year
 - **The app's length check is separate from its pattern.** `[a-zA-Z0-9-]*` is unbounded, so the explicit
   `trimmed.length > 39` guard is the only thing enforcing the limit. Deleting it as "already covered by the regex"
   would silently accept a 200-character handle. The web bounds the length inside the pattern instead.
-- **Streaks count `day.count > 0`, not `level > ContributionLevel.none`.** Since an unknown Count arrives as `0`,
-  a day GitHub knows about but whose tool-tip did not parse breaks a streak. Making `count` nullable would change
-  these numbers.
+- **Streaks read `day.isActive`, not `day.count > 0`.** They keyed on the Count until the Count could be unknown,
+  which meant a day GitHub had coloured broke a run whenever its tool-tip failed to parse — and made the app
+  disagree with the web, which has always keyed on the level.
 - **`bestDayDate` and `bestMonth` are nullable and are `null` for an empty or wholly inactive calendar.** They
   are the only optional fields in `ContributionStats`; a UI that force-unwraps either will crash on a brand-new
   account.

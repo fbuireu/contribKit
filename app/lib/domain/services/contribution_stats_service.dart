@@ -30,12 +30,13 @@ abstract final class ContributionStatsService {
     int totalActive = 0;
 
     for (final day in allDays) {
-      if (day.count > 0) {
+      if (day.isActive) {
         run++;
         totalActive++;
         if (run > longestStreak) longestStreak = run;
-        if (day.count > bestCount) {
-          bestCount = day.count;
+        final count = day.count;
+        if (count != null && count > bestCount) {
+          bestCount = count;
           bestDate = day.date;
         }
       } else {
@@ -44,15 +45,17 @@ abstract final class ContributionStatsService {
     }
 
     final weekCount = calendar.weeks.length;
-    final weeklyAverage = weekCount > 0
-        ? calendar.totalContributions / weekCount
+    final total = calendar.totalContributions;
+    final weeklyAverage = weekCount > 0 && total != null
+        ? total / weekCount
         : 0.0;
 
     final monthTotals = <int, int>{};
     for (final day in allDays) {
-      if (day.count > 0) {
+      final count = day.count;
+      if (day.isActive && count != null) {
         monthTotals[day.date.month] =
-            (monthTotals[day.date.month] ?? 0) + day.count;
+            (monthTotals[day.date.month] ?? 0) + count;
       }
     }
     int? bestMonth;

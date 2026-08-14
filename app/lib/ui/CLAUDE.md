@@ -99,5 +99,8 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   than showing the previous user's calendar under a new username.
 - `fromCache` rides along on the state. It is the only signal distinguishing a live read from a stored one; a
   refactor that drops it removes the user's ability to tell.
-- The app's `ContributionDay.count` is non-nullable, so a day whose Count could not be read shows as `0` here. Never
-  present a derived total as exact ([ADR 0008](../../../docs/adr/0008-the-mobile-app-fetches-github-directly.md)).
+- **A Count that could not be read is `null`, and the Cell Tooltip says `contributions unknown`** rather than
+  showing a number nobody measured. Total Contributions goes through `formatTotalContributions`, which prints
+  `unknown` for a `null` — never interpolate `calendar.totalContributions` directly, because `NumberFormat.format`
+  takes a `dynamic` and will happily render the string `null`
+  ([ADR 0008](../../../docs/adr/0008-the-mobile-app-fetches-github-directly.md)).

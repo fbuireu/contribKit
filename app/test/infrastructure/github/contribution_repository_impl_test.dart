@@ -319,4 +319,96 @@ void main() {
       );
     });
   });
+
+  group('a Count GitHub did not spell out', () {
+    test(
+      'is unknown, not zero, when the tool-tip has no leading number',
+      () async {
+        final html =
+            '${_day(id: 'c1', date: '2024-06-03', level: '3')}'
+            '<tool-tip for="c1">No contributions on June 3rd.</tool-tip>';
+        final repository = GitHubContributionRepository(
+          httpClient: _clientReturning(html),
+        );
+
+        final (:calendar, fromCache: _) = await repository.fetchCalendar(
+          username: Username('torvalds'),
+          year: Year(2024),
+        );
+
+        expect(_dayOn(calendar, '2024-06-03').count, isNull);
+      },
+    );
+
+    test('is unknown when no tool-tip refers to the day at all', () async {
+      final html = _day(id: 'c1', date: '2024-06-03', level: '2');
+      final repository = GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      );
+
+      final (:calendar, fromCache: _) = await repository.fetchCalendar(
+        username: Username('torvalds'),
+        year: Year(2024),
+      );
+
+      expect(_dayOn(calendar, '2024-06-03').count, isNull);
+    });
+
+    test(
+      'leaves the padding days unknown rather than claiming they were empty',
+      () async {
+        final html =
+            _day(id: 'c1', date: '2024-06-03', level: '2') +
+            _tip(id: 'c1', count: 4);
+        final repository = GitHubContributionRepository(
+          httpClient: _clientReturning(html),
+        );
+
+        final (:calendar, fromCache: _) = await repository.fetchCalendar(
+          username: Username('torvalds'),
+          year: Year(2024),
+        );
+
+        expect(_dayOn(calendar, '2024-06-04').count, isNull);
+      },
+    );
+
+    test(
+      'voids Total Contributions, rather than passing a lower bound off as exact',
+      () async {
+        final html =
+            _day(id: 'c1', date: '2024-06-03', level: '3') +
+            _tip(id: 'c1', count: 4) +
+            _day(id: 'c2', date: '2024-06-04', level: '2');
+        final repository = GitHubContributionRepository(
+          httpClient: _clientReturning(html),
+        );
+
+        final (:calendar, fromCache: _) = await repository.fetchCalendar(
+          username: Username('torvalds'),
+          year: Year(2024),
+        );
+
+        expect(calendar.totalContributions, isNull);
+      },
+    );
+
+    test('still totals when every active day carries a Count', () async {
+      final html =
+          _day(id: 'c1', date: '2024-06-03', level: '3') +
+          _tip(id: 'c1', count: 4) +
+          _day(id: 'c2', date: '2024-06-04', level: '3') +
+          _tip(id: 'c2', count: 6);
+      final repository = GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      );
+
+      final (:calendar, fromCache: _) = await repository.fetchCalendar(
+        username: Username('torvalds'),
+        year: Year(2024),
+      );
+
+      expect(calendar.totalContributions, 10);
+    });
+  });
 }

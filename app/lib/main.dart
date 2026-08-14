@@ -85,7 +85,9 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await Hive.initFlutter();
-  await Hive.deleteBoxFromDisk(legacyContributionCacheBoxName);
+  for (final box in legacyContributionCacheBoxNames) {
+    await Hive.deleteBoxFromDisk(box);
+  }
 
   await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(

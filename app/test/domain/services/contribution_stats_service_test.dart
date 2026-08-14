@@ -31,7 +31,7 @@ ContributionCalendar _calendar(List<(DateTime, int)> dayData) {
   }
   if (current.isNotEmpty) weeks.add(ContributionWeek(days: current));
 
-  final total = days.fold(0, (s, d) => s + d.count);
+  final total = days.fold(0, (s, d) => s + (d.count ?? 0));
   return ContributionCalendar(
     username: Username('testuser'),
     year: Year(2024),

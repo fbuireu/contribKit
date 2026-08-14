@@ -14,7 +14,7 @@ It stops being correct the moment the meaning changes. When the app started read
 
 ## Decision
 
-The cache is versioned by its box name. `_cacheBoxName` is `contribution_cache_v2`; the previous box is deleted from disk once at startup. Changing what a cached calendar means requires bumping the name in the same commit.
+The cache is versioned by its box name. `_cacheBoxName` is `contribution_cache_v3`; every previous box is listed in `legacyContributionCacheBoxNames` and deleted from disk once at startup. It reached v3 when `contributionCount` became nullable — a stored `null` read back through a non-nullable cast is a crash, not a stale figure, which is exactly the class of change the version guards. Changing what a cached calendar means requires bumping the name in the same commit.
 
 Adding a schema field and migrating in place was rejected for this class of change: the stored data was not wrong in shape, it was wrong in meaning, and there is nothing to migrate it *from*.
 

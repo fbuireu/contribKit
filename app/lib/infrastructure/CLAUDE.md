@@ -55,7 +55,7 @@ detect ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-ht
 
 `_groupIntoWeeks` always emits 53 × 7 days, starting from the Sunday on or before 1 January
 (`firstOfYear.weekday % 7` — Dart weekdays run 1 = Monday … 7 = Sunday, so Sunday maps to 0). Dates with no parsed
-day become `count: 0, level: none`
+day become `count: null, level: none` — an unknown Count, not a measured zero
 ([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)).
 
 **Every date in that walk is built with the `DateTime` constructor, never by adding a `Duration`.** This is not a
@@ -68,8 +68,8 @@ the streak walk in `ui/features/widget/calendar_widget_service.dart`, which had 
 
 ### The cache
 
-- **Box `contribution_cache_v2`, keyed `<username>:<year>`.** Changing what a cached calendar *means* requires
-  bumping that name; `legacyContributionCacheBoxName` is the previous one, and `app/lib/main.dart` deletes it at
+- **Box `contribution_cache_v3`, keyed `<username>:<year>`.** Changing what a cached calendar *means* requires
+  bumping that name; `legacyContributionCacheBoxNames` lists every previous one, and `app/lib/main.dart` deletes them at
   startup ([ADR 0014](../../../docs/adr/0014-cached-calendars-are-versioned.md)).
 - **The current year expires after 1 hour. Past years never expire**, because a finished year cannot change.
 - **A cache read that throws anything at all returns `null`,** which the caller reads as a miss and refetches. A

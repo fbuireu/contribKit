@@ -9,7 +9,9 @@ final class ContributionDay {
 
   final DateTime date;
 
-  final int count;
+  final int? count;
+
+  bool get isActive => level != ContributionLevel.none;
 
   final ContributionLevel level;
 

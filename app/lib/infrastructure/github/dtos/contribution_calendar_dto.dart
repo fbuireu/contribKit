@@ -4,15 +4,12 @@ part 'contribution_calendar_dto.g.dart';
 
 @JsonSerializable(createToJson: false)
 final class ContributionCalendarDto {
-  const ContributionCalendarDto({
-    required this.totalContributions,
-    required this.weeks,
-  });
+  const ContributionCalendarDto({this.totalContributions, required this.weeks});
 
   factory ContributionCalendarDto.fromJson(Map<String, dynamic> json) =>
       _$ContributionCalendarDtoFromJson(json);
 
-  final int totalContributions;
+  final int? totalContributions;
   final List<ContributionWeekDto> weeks;
 }
 
@@ -30,7 +27,7 @@ final class ContributionWeekDto {
 final class ContributionDayDto {
   const ContributionDayDto({
     required this.date,
-    required this.contributionCount,
+    this.contributionCount,
     this.level,
   });
 
@@ -38,6 +35,6 @@ final class ContributionDayDto {
       _$ContributionDayDtoFromJson(json);
 
   final String date;
-  final int contributionCount;
+  final int? contributionCount;
   final int? level;
 }

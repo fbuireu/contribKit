@@ -1,3 +1,4 @@
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
@@ -24,7 +25,10 @@ class StatsPanel extends StatelessWidget {
         Expanded(
           child: _StatTile(
             label: 'TOTAL',
-            value: fmt.format(calendar.totalContributions),
+            value: formatTotalContributions(
+              format: fmt,
+              total: calendar.totalContributions,
+            ),
             unit: 'commits',
             colors: colors,
           ),

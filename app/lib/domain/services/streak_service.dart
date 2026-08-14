@@ -14,12 +14,12 @@ abstract final class StreakService {
 
     var index = anchor;
     if (dateOnly(days[index].date) == dateOnly(today) &&
-        days[index].count == 0) {
+        !days[index].isActive) {
       index--;
     }
 
     var streak = 0;
-    while (index >= 0 && days[index].count > 0) {
+    while (index >= 0 && days[index].isActive) {
       streak++;
       index--;
     }
