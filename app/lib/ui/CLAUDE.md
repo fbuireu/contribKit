@@ -103,9 +103,10 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   they survived the first fix; there the theme adopted the token instead. `main.dart` now feeds every `AppColors`
   field into both schemes. Adding a field without wiring it re-opens the same defect, and nothing guards it.
 - **The background isolate does not go through this layer at all.** `callbackDispatcher` in `app/lib/main.dart`
-  re-reads the settings box by string literal and calls `CalendarWidgetService.update` directly, so **a widget
-  refresh happens with no notifier, no providers and no `_loadSettings`.** Any behaviour added to `ViewerNotifier`
-  that the widget depends on has to be added to `main.dart` too.
+  reads its settings through `HiveSettingsRepository` — it knows no storage key — but it calls
+  `CalendarWidgetService.update` directly, so **a widget refresh happens with no notifier, no providers and no
+  `_loadSettings`.** Any behaviour added to `ViewerNotifier` that the widget depends on has to be added to
+  `main.dart` too.
 - **`_ErrorState._message()` is the exhaustive match, and it lists all eight failures** — including `ExportFailure`
   and `PurchaseFailure`, which the viewer cannot itself produce. That is deliberate: one match, one place to update.
   It is also the **only** `switch` over a `Failure` in the app, and it must stay that way. A second one elsewhere

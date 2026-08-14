@@ -48,7 +48,7 @@ equivalent, and the differences are the whole reason this section exists:
 
 **Two passes over the HTML, joined on the `<td>`'s `id`.** Pass one builds `id → (date, level?)` from every `<td>`
 carrying `ContributionCalendar-day`; pass two builds `id → count` from every `<tool-tip for="…">`, taking the
-leading digits of its text. A tool-tip with no leading number yields `0`, not a skip.
+leading digits of its text. A tool-tip with no leading number is skipped, so the day's Count is `null` rather than a zero nobody measured.
 
 **An empty first pass is a `ParseFailure`, never an empty calendar** — a calendar of zeros is a lie a reader cannot
 detect ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-html.md)).

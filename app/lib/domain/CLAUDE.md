@@ -10,7 +10,8 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 
 ## Invariants & rules
 
-- **No third-party packages.** Only `dart:core` and `dart:async` from the SDK; the only `package:` imports are
+- **No third-party packages.** Only `dart:core`, `dart:async` and `dart:math` from the SDK — `dart:math` for
+  `CellGeometryService` alone, which is trigonometry and not a framework dependency; the only `package:` imports are
   this project's own (`package:contribkit/domain/…`), which is how every file here reaches its siblings.
 - **Colours are the project's own `Color` value object**, a wrapper over an ARGB `int`, never `dart:ui.Color`. That
   single rule is what keeps this layer compilable without Flutter; the conversion to a Flutter colour happens in the
@@ -108,7 +109,7 @@ always 53×7, so `weeks.length` is a constant and never a partial year
   `today` rather than reading the clock, which is what makes it testable at all — the rule had no test before,
   precisely because there was no way to say what day it was.
 - **It anchors on the last day belonging to the calendar's Year, capped at today.** That is the whole fix for past
-  Years. The Contribution Grid pads the days on either side of the Year with `count: 0`, so a walk back from
+  Years. The Contribution Grid pads the days on either side of the Year with an unknown Count, so a walk back from
   `DateTime.now()` — or from the end of the padded day list — hit a zero immediately and returned **0** for every
   past Year. `StatsPanel` labels that figure `FINAL`, so a year that closed on a forty-day run read as `FINAL 0 day
   streak`. Days outside `calendar.year` are dropped before the walk begins.
@@ -119,7 +120,7 @@ always 53×7, so `weeks.length` is a constant and never a partial year
 ## `CellGeometryService` — one Cell, four renderers
 
 The maths a Cell Shape is drawn with lives here, not in whichever renderer needs it: `cornerRadiusFor`,
-`dotRadiusFor` and `hexVerticesFor`. The on-screen Cell, the SVG Export and the PNG Export all call it.
+`dotRadiusFor` and `hexVerticesFor`. The on-screen Cell, the SVG Export and the PNG Export all call all three.
 
 **It exists because the four copies had drifted.** The dot radius and the hex vertices agreed everywhere, but the
 rounded corner did not: the exports and the Android widget scaled it with the Cell Size (`cell * 0.2`) while the

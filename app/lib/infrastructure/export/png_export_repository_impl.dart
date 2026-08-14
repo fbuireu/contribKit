@@ -1,5 +1,4 @@
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
@@ -90,14 +89,16 @@ final class PngExportRepository implements ExportRepository {
 
 ui.Path _hexPath(double cx, double cy, double r) {
   final path = ui.Path();
-  for (var i = 0; i < 6; i++) {
-    final angle = (math.pi / 3) * i + math.pi / 6;
-    final x = cx + r * math.cos(angle);
-    final y = cy + r * math.sin(angle);
+  final vertices = CellGeometryService.hexVerticesFor(
+    centerX: cx,
+    centerY: cy,
+    radius: r,
+  );
+  for (var i = 0; i < vertices.length; i++) {
     if (i == 0) {
-      path.moveTo(x, y);
+      path.moveTo(vertices[i].x, vertices[i].y);
     } else {
-      path.lineTo(x, y);
+      path.lineTo(vertices[i].x, vertices[i].y);
     }
   }
   return path..close();

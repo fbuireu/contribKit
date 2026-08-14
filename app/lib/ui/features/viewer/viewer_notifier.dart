@@ -100,7 +100,6 @@ class ViewerNotifier extends _$ViewerNotifier {
           calendar: calendar,
           palette: palette,
           cellShape: state.cellShape,
-          cellSize: state.cellSize,
         );
       }
     } on Failure catch (f) {
@@ -159,7 +158,6 @@ class ViewerNotifier extends _$ViewerNotifier {
       calendar: calendar,
       palette: palette,
       cellShape: state.cellShape,
-      cellSize: state.cellSize,
     );
   }
 }

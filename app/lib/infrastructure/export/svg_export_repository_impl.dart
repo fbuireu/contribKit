@@ -1,6 +1,5 @@
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
@@ -105,14 +104,15 @@ final class SvgExportRepository implements ExportRepository {
 }
 
 String _hexPoints(double cx, double cy, double r) {
-  final buf = StringBuffer();
-  for (var i = 0; i < 6; i++) {
-    if (i > 0) buf.write(' ');
-    final angle = (math.pi / 3) * i + math.pi / 6;
-    buf.write(
-      '${(cx + r * math.cos(angle)).toStringAsFixed(2)},'
-      '${(cy + r * math.sin(angle)).toStringAsFixed(2)}',
-    );
-  }
-  return buf.toString();
+  final vertices = CellGeometryService.hexVerticesFor(
+    centerX: cx,
+    centerY: cy,
+    radius: r,
+  );
+  return vertices
+      .map(
+        (vertex) =>
+            '${vertex.x.toStringAsFixed(2)},${vertex.y.toStringAsFixed(2)}',
+      )
+      .join(' ');
 }

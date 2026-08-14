@@ -3,7 +3,6 @@ import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
-import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
@@ -51,7 +50,6 @@ void callbackDispatcher() {
         calendar: calendar,
         palette: palette,
         cellShape: await settings.getSavedCellShape() ?? CellShape.fallback,
-        cellSize: await settings.getSavedCellSize() ?? CellSize.fallback,
       );
     } catch (_) {}
 

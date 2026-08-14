@@ -12,16 +12,19 @@ must never be referenced from `application/` or `ui/`.
   `fromJson` and nothing else.
 - **`dart run build_runner build` after any change**, or `contribution_calendar_dto.g.dart` and the class disagree.
   The generated file is committed.
-- **`level` is `int?` and nothing else is nullable.** An older cache entry written before levels were stored still
-  deserialises; the repository then derives the level through `ContributionLevelService`.
+- **`level`, `contributionCount` and `totalContributions` are all nullable.** An older cache entry written before
+  levels were stored still deserialises, and the repository derives the level through `ContributionLevelService`.
+  The two Count fields are nullable because an unknown Count is not a zero
+  ([ADR 0019](../../../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)); a stored `null` read through
+  a non-nullable cast is a crash, which is why that change came with a cache version bump.
 
 ## The shape
 
 | DTO | Fields |
 | --- | --- |
-| `ContributionCalendarDto` | `totalContributions: int`, `weeks: List<ContributionWeekDto>` |
+| `ContributionCalendarDto` | `totalContributions: int?`, `weeks: List<ContributionWeekDto>` |
 | `ContributionWeekDto` | `contributionDays: List<ContributionDayDto>` |
-| `ContributionDayDto` | `date: String` (`YYYY-MM-DD`), `contributionCount: int`, `level: int?` |
+| `ContributionDayDto` | `date: String` (`YYYY-MM-DD`), `contributionCount: int?`, `level: int?` |
 
 `date` is a string here and a `DateTime` on the entity; `level` is an index here and a `ContributionLevel` on the
 entity. Those two conversions are the boundary this folder exists to hold.

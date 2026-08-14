@@ -1,6 +1,5 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
-import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/features/widget/home_screen_widget_payload.dart';
 import 'package:home_widget/home_widget.dart';
@@ -15,7 +14,6 @@ abstract final class CalendarWidgetService {
     required ContributionCalendar calendar,
     required Palette palette,
     required CellShape cellShape,
-    CellSize cellSize = CellSize.normal,
   }) async {
     final payload = HomeScreenWidgetPayload.from(
       calendar: calendar,
