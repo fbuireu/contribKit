@@ -1,3 +1,10 @@
+# [contribkit-web-v1.12.1](https://github.com/fbuireu/contribKit/compare/web-v1.12.0...web-v1.12.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* **contribkit-web:** give the Embed URL one module, and stop emitting an invalid one ([8bc244c](https://github.com/fbuireu/contribKit/commit/8bc244cb44f6ff33779473209ca621580809cec2))
+
 # [contribkit-web-v1.12.0](https://github.com/fbuireu/contribKit/compare/web-v1.11.11...web-v1.12.0) (2026-08-13)
 
 
