@@ -72,6 +72,14 @@ The JSON endpoint is consumed by code, which can read a status.
 oversight to fix casually: an embed URL is pasted into a README once and never revisited, so a pinned year would
 quietly go stale forever.
 
+**It still has to build a Contribution Grid, and `buildRollingGrid` is the one that fits.** The route handed the
+scraped days straight to the renderer until that was fixed, and the renderer's `chunkWeeks` slices whatever it is
+given into sevens. GitHub emits its table weekday-major, so those days arrive as fifty-three Sundays, then
+fifty-three Mondays: the Embed rendered the transpose of the calendar, every cell after the first carrying the
+wrong date's Contribution Level. The landing page never showed it because `index.astro` and `page-init.ts` both go
+through `buildGridFromApi`, which keys by date. Anything that reaches a renderer goes through a grid builder
+first — the rolling one here, the Year-anchored one everywhere else.
+
 **`/api/contributions` answers with `days` and repeats it as `cells`.** `days` is the name the glossary requires;
 `cells` is the field the endpoint shipped with, kept as a deprecated alias so nothing that already reads it breaks.
 Both point at the same array. New consumers read `days`; the alias goes away on a deliberate breaking release, not

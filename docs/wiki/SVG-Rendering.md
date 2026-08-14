@@ -62,6 +62,11 @@ with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The gr
 
 ## Rendering flow
 
+0. The route builds the lattice first, with `buildRollingGrid`. This is not optional: GitHub emits its
+   table **weekday-major** — one `<tr>` per weekday, one `<td>` per week — so the scraped days arrive as all the
+   Sundays, then all the Mondays, seven days apart. Slicing that in sevens renders the transpose of the calendar,
+   with every cell after the first showing the wrong date. `buildRollingGrid` keys the days by date and walks 371
+   of them from the Sunday that starts the window, so what reaches the renderer really is a grid.
 1. Compute dimensions and radius from options.
 2. `chunkWeeks(calendar.days)` slices the 371-cell grid back into 53 weeks of 7.
 3. Open the `<svg>` with a `viewBox`, `width`/`height`, and `role="img"` + `aria-label`.

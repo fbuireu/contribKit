@@ -1,6 +1,7 @@
 import { messageFor, SERVER_ERROR_STATUS, statusFor } from "@application/http/failure-http";
 import { renderCalendarSvg } from "@application/use-cases/render-calendar-svg";
 import { isFailure } from "@domain/failures/failure";
+import { buildRollingGrid } from "@domain/services/calendar-grid";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
 import { DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EmbedParam } from "@domain/value-objects/embed";
 import { paletteByKey } from "@domain/value-objects/palette";
@@ -58,7 +59,8 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 		background,
 	} = querySchema.parse(Object.fromEntries(url.searchParams));
 	const shape: CellShape = isCellShape(shapeParam) ? shapeParam : DEFAULT_CELL_SHAPE;
-	const svg = renderSvg({ calendar, options: { palette: paletteByKey(paletteKey), shape, background } });
+	const grid = { ...calendar, days: buildRollingGrid({ days: calendar.days }) };
+	const svg = renderSvg({ calendar: grid, options: { palette: paletteByKey(paletteKey), shape, background } });
 
 	return new Response(svg, {
 		headers: {

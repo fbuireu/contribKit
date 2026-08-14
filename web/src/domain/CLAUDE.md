@@ -136,6 +136,10 @@ test helper reintroduces the same bug in the test rather than the code.
   Tightening the pattern is not free — it would turn a truthful "user not found" into a misleading "invalid
   username" for any handle GitHub later starts allowing — so the rule is deliberately looser than GitHub's, and the
   app's Dart regex is looser in the same way.
+- **`buildRollingGrid` is the anchor-free sibling of `buildCalendarGrid`.** It keys the days by date and ends on
+  the Saturday of the latest day it was given, rather than on a calendar year, because the Embed deliberately
+  shows a rolling window and never a pinned Year. Reach for it whenever days arrive without a Year to anchor on —
+  never for `chunkWeeks` alone, which trusts its input to already be a date-ordered lattice.
 - `chunkWeeks` always returns exactly `WEEKS_PER_YEAR` arrays, whatever it is given; a short input leaves trailing
   weeks empty rather than shortening the result, which is why `monthLabelPositions` guards on an empty week.
 - `MONTH_LABELS` is built once from `Intl.DateTimeFormat("en", …)` against year 2024, which is arbitrary and only there
