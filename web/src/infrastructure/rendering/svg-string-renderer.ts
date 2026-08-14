@@ -1,7 +1,11 @@
 import { renderCellShape } from "@domain/services/cell-shapes";
 import { chunkWeeks } from "@domain/services/dates";
 import {
+	CALENDAR_ARIA_LABEL,
 	calendarDimensions,
+	cellPoint,
+	gridOrigin,
+	monthLabelPoint,
 	monthLabelPositions,
 	radiusFor,
 	SVG_DEFAULT_CELL_GAP,
@@ -9,10 +13,8 @@ import {
 	SVG_MONTH_LABEL_BASELINE,
 	SVG_MONTH_LABEL_FONT_SIZE,
 	SVG_MONTH_LABEL_LETTER_SPACING,
-	SVG_PAD_X,
-	SVG_PAD_Y,
-	SVG_WEEKDAY_LABEL_BASELINE,
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
+	weekdayLabelPoint,
 } from "@domain/services/svg-geometry";
 import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
 import { WEEKDAY_LABELS } from "@domain/value-objects/calendar-labels";
@@ -34,7 +36,7 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 
 	const parts: string[] = [];
 	parts.push(
-		`<svg viewBox="0 0 ${totalWidth} ${totalHeight}" width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GitHub contribution calendar">`,
+		`<svg viewBox="0 0 ${totalWidth} ${totalHeight}" width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${CALENDAR_ARIA_LABEL}">`,
 	);
 
 	if (background !== DEFAULT_BACKGROUND_COLOR) {
@@ -43,25 +45,27 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendere
 
 	if (showLabels) {
 		for (const { weekIndex, label } of monthLabelPositions(weeks)) {
+			const { x, y } = monthLabelPoint({ weekIndex, cellWidth, labelWidth });
 			parts.push(
-				`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" fill="${MONTH_LABEL_FILL}" font-size="${SVG_MONTH_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}" letter-spacing="${SVG_MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
+				`<text x="${x}" y="${y}" fill="${MONTH_LABEL_FILL}" font-size="${SVG_MONTH_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}" letter-spacing="${SVG_MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
 			);
 		}
 
 		for (const [index, dayLabel] of WEEKDAY_LABELS.entries()) {
+			const { x, y } = weekdayLabelPoint({ index, cellWidth, labelHeight });
 			parts.push(
-				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_WEEKDAY_LABEL_BASELINE}" fill="${WEEKDAY_LABEL_FILL}" font-size="${SVG_WEEKDAY_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
+				`<text x="${x}" y="${y}" fill="${WEEKDAY_LABEL_FILL}" font-size="${SVG_WEEKDAY_LABEL_FONT_SIZE}" font-family="${LABEL_FONT_FAMILY}">${dayLabel}</text>`,
 			);
 		}
 	}
 
-	parts.push(`<g transform="translate(${SVG_PAD_X + labelWidth},${SVG_PAD_Y + labelHeight})">`);
+	const origin = gridOrigin({ labelWidth, labelHeight });
+	parts.push(`<g transform="translate(${origin.x},${origin.y})">`);
 
 	for (const [weekIndex, week] of weeks.entries()) {
 		for (const [dayIndex, day] of week.entries()) {
 			const fill = palette.colors[day.level];
-			const x = weekIndex * cellWidth;
-			const y = dayIndex * cellWidth;
+			const { x, y } = cellPoint({ weekIndex, dayIndex, cellWidth });
 			parts.push(renderCellShape({ shape, x, y, size, radius, fill, level: day.level }));
 		}
 	}

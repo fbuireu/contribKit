@@ -43,6 +43,17 @@ are deliberate and worth knowing:
 | Label colour | hardcoded `rgba(255,255,255,…)` | `var(--text-dim)` / `var(--text-dimmer)`, so it follows the page theme |
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 
+Everything the two have in common is in `@domain/services/svg-geometry`, and that now includes the *placement*, not
+only the dimensions: `monthLabelPoint`, `weekdayLabelPoint`, `gridOrigin` and `cellPoint`, plus
+`CALENDAR_ARIA_LABEL`. Those expressions — including the `index * 2 + 1` that encodes "three weekday labels on
+alternate rows" — were written out verbatim in both files, so the rule lived in two places and in neither module.
+What is left in each renderer is only what the table above says differs.
+
+**One asymmetry the table does not cover, and it is deliberate:** the client re-runs `clampLevel` and falls back with
+`palette[level] || palette[0]`, and the server does neither. The server's `day.level` is a `ContributionLevel`, a
+0–4 union the type system guarantees; the client's arrives as a bare `number` on `RenderCalendarParams`, fed from
+placeholder data and from the API. Each guards exactly what its own input type fails to.
+
 **`data-count` is omitted, not zeroed, for an unknown Count.** `CellTooltip` reads that absence and says
 "Contributions unknown on …" rather than showing a number nobody measured. Emitting `data-count="0"` would be
 inventing data for the user.

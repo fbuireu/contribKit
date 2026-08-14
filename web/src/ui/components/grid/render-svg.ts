@@ -1,8 +1,12 @@
 import { renderCellShape } from "@domain/services/cell-shapes";
 import { chunkWeeks } from "@domain/services/dates";
 import {
+	CALENDAR_ARIA_LABEL,
 	calendarDimensions,
+	cellPoint,
+	gridOrigin,
 	hexPoints,
+	monthLabelPoint,
 	monthLabelPositions,
 	radiusFor,
 	SVG_DEFAULT_CELL_GAP,
@@ -10,10 +14,8 @@ import {
 	SVG_MONTH_LABEL_BASELINE,
 	SVG_MONTH_LABEL_FONT_SIZE,
 	SVG_MONTH_LABEL_LETTER_SPACING,
-	SVG_PAD_X,
-	SVG_PAD_Y,
-	SVG_WEEKDAY_LABEL_BASELINE,
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
+	weekdayLabelPoint,
 } from "@domain/services/svg-geometry";
 import { WEEKDAY_LABELS } from "@domain/value-objects/calendar-labels";
 import { CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
@@ -38,27 +40,29 @@ export function renderCalendarString({
 
 	const parts: string[] = [];
 	parts.push(
-		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="100%" style="display:block;overflow:visible" role="img" aria-label="GitHub contribution calendar">`,
+		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="100%" style="display:block;overflow:visible" role="img" aria-label="${CALENDAR_ARIA_LABEL}">`,
 	);
 	if (showLabels) {
 		monthLabels.forEach(({ weekIndex, label }) => {
+			const { x, y } = monthLabelPoint({ weekIndex, cellWidth, labelWidth });
 			parts.push(
-				`<text x="${SVG_PAD_X + labelWidth + weekIndex * cellWidth}" y="${SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE}" style="fill:var(--text-dim);opacity:.85;font-family:var(--font-mono)" font-size="${SVG_MONTH_LABEL_FONT_SIZE}" letter-spacing="${SVG_MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
+				`<text x="${x}" y="${y}" style="fill:var(--text-dim);opacity:.85;font-family:var(--font-mono)" font-size="${SVG_MONTH_LABEL_FONT_SIZE}" letter-spacing="${SVG_MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
 			);
 		});
 		WEEKDAY_LABELS.forEach((dayLabel, index) => {
+			const { x, y } = weekdayLabelPoint({ index, cellWidth, labelHeight });
 			parts.push(
-				`<text x="${SVG_PAD_X}" y="${SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_WEEKDAY_LABEL_BASELINE}" style="fill:var(--text-dimmer);font-family:var(--font-mono)" font-size="${SVG_WEEKDAY_LABEL_FONT_SIZE}">${dayLabel}</text>`,
+				`<text x="${x}" y="${y}" style="fill:var(--text-dimmer);font-family:var(--font-mono)" font-size="${SVG_WEEKDAY_LABEL_FONT_SIZE}">${dayLabel}</text>`,
 			);
 		});
 	}
-	parts.push(`<g transform="translate(${SVG_PAD_X + labelWidth},${SVG_PAD_Y + labelHeight})">`);
+	const origin = gridOrigin({ labelWidth, labelHeight });
+	parts.push(`<g transform="translate(${origin.x},${origin.y})">`);
 	weeks.forEach((week, weekIndex) => {
 		week.forEach((cell, dayIndex) => {
 			const level = clampLevel(cell.level);
 			const fill = palette[level] || palette[0];
-			const x = weekIndex * cellWidth;
-			const y = dayIndex * cellWidth;
+			const { x, y } = cellPoint({ weekIndex, dayIndex, cellWidth });
 			const attributes =
 				cell.count === null ? ` data-date="${cell.date}"` : ` data-date="${cell.date}" data-count="${cell.count}"`;
 			parts.push(renderCellShape({ shape: resolvedShape, x, y, size, radius, fill, level, attributes }));

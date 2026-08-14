@@ -86,3 +86,53 @@ export const hexPoints = ({ cx, cy, radius }: HexPointsParams): string => {
 	}
 	return points.join(" ");
 };
+
+export const CALENDAR_ARIA_LABEL = "GitHub contribution calendar";
+
+export interface Point {
+	readonly x: number;
+	readonly y: number;
+}
+
+export interface MonthLabelPointParams {
+	weekIndex: number;
+	cellWidth: number;
+	labelWidth: number;
+}
+
+export const monthLabelPoint = ({ weekIndex, cellWidth, labelWidth }: MonthLabelPointParams): Point => ({
+	x: SVG_PAD_X + labelWidth + weekIndex * cellWidth,
+	y: SVG_PAD_Y + SVG_MONTH_LABEL_BASELINE,
+});
+
+export interface WeekdayLabelPointParams {
+	index: number;
+	cellWidth: number;
+	labelHeight: number;
+}
+
+export const weekdayLabelPoint = ({ index, cellWidth, labelHeight }: WeekdayLabelPointParams): Point => ({
+	x: SVG_PAD_X,
+	y: SVG_PAD_Y + labelHeight + (index * 2 + 1) * cellWidth + SVG_WEEKDAY_LABEL_BASELINE,
+});
+
+export interface GridOriginParams {
+	labelWidth: number;
+	labelHeight: number;
+}
+
+export const gridOrigin = ({ labelWidth, labelHeight }: GridOriginParams): Point => ({
+	x: SVG_PAD_X + labelWidth,
+	y: SVG_PAD_Y + labelHeight,
+});
+
+export interface CellPointParams {
+	weekIndex: number;
+	dayIndex: number;
+	cellWidth: number;
+}
+
+export const cellPoint = ({ weekIndex, dayIndex, cellWidth }: CellPointParams): Point => ({
+	x: weekIndex * cellWidth,
+	y: dayIndex * cellWidth,
+});
