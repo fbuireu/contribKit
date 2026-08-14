@@ -81,12 +81,13 @@ export function renderExportPreview(): void {
 	} else {
 		card.classList.add("code-preview");
 		const isSvgTab = exportTab === ExportFormatKey.Svg;
+		const paletteKey = getActivePalette();
 		card.appendChild(
-			buildCodeBlock(isSvgTab ? SVG_LINES : buildMarkdownLines({ username, palette: getActivePalette(), shape })),
+			buildCodeBlock(isSvgTab ? SVG_LINES : buildMarkdownLines({ username, palette: paletteKey, shape })),
 		);
 		const plainText = isSvgTab
 			? renderCalendarString({ days, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false })
-			: markdownSnippet(username);
+			: markdownSnippet({ username, palette: paletteKey, shape });
 		const copyButton = document.createElement("button");
 		copyButton.className = "copy-btn mono";
 		copyButton.textContent = "copy";

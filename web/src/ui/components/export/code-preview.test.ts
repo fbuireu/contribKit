@@ -17,7 +17,15 @@ describe("userSvgUrl", () => {
 
 describe("markdownSnippet", () => {
 	it("wraps the svg url in a markdown image", () => {
-		expect(markdownSnippet("torvalds")).toBe("![contributions](https://contribkit.app/user/torvalds.svg)");
+		expect(markdownSnippet({ username: "torvalds" })).toBe(
+			"![contributions](https://contribkit.app/user/torvalds.svg)",
+		);
+	});
+
+	it("carries the chosen palette and shape, so copying preserves the customization", () => {
+		expect(markdownSnippet({ username: "torvalds", palette: "catppuccin", shape: "hex" })).toBe(
+			"![contributions](https://contribkit.app/user/torvalds.svg?palette=catppuccin&shape=hex)",
+		);
 	});
 });
 
@@ -37,10 +45,37 @@ describe("SVG_LINES", () => {
 
 describe("buildMarkdownLines", () => {
 	it("embeds the username, palette and shape", () => {
-		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "github", shape: "hex" }));
+		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: "hex" }));
 		expect(text).toContain(userSvgUrl("torvalds"));
-		expect(text).toContain("github");
+		expect(text).toContain("catppuccin");
 		expect(text).toContain("hex");
+	});
+
+	it("never emits a doubled query separator", () => {
+		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: "hex" }));
+		expect(text).not.toContain("&&");
+		expect(text).not.toContain("?&");
+	});
+
+	it("keeps each markdown image on one line, so the snippet pastes as a link", () => {
+		const lines = buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: "hex" });
+		const images = lines.filter((line) => line.some(([, text]) => text === "!["));
+
+		expect(images).toHaveLength(2);
+		for (const image of images) {
+			const text = image.map(([, value]) => value).join("");
+			expect(text.startsWith("![contributions](")).toBe(true);
+			expect(text.endsWith(")")).toBe(true);
+		}
+	});
+
+	it("shows exactly what markdownSnippet copies", () => {
+		const params = { username: "torvalds", palette: "catppuccin", shape: "hex" };
+		const shown = buildMarkdownLines(params)
+			.map((line) => line.map(([, text]) => text).join(""))
+			.filter((line) => line.startsWith("!["));
+
+		expect(shown).toContain(markdownSnippet(params));
 	});
 });
 

@@ -53,6 +53,20 @@ rejects it. It is still a coercion, not a format check — `" 2020 "`, `"0x7e4"`
 and are accepted; only integrality and the `MIN_YEAR … currentYear` bounds are enforced, and the bounds are what
 catch the odder coercions (`"2e3"` resolves to 2000, so it fails the floor rather than the format).
 
+## The Embed contract lives in `embed.ts`
+
+`value-objects/embed.ts` is the one spelling of what an Embed URL is: `EMBED_ROUTE` (the path the middleware
+exempts from `Cross-Origin-Resource-Policy`), `EmbedParam` (the three query names), `DEFAULT_EMBED_QUERY`,
+`EMBED_BACKGROUND_PATTERN`, and `buildEmbedUrl`, which omits any option equal to its default and joins the rest
+with a single `&`.
+
+Four files used to spell that contract independently — the route's Zod schema, the middleware's regex, and the
+Customizer's snippet builder, which hand-wrote the separators. They drifted: every continuation line of the
+snippet both ended with `&` and began with `&`, so the URL the Customizer showed carried `?palette=x&&shape=y`,
+and the copy button copied a different string again — the bare URL, with the visitor's Palette and Cell Shape
+dropped. Build an Embed URL through `buildEmbedUrl` or the same class of bug comes back; it is not a place to
+interpolate by hand.
+
 ## Dates live in local time, both halves
 
 `addDays` and `getWeekday` parse an ISO date at **local noon** (`new Date("YYYY-MM-DDT12:00:00")`), and `toIsoDate`

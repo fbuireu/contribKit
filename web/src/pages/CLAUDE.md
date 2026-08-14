@@ -96,7 +96,7 @@ Runs on every request and does three things.
 
 The CSP allows `'unsafe-inline'` for scripts and styles and names Google Tag Manager, Better Stack and Google Fonts
 explicitly. Adding a third-party origin means editing that list; there is no wildcard to fall back on. One header is
-not uniform: `EMBEDDABLE_SVG` overrides `Cross-Origin-Resource-Policy` to `cross-origin` for `/user/<name>.svg` and
+not uniform: `EMBED_ROUTE` overrides `Cross-Origin-Resource-Policy` to `cross-origin` for `/user/<name>.svg` and
 nothing else, so the calendar embeds outside GitHub
 ([ADR 0017](../../../docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md)).
 

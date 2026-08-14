@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
+import { EMBED_ROUTE } from "@domain/value-objects/embed";
 
 const SECURITY_HEADERS: Record<string, string> = {
 	"X-Frame-Options": "DENY",
@@ -22,8 +23,6 @@ const SECURITY_HEADERS: Record<string, string> = {
 	].join("; "),
 };
 
-const EMBEDDABLE_SVG = /^\/user\/[^/]+\.svg$/;
-
 const AGENT_GUIDE_ROUTE = "/CLAUDE";
 
 interface WithSecurityHeadersParams {
@@ -36,7 +35,7 @@ const withSecurityHeaders = ({ response, pathname }: WithSecurityHeadersParams):
 	for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
 		secured.headers.set(key, value);
 	}
-	if (EMBEDDABLE_SVG.test(pathname)) {
+	if (EMBED_ROUTE.test(pathname)) {
 		secured.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
 	}
 	return secured;

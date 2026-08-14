@@ -1,5 +1,6 @@
 import { DAYS_PER_WEEK, GRID_CELL_COUNT, WEEKS_PER_YEAR } from "@domain/services/dates";
 import { SVG_DEFAULT_CELL_GAP, SVG_DEFAULT_CELL_SIZE } from "@domain/services/svg-geometry";
+import { buildEmbedUrl } from "@domain/value-objects/embed";
 import { PALETTES } from "@domain/value-objects/palette";
 
 type Token = [string, string];
@@ -13,12 +14,18 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const [, low, , high, veryHigh] = PALETTES.github.colors;
 const SAMPLE_FILLS = [low, high, veryHigh];
 const REMAINING_RECTS = GRID_CELL_COUNT - SAMPLE_FILLS.length;
-const EXPORT_BASE_URL = "https://contribkit.app/user";
 const IMAGE_ALT = "contributions";
 
-export const userSvgUrl = (username: string): string => `${EXPORT_BASE_URL}/${username}.svg`;
+export const userSvgUrl = (username: string): string => buildEmbedUrl({ username });
 
-export const markdownSnippet = (username: string): string => `![${IMAGE_ALT}](${userSvgUrl(username)})`;
+export interface MarkdownSnippetParams {
+	username: string;
+	palette?: string;
+	shape?: string;
+}
+
+export const markdownSnippet = ({ username, palette, shape }: MarkdownSnippetParams): string =>
+	`![${IMAGE_ALT}](${buildEmbedUrl({ username, palette, shape })})`;
 
 interface AttributeTokensParams {
 	name: string;
@@ -82,48 +89,27 @@ export interface BuildMarkdownLinesParams {
 	shape: string;
 }
 
+const imageLine = (url: string): CodeLine => {
+	const [base, query] = url.split("?");
+	return [
+		["c-tag", "!["],
+		["c-str", IMAGE_ALT],
+		["c-tag", "]("],
+		["c-attr", base],
+		...(query ? ([["c-str", `?${query}`]] as Token[]) : []),
+		["c-tag", ")"],
+	];
+};
+
 export function buildMarkdownLines({ username, palette, shape }: BuildMarkdownLinesParams): CodeLine[] {
-	const base = userSvgUrl(username);
 	return [
 		[["c-comment", "<!-- paste into your README -->"]],
 		[],
-		[
-			["c-tag", "!["],
-			["c-str", IMAGE_ALT],
-			["c-tag", "]("],
-			["c-attr", base],
-			["c-tag", ")"],
-		],
+		imageLine(buildEmbedUrl({ username })),
 		[],
 		[["c-comment", "<!-- or with options -->"]],
 		[],
-		[
-			["c-tag", "!["],
-			["c-str", IMAGE_ALT],
-			["c-tag", "]("],
-			["c-attr", base],
-		],
-		[
-			["", " "],
-			["c-attr", "?palette"],
-			["", "="],
-			["c-str", palette],
-			["c-tag", "&"],
-		],
-		[
-			["", " "],
-			["c-attr", "&shape"],
-			["", "="],
-			["c-str", shape],
-			["c-tag", "&"],
-		],
-		[
-			["", " "],
-			["c-attr", "&background"],
-			["", "="],
-			["c-str", "transparent"],
-			["c-tag", ")"],
-		],
+		imageLine(buildEmbedUrl({ username, palette, shape })),
 	];
 }
 

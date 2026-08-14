@@ -2,7 +2,8 @@ import { messageFor, SERVER_ERROR_STATUS, statusFor } from "@application/http/fa
 import { renderCalendarSvg } from "@application/use-cases/render-calendar-svg";
 import { isFailure } from "@domain/failures/failure";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
-import { DEFAULT_BACKGROUND_COLOR, DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
+import { DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EmbedParam } from "@domain/value-objects/embed";
+import { paletteByKey } from "@domain/value-objects/palette";
 import { parseUsername } from "@domain/value-objects/username";
 import { getLogger } from "@infrastructure/logging/better-stack-logger";
 import { svgStringRenderer } from "@infrastructure/rendering/svg-string-renderer";
@@ -12,12 +13,10 @@ import { loadContributions } from "../_contributions";
 
 export const prerender = false;
 
-const BACKGROUND_REGEX = /^(transparent|#[0-9a-fA-F]{3,8}|[a-zA-Z]{1,30})$/;
-
 const querySchema = z.object({
-	palette: z.string().catch(DEFAULT_PALETTE_KEY),
-	shape: z.string().catch(DEFAULT_CELL_SHAPE),
-	background: z.string().regex(BACKGROUND_REGEX).catch(DEFAULT_BACKGROUND_COLOR),
+	[EmbedParam.Palette]: z.string().catch(DEFAULT_EMBED_QUERY.palette),
+	[EmbedParam.Shape]: z.string().catch(DEFAULT_EMBED_QUERY.shape),
+	[EmbedParam.Background]: z.string().regex(EMBED_BACKGROUND_PATTERN).catch(DEFAULT_EMBED_QUERY.background),
 });
 
 const renderSvg = renderCalendarSvg(svgStringRenderer);
