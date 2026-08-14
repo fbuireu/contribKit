@@ -71,7 +71,15 @@ jobs:
       - uses: ./.github/actions/prepare-web-env
 
       - name: Build
-        run: pnpm exec astro build
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 15
+          shell: bash
+          command: |
+            cd web
+            pnpm exec astro build
 
       - name: Type check
         run: pnpm lint:astro

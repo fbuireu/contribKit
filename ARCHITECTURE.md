@@ -185,7 +185,11 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 - **Web.** `pnpm build` is `wrangler types && astro build`. It is server-rendered rather than prerendered because
   the SVG endpoint renders per request ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). Biome
   is linter and formatter; Vitest covers unit and docs tests; Playwright runs end-to-end against the deployed
-  preview.
+  preview. The build reaches the network: Astro's font provider downloads Inter and JetBrains Mono from Google at
+  build time, and Google intermittently serves a `fonts.gstatic.com` URL that then 404s, failing the build with
+  `CannotFetchFontFile`. Both `astro build` steps — in `ci-web.yml` and `_deploy-web.yml` — are therefore wrapped
+  in the same retry-with-backoff the Cloudflare deploy and the Play upload use, which is why they are `uses:`
+  steps that `cd web` rather than plain `run:` steps under the job's `working-directory`.
 - **App.** Flutter 3.44.8 / Dart 3.12.2, pinned in `app/pubspec.yaml`. A mismatched local Flutter blocks `pub get`
   and codegen — do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
   `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is
