@@ -46,6 +46,12 @@ Concurrency cancels in-progress runs for pull requests only.
 
 ---
 
+**Both `astro build` steps are retried, three attempts with a 15-second wait** — the one in `ci-web.yml` and the one
+in `_deploy-web.yml`. Astro's font provider downloads Inter and JetBrains Mono from Google at build time, and Google
+intermittently hands out a `fonts.gstatic.com` URL that then 404s, which fails the build with `CannotFetchFontFile`.
+A retry re-fetches the CSS and gets a fresh set of URLs. They are `uses:` steps that `cd web`, because a step
+running an action does not inherit the job's `working-directory`.
+
 ## App pipeline (`ci-app.yml`)
 
 Runs on every `app/**` change:
@@ -68,6 +74,11 @@ flowchart LR
 - **flutter-build:** builds a debug APK to catch build breakages early.
 
 ---
+
+Every network-bound step in the app pipeline is cached: the Flutter SDK by `flutter-action`, pub by `~/.pub-cache`
+keyed on `pubspec.lock`, and Gradle by `~/.gradle/caches` keyed on the Gradle files. **Nothing here is retried, on
+purpose** — the failures this pipeline has actually seen were dependency resolution on a Renovate branch, which a
+retry would only have made slower to report.
 
 ## Automatic Google Play delivery (`release-app.yml`)
 
