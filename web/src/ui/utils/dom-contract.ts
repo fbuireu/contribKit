@@ -1,0 +1,52 @@
+export const ElementId = {
+	CellTooltip: "cell-tooltip",
+	CustomGrid: "custom-grid-container",
+	CustomPaletteLabel: "custom-palette-label",
+	CustomShapeLabel: "custom-shape-label",
+	ExportPreview: "export-preview",
+	ExportTabs: "export-tabs",
+	HeroError: "hero-error",
+	HeroGrid: "hero-grid-container",
+	HeroRenderButton: "hero-render-btn",
+	HeroRenderLabel: "hero-render-label",
+	HeroUsername: "hero-username",
+	HeroUsernameDisplay: "hero-username-display",
+	HeroYear: "hero-year",
+	HeroYearRange: "hero-year-range",
+	HowItWorksUsername: "how-widget-username",
+	PaletteList: "palette-list",
+	PhoneScreen: "phone-screen",
+	ShapeList: "shape-list",
+	UsernameForm: "username-form",
+	WidgetMiniGrid: "widget-mini-grid",
+	WidgetUsername: "widget-username",
+} as const;
+
+export type ElementId = (typeof ElementId)[keyof typeof ElementId];
+
+export const ClassName = {
+	Active: "active",
+	BarTag: "bar-tag",
+	CodePreview: "code-preview",
+	CopyButton: "copy-btn",
+	LegendSquare: "legend-sq",
+	LegendStats: "legend-stats",
+	PaletteRow: "palette-row",
+	PngPreview: "png-preview",
+	ShapeButton: "shape-btn",
+	SuggestionButton: "sug-btn",
+} as const;
+
+export const Selector = {
+	ActivePaletteRow: `#${ElementId.PaletteList} .${ClassName.PaletteRow}.${ClassName.Active}`,
+	ActiveShapeButton: `#${ElementId.ShapeList} .${ClassName.ShapeButton}.${ClassName.Active}`,
+	SelectedExportTab: `#${ElementId.ExportTabs} [aria-selected="true"]`,
+	ExportTabKeys: `#${ElementId.ExportTabs} [data-key]`,
+	ExportCodePreview: `#${ElementId.ExportPreview} .${ClassName.CodePreview}`,
+	ExportCopyButton: `#${ElementId.ExportPreview} .${ClassName.CopyButton}`,
+	ExportPngPreview: `#${ElementId.ExportPreview} .${ClassName.PngPreview}`,
+	BarTag: `.${ClassName.BarTag}`,
+	LegendSquares: `.legend .${ClassName.LegendSquare}`,
+	LegendStats: `.${ClassName.LegendStats}`,
+	SuggestionButtons: `.${ClassName.SuggestionButton}`,
+} as const;

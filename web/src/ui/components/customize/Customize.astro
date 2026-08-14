@@ -1,4 +1,5 @@
 ---
+import { ElementId } from "@ui/utils/dom-contract";
 import "./customize.css";
 import { CELL_SHAPES } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
@@ -17,13 +18,13 @@ const palettes = Object.values(PALETTES);
     </h2>
     <div class="custom-grid">
       <div class="custom-preview">
-        <div class="preview-frame" id="custom-grid-container" aria-live="polite" aria-label="Calendar preview"></div>
+        <div class="preview-frame" id={ElementId.CustomGrid} aria-live="polite" aria-label="Calendar preview"></div>
         <div class="preview-meta">
           <span class="mono dim">palette</span>
-          <span class="mono" id="custom-palette-label">github</span>
+          <span class="mono" id={ElementId.CustomPaletteLabel}>github</span>
           <span class="mono dimmer">/</span>
           <span class="mono dim">shape</span>
-          <span class="mono" id="custom-shape-label">rounded</span>
+          <span class="mono" id={ElementId.CustomShapeLabel}>rounded</span>
         </div>
       </div>
       <div class="custom-controls">
@@ -32,7 +33,7 @@ const palettes = Object.values(PALETTES);
             <span class="mono dim">palette</span>
             <span class="mono dimmer">{palettes.length}</span>
           </div>
-          <div class="palette-list" id="palette-list" role="radiogroup" aria-label="Color palette">
+          <div class="palette-list" id={ElementId.PaletteList} role="radiogroup" aria-label="Color palette">
             {palettes.map(({ key, name, colors }, index) => (
               <button
                 class:list={['palette-row', { active: index === 0 }]}
@@ -54,7 +55,7 @@ const palettes = Object.values(PALETTES);
             <span class="mono dim">shape</span>
             <span class="mono dimmer">{CELL_SHAPES.length}</span>
           </div>
-          <div class="shape-list" id="shape-list" role="radiogroup" aria-label="Cell shape">
+          <div class="shape-list" id={ElementId.ShapeList} role="radiogroup" aria-label="Cell shape">
             {CELL_SHAPES.map((kind, index) => (
               <button
                 class:list={['shape-btn', { active: index === 0 }]}

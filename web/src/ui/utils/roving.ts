@@ -1,3 +1,4 @@
+import { ElementId } from "@ui/utils/dom-contract";
 export const RovingOrientation = {
 	Horizontal: "horizontal",
 	Both: "both",
@@ -44,7 +45,7 @@ export function activateTab({ tabs, target }: ActivateTabParams): void {
 	target.classList.add("active");
 	target.setAttribute("aria-selected", "true");
 	setRovingFocus({ elements: tabs, target });
-	const panel = document.getElementById("export-preview");
+	const panel = document.getElementById(ElementId.ExportPreview);
 	if (panel && target.id) panel.setAttribute("aria-labelledby", target.id);
 }
 

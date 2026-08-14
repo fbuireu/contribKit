@@ -4,6 +4,7 @@ import type { ContributionLevel } from "@domain/value-objects/contribution-level
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { generateData } from "@ui/components/grid/calendar";
 import { CONTRIBUTION_ERRORS, FALLBACK_CONTRIBUTION_ERROR } from "@ui/utils/contribution-errors";
+import { ElementId, Selector } from "@ui/utils/dom-contract";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
 import {
@@ -50,11 +51,11 @@ interface RenderFromGitHubParams {
 }
 
 async function renderFromGitHub({ username, updateHistory = true }: RenderFromGitHubParams) {
-	const renderButton = document.getElementById("hero-render-btn") as HTMLButtonElement | null;
-	const renderLabel = document.getElementById("hero-render-label");
-	const gridContainer = document.getElementById("hero-grid-container");
-	const usernameDisplay = document.getElementById("hero-username-display");
-	const yearSelect = document.getElementById("hero-year") as HTMLSelectElement | null;
+	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
+	const renderLabel = document.getElementById(ElementId.HeroRenderLabel);
+	const gridContainer = document.getElementById(ElementId.HeroGrid);
+	const usernameDisplay = document.getElementById(ElementId.HeroUsernameDisplay);
+	const yearSelect = document.getElementById(ElementId.HeroYear) as HTMLSelectElement | null;
 	if (!renderButton || !gridContainer) return;
 
 	const selectedYear = Number(yearSelect?.value ?? 0);
@@ -86,7 +87,7 @@ async function renderFromGitHub({ username, updateHistory = true }: RenderFromGi
 			updateHeroStats(stats);
 			updateYearRange(getDays());
 			renderExportPreview();
-			const howWidget = document.getElementById("how-widget-username");
+			const howWidget = document.getElementById(ElementId.HowItWorksUsername);
 			if (howWidget) howWidget.textContent = username;
 		}
 	} catch {
@@ -107,7 +108,7 @@ function initRadioList(selector: string) {
 }
 
 function initExportTabs() {
-	const tabs = document.querySelectorAll<HTMLElement>("#export-tabs [data-key]");
+	const tabs = document.querySelectorAll<HTMLElement>(Selector.ExportTabKeys);
 	initRovingGroup({
 		elements: tabs,
 		activate: (target) => activateTab({ tabs, target }),
@@ -117,9 +118,9 @@ function initExportTabs() {
 }
 
 function syncSuggestionSelection(username?: string) {
-	const input = document.getElementById("hero-username") as HTMLInputElement | null;
+	const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
 	const normalized = (username ?? input?.value ?? "").trim().toLowerCase();
-	document.querySelectorAll<HTMLElement>(".sug-btn").forEach((button) => {
+	document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons).forEach((button) => {
 		const isMatch = !!normalized && button.dataset.username === normalized;
 		button.classList.toggle("selected", isMatch);
 		button.setAttribute("aria-pressed", String(isMatch));
@@ -127,10 +128,10 @@ function syncSuggestionSelection(username?: string) {
 }
 
 function initUsernameStrip() {
-	const form = document.getElementById("username-form") as HTMLFormElement | null;
-	const input = document.getElementById("hero-username") as HTMLInputElement | null;
-	const renderButton = document.getElementById("hero-render-btn") as HTMLButtonElement | null;
-	const usernameDisplay = document.getElementById("hero-username-display");
+	const form = document.getElementById(ElementId.UsernameForm) as HTMLFormElement | null;
+	const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
+	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
+	const usernameDisplay = document.getElementById(ElementId.HeroUsernameDisplay);
 	if (!input || !renderButton || !usernameDisplay) return;
 
 	const submitRender = () => {
@@ -160,7 +161,7 @@ function initUsernameStrip() {
 		if (value) setHeroError(null);
 	});
 	renderButton.addEventListener("click", submitRender);
-	document.querySelectorAll<HTMLElement>(".sug-btn").forEach((button) => {
+	document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons).forEach((button) => {
 		button.addEventListener("click", () => {
 			const username = button.dataset.username;
 			if (!username) return;
@@ -174,9 +175,9 @@ function initUsernameStrip() {
 function initHistoryNav() {
 	globalThis.addEventListener("popstate", () => {
 		const username = readUsernameFromUrl(DEFAULT_USERNAME);
-		const input = document.getElementById("hero-username") as HTMLInputElement | null;
-		const yearSelect = document.getElementById("hero-year") as HTMLSelectElement | null;
-		const usernameDisplay = document.getElementById("hero-username-display");
+		const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
+		const yearSelect = document.getElementById(ElementId.HeroYear) as HTMLSelectElement | null;
+		const usernameDisplay = document.getElementById(ElementId.HeroUsernameDisplay);
 		if (input) input.value = username;
 		if (usernameDisplay) usernameDisplay.textContent = username;
 		if (yearSelect) yearSelect.value = String(readYearFromUrl(CURRENT_YEAR));
@@ -185,7 +186,7 @@ function initHistoryNav() {
 }
 
 function initUsernameState() {
-	const input = document.getElementById("hero-username") as HTMLInputElement | null;
+	const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
 	const ssrUsername = input?.value.trim() || DEFAULT_USERNAME;
 	setUsername(ssrUsername);
 

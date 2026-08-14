@@ -8,27 +8,26 @@ import { formatTotalContributions } from "@ui/components/grid/contribution";
 import { CUSTOMIZE_GRID_PRESET, EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
+import { ElementId, Selector } from "@ui/utils/dom-contract";
 import { formatHeroError } from "./contribution-errors";
 import { getDays, getUsername } from "./state";
 
 export const getActivePalette = (): Palette =>
-	paletteByKey(
-		document.querySelector<HTMLElement>("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY,
-	);
+	paletteByKey(document.querySelector<HTMLElement>(Selector.ActivePaletteRow)?.dataset.key ?? DEFAULT_PALETTE_KEY);
 
 export const getActiveShape = (): string =>
-	document.querySelector<HTMLElement>("#shape-list .shape-btn.active")?.dataset.key ?? DEFAULT_CELL_SHAPE;
+	document.querySelector<HTMLElement>(Selector.ActiveShapeButton)?.dataset.key ?? DEFAULT_CELL_SHAPE;
 
 export const getActiveExportTab = (): string =>
-	document.querySelector<HTMLElement>('#export-tabs [aria-selected="true"]')?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
+	document.querySelector<HTMLElement>(Selector.SelectedExportTab)?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
 
 export function renderWidget(): void {
 	const palette = getActivePalette().colors;
-	const phoneScreen = document.getElementById("phone-screen");
+	const phoneScreen = document.getElementById(ElementId.PhoneScreen);
 	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4]);
-	const widgetGrid = document.getElementById("widget-mini-grid");
+	const widgetGrid = document.getElementById(ElementId.WidgetMiniGrid);
 	if (widgetGrid) widgetGrid.innerHTML = generateMiniGrid({ palette, liveDays: getDays() });
-	const widgetUsername = document.getElementById("widget-username");
+	const widgetUsername = document.getElementById(ElementId.WidgetUsername);
 	const username = getUsername();
 	if (widgetUsername && username) widgetUsername.textContent = username;
 }
@@ -37,25 +36,25 @@ export function renderCustomize(): void {
 	const palette = getActivePalette().colors;
 	const shape = getActiveShape();
 	const days = getDays();
-	const customGrid = document.getElementById("custom-grid-container");
+	const customGrid = document.getElementById(ElementId.CustomGrid);
 	if (customGrid)
 		customGrid.innerHTML = renderCalendarString({ days, palette, shape, ...CUSTOMIZE_GRID_PRESET, showLabels: false });
-	const heroGrid = document.getElementById("hero-grid-container");
+	const heroGrid = document.getElementById(ElementId.HeroGrid);
 	if (heroGrid)
 		heroGrid.innerHTML = renderCalendarString({ days, palette, shape, ...HERO_GRID_PRESET, showLabels: true });
-	document.querySelectorAll<HTMLElement>(".legend .legend-sq").forEach((square, index) => {
+	document.querySelectorAll<HTMLElement>(Selector.LegendSquares).forEach((square, index) => {
 		square.style.background = palette[index] ?? palette[0];
 	});
-	const paletteLabelEl = document.getElementById("custom-palette-label");
+	const paletteLabelEl = document.getElementById(ElementId.CustomPaletteLabel);
 	if (paletteLabelEl) paletteLabelEl.textContent = getActivePalette().key;
-	const shapeLabelEl = document.getElementById("custom-shape-label");
+	const shapeLabelEl = document.getElementById(ElementId.CustomShapeLabel);
 	if (shapeLabelEl) shapeLabelEl.textContent = shape;
 	renderExportPreview();
 	renderWidget();
 }
 
 export function renderExportPreview(): void {
-	const preview = document.getElementById("export-preview");
+	const preview = document.getElementById(ElementId.ExportPreview);
 	if (!preview) return;
 	preview.innerHTML = "";
 	const card = document.createElement("div");
@@ -111,22 +110,22 @@ export function renderExportPreview(): void {
 }
 
 export function updateYearRange(days: ContributionDay[]): void {
-	const el = document.getElementById("hero-year-range");
+	const el = document.getElementById(ElementId.HeroYearRange);
 	if (!el || days.length < 8) return;
 	el.textContent = days[7].date.slice(0, 4);
 }
 
 export function updateHeroStats(stats: ContributionStats): void {
-	const bar = document.querySelector(".bar-tag");
+	const bar = document.querySelector(Selector.BarTag);
 	if (bar)
 		bar.innerHTML = `<span class="mono" style="color:var(--contrib-peak)">${formatTotalContributions(stats.totalContributions)}</span> contributions`;
-	const legend = document.querySelector(".legend-stats");
+	const legend = document.querySelector(Selector.LegendStats);
 	if (legend)
 		legend.innerHTML = `<span><b class="mono">${stats.currentStreak}</b> day streak</span><span class="sep">·</span><span><b class="mono">${stats.longestStreak}</b> longest</span>`;
 }
 
 export function setHeroError(message: string | null): void {
-	const errorEl = document.getElementById("hero-error");
+	const errorEl = document.getElementById(ElementId.HeroError);
 	if (!errorEl) return;
 	if (message) {
 		errorEl.textContent = formatHeroError(message);

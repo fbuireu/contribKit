@@ -1,4 +1,5 @@
 ---
+import { ElementId } from "@ui/utils/dom-contract";
 import "./export.css";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { ExportFormatKey } from "./export-formats";
@@ -23,14 +24,14 @@ const EXPORT_FORMATS = [
       <span class="dim">Pick the right one for the surface.</span>
     </h2>
     <div class="export-grid">
-      <div class="export-tabs" id="export-tabs" role="tablist" aria-label="Export format">
+      <div class="export-tabs" id={ElementId.ExportTabs} role="tablist" aria-label="Export format">
         {EXPORT_FORMATS.map(({ key, detail, size }, index) => (
           <button
             class:list={['export-tab', { active: index === 0 }]}
             role="tab"
             id={`export-tab-${key}`}
             aria-selected={index === 0 ? 'true' : 'false'}
-            aria-controls="export-preview"
+            aria-controls={ElementId.ExportPreview}
             data-key={key}
           >
             <span class="mono tab-key">.{key}</span>
@@ -40,7 +41,7 @@ const EXPORT_FORMATS = [
           </button>
         ))}
       </div>
-      <div class="export-preview" id="export-preview" role="tabpanel" aria-labelledby="export-tab-png">
+      <div class="export-preview" id={ElementId.ExportPreview} role="tabpanel" aria-labelledby="export-tab-png">
         <div class="preview-card png-preview">
           <div class="preview-checker" aria-hidden="true"></div>
           <div class="preview-content">

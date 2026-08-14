@@ -1,4 +1,5 @@
 ---
+import { ElementId } from "@ui/utils/dom-contract";
 import "./widget.css";
 import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
@@ -25,18 +26,18 @@ const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
       <div class="phone-wrap" aria-label="Home screen widget preview">
         <div class="phone">
           <div class="phone-pill" aria-hidden="true"></div>
-          <div class="phone-screen" id="phone-screen">
+          <div class="phone-screen" id={ElementId.PhoneScreen}>
             <div class="home-glow" aria-hidden="true"></div>
             <div class="home-widgets">
               <div class="w-card w-medium" role="img" aria-label="Medium widget showing contribution grid">
                 <div class="w-head">
-                  <span class="mono w-name" id="widget-username">{DEFAULT_USERNAME}</span>
+                  <span class="mono w-name" id={ElementId.WidgetUsername}>{DEFAULT_USERNAME}</span>
                   <span class="w-streak">
                     <Flame />
                     <span class="mono">42</span>
                   </span>
                 </div>
-                <div class="w-grid" id="widget-mini-grid">
+                <div class="w-grid" id={ElementId.WidgetMiniGrid}>
                   <Fragment set:html={miniGrid} />
                 </div>
                 <div class="w-foot mono">1,234 contributions this year</div>

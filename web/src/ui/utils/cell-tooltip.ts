@@ -1,10 +1,11 @@
 import { formatContribLabel } from "@ui/components/grid/contribution";
+import { ElementId } from "@ui/utils/dom-contract";
 
 const CELL_GAP = 8;
 const VIEWPORT_MARGIN = 8;
 
 export function initCellTooltip(): void {
-	const maybeTooltip = document.getElementById("cell-tooltip");
+	const maybeTooltip = document.getElementById(ElementId.CellTooltip);
 	if (!maybeTooltip || typeof maybeTooltip.showPopover !== "function") return;
 	const tooltip = maybeTooltip;
 

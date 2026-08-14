@@ -1,4 +1,5 @@
 ---
+import { ElementId } from "@ui/utils/dom-contract";
 import "./how-it-works.css";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import palettes from "@shared/palettes.json" with { type: "json" };
@@ -82,7 +83,7 @@ const WIDGET_DEMO_LEVELS = [
           <div class="widget-mock">
             <div class="wm-bar">
               <span class="wm-dot"></span>
-              <span class="wm-user mono" id="how-widget-username">{DEFAULT_USERNAME}</span>
+              <span class="wm-user mono" id={ElementId.HowItWorksUsername}>{DEFAULT_USERNAME}</span>
             </div>
             <div class="wm-cells">
               {WIDGET_DEMO_LEVELS.map((level) => (

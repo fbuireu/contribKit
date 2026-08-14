@@ -31,6 +31,12 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 
 `page-init.ts` is a module-scoped singleton, not a component. It owns the whole interactive page:
 
+- **The markup contract is declared, in `utils/dom-contract.ts`.** `ElementId`, `ClassName` and `Selector` are the
+  one spelling of every id and class the client reads, and the six components that own those nodes interpolate the
+  same constants (`id={ElementId.HeroGrid}`) rather than typing the string twice. Twenty-nine literals used to cross
+  the `.astro` ↔ `.ts` boundary with nothing tying them together, and every consumer is written as `if (el) …`, so
+  renaming an id in a component silently turned a renderer into a no-op — the page kept working and simply stopped
+  updating. Add a node the client touches, and add its id here in the same change.
 - **State is module-level, in `state.ts`** — two variables, `days` and `username`, behind getters and setters.
   There is no store and no framework. Anything needing the current grid calls `getDays()`; anything changing it
   calls `setDays()` and then a `render*` function. Nothing subscribes, so **a mutation without a matching render
