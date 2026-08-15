@@ -23,7 +23,8 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
   was the one it kept current — consolidating
   onto the root pin silently rolled the package manager back three minors, until this was caught and the root was
   bumped to match
-- Node **v26.3.0** at the root, **26.5.1** in `web/engines` and `web/.nvmrc` (what CI installs)
+- Node **26.7.0**, stated three times and always the same: the root `engines`, `web/engines` and `web/.nvmrc`, which
+  is the one CI installs. They used to differ — v26.3.0 at the root against 26.5.1 in web — for no recorded reason.
 - Flutter **3.44.9**, Dart **3.12.2** (`app/pubspec.yaml`). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
 
 ## Commands

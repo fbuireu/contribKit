@@ -53,7 +53,7 @@ conflict.
 | Tool | Version | Pinned in |
 | --- | --- | --- |
 | pnpm | 11.21.0 | root `packageManager`, and nowhere else — always pnpm, never npm or yarn |
-| Node | v26.3.0 at the root, 26.5.1 for `web/` | root `engines`, `web/engines` and `web/.nvmrc` |
+| Node | 26.7.0 | root `engines`, `web/engines` and `web/.nvmrc` — the same version in all three |
 | Flutter | 3.44.9 | `app/pubspec.yaml` |
 | Dart | 3.12.2 | `app/pubspec.yaml` |
 
