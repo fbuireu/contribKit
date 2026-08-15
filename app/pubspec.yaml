@@ -26,7 +26,7 @@ dependencies:
   hive_flutter: 1.1.0
 
   # Sharing / export
-  share_plus: 13.2.0
+  share_plus: 13.3.0
 
   # Home screen widget + background refresh
   home_widget: 0.9.3
