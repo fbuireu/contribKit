@@ -14,7 +14,7 @@
 		"github-stats"
 	],
 	"author": "Ferran Buireu <contact@contribkit.app>",
-	"version": "1.12.4",
+	"version": "1.12.5",
 	"private": true,
 	"type": "module",
 	"engines": {
