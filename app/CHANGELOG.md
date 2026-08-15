@@ -1,3 +1,10 @@
+# [contribkit-app-v1.3.1](https://github.com/fbuireu/contribKit/compare/app-v1.3.0...app-v1.3.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **contribkit-app:** ship release builds minified with R8 ([a3404e2](https://github.com/fbuireu/contribKit/commit/a3404e2609c999ff50b2d38053f1187fd43bca46))
+
 # [contribkit-app-v1.3.0](https://github.com/fbuireu/contribKit/compare/app-v1.2.6...app-v1.3.0) (2026-08-15)
 
 
