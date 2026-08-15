@@ -111,7 +111,7 @@ A simple **tip jar** ($1 / $5 / $10) built with the RevenueCat SDK and a custom 
 Driven by [`release-app.yml`](../.github/workflows/release-app.yml):
 
 - **Versioning:** semantic-release tags `app-vX.Y.Z` and keeps a moving major tag (`app-vX`).
-- **Build:** release AAB signed with the upload keystore (decoded from secrets at build time).
+- **Build:** release AAB signed with the upload keystore (decoded from secrets at build time), minified with R8 (code + resource shrinking).
 - **Publish:** fastlane uploads to the selected **Google Play track** (workflow input); `production` uses the `app-production` GitHub Environment, anything else uses `app-development` (internal track + RevenueCat sandbox).
 - **Changelogs:** release notes are written to `android/fastlane/metadata/android/en-US/changelogs`.
 
