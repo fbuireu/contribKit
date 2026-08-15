@@ -54,8 +54,8 @@ conflict.
 | --- | --- | --- |
 | pnpm | 11.21.0 | root `packageManager`, and nowhere else — always pnpm, never npm or yarn |
 | Node | 26.7.0 | root `engines`, `web/engines` and `web/.nvmrc` — the same version in all three |
-| Flutter | 3.44.9 | `app/pubspec.yaml` |
-| Dart | 3.12.2 | `app/pubspec.yaml` |
+| Flutter | 3.47.0 | `app/pubspec.yaml` |
+| Dart | 3.13.0 | `app/pubspec.yaml` |
 
 Do not "fix" a version mismatch by editing the pin.
 

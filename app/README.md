@@ -77,7 +77,7 @@ flutter pub get
 | Command                                                      | Action                              |
 | ------------------------------------------------------------ | ----------------------------------- |
 | `flutter run --dart-define=REVENUECAT_KEY=<key>`             | Run locally                         |
-| `dart run build_runner watch --delete-conflicting-outputs`   | Watch codegen (riverpod, freezed)   |
+| `dart run build_runner watch`                                | Watch codegen (riverpod, freezed)   |
 | `flutter test --coverage`                                    | Run tests                           |
 | `flutter analyze`                                            | Static analysis                     |
 
