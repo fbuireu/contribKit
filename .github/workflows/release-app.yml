@@ -213,6 +213,13 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload Play release notes artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: play-release-notes
+          path: app/android/fastlane/metadata/android/en-US/changelogs/
+          if-no-files-found: warn
+
       - name: Upload to Google Play
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
