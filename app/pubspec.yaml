@@ -13,7 +13,7 @@ dependencies:
 
   # State management
   flutter_riverpod: 3.3.2
-  riverpod_annotation: 4.0.3
+  riverpod_annotation: 4.0.6
 
   # Serialization / freezed
   freezed_annotation: 3.1.0
@@ -58,14 +58,14 @@ dev_dependencies:
   flutter_launcher_icons: 0.14.4
 
   # Code generation
-  build_runner: 2.15.1
-  riverpod_generator: 4.0.4
+  build_runner: 2.16.0
+  riverpod_generator: 4.0.8
   freezed: 3.2.6-dev.1
   json_serializable: 6.14.1
 
   # Linting
   flutter_lints: 6.0.0
-  riverpod_lint: 3.1.4
+  riverpod_lint: 3.1.8
 
   # Testing
   mocktail: 1.0.5
