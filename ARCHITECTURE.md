@@ -194,7 +194,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   `node_modules/.astro/fonts` first — Astro caches the resolved URLs there, so a retry without that clears nothing
   and fails three times on the same dead URL. That is why they are `uses:` steps that `cd web` rather than plain
   `run:` steps under the job's `working-directory`.
-- **App.** Flutter 3.44.8 / Dart 3.12.2, pinned in `app/pubspec.yaml`. A mismatched local Flutter blocks `pub get`
+- **App.** Flutter 3.44.9 / Dart 3.12.2, pinned in `app/pubspec.yaml`. A mismatched local Flutter blocks `pub get`
   and codegen — do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
   `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is
   passed, and `--flavor` fails.

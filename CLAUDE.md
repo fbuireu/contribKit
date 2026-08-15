@@ -9,7 +9,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 ## Stack
 
 - **web** — Astro 7.2 (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Biome, Vitest, Playwright
-- **app** — Flutter 3.44.8 / Dart 3.12.2, Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
+- **app** — Flutter 3.44.9 / Dart 3.12.2, Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
 - **shared** — plain JSON, imported by web at build time and mirrored into `app/assets/` ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **repo** — pnpm workspaces, lefthook, commitlint, semantic-release per component
 
@@ -24,7 +24,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
   onto the root pin silently rolled the package manager back three minors, until this was caught and the root was
   bumped to match
 - Node **v26.3.0** at the root, **26.5.1** in `web/engines` and `web/.nvmrc` (what CI installs)
-- Flutter **3.44.8**, Dart **3.12.2** (`app/pubspec.yaml`). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
+- Flutter **3.44.9**, Dart **3.12.2** (`app/pubspec.yaml`). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
 
 ## Commands
 
