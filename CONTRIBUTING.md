@@ -9,7 +9,8 @@ want the vocabulary, that is [CONTEXT.md](./CONTEXT.md).
 
 ## Code of Conduct
 
-By participating you are expected to uphold this:
+By participating you are expected to uphold the
+[Code of Conduct](./CODE_OF_CONDUCT.md). In short:
 
 - **Be respectful**: different viewpoints and experiences are valuable
 - **Be constructive**: focus on what is best for the project
