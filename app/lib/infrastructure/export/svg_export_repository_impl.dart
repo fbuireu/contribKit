@@ -1,4 +1,5 @@
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
+
 import 'dart:convert';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
@@ -60,9 +61,8 @@ final class SvgExportRepository implements ExportRepository {
               'fill="$fill"><title>$title</title></rect>',
             );
           case CellShape.rounded:
-            final r = CellGeometryService.cornerRadiusFor(
-              cell,
-            ).toStringAsFixed(1);
+            final r = CellGeometryService.cornerRadiusFor(cell)
+                .toStringAsFixed(1);
             buffer.writeln(
               '<rect x="${x.toStringAsFixed(1)}" y="${y.toStringAsFixed(1)}" '
               'width="${cell.toStringAsFixed(1)}" height="${cell.toStringAsFixed(1)}" '

@@ -202,9 +202,8 @@ void main() {
 
       expect(_dayOn(result.calendar, '2023-07-15').count, 9);
       expect(
-        _allDays(
-          result.calendar,
-        ).every((day) => day.date.hour == 0 && day.date.minute == 0),
+        _allDays(result.calendar)
+            .every((day) => day.date.hour == 0 && day.date.minute == 0),
         isTrue,
       );
     });
@@ -373,25 +372,22 @@ void main() {
       },
     );
 
-    test(
-      'voids Total Contributions, rather than passing a lower bound off as exact',
-      () async {
-        final html =
-            _day(id: 'c1', date: '2024-06-03', level: '3') +
-            _tip(id: 'c1', count: 4) +
-            _day(id: 'c2', date: '2024-06-04', level: '2');
-        final repository = GitHubContributionRepository(
-          httpClient: _clientReturning(html),
-        );
+    test('voids Total Contributions, rather than passing a lower bound off as exact', () async {
+      final html =
+          _day(id: 'c1', date: '2024-06-03', level: '3') +
+          _tip(id: 'c1', count: 4) +
+          _day(id: 'c2', date: '2024-06-04', level: '2');
+      final repository = GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      );
 
-        final (:calendar, fromCache: _) = await repository.fetchCalendar(
-          username: Username('torvalds'),
-          year: Year(2024),
-        );
+      final (:calendar, fromCache: _) = await repository.fetchCalendar(
+        username: Username('torvalds'),
+        year: Year(2024),
+      );
 
-        expect(calendar.totalContributions, isNull);
-      },
-    );
+      expect(calendar.totalContributions, isNull);
+    });
 
     test('still totals when every active day carries a Count', () async {
       final html =

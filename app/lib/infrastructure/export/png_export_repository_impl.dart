@@ -1,4 +1,5 @@
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
+
 import 'dart:ui' as ui;
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';

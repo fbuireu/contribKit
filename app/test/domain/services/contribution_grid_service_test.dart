@@ -94,19 +94,16 @@ void main() {
       );
     });
 
-    test(
-      'ignores a day outside the requested Year rather than shifting the lattice',
-      () {
-        final weeks = ContributionGridService.buildFor(
-          days: [day('2019-05-01', count: 7)],
-          year: 2024,
-        );
+    test('ignores a day outside the requested Year rather than shifting the lattice', () {
+      final weeks = ContributionGridService.buildFor(
+        days: [day('2019-05-01', count: 7)],
+        year: 2024,
+      );
 
-        expect(
-          weeks.expand((week) => week.days).any((d) => d.count == 7),
-          isFalse,
-        );
-      },
-    );
+      expect(
+        weeks.expand((week) => week.days).any((d) => d.count == 7),
+        isFalse,
+      );
+    });
   });
 }
