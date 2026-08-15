@@ -555,8 +555,7 @@ describe("the web layers only import inwards", () => {
 		ui: ["@infrastructure/"],
 	};
 
-	const importsOf = (source: string): string[] =>
-		[...source.matchAll(/from\s+"([^"]+)"/g)].map((match) => match[1]);
+	const importsOf = (source: string): string[] => [...source.matchAll(/from\s+"([^"]+)"/g)].map((match) => match[1]);
 
 	for (const [layer, forbidden] of Object.entries(FORBIDDEN_BY_LAYER)) {
 		it(`keeps ${layer} clear of ${forbidden.join(", ")}`, () => {
