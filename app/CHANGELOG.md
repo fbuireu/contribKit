@@ -1,3 +1,30 @@
+# [contribkit-app-v1.3.0](https://github.com/fbuireu/contribKit/compare/app-v1.2.6...app-v1.3.0) (2026-08-15)
+
+
+### Bug Fixes
+
+* **contribkit-app:** draw a rounded Cell the same on screen as in an Export ([5d5c0b6](https://github.com/fbuireu/contribKit/commit/5d5c0b6a4f9264c49944e771a337128c0b0ee051))
+* **contribkit-app:** let the derived Contribution Stats say "not knowable" ([16bb1df](https://github.com/fbuireu/contribKit/commit/16bb1dfd88dd54fcd4a5c6de0c08b0fd0c22181e))
+* **contribkit-app:** make the geometry module's own claim true, and drop a dead parameter ([338e6e3](https://github.com/fbuireu/contribKit/commit/338e6e3f6ffc92d9b6919d5595d1f95315a081e5))
+* **contribkit-app:** move to Flutter 3.47.0 and unblock the codegen chain ([7bb8ad5](https://github.com/fbuireu/contribKit/commit/7bb8ad5e8967231616e9afb9ad005939e4a091a1)), closes [#86](https://github.com/fbuireu/contribKit/issues/86) [#103](https://github.com/fbuireu/contribKit/issues/103)
+* **contribkit-app:** report the streak a past Year ended on instead of zero ([3954f1c](https://github.com/fbuireu/contribKit/commit/3954f1cd1f22003724e0df245dd566c9292c9a5f))
+* **contribkit-app:** route the background isolate through the settings seam ([254cfce](https://github.com/fbuireu/contribKit/commit/254cfce2f7eb5a59fe64f4a025ae4fec8a825ef8))
+* **contribkit-app:** stop the unknown Total vanishing on the way to the widget ([af06d5f](https://github.com/fbuireu/contribKit/commit/af06d5f4dc45efbf1ed9ef9a3e528909edc40edb))
+* **contribkit-app:** update google_fonts to 8.2.1 ([42ebe4c](https://github.com/fbuireu/contribKit/commit/42ebe4c3ccd780b5e981c7fcd8903254509b67a9))
+* **deps:** update dependency shadcn_ui to v0.55.0 ([#70](https://github.com/fbuireu/contribKit/issues/70)) ([f51348a](https://github.com/fbuireu/contribKit/commit/f51348af0c66e2fef34a205d47973913b1057394))
+* **deps:** update dependency shadcn_ui to v0.56.1 ([#105](https://github.com/fbuireu/contribKit/issues/105)) ([b4b8560](https://github.com/fbuireu/contribKit/commit/b4b85606e4e59b9117ac15fe7d9a16eb45f58220))
+* **deps:** update dependency share_plus to v13.2.0 ([#72](https://github.com/fbuireu/contribKit/issues/72)) ([d8c1b5b](https://github.com/fbuireu/contribKit/commit/d8c1b5bf0c1991e90feba792791bb4a9c8b98da7))
+* **deps:** update dependency share_plus to v13.3.0 ([#106](https://github.com/fbuireu/contribKit/issues/106)) ([9ed256e](https://github.com/fbuireu/contribKit/commit/9ed256e1bb29c027461feca1cbe9c2a92ed45842))
+* **deps:** update dependency workmanager to v0.10.7 ([#107](https://github.com/fbuireu/contribKit/issues/107)) ([7d1727b](https://github.com/fbuireu/contribKit/commit/7d1727be381dde96038be38a070348ab4afcdba5))
+* **deps:** update purchases to v10.8.0 ([#108](https://github.com/fbuireu/contribKit/issues/108)) ([b73458e](https://github.com/fbuireu/contribKit/commit/b73458ea2f1843c8b4c28ff1cf081e964df8cba2))
+
+
+### Features
+
+* **contribkit-app:** let a Count be unknown, which is not the same as zero ([68045a2](https://github.com/fbuireu/contribKit/commit/68045a225827ed39112309a1773433eaf77546f2))
+* **contribkit-app:** surface export failures instead of swallowing them ([cebc155](https://github.com/fbuireu/contribKit/commit/cebc155219a08d8ece8e8512fd5900df654841e0))
+* **contribkit-app:** trust GitHub's data-level and pad the grid to 53x7 ([a14aeae](https://github.com/fbuireu/contribKit/commit/a14aeaead03454cb1159bdcc9d117b5b3ddb1217))
+
 # [contribkit-app-v1.2.6](https://github.com/fbuireu/contribKit/compare/app-v1.2.5...app-v1.2.6) (2026-07-15)
 
 
