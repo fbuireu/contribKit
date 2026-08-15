@@ -30,7 +30,7 @@ dependencies:
 
   # Home screen widget + background refresh
   home_widget: 0.9.3
-  workmanager: 0.9.0
+  workmanager: 0.10.7
   path_provider: 2.1.6
 
   # UI primitives
