@@ -176,6 +176,7 @@ jobs:
           UNWRAP_MARKDOWN_LINKS: 's/\[([^]]+)\]\([^)]+\)/\1/g'
           STRIP_BOLD_MARKERS: 's/\*\*([^*]+)\*\*/\1/g'
           BULLETIZE_LIST_ITEMS: 's/^\* /• /'
+          STRIP_SCOPE_PREFIX: 's/^• [a-z0-9-]+: /• /'
           STRIP_COMMIT_HASHES: 's/ \([0-9a-f]{7,}\)//g'
           DROP_BLANK_LINES: '/^[[:space:]]*$/d'
           GOOGLE_PLAY_NOTES_MAX_CHARS: "500"
@@ -191,9 +192,11 @@ jobs:
             | sed -E "$UNWRAP_MARKDOWN_LINKS" \
             | sed -E "$STRIP_BOLD_MARKERS" \
             | sed -E "$BULLETIZE_LIST_ITEMS" \
+            | sed -E "$STRIP_SCOPE_PREFIX" \
             | sed -E "$STRIP_COMMIT_HASHES" \
             | sed -E "$DROP_BLANK_LINES")
-          NOTES=$(printf '%s' "$NOTES" | head -c "$GOOGLE_PLAY_NOTES_MAX_CHARS")
+          NOTES=$(printf '%s\n' "$NOTES" | awk -v max="$GOOGLE_PLAY_NOTES_MAX_CHARS" \
+            '{ used += length($0) + 1; if (used > max) exit; print }')
           if [ -z "$NOTES" ]; then
             echo "Empty notes after parsing; leaving release notes untouched." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
