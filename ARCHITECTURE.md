@@ -197,7 +197,11 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 - **App.** Flutter 3.47.0 / Dart 3.13.0, pinned in `app/pubspec.yaml`. A mismatched local Flutter blocks `pub get`
   and codegen — do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
   `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is
-  passed, and `--flavor` fails.
+  passed, and `--flavor` fails. The Android `release` build type runs **R8** — `isMinifyEnabled` and
+  `isShrinkResources`, on `proguard-android-optimize.txt` alone, because the engine and every plugin here ship
+  their own consumer rules and the app carries no `proguard-rules.pro`. R8 only touches the Java/Kotlin side; the
+  Dart code is AOT-compiled and untouched. Anything the app reaches by reflection or by name from outside Dart
+  would need a keep rule, so a plugin added later can break in release while debug stays green.
 - **Hooks.** lefthook, composed from `lefthook.yml` plus `app/lefthook.yml` and `web/lefthook.yml`. `pre-commit`
   formats staged Dart and web files and re-stages them, and syncs `shared/*.json`; `commit-msg` runs
   `scripts/auto-scope.mjs` then commitlint; `pre-push` runs `flutter analyze --fatal-infos` and `pnpm lint:astro`.
