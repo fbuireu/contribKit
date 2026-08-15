@@ -49,8 +49,10 @@ Concurrency cancels in-progress runs for pull requests only.
 **Both `astro build` steps are retried, three attempts with a 15-second wait** — the one in `ci-web.yml` and the one
 in `_deploy-web.yml`. Astro's font provider downloads Inter and JetBrains Mono from Google at build time, and Google
 intermittently hands out a `fonts.gstatic.com` URL that then 404s, which fails the build with `CannotFetchFontFile`.
-A retry re-fetches the CSS and gets a fresh set of URLs. They are `uses:` steps that `cd web`, because a step
-running an action does not inherit the job's `working-directory`.
+**Each attempt deletes `node_modules/.astro/fonts` first, and that is the part that makes the retry work at all.**
+Astro caches the resolved URLs there, so a plain retry re-reads the dead one — a run on `338e6e3` failed three
+times on the identical URL before the cache was cleared between attempts. They are `uses:` steps that `cd web`,
+because a step running an action does not inherit the job's `working-directory`.
 
 ## App pipeline (`ci-app.yml`)
 

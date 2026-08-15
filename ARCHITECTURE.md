@@ -190,8 +190,10 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   preview. The build reaches the network: Astro's font provider downloads Inter and JetBrains Mono from Google at
   build time, and Google intermittently serves a `fonts.gstatic.com` URL that then 404s, failing the build with
   `CannotFetchFontFile`. Both `astro build` steps — in `ci-web.yml` and `_deploy-web.yml` — are therefore wrapped
-  in the same retry-with-backoff the Cloudflare deploy and the Play upload use, which is why they are `uses:`
-  steps that `cd web` rather than plain `run:` steps under the job's `working-directory`.
+  in the same retry-with-backoff the Cloudflare deploy and the Play upload use, and each attempt deletes
+  `node_modules/.astro/fonts` first — Astro caches the resolved URLs there, so a retry without that clears nothing
+  and fails three times on the same dead URL. That is why they are `uses:` steps that `cd web` rather than plain
+  `run:` steps under the job's `working-directory`.
 - **App.** Flutter 3.44.8 / Dart 3.12.2, pinned in `app/pubspec.yaml`. A mismatched local Flutter blocks `pub get`
   and codegen — do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
   `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is

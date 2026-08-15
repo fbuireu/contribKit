@@ -79,6 +79,7 @@ jobs:
           shell: bash
           command: |
             cd web
+            rm -rf node_modules/.astro/fonts
             pnpm exec astro build
 
       - name: Type check
