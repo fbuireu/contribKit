@@ -45,7 +45,7 @@ dependencies:
   purchases_ui_flutter: 10.2.2
 
   # Fonts
-  google_fonts: 8.1.0
+  google_fonts: 8.2.1
 
   # Internationalisation
   intl: 0.20.2
