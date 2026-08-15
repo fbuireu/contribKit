@@ -1,4 +1,4 @@
-name: Security Analysis with zizmor 🌈
+name: Security Analysis with zizmor
 on:
   push:
     branches: ["main"]
@@ -7,7 +7,7 @@ on:
 permissions: {}
 jobs:
   zizmor:
-    name: Run zizmor 🌈
+    name: Run zizmor
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -16,5 +16,5 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - name: Run zizmor 🌈
+      - name: Run zizmor
         uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d
