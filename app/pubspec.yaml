@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   # State management
-  flutter_riverpod: 3.3.2
+  flutter_riverpod: 3.4.2
   riverpod_annotation: 4.0.3
 
   # Serialization / freezed
