@@ -11,6 +11,10 @@ Flutter widgets, and must never import from `ui/`.
   keeps drifting from: the two asset repositories had no error handling at all — a missing or malformed bundled
   JSON threw a raw `FlutterError` straight through — and `invalidateCache` reached Hive outside any `try`. Both now
   convert. When adding a method here, the question is not "can this fail" but "which `Failure` does it fail as".
+- **Convert eagerly, inside the `try`.** `AssetSuggestedUsernameRepository` returned `data.cast<String>()`, and
+  `cast` is a *lazy view*: a non-string element in the bundled JSON threw a raw `TypeError` when the caller
+  iterated, which is after the `try` that would have made it a `ParseFailure`. It builds a `List<String>` eagerly
+  now. Any `cast`, `map` or `where` returned from inside a `try` here has the same hole.
 - **DTOs convert to entities at the boundary and never leak upward.** See
   [`github/dtos/`](./github/dtos/CLAUDE.md).
 - **Levels come from GitHub when GitHub supplies them.** `data-level` is authoritative; a derived level is a
@@ -120,6 +124,14 @@ being re-wrapped as `PNG render failed: ExportFailure: …`. The SVG repository 
 The RevenueCat implementation, mapping every SDK error to `PurchaseFailure`. **It exposes products and a purchase
 call, and nothing that reports entitlement**, because a Tip unlocks nothing and no code may start checking purchase
 state ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)).
+
+`purchase` carries an `on PurchaseFailure { rethrow; }` arm ahead of its catch-all, for the same reason two of the
+export repositories do: it throws `PurchaseFailure` *itself* when no package matches the Tip Product, and without
+the arm its own throw came back re-wrapped. Finding the package is a `where` plus an `isEmpty` check, **not
+`firstWhere`** — `firstWhere` throws `StateError` rather than returning null, so the `'Product not found'` sentence
+was unreachable and a missing product id surfaced to the user as `Bad state: No element`. The `?.` on the offering
+made the null guard look sound. `getProducts` sorts a **copy** of `availablePackages`, because the list it is given
+belongs to the SDK.
 
 ## Gotchas
 

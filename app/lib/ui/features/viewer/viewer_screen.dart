@@ -6,6 +6,7 @@ import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
@@ -630,24 +631,12 @@ class _ErrorState extends StatelessWidget {
 
   final Failure failure;
 
-  String _message() => switch (failure) {
-    NotFoundFailure(:final username) => 'User "$username" not found.',
-    RateLimitedFailure() => 'GitHub rate limit exceeded. Try again later.',
-    ParseFailure() =>
-      'GitHub changed its contributions page. Please update the app.',
-    NetworkFailure(:final message) => 'Network error: $message',
-    CacheFailure() => 'Could not read saved data. Please try again.',
-    ExportFailure(:final message) => 'Export failed: $message',
-    PurchaseFailure(:final message) => 'Purchase failed: $message',
-    UnexpectedFailure() => 'Something went wrong. Please try again.',
-  };
-
   @override
   Widget build(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.all(Tokens.space8),
       child: Text(
-        _message(),
+        FailureMessage.of(failure),
         style: TextStyle(
           fontSize: Tokens.textBase,
           color: AppColors.of(context).destructive,

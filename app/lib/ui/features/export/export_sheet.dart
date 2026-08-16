@@ -4,13 +4,13 @@ import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_sheet.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
@@ -98,15 +98,13 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
         );
       }
     } catch (error) {
-      if (mounted) setState(() => _exportError = _describe(error));
+      if (mounted) {
+        setState(() => _exportError = FailureMessage.ofAny(error));
+      }
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
   }
-
-  static String _describe(Object error) => error is ExportFailure
-      ? 'Export failed: ${error.message}'
-      : 'Export failed. Please try again.';
 
   @override
   Widget build(BuildContext context) {

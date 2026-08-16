@@ -17,8 +17,8 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
   a transparent fill is `AppColors.transparent`, and every animation length is a `Tokens.duration*`.
 - **Read colours through `AppColors.of(context)`, never `ShadTheme.of(context).colorScheme`.** The two used to
   disagree — see the gotcha below.
-- **Match `Failure` exhaustively, without a wildcard.** The single match lives in `_ErrorState` in
-  `viewer_screen.dart`; adding a kind breaks compilation there until it is handled
+- **Match `Failure` exhaustively, without a wildcard.** The single match lives in `FailureMessage.of`, in
+  `failure_message.dart`; adding a kind breaks compilation there until it is handled
   ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)).
 
 ## Layout
@@ -127,18 +127,27 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   drift; what is still not shared is anything `ViewerNotifier` does *around* it — the state writes, the error
   handling, `saveLastUsername` / `saveLastYear`, Cell Size and Background Preset. Behaviour the Home Screen Widget
   depends on belongs in `HomeScreenWidgetRefresh`, not in the notifier.
-- **`_ErrorState._message()` is the exhaustive match, and it lists all eight failures** — including `ExportFailure`
-  and `PurchaseFailure`, which the viewer cannot itself produce. That is deliberate: one match, one place to update.
-  It is also the **only** `switch` over a `Failure` in the app, and it must stay that way. A second one elsewhere
-  needs a `_` arm to compile, and a `_` arm is exactly what
-  [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) forbids — adding a failure kind
-  would then stop being a compile error. Widgets that only care about one kind test it with `is`.
+- **`FailureMessage.of` is the exhaustive match, and it lists all eight failures.** It is the **only** `switch` over
+  a `Failure` in the app and must stay that way: a second one needs a `_` arm to compile, and a `_` arm is exactly
+  what [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) forbids — adding a kind
+  would stop being a compile error. It lives in a module of its own rather than inside the widget that renders it,
+  because it is a pure `Failure` → sentence function and every surface needs it: the viewer renders it, both export
+  surfaces reach it through `ofAny` (each spelled its own `'Export failed: …'` before, byte-identically, while the
+  same wording sat here as a third copy), and the Tip Jar shows it instead of discarding the reason with
+  `catch (_)`. **Never widen the match, and never re-derive a sentence for a kind it already names.**
+  `FailureMessage.ofAny` is the arm for a `catch` that receives an `Object`: a `Failure` keeps its own wording,
+  anything else gets the fallback. Widgets that only care about one kind still test it with `is`.
+  It is unit-tested in `test/ui/failure_message_test.dart` — which is the point of it not being a private method on
+  a private widget inside a 700-line screen file.
 - **`ExportPanel` is not mounted anywhere.** Nothing in `lib/`, the tests or the docs constructs it; `ExportSheet` is
   the export surface the app actually shows. It is kept in step with the sheet rather than deleted, but do not read
   a behaviour into the app because `ExportPanel` implements it — check which one the viewer opens first. "Kept in
   step" was a promise rather than a mechanism until `ExportFormat` existed: the two had already drifted, the panel
   sharing Markdown as a `.md` file where the sheet copied it to the clipboard, each with its own filename and MIME
-  string. Both now read the value object, so the only thing either can still get wrong is its own layout.
+  string. Giving them the value object closed the filename and MIME half and **left the fork open** — the panel
+  went on sharing Markdown as a file because it never asked `isCopiedAsText`, which is the property that exists to
+  answer exactly that. Both consult it now. The lesson is the one the guide keeps relearning: introducing the type
+  is not the fix, reading it everywhere is.
 - **`ViewerState.calendar` and `ViewerState.stats` are nulled at the start of every fetch**, so the screen empties
   before it refills rather than showing the previous user's calendar under a new username. The two are written
   together and are non-null together: `StatsPanel` takes the Contribution Stats as a prop and no longer derives

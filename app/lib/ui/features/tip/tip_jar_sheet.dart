@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_sheet.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
@@ -23,7 +24,7 @@ class TipJarSheet extends ConsumerStatefulWidget {
 
 class _TipJarSheetState extends ConsumerState<TipJarSheet> {
   List<TipProduct>? _products;
-  bool _hasError = false;
+  String? _loadError;
   String? _purchasingId;
   String? _successId;
   String? _errorId;
@@ -52,8 +53,8 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
     try {
       final products = await ref.read(fetchTipProductsProvider).call();
       if (mounted) setState(() => _products = products);
-    } catch (_) {
-      if (mounted) setState(() => _hasError = true);
+    } catch (e) {
+      if (mounted) setState(() => _loadError = FailureMessage.ofAny(e));
     }
   }
 
@@ -107,12 +108,13 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
   }
 
   List<Widget> _content(BuildContext context) {
-    if (_hasError) {
+    final loadError = _loadError;
+    if (loadError != null) {
       return [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: Tokens.space6),
           child: Text(
-            'Could not load products. Check your connection.',
+            loadError,
             style: TextStyle(
               fontSize: Tokens.textSm,
               color: AppColors.of(context).destructive,
@@ -122,7 +124,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
         ),
         AppButton.ghost(
           onPressed: () {
-            setState(() => _hasError = false);
+            setState(() => _loadError = null);
             _load();
           },
           child: const Text('Retry'),

@@ -13,7 +13,7 @@ final class AssetSuggestedUsernameRepository
     try {
       final raw = await rootBundle.loadString(_assetKey);
       final data = jsonDecode(raw) as List<dynamic>;
-      return data.cast<String>();
+      return List<String>.from(data);
     } catch (e) {
       throw ParseFailure(message: 'Could not read $_assetKey: $e');
     }

@@ -11,10 +11,9 @@ final class RevenueCatPurchaseRepository implements PurchaseRepository {
       final current = offerings.current;
       if (current == null) return [];
 
-      final packages = current.availablePackages;
-      packages.sort(
-        (a, b) => (a.storeProduct.price).compareTo(b.storeProduct.price),
-      );
+      final packages = [
+        ...current.availablePackages,
+      ]..sort((a, b) => (a.storeProduct.price).compareTo(b.storeProduct.price));
 
       return packages
           .map(
@@ -34,13 +33,15 @@ final class RevenueCatPurchaseRepository implements PurchaseRepository {
   Future<void> purchase(TipProduct product) async {
     try {
       final offerings = await Purchases.getOfferings();
-      final package = offerings.current?.availablePackages.firstWhere(
+      final matches = offerings.current?.availablePackages.where(
         (p) => p.storeProduct.identifier == product.id,
       );
-      if (package == null) {
+      if (matches == null || matches.isEmpty) {
         throw const PurchaseFailure(message: 'Product not found');
       }
-      await Purchases.purchase(PurchaseParams.package(package));
+      await Purchases.purchase(PurchaseParams.package(matches.first));
+    } on PurchaseFailure {
+      rethrow;
     } on PurchasesErrorCode catch (e) {
       if (e == PurchasesErrorCode.purchaseCancelledError) return;
       throw PurchaseFailure(message: e.name);

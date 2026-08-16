@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:contribkit/ui/widgets/app_icons.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
@@ -128,46 +128,29 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
         calendar: widget.calendar,
         options: _options,
       );
-      final xFile = XFile.fromData(
-        Uint8List.fromList(bytes),
-        name: format.fileNameFor(
-          username: widget.calendar.username,
-          year: widget.calendar.year,
-        ),
-        mimeType: format.mimeType,
-      );
-      await SharePlus.instance.share(ShareParams(files: [xFile]));
-    } catch (error) {
-      if (mounted) setState(() => _exportError = _describe(error));
-    } finally {
-      if (mounted) setState(() => _exporting = false);
-    }
-  }
-
-  static String _describe(Object error) => error is ExportFailure
-      ? 'Export failed: ${error.message}'
-      : 'Export failed. Please try again.';
-
-  Future<void> _copyMarkdown() async {
-    if (_exporting) return;
-    setState(() {
-      _exporting = true;
-      _exportError = null;
-    });
-
-    try {
-      final bytes = await ref.read(
-        exportCalendarProvider(ExportFormat.markdown),
-      )(calendar: widget.calendar, options: _options);
-      await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
-      if (mounted) {
-        setState(() => _copied = true);
-        Future.delayed(Tokens.durationCopiedFeedback, () {
-          if (mounted) setState(() => _copied = false);
-        });
+      if (format.isCopiedAsText) {
+        await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+        if (mounted) {
+          setState(() => _copied = true);
+          Future.delayed(Tokens.durationCopiedFeedback, () {
+            if (mounted) setState(() => _copied = false);
+          });
+        }
+      } else {
+        final xFile = XFile.fromData(
+          Uint8List.fromList(bytes),
+          name: format.fileNameFor(
+            username: widget.calendar.username,
+            year: widget.calendar.year,
+          ),
+          mimeType: format.mimeType,
+        );
+        await SharePlus.instance.share(ShareParams(files: [xFile]));
       }
     } catch (error) {
-      if (mounted) setState(() => _exportError = _describe(error));
+      if (mounted) {
+        setState(() => _exportError = FailureMessage.ofAny(error));
+      }
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
@@ -209,7 +192,9 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
                 ),
               const Spacer(),
               AppButton.ghost(
-                onPressed: _exporting ? null : _copyMarkdown,
+                onPressed: _exporting
+                    ? null
+                    : () => _export(ExportFormat.markdown),
                 size: AppButtonSize.sm,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
