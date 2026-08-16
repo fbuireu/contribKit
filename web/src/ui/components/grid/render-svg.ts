@@ -1,24 +1,13 @@
 import { renderCellShape } from "@domain/services/cell-shapes";
-import { chunkWeeks } from "@domain/services/dates";
 import {
 	CALENDAR_ARIA_LABEL,
-	calendarDimensions,
-	cellPoint,
-	gridOrigin,
+	calendarLayout,
 	hexPoints,
-	monthLabelPoint,
-	monthLabelPositions,
-	radiusFor,
-	SVG_DEFAULT_CELL_GAP,
-	SVG_DEFAULT_CELL_SIZE,
 	SVG_MONTH_LABEL_FONT_SIZE,
 	SVG_MONTH_LABEL_LETTER_SPACING,
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
-	weekdayLabelPoint,
 } from "@domain/services/svg-geometry";
-import { WEEKDAY_LABELS } from "@domain/value-objects/calendar-labels";
 import { CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
-import { clampLevel } from "@domain/value-objects/contribution-level";
 import { cssVar } from "@ui/utils/css";
 import type { RenderCalendarParams } from "./calendar";
 
@@ -26,47 +15,48 @@ export function renderCalendarString({
 	days,
 	palette,
 	shape = DEFAULT_CELL_SHAPE,
-	size = SVG_DEFAULT_CELL_SIZE,
-	gap = SVG_DEFAULT_CELL_GAP,
-	showLabels = true,
+	size,
+	gap,
+	showLabels,
 }: RenderCalendarParams): string {
 	const resolvedShape = isCellShape(shape) ? shape : DEFAULT_CELL_SHAPE;
-	const weeks = chunkWeeks(days);
-	const monthLabels = monthLabelPositions(weeks);
-
-	const { cellWidth, labelWidth, labelHeight, totalWidth, totalHeight } = calendarDimensions({ size, gap, showLabels });
-	const radius = radiusFor({ shape: resolvedShape, size });
+	const layout = calendarLayout({ days, shape: resolvedShape, size, gap, showLabels });
 
 	const parts: string[] = [];
 	parts.push(
-		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${totalHeight}" width="100%" style="display:block;overflow:visible" role="img" aria-label="${CALENDAR_ARIA_LABEL}">`,
+		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.width} ${layout.height}" width="100%" style="display:block;overflow:visible" role="img" aria-label="${CALENDAR_ARIA_LABEL}">`,
 	);
-	if (showLabels) {
-		monthLabels.forEach(({ weekIndex, label }) => {
-			const { x, y } = monthLabelPoint({ weekIndex, cellWidth, labelWidth });
-			parts.push(
-				`<text x="${x}" y="${y}" style="fill:var(--text-dim);opacity:.85;font-family:var(--font-mono)" font-size="${SVG_MONTH_LABEL_FONT_SIZE}" letter-spacing="${SVG_MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
-			);
-		});
-		WEEKDAY_LABELS.forEach((dayLabel, index) => {
-			const { x, y } = weekdayLabelPoint({ index, cellWidth, labelHeight });
-			parts.push(
-				`<text x="${x}" y="${y}" style="fill:var(--text-dimmer);font-family:var(--font-mono)" font-size="${SVG_WEEKDAY_LABEL_FONT_SIZE}">${dayLabel}</text>`,
-			);
-		});
+
+	for (const { x, y, label } of layout.monthLabels) {
+		parts.push(
+			`<text x="${x}" y="${y}" style="fill:var(--text-dim);opacity:.85;font-family:var(--font-mono)" font-size="${SVG_MONTH_LABEL_FONT_SIZE}" letter-spacing="${SVG_MONTH_LABEL_LETTER_SPACING}">${label}</text>`,
+		);
 	}
-	const origin = gridOrigin({ labelWidth, labelHeight });
-	parts.push(`<g transform="translate(${origin.x},${origin.y})">`);
-	weeks.forEach((week, weekIndex) => {
-		week.forEach((cell, dayIndex) => {
-			const level = clampLevel(cell.level);
-			const fill = palette[level] || palette[0];
-			const { x, y } = cellPoint({ weekIndex, dayIndex, cellWidth });
-			const attributes =
-				cell.count === null ? ` data-date="${cell.date}"` : ` data-date="${cell.date}" data-count="${cell.count}"`;
-			parts.push(renderCellShape({ shape: resolvedShape, x, y, size, radius, fill, level, attributes }));
-		});
-	});
+
+	for (const { x, y, label } of layout.weekdayLabels) {
+		parts.push(
+			`<text x="${x}" y="${y}" style="fill:var(--text-dimmer);font-family:var(--font-mono)" font-size="${SVG_WEEKDAY_LABEL_FONT_SIZE}">${label}</text>`,
+		);
+	}
+
+	parts.push(`<g transform="translate(${layout.origin.x},${layout.origin.y})">`);
+
+	for (const { x, y, date, level, count } of layout.cells) {
+		const attributes = count === null ? ` data-date="${date}"` : ` data-date="${date}" data-count="${count}"`;
+		parts.push(
+			renderCellShape({
+				shape: resolvedShape,
+				x,
+				y,
+				size: layout.size,
+				radius: layout.radius,
+				fill: palette[level] || palette[0],
+				level,
+				attributes,
+			}),
+		);
+	}
+
 	parts.push("</g></svg>");
 	return parts.join("");
 }

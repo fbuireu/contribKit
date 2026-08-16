@@ -1,6 +1,6 @@
 ---
+import { logServerError } from "@application/http/log-server-error";
 import { loggerFor } from "@infrastructure/logging/better-stack-logger";
-import { logServerError } from "@infrastructure/logging/log-server-error";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import ErrorView from "@ui/components/error/ErrorView.astro";

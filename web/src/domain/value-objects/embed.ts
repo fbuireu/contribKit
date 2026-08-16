@@ -1,9 +1,9 @@
 import { DEFAULT_CELL_SHAPE } from "./cell-shape";
 import { DEFAULT_BACKGROUND_COLOR, DEFAULT_PALETTE_KEY } from "./palette";
 
-export const EMBED_ORIGIN = "https://contribkit.app";
-export const EMBED_EXTENSION = ".svg";
-export const EMBED_SEGMENT = "user";
+const EMBED_ORIGIN = "https://contribkit.app";
+const EMBED_EXTENSION = ".svg";
+const EMBED_SEGMENT = "user";
 
 export const EMBED_ROUTE = /^\/user\/[^/]+\.svg$/;
 
@@ -33,7 +33,7 @@ export interface BuildEmbedUrlParams extends Partial<EmbedQuery> {
 	keepDefaults?: boolean;
 }
 
-export const embedPathFor = (username: string): string => `/${EMBED_SEGMENT}/${username}${EMBED_EXTENSION}`;
+const embedPathFor = (username: string): string => `/${EMBED_SEGMENT}/${username}${EMBED_EXTENSION}`;
 
 export const buildEmbedUrl = ({
 	username,

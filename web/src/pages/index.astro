@@ -88,7 +88,7 @@ switch (daySourceFor({ loaded: initial.ok, isExplicit })) {
 		break;
 	case DaySource.Empty:
 		days = buildGridFromApi({ days: [], year: currentYear });
-		heroError = initial.ok ? null : contributionError(initial.status);
+		heroError = initial.ok ? null : contributionError({ status: initial.status });
 		break;
 	default:
 		days = generateData();

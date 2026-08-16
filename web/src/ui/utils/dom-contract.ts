@@ -27,6 +27,7 @@ export type ElementId = (typeof ElementId)[keyof typeof ElementId];
 export const ClassName = {
 	Active: "active",
 	BarTag: "bar-tag",
+	Selected: "selected",
 	CodePreview: "code-preview",
 	CopyButton: "copy-btn",
 	LegendSquare: "legend-sq",
@@ -38,6 +39,8 @@ export const ClassName = {
 } as const;
 
 export const Selector = {
+	PaletteRows: `#${ElementId.PaletteList} .${ClassName.PaletteRow}`,
+	ShapeButtons: `#${ElementId.ShapeList} .${ClassName.ShapeButton}`,
 	ActivePaletteRow: `#${ElementId.PaletteList} .${ClassName.PaletteRow}.${ClassName.Active}`,
 	ActiveShapeButton: `#${ElementId.ShapeList} .${ClassName.ShapeButton}.${ClassName.Active}`,
 	SelectedExportTab: `#${ElementId.ExportTabs} [aria-selected="true"]`,

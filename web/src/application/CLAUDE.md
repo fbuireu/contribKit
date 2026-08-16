@@ -61,10 +61,21 @@ page can log what the two API routes log.** Drop it and a GitHub outage on `/` b
 outage on `/api/contributions` is recorded — which is exactly what happened before it was added. Anything reaching
 for a whole `Failure` after calling this is a sign the wrong use case was picked.
 
+**Both log helpers live here, and so does the port they take.** `http/failure-logger.ts` declares `FailureLogger` —
+three lines, one `error` method, structurally satisfied by the Better Stack logger — rather than importing one from
+`infrastructure/`, which is the direction the layer map forbids.
+
 `http/log-contributions-failure.ts` turns a failed fetch into a log line, and owns the `SERVER_ERROR_STATUS`
-threshold so no route repeats the comparison. It declares its own `FailureLogger` port — three lines, structurally
-satisfied by the Better Stack logger — rather than importing one from `infrastructure/`, which is the direction the
-layer map forbids. It lived in `infrastructure/logging/` for exactly one commit before that was noticed.
+threshold so no route repeats the comparison. It lived in `infrastructure/logging/` for exactly one commit before
+that was noticed.
+
+`http/log-server-error.ts` is the narrow helper the 500 page uses. It stayed in `infrastructure/logging/` much
+longer, declaring a `ServerErrorLogger` interface that was **character-for-character identical** to `FailureLogger`
+— the same port, spelled twice, in two layers, so that two helpers doing the same job could each be tested with a
+fake. Its `describeError` handles `Error`, falsy, object and everything else, and **the object branch is wrapped in
+a `try`** — `JSON.stringify` throws on a circular reference and on a `BigInt`-valued property, and this runs in
+`500.astro`'s frontmatter, so an unserialisable throwable would have turned the error page itself into a throw. It
+falls back to `String(error)`.
 
 ## `http/failure-http.ts`
 

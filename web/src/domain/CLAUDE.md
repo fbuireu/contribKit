@@ -113,10 +113,19 @@ test helper reintroduces the same bug in the test rather than the code.
   `<img>`. Add the member and its `SHAPE_MARKUP_RENDERERS` entry in the same change as the JSON; the order of the
   JSON still decides `DEFAULT_CELL_SHAPE`, so reordering it silently changes the default shape of every embed.
 - **The domain emits SVG substrings.** `renderCellShape` returns markup and `svg-geometry.ts` computes the
-  geometry around it; `infrastructure/rendering/` only composes the document. `attributes` is interpolated into
+  geometry around it; the two renderers only compose the document. `attributes` is interpolated into
   the tag verbatim — nothing here escapes it, so a caller that passes attacker-controlled text owns that.
-- **`radiusFor` only knows `rounded` (2.5) and `square` (0);** anything else gets `size / 2`, which is what makes
-  a rect look like a circle if it is ever routed through the rect renderer.
+- **`calendarLayout` is the whole geometry, in one call, and it is the module's interface.** It chunks the days
+  into Contribution Weeks, sizes the document, clamps every Contribution Level, and returns finished placements —
+  `monthLabels`, `weekdayLabels` and `cells`, each already carrying its `x` and `y`. The pad, gutter and baseline
+  constants, the per-shape radius table and the four point functions are **private to this file**: they were nine
+  exported primitives, and both renderers therefore imported twelve symbols each and wrote the same thirty-line
+  walk — the same dimensions destructure, the same label loops, the same `translate` group, a byte-identical
+  close. Only the geometry had been shared; the composition had not. What each renderer keeps is its own string
+  templates, which is the part that genuinely differs.
+- **The radius table only knows `rounded` (2.5) and `square` (0);** anything else gets `size / 2`, which is what
+  makes a rect look like a circle if it is ever routed through the rect renderer. It is read through
+  `calendarLayout().radius`.
 - **`dotRadius` overflows its own cell on purpose.** Level 0 is `DOT_BASE_RADIUS` (1.4) and every other level is
   `1.4 + level`, so level 4 is 5.4 against a default cell half-width of 5. It still fits the 12 px pitch that
   `SVG_DEFAULT_CELL_SIZE` (10) plus `SVG_DEFAULT_CELL_GAP` (2) gives, so dots never collide — shrink the gap and
@@ -142,7 +151,8 @@ test helper reintroduces the same bug in the test rather than the code.
   shows a rolling window and never a pinned Year. Reach for it whenever days arrive without a Year to anchor on —
   never for `chunkWeeks` alone, which trusts its input to already be a date-ordered lattice.
 - `chunkWeeks` always returns exactly `WEEKS_PER_YEAR` arrays, whatever it is given; a short input leaves trailing
-  weeks empty rather than shortening the result, which is why `monthLabelPositions` guards on an empty week.
+  weeks empty rather than shortening the result, which is why the month-label pass inside `calendarLayout` guards
+  on an empty week. Neither renderer calls `chunkWeeks` any more — the layout does.
 - `MONTH_LABELS` is built once from `Intl.DateTimeFormat("en", …)` against year 2024, which is arbitrary and only there
   to name months. A month is labelled at the first week whose first day falls in that month's first seven days,
   which yields exactly twelve distinct labels for every year from 2005 to 2030 — the December spill at both ends

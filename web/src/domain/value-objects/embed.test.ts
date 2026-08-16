@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CELL_SHAPE } from "./cell-shape";
-import { buildEmbedUrl, DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE, embedPathFor } from "./embed";
+import { buildEmbedUrl, DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE } from "./embed";
 import { DEFAULT_PALETTE_KEY } from "./palette";
 
-describe("embedPathFor", () => {
-	it("is the route the middleware matches", () => {
-		expect(EMBED_ROUTE.test(embedPathFor("torvalds"))).toBe(true);
+describe("EMBED_ROUTE", () => {
+	it("matches the path buildEmbedUrl produces", () => {
+		expect(EMBED_ROUTE.test(new URL(buildEmbedUrl({ username: "torvalds" })).pathname)).toBe(true);
+	});
+
+	it("still matches once the query carries every option", () => {
+		const url = new URL(buildEmbedUrl({ username: "torvalds", palette: "dracula", shape: "hex" }));
+
+		expect(EMBED_ROUTE.test(url.pathname)).toBe(true);
 	});
 
 	it("does not match a nested path", () => {

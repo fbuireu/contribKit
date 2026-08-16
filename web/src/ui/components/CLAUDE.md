@@ -32,27 +32,30 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 
 ## `grid/` — the client renderer, and how it differs from the server's
 
-`render-svg.ts` and `svgStringRenderer` in `infrastructure/rendering/` both draw the calendar, and they share
-`@domain/services/cell-shapes` and `@domain/services/svg-geometry` so a cell is identical in both. The differences
-are deliberate and worth knowing:
+`render-svg.ts` and `svgStringRenderer` in `infrastructure/rendering/` both draw the calendar. **Both get their
+whole geometry from one call to `calendarLayout`** in `@domain/services/svg-geometry`, and their cells from
+`@domain/services/cell-shapes`, so a cell is identical in both by construction. The differences are deliberate and
+worth knowing:
 
 |  | Server (`svgStringRenderer`) | Client (`render-svg.ts`) |
 | --- | --- | --- |
 | Per-cell attributes | none — fill only | `data-date`, plus `data-count` **only when the count is known** |
 | Root sizing | fixed `width`/`height` in pixels | `width="100%"` with `overflow:visible`, so it scales in the card |
 | Label colour | hardcoded `rgba(255,255,255,…)` | `var(--text-dim)` / `var(--text-dimmer)`, so it follows the page theme |
+| Background | a `<rect>` when the Background is not transparent | never — the card behind it is the background |
+| Palette lookup | `palette.colors[level]`, a `Palette` | `palette[level] \|\| palette[0]`, a bare array from the DOM |
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 
-Everything the two have in common is in `@domain/services/svg-geometry`, and that now includes the *placement*, not
-only the dimensions: `monthLabelPoint`, `weekdayLabelPoint`, `gridOrigin` and `cellPoint`, plus
-`CALENDAR_ARIA_LABEL`. Those expressions — including the `index * 2 + 1` that encodes "three weekday labels on
-alternate rows" — were written out verbatim in both files, so the rule lived in two places and in neither module.
-What is left in each renderer is only what the table above says differs.
+That table is now the **complete** list. Each renderer is a loop over `layout.monthLabels`, `layout.weekdayLabels`
+and `layout.cells`, emitting its own strings; neither chunks weeks, computes a dimension, positions a label or
+derives a radius. Both used to, identically — twelve imports each and the same thirty-line walk, down to a
+byte-identical closing `parts.push("</g></svg>")`. Only the geometry primitives had been shared, so the *rule* was
+in one place and the *composition* was in two.
 
-**One asymmetry the table does not cover, and it is deliberate:** the client re-runs `clampLevel` and falls back with
-`palette[level] || palette[0]`, and the server does neither. The server's `day.level` is a `ContributionLevel`, a
-0–4 union the type system guarantees; the client's arrives as a bare `number` on `RenderCalendarParams`, fed from
-placeholder data and from the API. Each guards exactly what its own input type fails to.
+**One asymmetry the table used to carry has gone:** the client re-ran `clampLevel` and the server did not, because
+the server's `day.level` is a type-guaranteed 0–4 union while the client's arrives from placeholder data and from
+the API. `calendarLayout` clamps for both now — a no-op on the typed path, and one fewer thing for a renderer to
+remember.
 
 **`data-count` is omitted, not zeroed, for an unknown Count.** `CellTooltip` reads that absence and says
 "Contributions unknown on …" rather than showing a number nobody measured. Emitting `data-count="0"` would be
@@ -83,6 +86,12 @@ custom properties to the red ramp — so a new tone is a class and a token block
   `renderCellShape`, because the widget preview is a thumbnail where shapes would not read. That is why a new Cell
   Shape does not automatically appear there. Its array is called `levels`, not days — it holds one level per square
   and no dates at all.
+- **It also carries its own `LEVEL_THRESHOLDS`, and those numbers are not `calendar.ts`'s.** Both tables now spell
+  the field `minScore`, which invites unifying the values — do not. The two score the placeholder differently:
+  `calendar.ts` builds a weekday-damped score around a rising base and compares with `>=`, while this one adds a
+  column ramp to a raw `mulberry32` draw and compares with `>`. The thresholds are tuned against those two scales
+  and mean nothing swapped over. Neither is anybody's data
+  ([the Count invention rule](../../domain/CLAUDE.md) applies to both).
 - **`shapePreviewSVG` draws its own miniatures** rather than reusing `renderCellShape`, at a 20×20 viewBox with
   hand-tuned radii, because a 10 px cell scaled up reads as a blur. Its table is keyed on `CellShape`, so adding a
   member fails to compile here — which is the intended reminder.

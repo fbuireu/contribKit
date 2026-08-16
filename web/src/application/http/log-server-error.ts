@@ -1,9 +1,7 @@
-export interface ServerErrorLogger {
-	error(params: { message: string; context?: Record<string, unknown> }): void;
-}
+import type { FailureLogger } from "./failure-logger";
 
 export interface LogServerErrorParams {
-	logger: ServerErrorLogger;
+	logger: FailureLogger;
 	error: unknown;
 	path: string;
 }

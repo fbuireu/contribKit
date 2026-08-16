@@ -60,19 +60,21 @@ zeroes.
 ## `rendering/` — `svgStringRenderer`
 
 Pure string concatenation into a `parts` array, joined once. There is no DOM in a Worker and this must not grow one.
-It reads geometry from `@domain/services/svg-geometry` and per-shape markup from `@domain/services/cell-shapes`, so
-the server renderer and the client-side preview draw identical cells.
+It takes its whole geometry from one `calendarLayout` call in `@domain/services/svg-geometry` and its per-shape
+markup from `@domain/services/cell-shapes`, so the server renderer and the client-side preview draw identical cells
+— and now identical *positions*, because neither computes any. What is left here is the string templates.
 
-- Defaults when the options omit them: `SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP`, `showLabels: true`.
+- Defaults when the options omit them: `calendarLayout` applies `SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP` and
+  `showLabels: true` when the option is `undefined`, so this file no longer spells them out.
 - **The background `<rect>` is emitted only when `background !== DEFAULT_BACKGROUND_COLOR`** (`"transparent"`). A
   transparent embed is the absence of a rect, not a rect with alpha, which is what lets a README show through.
 - **Cells carry no attributes.** `renderCellShape` is called without the optional `attributes`, so the server's SVG
   has no `data-date` or `data-count` — only the client-side preview adds them, for the Cell Tooltip. An embed is an
   image, not a queryable document.
 - The root element carries `role="img"` and a fixed `aria-label`.
-- It draws whatever `chunkWeeks` returns, which is always 53 arrays. A calendar shorter than 371 days therefore
-  renders with empty trailing weeks rather than a narrower image — the width comes from `WEEKS_PER_YEAR`, not from
-  the data.
+- It draws whatever the layout's `cells` hold, and `chunkWeeks` inside it always returns 53 arrays. A calendar
+  shorter than 371 days therefore renders with empty trailing weeks rather than a narrower image — the width comes
+  from `WEEKS_PER_YEAR`, not from the data.
 
 ## `logging/`
 
@@ -91,14 +93,14 @@ tells you to `import { env } from "cloudflare:workers"` — which is exactly wha
 limiter binding. Both API routes, the landing page and the 500 page go through `loggerFor`; keep doing that rather than casting
 `locals` again.
 
-`log-contributions-failure.ts` is the companion helper for the one failure every data surface can see. It takes the
-logger as a parameter the way `log-server-error.ts` does, and it owns the `SERVER_ERROR_STATUS` threshold itself, so
-a caller states what happened and where, and never whether it is worth reporting.
-
-`log-server-error.ts` is the narrow helper the 500 page uses. `describeError` handles `Error`, falsy, object and
-everything else, and **the object branch is wrapped in a `try`** — `JSON.stringify` throws on a circular reference
-and on a `BigInt`-valued property, and this runs in `500.astro`'s frontmatter, so an unserialisable throwable would
-have turned the error page itself into a throw. It falls back to `String(error)`.
+**This folder holds the client and nothing else.** The two helpers that turn something that went wrong into a log
+line — `log-contributions-failure.ts` and `log-server-error.ts` — live in
+[`application/http/`](../application/CLAUDE.md), because they take a logger as a parameter rather than reaching for
+one, and the port they take is declared there. `log-server-error.ts` sat here for a long time while its twin sat in
+`application/`, and the two declared **character-for-character identical** one-method interfaces (`ServerErrorLogger`
+and `FailureLogger`) in different layers. There is one port now, `application/http/failure-logger.ts`, and
+`Logger` here satisfies it structurally — this layer still declares no dependency on that one, which is the whole
+reason the port is not declared here.
 
 ## Gotchas
 

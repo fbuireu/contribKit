@@ -1,9 +1,6 @@
 import type { Failure } from "@domain/failures/failure";
 import { SERVER_ERROR_STATUS } from "./failure-http";
-
-export interface FailureLogger {
-	error(params: { message: string; context?: Record<string, unknown> }): void;
-}
+import type { FailureLogger } from "./failure-logger";
 
 export const ContributionsEndpoint = {
 	Api: "api",

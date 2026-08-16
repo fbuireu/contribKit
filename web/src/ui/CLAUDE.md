@@ -46,7 +46,15 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 - **`render.ts` re-reads state and rewrites the DOM**: `renderCustomize`, `renderExportPreview`, `renderWidget`,
   `updateHeroStats`, `updateYearRange`, `setHeroError`. They are idempotent by construction.
 - **The initial grid comes from `window.__INITIAL_DAYS__`,** injected by the SSR page, falling back to
-  `generateData()` when it is absent or empty — so the page is never blank.
+  `generateData()` when it is absent or empty — so the page is never blank. **That read happens inside `initPage`,
+  not at module scope.** It used to run on import, along with the first `setDays` / `setUsername`, so merely
+  importing this module touched `window` and generated a grid — which is most of why the module with the real risk
+  in it had two assertions while `roving.ts` and `url.ts`, both trivially correct, had more test than
+  implementation.
+- **`renderFromGitHub` takes its `request`,** defaulting to `fetch`. That one optional parameter is the seam the
+  whole refresh is tested through: the year clamp, the grid build, the recognised-status sentence, the unreachable
+  server, and the render button being re-enabled either way. Nothing else about it changed — the default is what
+  every event handler in this file uses.
 - **The client and the server build the same grid.** `page-init` calls `buildGridFromApi` and
   `computeContributionStats` from the domain layer, exactly as `index.astro` does. Neither reimplements the other.
 - **The year is decided once, before the request, and reused for the grid.** `renderFromGitHub` reads the select,
@@ -82,6 +90,12 @@ The status → human sentence map, in lowercase, prefixed with `↳` by `formatH
 
 These mirror `failure-http`'s status choices. **Adding a `Failure` kind that maps to a new status means adding a row
 here too**, or users get the fallback sentence — and nothing fails to compile when you forget.
+
+`contributionError({ status, serverMessage })` is the only way to read that table. A status in it wins; otherwise the
+endpoint's own `error` field is used if there is one, and the fallback sentence last. That precedence used to live in
+`page-init.ts`, which imported the map and the fallback constant raw and re-implemented the lookup, while
+`index.astro` called the function — one policy, spelled two ways, in two files. The map and the fallback are no
+longer exported.
 
 ## `roving.ts`
 
