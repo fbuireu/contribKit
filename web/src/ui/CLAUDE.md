@@ -38,7 +38,9 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   same one-way contract in miniature: renaming the constant would have changed the read and not the write. Twenty-nine literals used to cross
   the `.astro` ↔ `.ts` boundary with nothing tying them together, and every consumer is written as `if (el) …`, so
   renaming an id in a component silently turned a renderer into a no-op — the page kept working and simply stopped
-  updating. Add a node the client touches, and add its id here in the same change.
+  updating. Add a node the client touches, and add its id here in the same change. `theme-toggle.ts` was the last
+  file reaching past it with a literal `getElementById`, and `Header.astro` spelled the same id back; both now go
+  through `ElementId.ThemeToggle`.
 - **State is module-level, in `state.ts`** — two variables, `days` and `username`, behind getters and setters.
   There is no store and no framework. Anything needing the current grid calls `getDays()`; anything changing it
   calls `setDays()` and then a `render*` function. Nothing subscribes, so **a mutation without a matching render

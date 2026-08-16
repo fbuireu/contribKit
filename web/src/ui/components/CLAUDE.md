@@ -44,6 +44,7 @@ worth knowing:
 | Label colour | hardcoded `rgba(255,255,255,…)` | `var(--text-dim)` / `var(--text-dimmer)`, so it follows the page theme |
 | Background | a `<rect>` when the Background is not transparent | never — the card behind it is the background |
 | Palette lookup | `palette.colors[level]`, a `Palette` | `palette[level] \|\| palette[0]`, a bare array from the DOM |
+| Cell Shape | taken as given — `options.shape` is a typed `CellShape` | re-guarded with `isCellShape`, because it arrives from a `dataset` |
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 
 That table is now the **complete** list. Each renderer is a loop over `layout.monthLabels`, `layout.weekdayLabels`
@@ -95,6 +96,21 @@ custom properties to the red ramp — so a new tone is a class and a token block
 - **`shapePreviewSVG` draws its own miniatures** rather than reusing `renderCellShape`, at a 20×20 viewBox with
   hand-tuned radii, because a 10 px cell scaled up reads as a blur. Its table is keyed on `CellShape`, so adding a
   member fails to compile here — which is the intended reminder.
+- **Three string contracts cross into the `is:inline` head scripts, and all three go through `define:vars`.**
+  An `is:inline` script cannot import, so the values are read in the frontmatter and injected: `BaseLayout` takes
+  `COLOR_SCHEME_KEY`, `COLOR_SCHEME_META_SELECTOR` and `ThemeClass` from `header/theme-toggle.ts`, and `Analytics`
+  takes `CONSENT_COOKIE_NAME` and `ANALYTICS_CATEGORY` from `cookie-consent/config.ts`. Each was spelled twice
+  before, in two files with nothing tying them: the FOUC bootstrap and the toggle both hardcoded
+  `'color-scheme'` and `theme-${scheme}`, and the analytics gate matched `/(^| )cc_cookie=([^;]+)/` against a name
+  the consent config declared separately. **Renaming either used to leave a script silently reading nothing** —
+  and for the consent one that means falling through to `'denied'`, which fails safe, while the theme one flashes
+  the wrong palette before paint.
+- **A `define:vars` script is already wrapped in an IIFE by Astro, and a bare `{ }` block inside one blinds
+  `astro check`.** `BaseLayout`'s bootstrap used to wrap itself in a block to keep its `const` out of the global
+  scope — necessary while the script took no variables, and redundant the moment it did, because the rendered
+  output is `<script>(function(){ … })()</script>`. Keeping the block cost two `ts(2570) Could not find name`
+  hints against the injected names, which is how it was noticed. Write the body flat; do not add a block or an
+  IIFE back for scoping that Astro already provides.
 - **The consent banner hides itself from automation.** `vanilla-cookieconsent`'s `hideFromBots` suppresses it
   whenever `navigator.webdriver` is set, so a Playwright run sees no banner at all unless it poses as a real
   browser first — which is why the e2e spec opens with an `addInitScript` redefining that property. An e2e test

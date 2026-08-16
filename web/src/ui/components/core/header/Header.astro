@@ -3,6 +3,7 @@ import "./header.css";
 import Download from "@ui/components/icons/Download.astro";
 import Moon from "@ui/components/icons/Moon.astro";
 import Sun from "@ui/components/icons/Sun.astro";
+import { ElementId } from "@ui/utils/dom-contract";
 
 const base = Astro.url.pathname === "/" ? "" : "/";
 ---
@@ -21,7 +22,7 @@ const base = Astro.url.pathname === "/" ? "" : "/";
       <button
         type="button"
         class="theme-toggle"
-        id="theme-toggle"
+        id={ElementId.ThemeToggle}
         aria-label="Switch to dark mode"
         aria-pressed="false"
         title="Toggle theme"

@@ -17,6 +17,7 @@ export const ElementId = {
 	PaletteList: "palette-list",
 	PhoneScreen: "phone-screen",
 	ShapeList: "shape-list",
+	ThemeToggle: "theme-toggle",
 	UsernameForm: "username-form",
 	WidgetMiniGrid: "widget-mini-grid",
 	WidgetUsername: "widget-username",

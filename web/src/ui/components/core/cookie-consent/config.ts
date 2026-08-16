@@ -1,6 +1,9 @@
 import type { CookieConsentConfig } from "vanilla-cookieconsent";
 import { acceptedCategory } from "vanilla-cookieconsent";
 
+export const CONSENT_COOKIE_NAME = "cc_cookie";
+export const ANALYTICS_CATEGORY = "analytics";
+
 const GOOGLE_ANALYTICS_COOKIES = /^_ga/;
 const GOOGLE_ANALYTICS_LEGACY_COOKIES = /^(_ga|_gid)/;
 const BETTER_STACK_COOKIES = /^bs_/;
@@ -87,7 +90,7 @@ export const config: CookieConsentConfig = {
 								},
 								body: [
 									{
-										name: "cc_cookie",
+										name: CONSENT_COOKIE_NAME,
 										service: "ContribKit",
 										description: "Stores your cookie consent preferences.",
 										expiration: "6 months",
