@@ -68,6 +68,10 @@ The three presets in `grid-presets.ts` — `HERO_GRID_PRESET` (13/3), `CUSTOMIZE
 `EXPORT_GRID_PRESET` is pinned to the domain defaults, so the export preview matches what the SVG endpoint emits —
 a test asserts exactly that, and it is the reason the constant is not just `{ size: 10, gap: 2 }` written out.
 
+**`RenderCalendarParams` belongs to the renderer, not to the placeholder generator.** It sat in `calendar.ts`,
+which never referenced it, so `render-svg.ts` imported its own signature from the fake-data module — an import
+direction with no reason to exist. Anything a renderer's caller must know goes beside the renderer.
+
 `calendar.ts` holds `generateData()`, the placeholder grid, driven by `mulberry32` and the `LEVEL_THRESHOLDS` /
 `COUNT_SPREAD_PER_LEVEL` tables. It is the only code in the project allowed to invent a Count, and only because the
 result is explicitly not anybody's data. It is also the one grid that is **not** a calendar year: it ends on the

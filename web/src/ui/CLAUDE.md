@@ -13,7 +13,7 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 | Directory | Contents |
 |---|---|
 | `components/` | Every Astro component, grouped by role. See [`components/CLAUDE.md`](./components/CLAUDE.md). |
-| `utils/` | The browser-side half: `page-init` (the page controller), `state` + `render`, `roving` (keyboard navigation), `cookie` / `url` (username and year persistence), `cell-tooltip`, `contribution-errors`, `mulberry` (seeded PRNG), `css`, `app-links`, `unshuffle`. |
+| `utils/` | The browser-side half: `page-init` (the page controller), `state` + `render`, `roving` (keyboard navigation), `cookie` / `url` (username and year persistence), `cell-tooltip`, `contribution-errors`, `mulberry` (seeded PRNG), `app-links`, `unshuffle`. |
 | `styles/` | Global CSS in `@layer` order — `index.css` is the entry, imported by `BaseLayout`. |
 
 ## Invariants & rules

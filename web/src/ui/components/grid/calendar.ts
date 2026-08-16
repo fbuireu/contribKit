@@ -11,15 +11,6 @@ const LEVEL_THRESHOLDS = [
 	{ minScore: 0.2, level: 1 },
 ] as const;
 
-export interface RenderCalendarParams {
-	days: ContributionDay[];
-	palette: readonly string[];
-	shape?: string;
-	size?: number;
-	gap?: number;
-	showLabels?: boolean;
-}
-
 export function generateData(seed = 7): ContributionDay[] {
 	const random = mulberry32(seed);
 	const days: ContributionDay[] = [];

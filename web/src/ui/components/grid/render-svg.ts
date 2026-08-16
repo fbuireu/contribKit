@@ -1,3 +1,4 @@
+import type { ContributionDay } from "@domain/entities/types";
 import { renderCellShape } from "@domain/services/cell-shapes";
 import {
 	CALENDAR_ARIA_LABEL,
@@ -8,8 +9,15 @@ import {
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
 } from "@domain/services/svg-geometry";
 import { CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
-import { cssVar } from "@ui/utils/css";
-import type { RenderCalendarParams } from "./calendar";
+
+export interface RenderCalendarParams {
+	days: ContributionDay[];
+	palette: readonly string[];
+	shape?: string;
+	size?: number;
+	gap?: number;
+	showLabels?: boolean;
+}
 
 export function renderCalendarString({
 	days,
@@ -74,5 +82,5 @@ const SHAPE_PREVIEWS: Record<CellShape, (fill: string) => string> = {
 
 export function shapePreviewSVG(kind: string): string {
 	const resolvedShape = isCellShape(kind) ? kind : DEFAULT_CELL_SHAPE;
-	return wrapPreviewSvg(SHAPE_PREVIEWS[resolvedShape](cssVar("--contrib-peak")));
+	return wrapPreviewSvg(SHAPE_PREVIEWS[resolvedShape]("var(--contrib-peak)"));
 }

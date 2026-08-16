@@ -6,14 +6,14 @@ import {
 	SVG_MONTH_LABEL_LETTER_SPACING,
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
 } from "@domain/services/svg-geometry";
-import type { SvgRenderer, SvgRendererParams } from "@domain/services/types";
+import type { SvgRenderer } from "@domain/services/types";
 import { DEFAULT_BACKGROUND_COLOR } from "@domain/value-objects/palette";
 
 const LABEL_FONT_FAMILY = "ui-monospace,monospace";
 const MONTH_LABEL_FILL = "rgba(255,255,255,0.45)";
 const WEEKDAY_LABEL_FILL = "rgba(255,255,255,0.35)";
 
-export const svgStringRenderer: SvgRenderer = ({ calendar, options }: SvgRendererParams): string => {
+export const svgStringRenderer: SvgRenderer = ({ calendar, options }) => {
 	const { palette, shape, background } = options;
 	const layout = calendarLayout({
 		days: calendar.days,
