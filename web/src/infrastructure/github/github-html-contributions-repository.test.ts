@@ -84,6 +84,66 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		expect(result.days[0].count).toBeNull();
 	});
 
+	it("reads a Count that GitHub indented onto its own line", async () => {
+		stubFetch(
+			async () =>
+				new Response(
+					[
+						'<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="a"></td>',
+						'<tool-tip for="a">\n      5 contributions on January 1st\n    </tool-tip>',
+					].join(""),
+					{ status: 200 },
+				),
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.days[0].count).toBe(5);
+	});
+
+	it("voids the total when only some tool-tips parse, rather than understating it", async () => {
+		stubFetch(
+			async () =>
+				new Response(
+					[
+						'<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="a"></td>',
+						'<td class="ContributionCalendar-day" data-date="2024-01-02" data-level="3" id="b"></td>',
+						'<tool-tip for="a">5 contributions</tool-tip>',
+					].join(""),
+					{ status: 200 },
+				),
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.days[1].count).toBeNull();
+		expect(result.total).toBeNull();
+	});
+
+	it("still totals when every day whose Count is unknown is a level-0 day", async () => {
+		stubFetch(
+			async () =>
+				new Response(
+					[
+						'<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="a"></td>',
+						'<td class="ContributionCalendar-day" data-date="2024-01-02" data-level="0"></td>',
+						'<tool-tip for="a">5 contributions</tool-tip>',
+					].join(""),
+					{ status: 200 },
+				),
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.total).toBe(5);
+	});
+
 	it("leaves the current year open-ended so it ends today", async () => {
 		const fetchMock = vi.fn<typeof fetch>(async () => new Response(HTML, { status: 200 }));
 		vi.stubGlobal("fetch", fetchMock);

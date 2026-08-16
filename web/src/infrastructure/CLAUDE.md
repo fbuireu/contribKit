@@ -32,7 +32,11 @@ them is how this starts silently returning a full HTML page that the regexes the
 1. `TD_REGEX` finds every `<td>` whose attributes contain `ContributionCalendar-day`, then pulls `data-date`,
    `data-level` and `id` out of the attribute string. A day is kept only when it has **both** a date and a level.
 2. `TOOLTIP_REGEX` finds every `<tool-tip for="…">` and its leading digits, building an `id → count` map. A day's Count
-   is that map's entry for its `id`, or `null`.
+   is that map's entry for its `id`, or `null`. **The `\s*` before those digits is load-bearing**: the pattern
+   anchored them immediately after the `>`, so the day GitHub pretty-printed its markup — a newline and an indent
+   before the number — every Count on the page would have come back `null` at once. The app's parser trims before
+   matching and never had this; it is exactly the "a fix in one is a bug left in the other" case
+   [ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md) exists to catch.
 
 **Levels come from GitHub.** `data-level` is authoritative and is only run through `clampLevel`. This layer never
 derives a level from a count — the app does, and only when the attribute is missing
@@ -51,11 +55,14 @@ derives a level from a count — the app does, and only when the attribute is mi
 no activity, which is a lie the reader cannot detect
 ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-html.md)).
 
-**`total` is a sum of the Counts this parse recovered, and `null` when it recovered none.** It is not GitHub's own
-headline figure — nothing here reads that — so it is only as complete as the tool-tip pass. `null` rather than `0`
-because zero and unknown are different facts and the product may not invent the difference; a test pins that a page
-whose days parse but whose tool-tips do not comes back with `total: null` and every Count `null`, not a year of
-zeroes.
+**`total` is `null` the moment a Contribution Day at level 1 or above has an unknown Count.** It is not GitHub's own
+headline figure — nothing here reads that — so it is only as complete as the tool-tip pass, and a partial pass
+cannot be reported as a measurement. A level-0 day with no Count does **not** void it, because GitHub's level 0is
+zero. That is the same rule `computeContributionStats` applies in the domain and the same one the app's `_totalFor`
+applies, and this file did not follow it: it summed `count ?? 0` whenever *any* tool-tip parsed, so a page whose
+`<td>`s parsed and whose tool-tips half failed produced an **understated total presented as exact** — which
+`statsWithScrapedTotal` then let beat the domain function that had correctly refused to guess. It only degraded
+honestly in the all-or-nothing case.
 
 ## `rendering/` — `svgStringRenderer`
 

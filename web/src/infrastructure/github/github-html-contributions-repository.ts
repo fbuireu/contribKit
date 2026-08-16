@@ -10,7 +10,7 @@ const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
 const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
 const LEVEL_REGEX = /data-level="(\d)"/;
 const ID_REGEX = /\bid="([^"]+)"/;
-const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
+const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>\s*(\d+)/g;
 
 interface BuildUrlParams {
 	username: string;
@@ -61,8 +61,19 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 		count: id === null ? null : (idToCount.get(id) ?? null),
 	}));
 
-	const total = idToCount.size > 0 ? enriched.reduce((sum, day) => sum + (day.count ?? 0), 0) : null;
-	return { days: enriched, total };
+	return { days: enriched, total: totalFor(enriched) };
+};
+
+const totalFor = (days: readonly ContributionDay[]): number | null => {
+	let total = 0;
+	for (const day of days) {
+		if (day.count === null) {
+			if (day.level > 0) return null;
+			continue;
+		}
+		total += day.count;
+	}
+	return total;
 };
 
 export const githubHtmlContributionsRepository: ContributionsRepository = {
