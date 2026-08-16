@@ -19,4 +19,29 @@ final class ContributionStats {
   final int? bestMonthContributions;
 
   final int? bestMonth;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ContributionStats &&
+          currentStreak == other.currentStreak &&
+          longestStreak == other.longestStreak &&
+          bestDayCount == other.bestDayCount &&
+          bestDayDate == other.bestDayDate &&
+          totalDaysActive == other.totalDaysActive &&
+          weeklyAverage == other.weeklyAverage &&
+          bestMonthContributions == other.bestMonthContributions &&
+          bestMonth == other.bestMonth;
+
+  @override
+  int get hashCode => Object.hash(
+    currentStreak,
+    longestStreak,
+    bestDayCount,
+    bestDayDate,
+    totalDaysActive,
+    weeklyAverage,
+    bestMonthContributions,
+    bestMonth,
+  );
 }

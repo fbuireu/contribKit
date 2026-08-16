@@ -20,9 +20,11 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   value. Neither is universal, and the difference matters: `Username` and `Year` reject bad input in their factory,
   and so does `Color.fromHex`, which throws `ArgumentError` on anything that is not 6 or 8 hex digits — though
   `Color`'s primary constructor takes any `int` unchecked. `TipProduct` and `ContributionStats` validate nothing. `Username`, `Year`, `Color` and
-  `Palette` override `==` and `hashCode`; `TipProduct` compares by `id` alone; **`ContributionStats` overrides
-  neither**, so two identical instances are unequal — which is why it must not be put in a Riverpod state that
-  rebuilds on equality. `CellShape`, `CellSize` and `ContributionLevel` are plain enums and need nothing.
+  `Palette` override `==` and `hashCode`, and so does `ContributionStats`; `TipProduct` compares by `id` alone.
+  **`ContributionStats` overrode neither until it started riding on `ViewerState`**, where identity equality would
+  have made every state unequal and rebuilt the screen on every notification — a value object carried in Riverpod
+  state needs value equality or it is not behaving as one. `CellShape`, `CellSize`, `ExportFormat` and
+  `ContributionLevel` are plain enums and need nothing.
 - **Errors are `Failure` subclasses**, never a raw `Exception` or a `String` — with the one documented exception
   below.
 - **Repositories are `abstract interface class` only.** Six of them live here; every implementation is in
@@ -52,10 +54,16 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `Username` | trimmed; non-empty; at most 39 characters, checked separately from the pattern; `^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$` |
 | `Year` | integer in `Year.minYear` (2005) … the current year, else `RangeError`. `Year.current` is the shorthand |
 | `CellSize` | `compact` / `normal` / `large`, each mapping to a `pixels` and a `gap` |
+| `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | — |
 
 `Year.minYear` is **2005**, a product floor rather than GitHub's launch year — GitHub launched in 2008, and four
 documents once claimed otherwise. Do not "correct" it.
+
+**`ExportFormat` is the one value object with no web counterpart.** The web offers the same three Export Formats
+from `ui/components/export/export-formats.ts`, because there the choice never leaves the browser; here it crosses
+from a widget through a provider to a repository, and it used to cross as a private enum each surface declared for
+itself. The glossary named it long before any module did.
 
 **`ContributionLevel` is an enum here and a `0–4` union on the web.** Both are five bands in the same order; the
 representations differ because the languages do. Anything serialising a level has to pick a side explicitly.
@@ -94,9 +102,11 @@ same lie `_totalFor` refuses to tell. `currentStreak`, `longestStreak`, `totalDa
 non-nullable: they count *days*, which the Contribution Level answers on its own.
 
 **Five of the eight figures have no reader.** `StatsPanel` renders `currentStreak`, `longestStreak` and the
-calendar's own `totalContributions`, and nothing else in `lib/` touches the rest. They are computed on every call
-for a surface that does not exist yet — which is exactly why their handling of an unknown Count was wrong for a
-while with nothing going visibly wrong.
+calendar's own `totalContributions`, and nothing else in `lib/` touches the rest. They are computed for a surface
+that does not exist yet — which is exactly why their handling of an unknown Count was wrong for a while with
+nothing going visibly wrong. They are computed **once per Contribution Calendar** now, in `ViewerNotifier`;
+`StatsPanel` used to call `ContributionStatsService.compute` from its own `build`, so all eight were re-derived on
+every frame and no test could reach the derivation through the notifier at all.
 
 ## Services
 
@@ -109,9 +119,8 @@ while with nothing going visibly wrong.
   best day and its date, active days, weekly average, best month and its total. The web's `ContributionStats` shares
   exactly **two** of those eight — the two streaks — and adds a `totalContributions` the app keeps on the calendar
   rather than in its stats. The remaining six are an unbuilt half, not a decision. So is most of this one: `StatsPanel` reads
-  `currentStreak` and `longestStreak` and nothing else, so six of the eight figures are computed on every call and
-  shown nowhere. They are in the glossary's definition of Contribution Stats, so they stay; they are just not wired
-  up yet.
+  `currentStreak` and `longestStreak` and nothing else, so six of the eight figures are computed and shown nowhere.
+  They are in the glossary's definition of Contribution Stats, so they stay; they are just not wired up yet.
 - **`bestMonth` is a month number, 1–12**, straight out of `DateTime.month`. It was called `bestMonthIndex`, which
   invited a zero-based read and an off-by-one against any month-name table. The field is `null` only when no day in
   the calendar has a count above zero.

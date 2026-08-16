@@ -604,25 +604,81 @@ final class FetchContributionsProvider
 String _$fetchContributionsHash() =>
     r'f2e68a69f79da1b8720ab3cb2b243422e1988349';
 
-@ProviderFor(svgExportCalendar)
-final svgExportCalendarProvider = SvgExportCalendarProvider._();
+@ProviderFor(invalidateContributionCache)
+final invalidateContributionCacheProvider =
+    InvalidateContributionCacheProvider._();
 
-final class SvgExportCalendarProvider
-    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
-    with $Provider<ExportCalendar> {
-  SvgExportCalendarProvider._()
+final class InvalidateContributionCacheProvider
+    extends
+        $FunctionalProvider<
+          InvalidateContributionCache,
+          InvalidateContributionCache,
+          InvalidateContributionCache
+        >
+    with $Provider<InvalidateContributionCache> {
+  InvalidateContributionCacheProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'svgExportCalendarProvider',
+        name: r'invalidateContributionCacheProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$svgExportCalendarHash();
+  String debugGetCreateSourceHash() => _$invalidateContributionCacheHash();
+
+  @$internal
+  @override
+  $ProviderElement<InvalidateContributionCache> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  InvalidateContributionCache create(Ref ref) {
+    return invalidateContributionCache(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(InvalidateContributionCache value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<InvalidateContributionCache>(value),
+    );
+  }
+}
+
+String _$invalidateContributionCacheHash() =>
+    r'fefa1cbfa88046ad7883441da57380b87c920327';
+
+@ProviderFor(exportCalendar)
+final exportCalendarProvider = ExportCalendarFamily._();
+
+final class ExportCalendarProvider
+    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
+    with $Provider<ExportCalendar> {
+  ExportCalendarProvider._({
+    required ExportCalendarFamily super.from,
+    required ExportFormat super.argument,
+  }) : super(
+         retry: null,
+         name: r'exportCalendarProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$exportCalendarHash();
+
+  @override
+  String toString() {
+    return r'exportCalendarProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -631,7 +687,8 @@ final class SvgExportCalendarProvider
 
   @override
   ExportCalendar create(Ref ref) {
-    return svgExportCalendar(ref);
+    final argument = this.argument as ExportFormat;
+    return exportCalendar(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -641,92 +698,37 @@ final class SvgExportCalendarProvider
       providerOverride: $SyncValueProvider<ExportCalendar>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExportCalendarProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$svgExportCalendarHash() => r'6210199ebfb3cd2e19f20d7de32999718a2c5dee';
+String _$exportCalendarHash() => r'25753cf1a660e48c83c48b9913507399e3e18c20';
 
-@ProviderFor(pngExportCalendar)
-final pngExportCalendarProvider = PngExportCalendarProvider._();
-
-final class PngExportCalendarProvider
-    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
-    with $Provider<ExportCalendar> {
-  PngExportCalendarProvider._()
+final class ExportCalendarFamily extends $Family
+    with $FunctionalFamilyOverride<ExportCalendar, ExportFormat> {
+  ExportCalendarFamily._()
     : super(
-        from: null,
-        argument: null,
         retry: null,
-        name: r'pngExportCalendarProvider',
-        isAutoDispose: true,
+        name: r'exportCalendarProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$pngExportCalendarHash();
-
-  @$internal
-  @override
-  $ProviderElement<ExportCalendar> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  ExportCalendar create(Ref ref) {
-    return pngExportCalendar(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ExportCalendar value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ExportCalendar>(value),
-    );
-  }
-}
-
-String _$pngExportCalendarHash() => r'7e33e13b6dfa30d6c9a50b608424ca918d4f5b8a';
-
-@ProviderFor(markdownExportCalendar)
-final markdownExportCalendarProvider = MarkdownExportCalendarProvider._();
-
-final class MarkdownExportCalendarProvider
-    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
-    with $Provider<ExportCalendar> {
-  MarkdownExportCalendarProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'markdownExportCalendarProvider',
         isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
       );
 
-  @override
-  String debugGetCreateSourceHash() => _$markdownExportCalendarHash();
-
-  @$internal
-  @override
-  $ProviderElement<ExportCalendar> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  ExportCalendarProvider call(ExportFormat format) =>
+      ExportCalendarProvider._(argument: format, from: this);
 
   @override
-  ExportCalendar create(Ref ref) {
-    return markdownExportCalendar(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ExportCalendar value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ExportCalendar>(value),
-    );
-  }
+  String toString() => r'exportCalendarProvider';
 }
-
-String _$markdownExportCalendarHash() =>
-    r'22c91609ab2e9462b33b96852dc16dc28929d671';
 
 @ProviderFor(ThemeModeNotifier)
 final themeModeProvider = ThemeModeNotifierProvider._();

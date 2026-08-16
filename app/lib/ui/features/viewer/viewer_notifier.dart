@@ -1,3 +1,4 @@
+import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
@@ -80,6 +81,7 @@ class ViewerNotifier extends _$ViewerNotifier {
       username: username,
       year: year,
       calendar: null,
+      stats: null,
       error: null,
       isLoadingCalendar: true,
     );
@@ -90,18 +92,15 @@ class ViewerNotifier extends _$ViewerNotifier {
         username: username,
         year: year,
       );
-      state = state.copyWith(calendar: calendar, fromCache: fromCache);
+      state = state.copyWith(
+        calendar: calendar,
+        stats: ContributionStatsService.compute(calendar),
+        fromCache: fromCache,
+      );
       await ref.read(settingsRepositoryProvider).saveLastUsername(username);
       await ref.read(settingsRepositoryProvider).saveLastYear(year);
 
-      final palette = state.palette;
-      if (palette != null) {
-        CalendarWidgetService.update(
-          calendar: calendar,
-          palette: palette,
-          cellShape: state.cellShape,
-        );
-      }
+      _updateWidget();
     } on Failure catch (f) {
       state = state.copyWith(error: f);
     } catch (e) {
@@ -146,7 +145,7 @@ class ViewerNotifier extends _$ViewerNotifier {
   Future<void> refreshContributions() async {
     final username = state.username;
     if (username == null) return;
-    await ref.read(contributionRepositoryProvider).invalidateCache(username);
+    await ref.read(invalidateContributionCacheProvider)(username);
     await fetchContributions(username: username, year: state.effectiveYear);
   }
 

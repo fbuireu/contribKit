@@ -129,7 +129,8 @@ state ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothi
   the home-screen widget silently. It also re-spelled the legacy-key fallback and the enum defaults, and its first
   two reads sat outside the `try`, so a value stored under the wrong type threw a raw `TypeError` out of the
   isolate rather than degrading through `_read`. The isolate still constructs its repositories by hand, because a
-  background isolate has no `ProviderScope` — but it no longer knows a single storage key.
+  background isolate has no `ProviderScope` — but it no longer knows a single storage key, and since the refresh
+  sequence moved into `HomeScreenWidgetRefresh` it no longer knows the order of the reads either.
   This is the first of the three traps in the [root guide](../../../CLAUDE.md#maintenance-contract).
 - **`_toDto` is hand-written; the DTOs are read-only.** Serialisation is a map literal in the repository, so codegen
   cannot tell you when the two drift — see [`github/dtos/`](./github/dtos/CLAUDE.md).

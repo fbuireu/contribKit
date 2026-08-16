@@ -8,6 +8,7 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
@@ -19,8 +20,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-
-enum _Fmt { png, svg, md }
 
 class ExportSheet extends ConsumerStatefulWidget {
   const ExportSheet({
@@ -57,7 +56,7 @@ class ExportSheet extends ConsumerStatefulWidget {
 }
 
 class _ExportSheetState extends ConsumerState<ExportSheet> {
-  _Fmt _selected = _Fmt.png;
+  ExportFormat _selected = ExportFormat.fallback;
   bool _exporting = false;
   String? _exportError;
 
@@ -74,48 +73,29 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
       _exporting = true;
       _exportError = null;
     });
-    final user = widget.calendar.username.value;
-    final year = widget.calendar.year.value;
     try {
-      switch (_selected) {
-        case _Fmt.png:
-          final bytes = await ref.read(pngExportCalendarProvider)(
-            calendar: widget.calendar,
-            options: _options,
-          );
-          await SharePlus.instance.share(
-            ShareParams(
-              files: [
-                XFile.fromData(
-                  Uint8List.fromList(bytes),
-                  name: '${user}_$year.png',
-                  mimeType: 'image/png',
+      final bytes = await ref.read(exportCalendarProvider(_selected))(
+        calendar: widget.calendar,
+        options: _options,
+      );
+
+      if (_selected.isCopiedAsText) {
+        await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+      } else {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [
+              XFile.fromData(
+                Uint8List.fromList(bytes),
+                name: _selected.fileNameFor(
+                  username: widget.calendar.username,
+                  year: widget.calendar.year,
                 ),
-              ],
-            ),
-          );
-        case _Fmt.svg:
-          final bytes = await ref.read(svgExportCalendarProvider)(
-            calendar: widget.calendar,
-            options: _options,
-          );
-          await SharePlus.instance.share(
-            ShareParams(
-              files: [
-                XFile.fromData(
-                  Uint8List.fromList(bytes),
-                  name: '${user}_$year.svg',
-                  mimeType: 'image/svg+xml',
-                ),
-              ],
-            ),
-          );
-        case _Fmt.md:
-          final bytes = await ref.read(markdownExportCalendarProvider)(
-            calendar: widget.calendar,
-            options: _options,
-          );
-          await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+                mimeType: _selected.mimeType,
+              ),
+            ],
+          ),
+        );
       }
     } catch (error) {
       if (mounted) setState(() => _exportError = _describe(error));
@@ -131,7 +111,6 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final user = widget.calendar.username.value;
 
     return AppSheet(
       title: const Text('Export'),
@@ -151,11 +130,11 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
               palette: widget.palette,
               cellShape: widget.cellShape,
               cellSize: widget.cellSize,
-              filename: '$user.${_selected.name}',
+              filename: _selected.previewNameFor(widget.calendar.username),
               colors: colors,
             ),
             const SizedBox(height: Tokens.space4),
-            for (final fmt in _Fmt.values)
+            for (final fmt in ExportFormat.values)
               Padding(
                 padding: const EdgeInsets.only(bottom: Tokens.space2),
                 child: _FormatTile(
@@ -192,7 +171,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                       children: [
                         const Icon(LucideIcons.download, size: Tokens.iconSm),
                         const SizedBox(width: Tokens.space2),
-                        Text('Save ${_selected.name.toUpperCase()}'),
+                        Text('Save ${_selected.label}'),
                       ],
                     ),
                   ),
@@ -317,30 +296,15 @@ class _FormatTile extends StatelessWidget {
     required this.onTap,
   });
 
-  final _Fmt fmt;
+  final ExportFormat fmt;
   final bool isSelected;
   final AppColors colors;
   final VoidCallback onTap;
 
   static const _meta = {
-    _Fmt.png: (
-      ext: '.png',
-      label: 'PNG',
-      detail: '2880×720 · transparent',
-      size: '~186 KB',
-    ),
-    _Fmt.svg: (
-      ext: '.svg',
-      label: 'SVG',
-      detail: 'Vector · scalable',
-      size: '~24 KB',
-    ),
-    _Fmt.md: (
-      ext: '.md',
-      label: 'MD',
-      detail: 'README embed snippet',
-      size: '~1 KB',
-    ),
+    ExportFormat.png: (detail: '2880×720 · transparent', size: '~186 KB'),
+    ExportFormat.svg: (detail: 'Vector · scalable', size: '~24 KB'),
+    ExportFormat.markdown: (detail: 'README embed snippet', size: '~1 KB'),
   };
 
   @override
@@ -381,7 +345,7 @@ class _FormatTile extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        m.ext,
+                        '.${fmt.suffix}',
                         style: AppTextStyles.mono(
                           fontSize: Tokens.textSm,
                           fontWeight: FontWeight.w600,
@@ -390,7 +354,7 @@ class _FormatTile extends StatelessWidget {
                       ),
                       const SizedBox(width: Tokens.space2),
                       Text(
-                        m.label,
+                        fmt.label,
                         style: TextStyle(
                           fontSize: Tokens.textBase,
                           fontWeight: FontWeight.w600,
@@ -432,7 +396,7 @@ class _FmtIcon extends StatelessWidget {
     required this.colors,
   });
 
-  final _Fmt fmt;
+  final ExportFormat fmt;
   final bool isSelected;
   final Color accent;
   final AppColors colors;
@@ -455,17 +419,17 @@ class _FmtIcon extends StatelessWidget {
       ),
       child: Center(
         child: switch (fmt) {
-          _Fmt.png => Icon(
+          ExportFormat.png => Icon(
             LucideIcons.image,
             size: Tokens.iconLg,
             color: iconColor,
           ),
-          _Fmt.svg => Icon(
+          ExportFormat.svg => Icon(
             LucideIcons.penLine,
             size: Tokens.iconLg,
             color: iconColor,
           ),
-          _Fmt.md => Text(
+          ExportFormat.markdown => Text(
             'M↓',
             style: AppTextStyles.mono(
               fontSize: Tokens.textSm,

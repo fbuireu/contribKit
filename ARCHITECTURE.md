@@ -150,7 +150,9 @@ Separately, `callbackDispatcher` in `app/lib/main.dart` runs every 24 hours unde
 home-screen widget. It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
 hand — but it reads settings through `SettingsRepository` like everything else, so a renamed key breaks it at
 compile time. It read the box by string literal until that changed, which is the first of the three traps named in
-[CLAUDE.md](./CLAUDE.md#maintenance-contract).
+[CLAUDE.md](./CLAUDE.md#maintenance-contract). What it then does with them is `HomeScreenWidgetRefresh`, the same
+module the foreground writes through: the seven-step sequence used to be spelled out in both places, so the isolate
+could drift from the app without anything failing.
 
 ## 4. Failures
 

@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:contribkit/ui/widgets/app_icons.dart';
 
-import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
@@ -96,6 +96,14 @@ class _ExportFormatButton extends StatelessWidget {
   );
 }
 
+const _panelOrder = [ExportFormat.svg, ExportFormat.png, ExportFormat.markdown];
+
+const _sublabels = {
+  ExportFormat.svg: 'vector',
+  ExportFormat.png: 'image',
+  ExportFormat.markdown: 'markdown',
+};
+
 class _ExportPanelState extends ConsumerState<ExportPanel> {
   bool _exporting = false;
   bool _copied = false;
@@ -108,11 +116,7 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
     gap: widget.cellSize.gap,
   );
 
-  Future<void> _export({
-    required ExportCalendar useCase,
-    required String filename,
-    required String mimeType,
-  }) async {
+  Future<void> _export(ExportFormat format) async {
     if (_exporting) return;
     setState(() {
       _exporting = true;
@@ -120,11 +124,17 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
     });
 
     try {
-      final bytes = await useCase(calendar: widget.calendar, options: _options);
+      final bytes = await ref.read(exportCalendarProvider(format))(
+        calendar: widget.calendar,
+        options: _options,
+      );
       final xFile = XFile.fromData(
         Uint8List.fromList(bytes),
-        name: filename,
-        mimeType: mimeType,
+        name: format.fileNameFor(
+          username: widget.calendar.username,
+          year: widget.calendar.year,
+        ),
+        mimeType: format.mimeType,
       );
       await SharePlus.instance.share(ShareParams(files: [xFile]));
     } catch (error) {
@@ -138,7 +148,7 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
       ? 'Export failed: ${error.message}'
       : 'Export failed. Please try again.';
 
-  Future<void> _copyMarkdown(ExportCalendar useCase) async {
+  Future<void> _copyMarkdown() async {
     if (_exporting) return;
     setState(() {
       _exporting = true;
@@ -146,7 +156,9 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
     });
 
     try {
-      final bytes = await useCase(calendar: widget.calendar, options: _options);
+      final bytes = await ref.read(
+        exportCalendarProvider(ExportFormat.markdown),
+      )(calendar: widget.calendar, options: _options);
       await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
       if (mounted) {
         setState(() => _copied = true);
@@ -163,12 +175,6 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final svg = ref.read(svgExportCalendarProvider);
-    final png = ref.read(pngExportCalendarProvider);
-    final md = ref.read(markdownExportCalendarProvider);
-    final user = widget.calendar.username.value;
-    final year = widget.calendar.year.value;
-
     final colors = AppColors.of(context);
     return AppCard(
       child: Column(
@@ -193,42 +199,17 @@ class _ExportPanelState extends ConsumerState<ExportPanel> {
           Row(
             spacing: Tokens.space2,
             children: [
-              _ExportFormatButton(
-                label: 'SVG',
-                sublabel: 'vector',
-                colors: colors,
-                disabled: _exporting,
-                onTap: () => _export(
-                  useCase: svg,
-                  filename: '${user}_$year.svg',
-                  mimeType: 'image/svg+xml',
+              for (final format in _panelOrder)
+                _ExportFormatButton(
+                  label: format.label,
+                  sublabel: _sublabels[format]!,
+                  colors: colors,
+                  disabled: _exporting,
+                  onTap: () => _export(format),
                 ),
-              ),
-              _ExportFormatButton(
-                label: 'PNG',
-                sublabel: 'image',
-                colors: colors,
-                disabled: _exporting,
-                onTap: () => _export(
-                  useCase: png,
-                  filename: '${user}_$year.png',
-                  mimeType: 'image/png',
-                ),
-              ),
-              _ExportFormatButton(
-                label: 'MD',
-                sublabel: 'markdown',
-                colors: colors,
-                disabled: _exporting,
-                onTap: () => _export(
-                  useCase: md,
-                  filename: '${user}_$year.md',
-                  mimeType: 'text/markdown',
-                ),
-              ),
               const Spacer(),
               AppButton.ghost(
-                onPressed: _exporting ? null : () => _copyMarkdown(md),
+                onPressed: _exporting ? null : _copyMarkdown,
                 size: AppButtonSize.sm,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

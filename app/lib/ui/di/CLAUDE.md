@@ -24,8 +24,8 @@ Three tiers, in dependency order, plus one notifier that does not fit them:
 
 1. **Repository providers** — `paletteRepository`, `suggestedUsernameRepository`, `contributionRepository`,
    `purchaseRepository`, `settingsRepository`, and one export repository per format.
-2. **Use-case providers** — `fetchTipProducts`, `purchaseTip`, `fetchContributions` and one `ExportCalendar` per
-   format, each `ref.watch`-ing its repository.
+2. **Use-case providers** — `fetchTipProducts`, `purchaseTip`, `fetchContributions`, and `exportCalendar`, which
+   takes an `ExportFormat` and is therefore one provider rather than one per format.
 3. **Async data providers** — `palettes`, `suggestedUsernames`, which await a repository's load and are consumed as
    an `AsyncValue`.
 
@@ -36,9 +36,14 @@ not as a precedent — the next stateful thing goes in its feature.
 
 ## Gotchas
 
-- **There is more than one export repository provider,** one per Export Format, because `ExportRepository` is a
-  single interface with three implementations. They cannot be collapsed — Riverpod keys on the provider, not the
-  return type — so a new format is a new provider plus a new branch wherever the format is chosen.
+- **There is one export *repository* provider per Export Format, and one export *use-case* provider for all of
+  them.** `ExportRepository` is a single interface with three implementations, and Riverpod keys on the provider
+  rather than the return type, so the repository tier genuinely needs three. The use-case tier does not:
+  `exportCalendar(format)` is a family that switches over `ExportFormat` and hands back the matching repository.
+  This guide claimed the whole thing could not be collapsed, and each of the three widgets that chose a format
+  therefore hard-coded its own filename and MIME type — which is how `ExportPanel` came to share Markdown as a
+  `.md` file while `ExportSheet` copied it to the clipboard. A new format is now a repository, a repository
+  provider, and one `ExportFormat` case.
 - **The background isolate has no `ProviderScope`, and therefore no providers at all.** `callbackDispatcher` in
   `app/lib/main.dart` constructs `AssetPaletteRepository()`, `GitHubContributionRepository()` and
   `HiveSettingsRepository()` by hand. Adding a

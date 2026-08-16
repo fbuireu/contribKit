@@ -1,6 +1,6 @@
 import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/services/contribution_stats_service.dart';
+import 'package:contribkit/domain/value_objects/contribution_stats.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
@@ -8,13 +8,13 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 class StatsPanel extends StatelessWidget {
-  const StatsPanel({super.key, required this.calendar});
+  const StatsPanel({super.key, required this.calendar, required this.stats});
 
   final ContributionCalendar calendar;
+  final ContributionStats stats;
 
   @override
   Widget build(BuildContext context) {
-    final stats = ContributionStatsService.compute(calendar);
     final colors = AppColors.of(context);
     final fmt = NumberFormat.decimalPattern();
     final isCurrentYear = calendar.year.value == DateTime.now().year;

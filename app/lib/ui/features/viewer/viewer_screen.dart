@@ -429,7 +429,7 @@ class _Body extends ConsumerWidget {
       spacing: Tokens.space4,
       children: [
         _CalendarCard(state: state),
-        StatsPanel(calendar: state.calendar!),
+        StatsPanel(calendar: state.calendar!, stats: state.stats!),
         _ActionRow(state: state),
       ],
     );

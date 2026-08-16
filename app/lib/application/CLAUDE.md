@@ -14,30 +14,32 @@ be constructible and testable with `const FetchContributions(repository: fake)` 
 - **Named parameters** for anything taking more than one argument, matching the repository interface it fronts.
   `PurchaseTip.call(TipProduct product)` is the one positional signature, because it has exactly one argument.
 
-## The four use cases
+## The five use cases
 
 | Class | Fronts | Returns |
 | --- | --- | --- |
 | `FetchContributions` | `ContributionRepository.fetchCalendar` | `({ ContributionCalendar calendar, bool fromCache })` |
+| `InvalidateContributionCache` | `ContributionRepository.invalidateCache` | `Future<void>` |
 | `ExportCalendar` | `ExportRepository.export` | `List<int>` — the encoded bytes |
 | `FetchTipProducts` | `PurchaseRepository.getProducts` | `List<TipProduct>` |
 | `PurchaseTip` | `PurchaseRepository.purchase` | `Future<void>` |
 
-All four are one-line delegations today, and that is fine. They exist so `ui/` depends on `application/` rather than
+All five are one-line delegations today, and that is fine. They exist so `ui/` depends on `application/` rather than
 on a repository interface it would also have to call, and so a rule belonging between the widget and the repository
 has an obvious home. Do not inline them into the notifiers.
 
 **This was re-examined and upheld.** The web deleted two of its own thin use cases for failing the deletion test,
 which invites the same question here, and the answer is not the same: the two the web deleted were provable
-identities — `renderer => params => renderer(params)`, and a factory returning a module constant. These four bind a
+identities — `renderer => params => renderer(params)`, and a factory returning a module constant. These five bind a
 dependency in a constructor and name the operation in the domain's language. The web's `fetchContributions`, which
 is exactly this shape, was kept for exactly this reason.
 
-One real gap, though: `ViewerNotifier.refreshContributions` calls
-`ref.read(contributionRepositoryProvider).invalidateCache(username)` directly, so `ui/` already reaches a repository
-method with no use case in front of it. The boundary these four exist to draw has a hole in it, and the honest
-options are a fifth use case or an admission in this guide that `invalidateCache` is exempt. It is currently
-neither.
+**`InvalidateContributionCache` is the fifth, and it exists to close a hole this guide used to record rather than
+fix.** `ViewerNotifier.refreshContributions` called
+`ref.read(contributionRepositoryProvider).invalidateCache(username)` directly, so `ui/` reached a repository method
+with no use case in front of it — the one place the boundary these classes draw was not actually drawn. The honest
+options were a fifth use case or an admission that `invalidateCache` was exempt; this is the first. Every
+`ContributionRepository` method now has a use case, and `ui/` names no repository method of its own.
 
 ## Gotchas
 
