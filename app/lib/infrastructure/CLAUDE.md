@@ -111,8 +111,21 @@ users silently lose the setting.
 
 ## `export/`
 
-One repository per Export Format, each returning bytes and each converting its own failures to `ExportFailure`. Two
-of the three carry an `on ExportFailure { rethrow; }` arm ahead of the catch-all, so a failure that is already typed
+One repository per Export Format, each returning bytes and each converting its own failures to `ExportFailure`.
+
+**The SVG and Markdown repositories are tested; the PNG one is not.** That split is about reach, not importance.
+`SvgExportRepository` touches nothing but `dart:convert` and this project's own domain — it is a pure function
+behind a `Future`, and its test pins the document size (including the trailing gap the width subtracts and the web
+does not), the `<title>`, one Cell per Contribution Day, `isDark: true` keeping `noneLight` out of an Export
+([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the `unknown` wording for a Count
+nobody measured ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)), all five Cell
+Shapes, and that the corner radius and dot radius come from `CellGeometryService` rather than a local number.
+`MarkdownExportRepository` is tested through a fake `ExportRepository`, which is the seam it already had and nobody
+was using. `PngExportRepository` paints on a `dart:ui` canvas: reachable under `flutter test` via the Skia software
+path, but its assertions would be PNG header and pixel probes, and its `byteData == null` arm cannot be reached
+from outside at all.
+
+Two of the three carry an `on ExportFailure { rethrow; }` arm ahead of the catch-all, so a failure that is already typed
 keeps its own message instead of being wrapped twice — **and they need it for different reasons**. Markdown is the
 only one that composes another repository: it holds the SVG repository and embeds its output, so the arm passes an
 SVG failure through unchanged. PNG composes nothing — it paints straight onto a `dart:ui` canvas — but throws
