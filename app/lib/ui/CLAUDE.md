@@ -35,7 +35,7 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 | `features/viewer/` | The Viewer screen and `ViewerNotifier`, which owns nearly all app state |
 | `features/customizer/` | Choosing a Palette, a Cell Shape, a Cell Size and a Background Preset — all four through `SettingPicker` |
 | `features/export/` | Choosing an `ExportFormat` and the share flow — the format itself is a domain value object, not a private enum per surface |
-| `features/tip/` | The Tip Jar |
+| `features/tip/` | The Tip Jar, and `TipProductPresentation` — the emoji and label each Tip Product is shown with |
 | `features/widget/` | Home-screen widget data sync and configuration |
 
 ## `ViewerNotifier` owns the state
@@ -80,6 +80,19 @@ re-decides what a label looks like.
 **`PalettePicker` still swallows both loading and error into `SizedBox.shrink()`.** A failed Palette load therefore
 renders the Customizer with a silently missing section. That belongs at the sheet, which has no error surface yet;
 it is a known gap, not a decision.
+
+## `features/tip/` — the store id is a contract
+
+`TipProductPresentation.of` picks a Tip Product's emoji and label by testing whether its **store identifier
+contains** a known fragment — `coffee`, `croissant`, `lunch` — and falls back to 🎁 / "Tip" for anything else. That
+is a contract with Play and App Store SKUs, and the fallback means **renaming a SKU degrades silently** rather than
+failing: the Tip Jar keeps working and quietly shows a generic tile. It lived as a private static on the sheet's
+`State`, where nothing could reach it and it ran twice per product per frame. Display copy belongs in `ui/` — the
+same place as `BackgroundPresets.labels` and `FailureMessage` — so it stays here rather than moving to the domain,
+but as a module with a test.
+
+`TipProduct.title` comes from the store and **nothing renders it**; the label above wins. Do not assume the store's
+own wording reaches the screen.
 
 ## `features/widget/`
 

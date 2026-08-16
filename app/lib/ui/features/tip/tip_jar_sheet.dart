@@ -4,6 +4,7 @@ import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_sheet.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
+import 'package:contribkit/ui/features/tip/tip_product_presentation.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
@@ -28,20 +29,6 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
   String? _purchasingId;
   String? _successId;
   String? _errorId;
-
-  static const _meta = {
-    'coffee': (emoji: '☕', label: 'Coffee'),
-    'croissant': (emoji: '🥐', label: 'Croissant'),
-    'lunch': (emoji: '🍱', label: 'Lunch'),
-  };
-
-  static ({String emoji, String label}) _metaFor(String id) {
-    final key = id.toLowerCase();
-    for (final entry in _meta.entries) {
-      if (key.contains(entry.key)) return entry.value;
-    }
-    return (emoji: '🎁', label: 'Tip');
-  }
 
   @override
   void initState() {
@@ -141,8 +128,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
       for (final p in _products!)
         _TierCard(
           product: p,
-          emoji: _metaFor(p.id).emoji,
-          label: _metaFor(p.id).label,
+          look: TipProductPresentation.of(p),
           isPurchasing: _purchasingId == p.id,
           isSuccess: _successId == p.id,
           isError: _errorId == p.id,
@@ -165,8 +151,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
 class _TierCard extends StatelessWidget {
   const _TierCard({
     required this.product,
-    required this.emoji,
-    required this.label,
+    required this.look,
     required this.isPurchasing,
     required this.isSuccess,
     required this.isError,
@@ -176,8 +161,7 @@ class _TierCard extends StatelessWidget {
   });
 
   final TipProduct product;
-  final String emoji;
-  final String label;
+  final TipProductLook look;
   final bool isPurchasing;
   final bool isSuccess;
   final bool isError;
@@ -210,7 +194,7 @@ class _TierCard extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              emoji,
+              look.emoji,
               style: const TextStyle(fontSize: Tokens.emojiSize, height: 1),
             ),
             const SizedBox(width: Tokens.space2),
@@ -220,7 +204,7 @@ class _TierCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    label,
+                    look.label,
                     style: TextStyle(
                       fontSize: Tokens.textBase,
                       fontWeight: FontWeight.w500,
