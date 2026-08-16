@@ -1,3 +1,10 @@
+# [contribkit-app-v1.3.2](https://github.com/fbuireu/contribKit/compare/app-v1.3.1...app-v1.3.2) (2026-08-16)
+
+
+### Bug Fixes
+
+* **contribkit-app:** apply edge-to-edge from the first frame on Android 14 and lower ([a765082](https://github.com/fbuireu/contribKit/commit/a7650820e5e160e854510fb0e909ba37d13cf630))
+
 # [contribkit-app-v1.3.1](https://github.com/fbuireu/contribKit/compare/app-v1.3.0...app-v1.3.1) (2026-08-15)
 
 
