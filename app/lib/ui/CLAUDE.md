@@ -10,7 +10,11 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 - **Widgets are dumb**: `ref.watch` to read, `ref.read(notifier).method()` to act.
 - **Never import `shadcn_ui` in a feature widget** — go through the `AppXxx` wrappers in `widgets/`. The whole
   package is confined to `widgets/`, `theme/app_colors.dart` and `main.dart`, and the docs-consistency test fails
-  on any other importer. If a primitive has no wrapper yet, add one rather than reaching past it.
+  on any other importer. If a primitive has no wrapper yet, add one rather than reaching past it. **That rule is
+  what keeps a thin-looking wrapper**: `AppCard` and `AppTooltip` are near pass-throughs, but deleting them would
+  push a `shadcn_ui` import into `features/` — they move complexity rather than concentrating it. A wrapper with
+  *no* caller has no such defence, which is why `AppBadge` was deleted; the one surface that wanted a badge, the
+  `cached` pill in `viewer_screen.dart`, had hand-rolled its own beside it without ever reaching for the wrapper.
 - **Never `MaterialApp`.** The root is `ShadApp`, configured in `app/lib/main.dart`.
 - **Never a hardcoded colour, spacing or duration.** `Tokens`, `AppColors` and the rest of
   [`theme/`](./theme/CLAUDE.md). That includes the ones that look incidental: the sheet scrim is `AppColors.scrim`,
@@ -27,7 +31,7 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 |---|---|
 | `di/` | All dependency wiring — the only place that constructs infrastructure objects |
 | `theme/` | `tokens.dart`, `app_colors.dart`, `app_text_styles.dart`, `background_presets.dart` — and no palette table, see [`theme/`](./theme/CLAUDE.md) |
-| `widgets/` | Shared `AppXxx` wrappers over `shadcn_ui` primitives — badge, button, card, text field, tooltip, sheet. `AppButton` takes an `AppButtonSize`, not shadcn's, so the type does not leak either. `app_icons.dart` re-exports `LucideIcons`, which arrives through `shadcn_ui` and is not a declared dependency of this package |
+| `widgets/` | Shared `AppXxx` wrappers over `shadcn_ui` primitives — button, card, text field, tooltip, sheet. `AppButton` takes an `AppButtonSize`, not shadcn's, so the type does not leak either. `app_icons.dart` re-exports `LucideIcons`, which arrives through `shadcn_ui` and is not a declared dependency of this package |
 | `features/viewer/` | The Viewer screen and `ViewerNotifier`, which owns nearly all app state |
 | `features/customizer/` | Choosing a Palette, a Cell Shape, a Cell Size and a Background Preset |
 | `features/export/` | Choosing an `ExportFormat` and the share flow — the format itself is a domain value object, not a private enum per surface |
