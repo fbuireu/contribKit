@@ -40,7 +40,11 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   renaming an id in a component silently turned a renderer into a no-op — the page kept working and simply stopped
   updating. Add a node the client touches, and add its id here in the same change. `theme-toggle.ts` was the last
   file reaching past it with a literal `getElementById`, and `Header.astro` spelled the same id back; both now go
-  through `ElementId.ThemeToggle`.
+  through `ElementId.ThemeToggle`. **The Playwright suite imports this file too**, by relative path — `tsconfig`
+  includes `e2e/` and Playwright's transform resolves it. Three `Selector` entries existed whose only real consumer
+  was the e2e, which spelled the same strings by hand; and the suite clicked `.theme-toggle`, a class the contract
+  does not own, sitting beside the id it does — dropping that redundant-looking class would have broken the e2e
+  with nothing to explain why. Add a selector here and use it from both sides, tests included.
 - **State is module-level, in `state.ts`** — two variables, `days` and `username`, behind getters and setters.
   There is no store and no framework. Anything needing the current grid calls `getDays()`; anything changing it
   calls `setDays()` and then a `render*` function. Nothing subscribes, so **a mutation without a matching render

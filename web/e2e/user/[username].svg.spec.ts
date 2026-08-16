@@ -18,4 +18,12 @@ test.describe("user svg endpoint", () => {
 		const response = await request.get("/user/foo_bar.svg");
 		expect(response.status()).toBe(400);
 	});
+
+	test("opts out of the same-origin resource policy, so the Embed renders elsewhere", async ({ request }) => {
+		const embed = await request.get("/user/torvalds.svg");
+		const page = await request.get("/");
+
+		expect(embed.headers()["cross-origin-resource-policy"]).toBe("cross-origin");
+		expect(page.headers()["cross-origin-resource-policy"]).toBe("same-origin");
+	});
 });
