@@ -1,8 +1,8 @@
 import 'package:contribkit/domain/value_objects/palette.dart';
-import 'package:contribkit/ui/widgets/app_tooltip.dart';
-import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/features/customizer/widgets/setting_picker.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
+import 'package:contribkit/ui/widgets/app_tooltip.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,99 +18,55 @@ class PalettePicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final palettesAsync = ref.watch(palettesProvider);
-
-    return palettesAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
-      data: (palettes) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: Tokens.space2,
-        children: [
-          Text(
-            'Palette',
-            style: TextStyle(
-              fontSize: Tokens.textSm,
-              color: AppColors.of(context).mutedForeground,
+    return ref
+        .watch(palettesProvider)
+        .when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
+          data: (palettes) => SettingPicker<Palette>(
+            label: 'Palette',
+            options: palettes,
+            selected: selected,
+            onSelected: onSelected,
+            scrollable: true,
+            optionBuilder: (palette, isSelected, onTap) => AppTooltip(
+              message: Text(palette.name),
+              child: SettingSwatch(
+                isSelected: isSelected,
+                onTap: onTap,
+                padding: const EdgeInsets.all(Tokens.space1),
+                child: _PaletteRamp(palette: palette),
+              ),
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: Tokens.space2,
-              children: [
-                for (final palette in palettes)
-                  _PaletteSwatch(
-                    palette: palette,
-                    isSelected: palette == selected,
-                    onTap: () => onSelected(palette),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+        );
   }
 }
 
-class _PaletteSwatch extends StatelessWidget {
-  const _PaletteSwatch({
-    required this.palette,
-    required this.isSelected,
-    required this.onTap,
-  });
+class _PaletteRamp extends StatelessWidget {
+  const _PaletteRamp({required this.palette});
 
   final Palette palette;
-  final bool isSelected;
-  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return AppTooltip(
-      message: Text(palette.name),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: Tokens.durationFast,
-          padding: const EdgeInsets.all(Tokens.space1),
+  Widget build(BuildContext context) => Row(
+    spacing: Tokens.swatchGap,
+    children: [
+      for (final color in [
+        palette.none,
+        palette.low,
+        palette.medium,
+        palette.high,
+        palette.veryHigh,
+      ])
+        Container(
+          width: Tokens.swatchSize,
+          height: Tokens.swatchSize,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(Tokens.radiusMd),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.of(context).accent
-                  : AppColors.of(context).border,
-              width: isSelected
-                  ? Tokens.swatchBorderSelected
-                  : Tokens.swatchBorderDefault,
-            ),
-          ),
-          child: Row(
-            spacing: Tokens.swatchGap,
-            children:
-                [
-                      palette.none,
-                      palette.low,
-                      palette.medium,
-                      palette.high,
-                      palette.veryHigh,
-                    ]
-                    .map(
-                      (c) => Container(
-                        width: Tokens.swatchSize,
-                        height: Tokens.swatchSize,
-                        decoration: BoxDecoration(
-                          color: Color(c.argb),
-                          borderRadius: BorderRadius.circular(
-                            Tokens.radiusSm * 0.5,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
+            color: Color(color.argb),
+            borderRadius: BorderRadius.circular(Tokens.swatchRampRadius),
           ),
         ),
-      ),
-    );
-  }
+    ],
+  );
 }

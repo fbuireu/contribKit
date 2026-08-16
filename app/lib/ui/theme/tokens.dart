@@ -57,6 +57,7 @@ abstract final class Tokens {
   static const double swatchSize = 14;
   static const double swatchBorderSelected = 2;
   static const double swatchBorderDefault = 1;
+  static const double swatchRampRadius = 2;
 
   static const double animScaleBegin = 0.6;
 

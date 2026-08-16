@@ -1,7 +1,5 @@
 import 'package:contribkit/domain/value_objects/cell_size.dart';
-import 'package:contribkit/ui/theme/app_colors.dart';
-import 'package:contribkit/ui/widgets/app_button.dart';
-import 'package:contribkit/ui/theme/tokens.dart';
+import 'package:contribkit/ui/features/customizer/widgets/setting_picker.dart';
 import 'package:flutter/widgets.dart';
 
 class SizePicker extends StatelessWidget {
@@ -21,39 +19,15 @@ class SizePicker extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Cell size',
-          style: TextStyle(
-            fontSize: Tokens.textSm,
-            color: AppColors.of(context).mutedForeground,
-          ),
-        ),
-        const SizedBox(height: Tokens.space2),
-        Row(
-          children: [
-            for (final size in CellSize.values) ...[
-              if (size != CellSize.values.first)
-                const SizedBox(width: Tokens.space2),
-              if (size == selected)
-                AppButton(
-                  size: AppButtonSize.sm,
-                  onPressed: () => onSelected(size),
-                  child: Text(_labels[size]!),
-                )
-              else
-                AppButton.outline(
-                  size: AppButtonSize.sm,
-                  onPressed: () => onSelected(size),
-                  child: Text(_labels[size]!),
-                ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => SettingPicker<CellSize>(
+    label: 'Cell size',
+    options: CellSize.values,
+    selected: selected,
+    onSelected: onSelected,
+    optionBuilder: (size, isSelected, onTap) => SettingChoiceButton(
+      label: _labels[size]!,
+      isSelected: isSelected,
+      onTap: onTap,
+    ),
+  );
 }
