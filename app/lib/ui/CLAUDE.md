@@ -77,9 +77,10 @@ door. None of the four had a test; the shared module has seven.
 everything else wraps. Adding a fifth setting means a label, an options list and a builder — not a fifth file that
 re-decides what a label looks like.
 
-**`PalettePicker` still swallows both loading and error into `SizedBox.shrink()`.** A failed Palette load therefore
-renders the Customizer with a silently missing section. That belongs at the sheet, which has no error surface yet;
-it is a known gap, not a decision.
+**`PalettePicker` hides only while loading.** A *failed* Palette load used to collapse to `SizedBox.shrink()` as
+well, so the Customizer rendered with a silently missing section and no way to tell whether the app had no Palettes
+or had failed to read them. It keeps its label and shows `FailureMessage.ofAny` now. Loading still hides, which is
+right — it is transient, and a flash of an empty section is worse than nothing.
 
 ## `features/tip/` — the store id is a contract
 

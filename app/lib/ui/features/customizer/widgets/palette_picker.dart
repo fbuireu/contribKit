@@ -1,6 +1,8 @@
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/customizer/widgets/setting_picker.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_tooltip.dart';
 import 'package:flutter/widgets.dart';
@@ -22,7 +24,8 @@ class PalettePicker extends ConsumerWidget {
         .watch(palettesProvider)
         .when(
           loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
+          error: (error, _) =>
+              _PaletteLoadError(message: FailureMessage.ofAny(error)),
           data: (palettes) => SettingPicker<Palette>(
             label: 'Palette',
             options: palettes,
@@ -69,4 +72,33 @@ class _PaletteRamp extends StatelessWidget {
         ),
     ],
   );
+}
+
+class _PaletteLoadError extends StatelessWidget {
+  const _PaletteLoadError({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: Tokens.space2,
+      children: [
+        Text(
+          'Palette',
+          style: TextStyle(
+            fontSize: Tokens.textSm,
+            color: colors.mutedForeground,
+          ),
+        ),
+        Text(
+          message,
+          style: TextStyle(fontSize: Tokens.textSm, color: colors.destructive),
+        ),
+      ],
+    );
+  }
 }
