@@ -40,9 +40,9 @@ not as a precedent — the next stateful thing goes in its feature.
   them.** `ExportRepository` is a single interface with three implementations, and Riverpod keys on the provider
   rather than the return type, so the repository tier genuinely needs three. The use-case tier does not:
   `exportCalendar(format)` is a family that switches over `ExportFormat` and hands back the matching repository.
-  This guide claimed the whole thing could not be collapsed, and each of the three widgets that chose a format
-  therefore hard-coded its own filename and MIME type — which is how `ExportPanel` came to share Markdown as a
-  `.md` file while `ExportSheet` copied it to the clipboard. A new format is now a repository, a repository
+  This guide claimed the whole thing could not be collapsed, and each widget that chose a format therefore
+  hard-coded its own filename and MIME type — which is how the since-deleted `ExportPanel` came to share Markdown as
+  a `.md` file while `ExportSheet` copied it to the clipboard. A new format is now a repository, a repository
   provider, and one `ExportFormat` case.
 - **The background isolate has no `ProviderScope`, and therefore no providers at all.** `callbackDispatcher` in
   `app/lib/main.dart` constructs `AssetPaletteRepository()`, `GitHubContributionRepository()` and

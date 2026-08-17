@@ -323,7 +323,9 @@ class _FormatTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
           border: Border.all(
             color: isSelected ? accent.withValues(alpha: 0.5) : colors.border,
-            width: isSelected ? 1.5 : 1,
+            width: isSelected
+                ? Tokens.tileBorderEmphasis
+                : Tokens.tileBorderDefault,
           ),
         ),
         child: Row(

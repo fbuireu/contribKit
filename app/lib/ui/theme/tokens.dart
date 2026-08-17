@@ -58,6 +58,8 @@ abstract final class Tokens {
   static const double swatchBorderSelected = 2;
   static const double swatchBorderDefault = 1;
   static const double swatchRampRadius = 2;
+  static const double tileBorderEmphasis = 1.5;
+  static const double tileBorderDefault = 1;
 
   static const double animScaleBegin = 0.6;
 

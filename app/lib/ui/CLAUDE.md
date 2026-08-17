@@ -177,15 +177,14 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   anything else gets the fallback. Widgets that only care about one kind still test it with `is`.
   It is unit-tested in `test/ui/failure_message_test.dart` — which is the point of it not being a private method on
   a private widget inside a 700-line screen file.
-- **`ExportPanel` is not mounted anywhere.** Nothing in `lib/`, the tests or the docs constructs it; `ExportSheet` is
-  the export surface the app actually shows. It is kept in step with the sheet rather than deleted, but do not read
-  a behaviour into the app because `ExportPanel` implements it — check which one the viewer opens first. "Kept in
-  step" was a promise rather than a mechanism until `ExportFormat` existed: the two had already drifted, the panel
-  sharing Markdown as a `.md` file where the sheet copied it to the clipboard, each with its own filename and MIME
-  string. Giving them the value object closed the filename and MIME half and **left the fork open** — the panel
-  went on sharing Markdown as a file because it never asked `isCopiedAsText`, which is the property that exists to
-  answer exactly that. Both consult it now. The lesson is the one the guide keeps relearning: introducing the type
-  is not the fix, reading it everywhere is.
+- **`ExportSheet` is the only export surface, and there is no second one.** There used to be an `ExportPanel` —
+  217 lines that nothing in `lib/`, the tests or the docs ever constructed, kept "in step with the sheet" by hand.
+  It was deleted, and the reason is worth keeping: **that promise was never a mechanism, and it failed twice.** The
+  two drifted on filenames and MIME types until `ExportFormat` existed, and then the panel went on sharing Markdown
+  as a `.md` file because it never asked `isCopiedAsText` — the property added to answer exactly that question. A
+  surface no user can reach cannot be kept honest by intention, and it is where a defect hid for two passes. If a
+  panel layout is wanted again, it is in the history; do not reintroduce a second export flow to be synchronised
+  manually.
 - **`ViewerState.calendar` and `ViewerState.stats` are nulled at the start of every fetch**, so the screen empties
   before it refills rather than showing the previous user's calendar under a new username. The two are written
   together and are non-null together: `StatsPanel` takes the Contribution Stats as a prop and no longer derives

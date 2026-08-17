@@ -137,7 +137,7 @@ every frame and no test could reach the derivation through the notifier at all.
   otherwise a streak would appear to break at midnight over a day that has not happened yet. The web's
   `computeContributionStats` makes the same allowance, keyed on the level rather than the count.
 
-## `CellGeometryService` — one Cell, four renderers in this repo's Dart and Kotlin
+## `CellGeometryService` — one Cell, five renderers
 
 The maths a Cell Shape is drawn with lives here, not in whichever renderer needs it: `cornerRadiusFor`,
 `dotRadiusFor` and `hexVerticesFor`. The on-screen Cell, the SVG Export and the PNG Export all call all three.
@@ -152,17 +152,22 @@ constant here changes, that file changes in the same commit — and note the con
 Kotlin spells `0.2f`, `1.4f`, `10f` and `6` as literals, so a change here produces no compile error and no failing
 test there. The pairing is prose and a code review.
 
-**There is a fifth renderer, and it disagrees.** `web/src/domain/services/svg-geometry.ts` draws the same Cell for
-the Embed and the browser preview, and it does not use these ratios: its corner radius is a fixed `2.5` where this
-service returns `cell * 0.2`, and its dot radius is `1.4 + level` unscaled where this one multiplies by
-`cellSize / 10`. There is **no** Cell Size at which the corners agree, and the dots agree only at exactly 10, which
-the app never uses — its sizes are 9, 11 and 14. That is the same drift this service was created to end, still live
-across the language boundary.
+**There is a fifth renderer, and it agrees now.** `web/src/domain/services/svg-geometry.ts` draws the same Cell for
+the Embed and the browser preview, and it used to hold its own numbers: a corner radius fixed at `2.5` where this
+service returns `cell * 0.2`, and a dot radius of `1.4 + level` unscaled where this one multiplies by
+`cellSize / 10`. There was **no** Cell Size at which the corners agreed, and the dots agreed only at exactly 10 —
+which the web itself does not always use, since `grid-presets.ts` draws the hero at 13 and the customizer at 12.
 
-It is not obviously a bug: [ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)
-already establishes that Cell Size is a named choice here and fixed pixel geometry on the web, and a fixed radius
-follows naturally from a fixed size. But nothing records the decision, no test pins either number, and this section
-counted four renderers while there were five. Decide it deliberately before touching either constant.
+It carries `CORNER_RADIUS_RATIO = 0.2`, `DOT_BASE_RADIUS = 1.4` and `DOT_REFERENCE_CELL_SIZE = 10` now, and its
+`cornerRadiusFor` / `dotRadius` are this service's formulas in TypeScript. The published Embed's rounded corner
+therefore moved from `2.5` to `2.0` — the visible cost of one rule instead of two, taken deliberately.
+
+This does **not** contradict
+[ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md): that
+decision is about Cell Size being a person's choice in the app and fixed pixel geometry on the web, and a ratio
+applied to a fixed size is still a fixed number. The direction was the one this codebase had already chosen once —
+the service exists because the screen drew a fixed `2.0` while the exports scaled, and they were unified **on the
+ratio**.
 
 ## Gotchas
 

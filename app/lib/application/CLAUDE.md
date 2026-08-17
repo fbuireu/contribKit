@@ -48,16 +48,15 @@ options were a fifth use case or an admission that `invalidateCache` was exempt;
   the calendar silently removes the user's ability to tell.
 - **A use case never catches**, and what happens next depends on which one you called.
   `FetchContributions` is the only one wired all the way through: `ViewerNotifier` catches `on Failure` and puts it
-  into state **without inspecting it**, and the single exhaustive `switch` lives further out, in `_ErrorState`
-  inside `viewer_screen.dart` — that split is what
+  into state **without inspecting it**, and the single exhaustive `switch` lives further out, in `FailureMessage.of`
+  — that split is what
   [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) actually prescribes. The other
   three are called straight from `ConsumerState` widgets and never reach that switch, so each handles its own:
-  `tip_jar_sheet.dart` catches with `catch (_)` and marks the failing product, and `ExportSheet` catches and renders
-  a message. It used `try`/`finally` with **no catch at all** until this was found, so a failed export stopped the
-  spinner and said nothing. `ExportPanel` has the same handling — but see the note in
-  [`ui/`](../ui/CLAUDE.md) before treating it as a live surface. None of these may switch over `Failure`: the
-  exhaustive match is `_ErrorState`'s alone, so they test for `ExportFailure` with `is` and fall through to a
-  generic sentence. Adding a `try`/`catch` in this layer would not have fixed any of it — it would have hidden it
+  `tip_jar_sheet.dart` and `ExportSheet` both catch and render a message through `FailureMessage.ofAny`. `ExportSheet`
+  used `try`/`finally` with **no catch at all** until this was found, so a failed export stopped the spinner and said
+  nothing, and the Tip Jar discarded the reason with `catch (_)` until later still. None of these may switch over
+  `Failure`: the exhaustive match is `FailureMessage.of`'s alone, so anything caring about one kind tests it with
+  `is`. Adding a `try`/`catch` in this layer would not have fixed any of it — it would have hidden it
   one layer earlier.
 - **`PurchaseTip` returns `void` on purpose.** A tip unlocks nothing, so there is no entitlement to hand back and
   nothing downstream may branch on purchase state

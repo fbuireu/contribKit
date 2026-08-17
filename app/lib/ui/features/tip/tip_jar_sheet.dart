@@ -29,6 +29,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
   String? _purchasingId;
   String? _successId;
   String? _errorId;
+  String? _purchaseError;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
       _purchasingId = product.id;
       _successId = null;
       _errorId = null;
+      _purchaseError = null;
     });
     try {
       await ref.read(purchaseTipProvider).call(product);
@@ -60,11 +62,12 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
           _successId = product.id;
         });
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() {
           _purchasingId = null;
           _errorId = product.id;
+          _purchaseError = FailureMessage.ofAny(e);
         });
       }
     }
@@ -136,6 +139,18 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
           colors: colors,
           onTap: () => _purchase(p),
         ),
+      if (_purchaseError != null)
+        Padding(
+          padding: const EdgeInsets.only(top: Tokens.space2),
+          child: Text(
+            _purchaseError!,
+            style: TextStyle(
+              fontSize: Tokens.textSm,
+              color: colors.destructive,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
       const SizedBox(height: Tokens.space1),
       AppButton.ghost(
         onPressed: () => Navigator.of(context).pop(),
@@ -187,7 +202,9 @@ class _TierCard extends StatelessWidget {
                 : isSuccess
                 ? colors.ring
                 : colors.border,
-            width: (isSuccess || isError) ? 1.5 : 1,
+            width: (isSuccess || isError)
+                ? Tokens.tileBorderEmphasis
+                : Tokens.tileBorderDefault,
           ),
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
         ),
