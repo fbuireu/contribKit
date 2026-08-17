@@ -16,7 +16,8 @@ export const SVG_MONTH_LABEL_FONT_SIZE = "9.5";
 export const SVG_MONTH_LABEL_LETTER_SPACING = "0.04em";
 export const SVG_WEEKDAY_LABEL_FONT_SIZE = "9";
 const DOT_BASE_RADIUS = 1.4;
-const RADIUS_BY_SHAPE: Record<string, number> = { rounded: 2.5, square: 0 };
+const DOT_REFERENCE_CELL_SIZE = 10;
+const CORNER_RADIUS_RATIO = 0.2;
 
 export const CALENDAR_ARIA_LABEL = "GitHub contribution calendar";
 
@@ -25,7 +26,15 @@ export interface Point {
 	readonly y: number;
 }
 
-export const dotRadius = (level: number): number => (level === 0 ? DOT_BASE_RADIUS : DOT_BASE_RADIUS + level);
+export interface DotRadiusParams {
+	level: number;
+	size: number;
+}
+
+export const dotRadius = ({ level, size }: DotRadiusParams): number =>
+	(level === 0 ? DOT_BASE_RADIUS : DOT_BASE_RADIUS + level) * (size / DOT_REFERENCE_CELL_SIZE);
+
+export const cornerRadiusFor = (size: number): number => size * CORNER_RADIUS_RATIO;
 
 export interface HexPointsParams {
 	cx: number;
@@ -133,7 +142,7 @@ export const calendarLayout = ({
 		width: WEEKS_PER_YEAR * cellWidth + labelWidth + SVG_PAD_X * 2,
 		height: DAYS_PER_WEEK * cellWidth + labelHeight + SVG_PAD_Y * 2,
 		size,
-		radius: RADIUS_BY_SHAPE[shape] ?? size / 2,
+		radius: shape === "rounded" ? cornerRadiusFor(size) : shape === "square" ? 0 : size / 2,
 		origin: { x: SVG_PAD_X + labelWidth, y: SVG_PAD_Y + labelHeight },
 		monthLabels,
 		weekdayLabels,

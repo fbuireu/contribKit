@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ContributionDay } from "../entities/types";
 import { buildGridFromApi } from "./calendar-grid";
 import { GRID_CELL_COUNT, WEEKS_PER_YEAR } from "./dates";
-import { calendarLayout, dotRadius, hexPoints } from "./svg-geometry";
+import { calendarLayout, cornerRadiusFor, dotRadius, hexPoints } from "./svg-geometry";
 
 const TWO_DECIMAL_POINT_PAIR = /^-?\d+\.\d{2},-?\d+\.\d{2}$/;
 
@@ -16,10 +16,23 @@ const layoutFor = (overrides: Partial<Parameters<typeof calendarLayout>[0]> = {}
 	calendarLayout({ days: year(2024), shape: "rounded", size: SIZE, gap: GAP, ...overrides });
 
 describe("dotRadius", () => {
-	it("level 0 → 1.4", () => expect(dotRadius(0)).toBe(1.4));
+	it("level 0 → 1.4 at the reference cell size", () => expect(dotRadius({ level: 0, size: 10 })).toBe(1.4));
+
 	it("grows with level", () => {
-		expect(dotRadius(1)).toBe(2.4);
-		expect(dotRadius(4)).toBe(5.4);
+		expect(dotRadius({ level: 1, size: 10 })).toBe(2.4);
+		expect(dotRadius({ level: 4, size: 10 })).toBe(5.4);
+	});
+
+	it("scales with the cell it is drawn in, the way the app's CellGeometryService does", () => {
+		expect(dotRadius({ level: 4, size: 20 })).toBe(10.8);
+		expect(dotRadius({ level: 0, size: 5 })).toBe(0.7);
+	});
+});
+
+describe("cornerRadiusFor", () => {
+	it("is a fifth of the cell, the ratio every renderer shares", () => {
+		expect(cornerRadiusFor(10)).toBe(2);
+		expect(cornerRadiusFor(15)).toBe(3);
 	});
 });
 
@@ -32,7 +45,7 @@ describe("hexPoints", () => {
 });
 
 describe("calendarLayout — the radius each Cell Shape is drawn with", () => {
-	it("rounded → 2.5", () => expect(layoutFor({ shape: "rounded" }).radius).toBe(2.5));
+	it("rounded → a fifth of the cell", () => expect(layoutFor({ shape: "rounded" }).radius).toBe(cornerRadiusFor(SIZE)));
 	it("square → 0", () => expect(layoutFor({ shape: "square" }).radius).toBe(0));
 	it("other shapes → size / 2", () => {
 		expect(layoutFor({ shape: "circle" }).radius).toBe(5);
