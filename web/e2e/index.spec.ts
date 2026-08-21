@@ -103,4 +103,16 @@ test.describe("homepage", () => {
 		expect(headers["cross-origin-resource-policy"]).toBe("same-origin");
 		expect(headers["content-security-policy"]).toContain("default-src");
 	});
+
+	test("carries them on static assets too, which the middleware never sees", async ({ request }) => {
+		for (const path of ["/og.png", "/robots.txt", "/favicon.png"]) {
+			const response = await request.get(path);
+			const headers = response.headers();
+
+			expect(response.status(), path).toBe(200);
+			expect(headers["x-content-type-options"], path).toBe("nosniff");
+			expect(headers["referrer-policy"], path).toBe("strict-origin-when-cross-origin");
+			expect(headers["x-frame-options"], path).toBe("DENY");
+		}
+	});
 });

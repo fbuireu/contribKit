@@ -105,10 +105,20 @@ Runs on every request and does three things.
    that throws.
 3. **Security headers on every SSR response**, including that 429. They are applied by copying the response
    (`new Response(response.body, response)`) and setting headers on the copy, because the `Response` returned by
-   `next()` has immutable headers. **They do not reach static assets.** `wrangler.toml` declares `[assets]` without
-   `run_worker_first`, so Workers Assets answers `/og.png`, `/favicon.ico` and everything under `/_astro/` before
-   this middleware runs — no CSP, no `nosniff`, on any of them. `middleware.test.ts` cannot see that: it calls
-   `onRequest` directly, so it tests the function rather than the request path.
+   `next()` has immutable headers.
+
+**Static assets never reach this middleware, and are covered separately.** `wrangler.toml` declares `[assets]`
+without `run_worker_first`, so Workers Assets answers `/og.png`, `/robots.txt` and everything under `/_astro/`
+*before* the Worker runs — they carried no `nosniff`, no `Referrer-Policy` and no CSP at all until `public/_headers`
+existed. That file is the only mechanism that reaches them; `@astrojs/cloudflare` merges its own immutable
+`Cache-Control` rule for `/_astro/*` into it at build time rather than overwriting it, so both survive. It sets the
+three headers that mean something on a non-document response and deliberately not the rest: a CSP does nothing for
+a PNG, and `Cross-Origin-Resource-Policy: same-origin` on `og.png` would break the social-card preview the file
+exists for.
+
+**Neither half is visible to `middleware.test.ts`**, which calls `onRequest` directly and therefore tests the
+function rather than the request path. The e2e suite asserts both — `/` through the Worker, and three asset paths
+around it. This was found with `curl` against `wrangler dev`, not by reading the config.
 
 The CSP allows `'unsafe-inline'` for scripts and styles and names Google Tag Manager, Better Stack and Google Fonts
 explicitly. Adding a third-party origin means editing that list; there is no wildcard to fall back on. One header is
