@@ -7,7 +7,11 @@ on:
       - "web/**"
       - "shared/**"
       - "docs/**"
+      - "scripts/**"
       - "*.md"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "lefthook.yml"
       - ".github/workflows/ci-web.yml"
       - ".github/actions/prepare-web-env/**"
 

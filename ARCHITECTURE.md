@@ -227,7 +227,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | `ci-app.yml` | push/PR to `main` under `app/**`, its own config, or `prepare-web-env` | `pnpm test:docs`, `dart format --set-exit-if-changed`, `flutter analyze --fatal-infos`, `flutter test` with coverage, debug APK build |
 | `release-app.yml` | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
 | `ci-web-noop.yml` | PR to `main` under **anything `ci-web.yml` ignores** | Reports a passing `E2E (preview)` so that check can be required in the ruleset without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly — the two are one filter written twice |
-| `cleanup-web-development.yml` | PR closed, under the same paths as `ci-web.yml` | Deletes the per-PR preview Worker. Its filter must mirror the one that creates the preview, or a docs-only PR leaves a Worker behind |
+| `cleanup-web-development.yml` | PR closed, under the same paths as `ci-web.yml` | Deletes the per-PR preview Worker. Its filter must mirror the one that creates the preview, or a PR leaves a Worker behind — **the docs contract asserts all three copies are identical**, because this one had silently drifted four entries behind |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | Publishes `docs/wiki/` to the GitHub Wiki |
 | `zizmor.yml` | — | Static analysis of the workflow files themselves |
 | `dependabot-auto-merge.yml` · `renovate-auto-approve.yml` | dependency PRs | Auto-approve and merge low-risk updates |

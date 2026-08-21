@@ -7,7 +7,9 @@ CI is split per component with **path filters**, so an app change never triggers
 > `ci-app.yml` runs that contract in a job of its own because nothing under `app/**` triggers the web workflow.
 > Narrowing either filter disables a guard silently, which has now happened three times — the app side, the
 > preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose comments and version pins the
-> contract asserts while no workflow watched them. Each component is linted, tested, built, versioned with semantic-release, and shipped automatically: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
+> contract asserts while no workflow watched them. The web filter exists in three copies (`ci-web.yml`'s `paths`,
+> `ci-web-noop.yml`'s `paths-ignore`, `cleanup-web-development.yml`'s `paths`) and **the docs contract asserts
+> they are identical** — prose in three documents said they mirror each other while one had drifted. Each component is linted, tested, built, versioned with semantic-release, and shipped automatically: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
