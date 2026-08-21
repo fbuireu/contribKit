@@ -434,6 +434,41 @@ describe("the guides match the manifests", () => {
 	});
 });
 
+describe("the Embed contract is spelled in two languages and must agree", () => {
+	const DART_EMBED = join(REPO, "app/lib/domain/value_objects/embed.dart");
+	const WEB_EMBED = join(REPO, "web/src/domain/value-objects/embed.ts");
+
+	const dartConstant = (name: string): string | undefined =>
+		new RegExp(`static const ${name} = '([^']+)'`).exec(read(DART_EMBED))?.[1];
+
+	const sharedFirstKey = (file: string): string =>
+		(JSON.parse(read(join(REPO, "shared", file))) as { key: string }[])[0].key;
+
+	it("reads both spellings", () => {
+		expect(existsSync(DART_EMBED)).toBe(true);
+		expect(existsSync(WEB_EMBED)).toBe(true);
+	});
+
+	it("points both clients at the same origin, segment and extension", () => {
+		const web = read(WEB_EMBED);
+
+		expect(web).toContain(`const EMBED_ORIGIN = "${dartConstant("origin")}"`);
+		expect(web).toContain(`const EMBED_SEGMENT = "${dartConstant("segment")}"`);
+		expect(web).toContain(`const EMBED_EXTENSION = "${dartConstant("extension")}"`);
+	});
+
+	it("omits the same default Cell Shape, which shared/shapes.json decides", () => {
+		const dartDefault = /static const defaultShape = CellShape\.(\w+);/.exec(read(DART_EMBED))?.[1];
+
+		expect(dartDefault).toBe(sharedFirstKey("shapes.json"));
+	});
+
+	it("omits the same default Palette", () => {
+		expect(dartConstant("defaultPaletteKey")).toBe("github");
+		expect(read(WEB_EMBED)).toContain("DEFAULT_PALETTE_KEY");
+	});
+});
+
 describe("the dark palette is written twice and must agree", () => {
 	const VARIABLES = join(REPO, "web/src/ui/styles/global/variables.css");
 

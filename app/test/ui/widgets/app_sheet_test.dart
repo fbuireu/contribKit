@@ -74,8 +74,15 @@ void main() {
     testWidgets('keeps its rounded top even on a small screen', (tester) async {
       final sheet = await _open(tester);
 
-      expect(sheet.removeBorderRadiusWhenTiny, isFalse);
-      expect(sheet.radius, isNotNull);
+      expect(
+        sheet.removeBorderRadiusWhenTiny,
+        isFalse,
+        reason: 'shadcn drops the radius below its sm breakpoint, which is every phone',
+      );
+      expect(
+        sheet.radius,
+        const BorderRadius.vertical(top: Radius.circular(Tokens.radiusLg)),
+      );
     });
 
     testWidgets('leads its title rather than centring it', (tester) async {
@@ -85,7 +92,15 @@ void main() {
     testWidgets('owns the content padding, so no sheet adds its own', (
       tester,
     ) async {
-      expect((await _open(tester)).padding, isNotNull);
+      expect(
+        (await _open(tester)).padding,
+        const EdgeInsets.fromLTRB(
+          Tokens.space6,
+          Tokens.space4,
+          Tokens.space6,
+          Tokens.space8,
+        ),
+      );
     });
   });
 }

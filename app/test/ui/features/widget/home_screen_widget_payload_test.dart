@@ -177,4 +177,32 @@ version in the same commit, or do not change the order.''',
       },
     );
   });
+  group('the Cell Shape crosses as a name Kotlin matches literally', () {
+    test(
+      'every member sends its own name, so none falls through to rounded',
+      () {
+        final sent = <String>{};
+
+        for (final shape in CellShape.values) {
+          final payload = HomeScreenWidgetPayload.from(
+            calendar: _calendar(),
+            palette: _palette,
+            cellShape: shape,
+            today: DateTime(2024, 6, 15),
+          );
+
+          expect(payload.shape, shape.name, reason: shape.name);
+          sent.add(payload.shape);
+        }
+
+        expect(
+          sent,
+          hasLength(CellShape.values.length),
+          reason:
+              'drawCell ends in else -> rounded, so two shapes sharing a name '
+              'would draw identically with nothing failing',
+        );
+      },
+    );
+  });
 }

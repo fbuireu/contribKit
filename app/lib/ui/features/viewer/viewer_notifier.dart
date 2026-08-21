@@ -144,7 +144,6 @@ class ViewerNotifier extends _$ViewerNotifier {
   void setCellSize(CellSize size) {
     state = state.copyWith(cellSize: size);
     ref.read(settingsRepositoryProvider).saveCellSize(size);
-    _updateWidget();
   }
 
   void setBackgroundPreset(BackgroundPreset bg) {

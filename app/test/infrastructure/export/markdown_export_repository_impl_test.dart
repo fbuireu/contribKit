@@ -83,7 +83,7 @@ void main() {
         );
 
         expect(markdown, startsWith('!['));
-        expect(markdown, contains('octocat GitHub contributions 2023'));
+        expect(markdown, contains('octocat GitHub contributions'));
         expect(markdown, endsWith(')\n'));
       },
     );
@@ -111,19 +111,22 @@ void main() {
       },
     );
 
-    test(
-      'pins no Year in the URL, because an Embed is never a fixed copy',
-      () async {
-        final markdown = await _render(
-          const RenderOptions(palette: _github, shape: CellShape.rounded),
-        );
-        final url = RegExp(r'\((https://[^)]+)\)')
-            .firstMatch(markdown)!
-            .group(1)!;
+    test('names no Year anywhere, because the Embed endpoint ignores one', () async {
+      final markdown = await _render(
+        const RenderOptions(palette: _github, shape: CellShape.rounded),
+      );
+      final url = RegExp(r'\((https://[^)]+)\)')
+          .firstMatch(markdown)!
+          .group(1)!;
 
-        expect(url, isNot(contains('2023')));
-        expect(url, isNot(contains('year')));
-      },
-    );
+      expect(url, isNot(contains('2023')));
+      expect(url, isNot(contains('year')));
+      expect(
+        markdown,
+        isNot(contains('2023')),
+        reason:
+            'the alt text used to assert a Year the rolling Embed never shows',
+      );
+    });
   });
 }

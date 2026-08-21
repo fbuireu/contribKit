@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:contribkit/ui/widgets/app_icons.dart';
@@ -59,7 +60,35 @@ class ExportSheet extends ConsumerStatefulWidget {
 class _ExportSheetState extends ConsumerState<ExportSheet> {
   ExportFormat _selected = ExportFormat.fallback;
   bool _exporting = false;
+  bool _copied = false;
   String? _exportError;
+  Timer? _copiedTimer;
+
+  @override
+  void dispose() {
+    _copiedTimer?.cancel();
+    super.dispose();
+  }
+
+  void _showCopied() {
+    _copiedTimer?.cancel();
+    setState(() => _copied = true);
+    _copiedTimer = Timer(Tokens.durationCopiedFeedback, () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  IconData get _actionIcon => _copied
+      ? LucideIcons.check
+      : _selected.isCopiedAsText
+      ? LucideIcons.copy
+      : LucideIcons.share;
+
+  String get _actionLabel => _copied
+      ? 'Copied!'
+      : _selected.isCopiedAsText
+      ? 'Copy ${_selected.label}'
+      : 'Share ${_selected.label}';
 
   RenderOptions get _options => RenderOptions(
     palette: widget.palette,
@@ -81,6 +110,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
 
       if (_selected.isCopiedAsText) {
         await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+        if (mounted) _showCopied();
       } else {
         await SharePlus.instance.share(
           ShareParams(
@@ -150,10 +180,6 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
           Row(
             spacing: Tokens.space2,
             children: [
-              AppButton.outline(
-                onPressed: _exporting ? null : _save,
-                child: const Icon(LucideIcons.share, size: Tokens.iconMd),
-              ),
               Expanded(
                 child: AppButton(
                   onPressed: _exporting ? null : _save,
@@ -161,9 +187,9 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(LucideIcons.download, size: Tokens.iconSm),
+                      Icon(_actionIcon, size: Tokens.iconSm),
                       const SizedBox(width: Tokens.space2),
-                      Text('Save ${_selected.label}'),
+                      Text(_actionLabel),
                     ],
                   ),
                 ),

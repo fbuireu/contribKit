@@ -19,7 +19,7 @@ final class MarkdownExportRepository implements ExportRepository {
         paletteKey: options.palette.key,
         shape: options.shape,
       );
-      final alt = '${calendar.username} GitHub contributions ${calendar.year}';
+      final alt = '${calendar.username} GitHub contributions';
 
       return utf8.encode('![$alt]($url)\n');
     } catch (e) {
