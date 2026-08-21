@@ -48,11 +48,12 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 - **Adding a `Selector` entry adds an e2e obligation.** `web/e2e/index.spec.ts` walks the whole enum against the
   landing page and fails on any entry that matches nothing, because an entry no markup satisfies is a renamed id
   the `if (el)` consumers turn into a silent no-op. Two lists in that spec carve out the entries that only exist
-  once the SVG tab is open: **`CODE_TAB_ONLY`, and only that one**. `PNG_TAB_ONLY` (`ExportPngPreview`) is not a
-  carve-out: PNG is the default tab, so its entry must match on load and must then be *gone* once the SVG tab is
-  clicked, which the spec asserts in the opposite direction. Putting a modal-only selector there fails the suite
-  twice rather than not at all. Both lists are hand-maintained, so a selector that only exists behind a tab or a
-  modal goes in `CODE_TAB_ONLY`, by hand, or the suite fails with nothing saying why.
+  once the SVG tab is open, and there is **exactly one carve-out list**: `CODE_TAB_ONLY`. `PNG_TAB_ONLY`
+  (`ExportPngPreview`) is the opposite kind of list: PNG is the default tab, so its entry must match on load and
+  must then be *gone* once the SVG tab is clicked, which the spec asserts by expecting it to be unmatched. Putting
+  a modal-only selector there does not exempt it from anything: it still lands in the on-load walk and fails
+  there, before the tab click runs. Both lists are hand-maintained, so a selector that only exists behind a tab or
+  a modal goes in `CODE_TAB_ONLY`, by hand, or the suite fails with nothing saying why.
 - **Both getters guard, and neither always did.** `getActiveShape` reads a `data-key` from the DOM and goes
   through `isCellShape` before it is anything; `getActivePalette` goes through `paletteByKey`. The shape path
   carried its guard first and handed a bare `string` to three callers, each of which re-guarded or did not; the
