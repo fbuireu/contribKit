@@ -8,7 +8,7 @@ import {
 	SVG_MONTH_LABEL_LETTER_SPACING,
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
 } from "@domain/services/svg-geometry";
-import { CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
+import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import type { PaletteColors } from "@domain/value-objects/palette";
 
 export interface RenderCalendarParams {
@@ -80,7 +80,6 @@ const SHAPE_PREVIEWS: Record<CellShape, (fill: string) => string> = {
 	[CellShape.Square]: (fill) => `<rect x="3" y="3" width="14" height="14" rx="0" style="fill:${fill}"/>`,
 };
 
-export function shapePreviewSVG(kind: string): string {
-	const resolvedShape = isCellShape(kind) ? kind : DEFAULT_CELL_SHAPE;
-	return wrapPreviewSvg(SHAPE_PREVIEWS[resolvedShape]("var(--contrib-peak)"));
+export function shapePreviewSVG(kind: CellShape): string {
+	return wrapPreviewSvg(SHAPE_PREVIEWS[kind]("var(--contrib-peak)"));
 }

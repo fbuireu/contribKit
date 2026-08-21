@@ -52,7 +52,7 @@ interface CellLineParams {
 }
 
 const cellLine = ({ column, level, palette, shape }: CellLineParams): CodeLine => {
-	const fill = palette[level] ?? palette[0];
+	const fill = palette[level];
 	const x = column * CELL_STEP;
 	const centre = SVG_DEFAULT_CELL_SIZE / 2;
 

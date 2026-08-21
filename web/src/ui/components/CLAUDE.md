@@ -23,8 +23,8 @@ The layer's rules (props in / markup out, colocated CSS, Palette colours and Cel
   through `isCellShape` and `paletteByKey`. The palette path had no guard at all until a `data-key` naming a
   palette `shared/palettes.json` does not define threw a `TypeError` in three renderers; the shape path had one
   and then `renderCalendarString` ran it a second time, which is the guard that has since gone. A renderer takes
-  the typed value and trusts it. `shapePreviewSVG` is the exception and still guards, because it is called with a
-  raw `kind` from the picker's markup.
+  the typed value and trusts it: `shapePreviewSVG` takes a `CellShape` too, because `Customize.astro` maps over
+  `CELL_SHAPES` and the value flows *into* the markup rather than out of it.
 - **The number in the hero goes through `formatTotalContributions`**, in `grid/contribution.ts`, which is the same
   function the SSR page and the client renderer call. It prints `unknown` for a `null` total. Never interpolate
   `stats.totalContributions` directly.
@@ -69,8 +69,9 @@ type makes the five-ness a compile error to break, and `calendarLayout` already 
 in one is now a type error rather than a silent fallback to `rounded`.
 
 Do not re-propose the unification without a config smaller than five fields. Deleting a row is always cheaper than
-parameterising it, and two of the seven that remain are the label styling, which is one difference wearing two
-rows.
+parameterising it, and three of the seven that remain are label styling: colour, font and the month-label
+opacity. That is one difference wearing three rows, and omitting exactly the last two is the mistake this table
+has already made once.
 
 **One asymmetry the table used to carry has gone:** the client re-ran `clampLevel` and the server did not, because
 the server's `day.level` is a type-guaranteed 0–4 union while the client's arrives from placeholder data and from

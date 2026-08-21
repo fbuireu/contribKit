@@ -110,9 +110,7 @@ The server renderer above powers the `/user/:username.svg` endpoint. The **landi
 | Month label opacity | none | an extra `opacity:.85` |
 | Sizing | fixed `width`/`height` | `width="100%"` + `style="display:block;overflow:visible"` for responsive layout |
 | Background | a `<rect>` when the Background is not transparent | never: the card behind it is the background |
-| Palette lookup | `palette.colors[level]`, a `Palette` | `palette[level] \|\| palette[0]`, a bare array from the DOM |
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
-| Cell Shape | taken as given, a typed `CellShape` | re-guarded with `isCellShape`, because it arrives from a `dataset` |
 | Per-cell | fill only | also emits `data-date`, plus `data-count` only when the count is known: cells with an unknown count omit it and the tooltip says so |
 
 `render-svg.ts` also exports `shapePreviewSVG(kind)`, the tiny 20×20 swatch drawn inside each shape-picker button, using `SHAPE_PREVIEWS` and the `--contrib-peak` CSS var.

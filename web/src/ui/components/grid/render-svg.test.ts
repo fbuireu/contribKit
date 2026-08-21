@@ -43,9 +43,9 @@ describe("renderCalendarString", () => {
 
 describe("shapePreviewSVG", () => {
 	it("renders the right primitive per shape", () => {
-		expect(shapePreviewSVG("dot")).toContain("<circle");
-		expect(shapePreviewSVG("circle")).toContain("<circle");
-		expect(shapePreviewSVG("hex")).toContain("<polygon");
-		expect(shapePreviewSVG("square")).toContain("<rect");
+		expect(shapePreviewSVG(CellShape.Dot)).toContain("<circle");
+		expect(shapePreviewSVG(CellShape.Circle)).toContain("<circle");
+		expect(shapePreviewSVG(CellShape.Hex)).toContain("<polygon");
+		expect(shapePreviewSVG(CellShape.Square)).toContain("<rect");
 	});
 });
