@@ -547,7 +547,7 @@ final class MarkdownExportRepositoryProvider
 }
 
 String _$markdownExportRepositoryHash() =>
-    r'843f61d3ab4c05e8b0efd9ebea7979a3b4f2a364';
+    r'4b88fd3b84b80a1d1ecd5b4abc2eeb8eb61778d6';
 
 @ProviderFor(fetchContributions)
 final fetchContributionsProvider = FetchContributionsProvider._();
@@ -755,7 +755,7 @@ final class ThemeModeNotifierProvider
   }
 }
 
-String _$themeModeNotifierHash() => r'62e68a3cf625f24b2313f05c3049b4d4b8430b78';
+String _$themeModeNotifierHash() => r'f94a842fd67667a48bab65cd60430b3c64e2071e';
 
 abstract class _$ThemeModeNotifier extends $Notifier<ThemeMode> {
   ThemeMode build();

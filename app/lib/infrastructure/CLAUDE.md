@@ -234,14 +234,17 @@ suspicious of this file specifically.
   background isolate has no `ProviderScope`. But it no longer knows a single storage key, and since the refresh
   sequence moved into `HomeScreenWidgetRefresh` it no longer knows the order of the reads either.
   This is the first of the three traps in the [root guide](../../../CLAUDE.md#maintenance-contract).
-- **`_toDto` is hand-written; the DTOs are read-only.** Serialisation is a map literal in the repository, so codegen
-  cannot tell you when the two drift; see [`github/dtos/`](./github/dtos/CLAUDE.md).
+- **`_toDto` builds the DTOs, and the DTOs generate both directions.** It was a map literal against read-only
+  DTOs, so nothing could tell you when the two drifted; see [`github/dtos/`](./github/dtos/CLAUDE.md).
 - **`_readCache` takes the `Username` it was called with** rather than rebuilding one from the cache key. It used
   to split the key on `:` and re-parse the first half, which once the key was lower-cased would have handed back
   a differently-cased calendar on a cache hit than on a fresh fetch.
 - **`yearMax` is computed over the days actually present**, so a derived level depends on the rest of the year. Two
   partial fetches of the same year can disagree about a day's level: another reason a parsed `data-level` is
-  preferred wherever it exists.
+  preferred wherever it exists. On the cache path it is computed **lazily**, because `_toDto` always writes a
+  `level` and so the fallback never fires for an entry this version wrote; it stays for entries written before the
+  field existed, and paying for a full pass over the year on every cache hit to serve that case was the wrong
+  trade.
 - The `RateLimitedFailure.resetAt` parser accepts `Retry-After` in both forms the RFC allows: an integer count of
   seconds, added to now, or an HTTP-date parsed with `HttpDate.parse` from `dart:io`. The date branch used to be
   `DateTime.tryParse`, which only understands ISO-8601: `Wed, 21 Oct 2015 07:28:00 GMT` came back `null`, so half

@@ -15,6 +15,13 @@ ContributionCalendarDto _$ContributionCalendarDtoFromJson(
       .toList(),
 );
 
+Map<String, dynamic> _$ContributionCalendarDtoToJson(
+  ContributionCalendarDto instance,
+) => <String, dynamic>{
+  'totalContributions': instance.totalContributions,
+  'weeks': instance.weeks,
+};
+
 ContributionWeekDto _$ContributionWeekDtoFromJson(Map<String, dynamic> json) =>
     ContributionWeekDto(
       contributionDays: (json['contributionDays'] as List<dynamic>)
@@ -22,9 +29,20 @@ ContributionWeekDto _$ContributionWeekDtoFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
+Map<String, dynamic> _$ContributionWeekDtoToJson(
+  ContributionWeekDto instance,
+) => <String, dynamic>{'contributionDays': instance.contributionDays};
+
 ContributionDayDto _$ContributionDayDtoFromJson(Map<String, dynamic> json) =>
     ContributionDayDto(
       date: json['date'] as String,
       contributionCount: (json['contributionCount'] as num?)?.toInt(),
       level: (json['level'] as num?)?.toInt(),
     );
+
+Map<String, dynamic> _$ContributionDayDtoToJson(ContributionDayDto instance) =>
+    <String, dynamic>{
+      'date': instance.date,
+      'contributionCount': instance.contributionCount,
+      'level': instance.level,
+    };

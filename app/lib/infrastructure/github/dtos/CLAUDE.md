@@ -8,8 +8,8 @@ must never be referenced from `application/` or `ui/`.
 
 ## Invariants & rules
 
-- **These types are read-only.** All three are `@JsonSerializable(createToJson: false)`, so codegen produces
-  `fromJson` and nothing else.
+- **These types carry the cache schema in both directions.** All three are `@JsonSerializable()` with a `toJson`,
+  so codegen produces the read *and* the write. They used to be `createToJson: false`.
 - **`dart run build_runner build` after any change**, or `contribution_calendar_dto.g.dart` and the class disagree.
   The generated file is committed.
 - **`level`, `contributionCount` and `totalContributions` are all nullable.** An older cache entry written before
@@ -31,10 +31,13 @@ entity. Those two conversions are the boundary this folder exists to hold.
 
 ## Gotchas
 
-- **Writing is not generated. `_toDto` in `contribution_repository_impl.dart` is a hand-written map literal**, so
-  the read side and the write side can drift and *nothing will tell you*. Adding a field means editing the DTO, the
-  map literal and the entity conversion in the same commit; there is no compiler error and no failing codegen if you
-  forget one. This is the single most important fact about this folder.
+- **Writing used to be hand-written, and that was the single most important fact about this folder.** `_toDto` in
+  `contribution_repository_impl.dart` was a map literal, so the read side and the write side could drift with
+  nothing to tell you: adding a field meant editing the DTO, the literal and the entity conversion, with no
+  compiler error if you forgot one. `_toDto` builds the DTOs now and `jsonEncode` calls the generated `toJson`, so
+  a field on one side and not the other is a compile error or a missing key that codegen produces. A test in
+  `contribution_repository_impl_test.dart` also reads the stored JSON back and asserts its key set, because
+  codegen cannot tell you that the *entity* conversion forgot the same field.
 - **`level` is stored as `ContributionLevel.index`.** The enum is persisted positionally here, unlike the settings
   box, which stores enum `name`s. **Reordering `ContributionLevel` therefore silently recolours every cached
   calendar.** If the order ever has to change, bump `_cacheBoxName`

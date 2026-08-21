@@ -258,14 +258,14 @@ final class GitHubContributionRepository implements ContributionRepository {
     Username username,
     Year year,
   ) {
-    final allCounts = dto.weeks
-        .expand((w) => w.contributionDays)
-        .map((d) => d.contributionCount)
-        .whereType<int>()
-        .toList();
-    final yearMax = allCounts.isEmpty
-        ? 0
-        : allCounts.reduce((a, b) => a > b ? a : b);
+    int? yearMax;
+    int derivedYearMax() {
+      return yearMax ??= dto.weeks
+          .expand((week) => week.contributionDays)
+          .map((day) => day.contributionCount)
+          .whereType<int>()
+          .fold<int>(0, (highest, count) => count > highest ? count : highest);
+    }
 
     final days = dto.weeks.expand((weekDto) => weekDto.contributionDays).map((
       dayDto,
@@ -278,7 +278,7 @@ final class GitHubContributionRepository implements ContributionRepository {
             _levelFromIndex(dayDto.level) ??
             ContributionLevelService.levelFor(
               count: count ?? 0,
-              yearMax: yearMax,
+              yearMax: derivedYearMax(),
             ),
       );
     }).toList();
@@ -295,24 +295,25 @@ final class GitHubContributionRepository implements ContributionRepository {
     );
   }
 
-  Map<String, dynamic> _toDto(ContributionCalendar calendar) => {
-    'totalContributions': calendar.totalContributions,
-    'weeks': calendar.weeks
-        .map(
-          (w) => {
-            'contributionDays': w.days
-                .map(
-                  (d) => {
-                    'date': d.date.toIso8601String().substring(0, 10),
-                    'contributionCount': d.count,
-                    'level': d.level.index,
-                  },
-                )
-                .toList(),
-          },
-        )
-        .toList(),
-  };
+  ContributionCalendarDto _toDto(ContributionCalendar calendar) =>
+      ContributionCalendarDto(
+        totalContributions: calendar.totalContributions,
+        weeks: calendar.weeks
+            .map(
+              (week) => ContributionWeekDto(
+                contributionDays: week.days
+                    .map(
+                      (day) => ContributionDayDto(
+                        date: day.date.toIso8601String().substring(0, 10),
+                        contributionCount: day.count,
+                        level: day.level.index,
+                      ),
+                    )
+                    .toList(),
+              ),
+            )
+            .toList(),
+      );
 
   Future<Box<dynamic>> _openBox() => Hive.openBox<dynamic>(_cacheBoxName);
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
@@ -246,6 +247,32 @@ void main() {
       expect(
         _dayOn(cached.calendar, '2023-03-07').level,
         ContributionLevel.veryHigh,
+      );
+    });
+
+    test('writes every field the read side declares, and no other', () async {
+      final html =
+          _day(id: 'a', date: '2023-03-06', level: '3') +
+          _tip(id: 'a', count: 7);
+
+      await GitHubContributionRepository(httpClient: _clientReturning(html))
+          .fetchCalendar(username: username, year: year);
+
+      final box = await Hive.openBox<dynamic>('contribution_cache_v3');
+      final entry = box.get('${username.value}:${year.value}') as Map;
+      final stored =
+          jsonDecode(entry['json'] as String) as Map<String, dynamic>;
+
+      expect(stored.keys, unorderedEquals(['totalContributions', 'weeks']));
+      final day =
+          ((stored['weeks'] as List).first as Map)['contributionDays'] as List;
+      expect(
+        (day.first as Map).keys,
+        unorderedEquals(['date', 'contributionCount', 'level']),
+        reason:
+            'the write side is generated from the DTO now, so a field '
+            'added to one and not the other is a codegen change rather than '
+            'a silent drift',
       );
     });
   });
