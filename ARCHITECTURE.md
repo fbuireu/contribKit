@@ -49,8 +49,11 @@ flowchart TD
 
 Neither client needs a GitHub token. Both read the same public contributions page
 ([ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md)), and the app talks to GitHub directly
-rather than through this project's own API ([ADR 0008](./docs/adr/0008-the-mobile-app-fetches-github-directly.md)): a
-decision with a written exit plan in [docs/plans/0001](./docs/plans/0001-app-consumes-contribkit-api.md).
+rather than through this project's own API. That started as
+[ADR 0008](./docs/adr/0008-the-mobile-app-fetches-github-directly.md) and is now held by
+[ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md), which supersedes it and carries both the standing
+cost and the revisit trigger; the exit plan is written out in
+[docs/plans/0001](./docs/plans/0001-app-consumes-contribkit-api.md).
 
 The two components are released independently ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)),
 which is why a single commit may not touch both: `scripts/auto-scope.mjs` rejects one that does, because

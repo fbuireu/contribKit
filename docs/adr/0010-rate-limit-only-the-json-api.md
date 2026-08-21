@@ -22,5 +22,5 @@ The `API_RATE_LIMITER` binding is applied in `middleware.ts` to `/api/*` only, a
 
 - **The SVG endpoint has no per-caller ceiling.** Its protection is downstream cache hit rate, so anything that defeats caching (a flood of distinct usernames, or cache-busting query strings) reaches the origin unthrottled and turns into a real GitHub fetch.
 - No Cloudflare-side cache is configured for Worker responses either, so a miss in Camo is a real origin hit. Enabling one would narrow that gap without reintroducing the shared-IP problem.
-- This is why the mobile app cannot simply be pointed at `/api/*` as it stands: many users behind one carrier NAT would share a single bucket. See [8](0008-the-mobile-app-fetches-github-directly.md) and [11](0011-keep-the-apps-own-scraper-for-now.md).
+- This is why the mobile app cannot simply be pointed at `/api/*` as it stands: many users behind one carrier NAT would share a single bucket. See [11](0011-keep-the-apps-own-scraper-for-now.md), which holds that decision, and [8](0008-the-mobile-app-fetches-github-directly.md), which it supersedes.
 - Anyone tempted to "fix" the missing limit on the SVG route should read this first. Adding it is a regression, not a hardening.

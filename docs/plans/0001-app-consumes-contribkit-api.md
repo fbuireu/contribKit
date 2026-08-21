@@ -1,6 +1,6 @@
 # Plan: point the mobile app at the ContribKit API
 
-Status: deferred by [ADR 0011](../adr/0011-keep-the-apps-own-scraper-for-now.md) until the API rate limit stops keying on the caller's raw IP. This is the execution detail for when that trigger fires; it is not scheduled work. Context in [ADR 0008](../adr/0008-the-mobile-app-fetches-github-directly.md).
+Status: deferred by [ADR 0011](../adr/0011-keep-the-apps-own-scraper-for-now.md) until the API rate limit stops keying on the caller's raw IP. This is the execution detail for when that trigger fires; it is not scheduled work. How the two implementations diverged is [ADR 0008](../adr/0008-the-mobile-app-fetches-github-directly.md), which 0011 supersedes.
 
 ## Why
 
