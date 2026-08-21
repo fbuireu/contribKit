@@ -4,7 +4,7 @@ Date: 2026-08-14
 
 ## Status
 
-Accepted. Closes the departure recorded as a consequence of [8](0008-the-mobile-app-fetches-github-directly.md), which is amended rather than superseded — its decision still stands.
+Accepted. Closes the departure recorded as a consequence of [8](0008-the-mobile-app-fetches-github-directly.md), and amends [13](0013-the-app-grid-is-always-53-by-7.md), whose padding days were specified as "count zero". Both are amended rather than superseded — their decisions still stand.
 
 ## Context
 

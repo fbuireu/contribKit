@@ -10,7 +10,7 @@ The mobile component (`app/`) is a single Flutter codebase shipping native iOS &
 ## Features
 
 - **Native iOS & Android** from one Flutter codebase; home-screen widgets are Android-only, as `app/ios` carries no WidgetKit extension
-- **All 11 palettes & 5 shapes:** the same design tokens as the web, loaded from `shared/`
+- **All 11 palettes & 5 shapes:** the palettes are the web's own design tokens, mirrored from `shared/palettes.json`. **The shapes are not** — `CellShape` is a hardcoded Dart enum, and `shapes.json` is bundled but has no Dart reader ([ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
 - **Daily background refresh:** fetches once a day, easy on the battery
 - **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
@@ -30,7 +30,7 @@ app/lib/
 └── ui/              features (viewer, customizer, export, tip), widgets, theme, DI (Riverpod)
 ```
 
-The customizer mirrors the web options: palette, shape, **size**, and background pickers (`palette_picker`, `shape_picker`, `size_picker`, `background_picker`). The viewer renders the contribution grid with a stats panel. State is held in `viewer_notifier` (Riverpod) over an immutable `viewer_state` (freezed).
+The customizer offers palette, shape, **size** and background pickers — **Cell Size is app-only**, the web has no user-facing size at all ([ADR 0016](../adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)). All four go through one `SettingPicker` (`palette_picker`, `shape_picker`, `size_picker`, `background_picker`). The viewer renders the contribution grid with a stats panel. State is held in `viewer_notifier` (Riverpod) over an immutable `viewer_state` (freezed).
 
 ### Contribution stats
 
@@ -38,11 +38,17 @@ The customizer mirrors the web options: palette, shape, **size**, and background
 
 | Stat | How it's computed |
 |------|-------------------|
-| `currentStreak` / `longestStreak` | consecutive days with `count > 0` |
-| `bestDayCount` / `bestDayDate` | the single highest-count day |
-| `totalDaysActive` | days with any contributions |
-| `weeklyAverage` | `totalContributions / weekCount` |
-| `bestMonthContributions` / `bestMonth` | month with the highest summed count |
+| `currentStreak` / `longestStreak` | consecutive **active** days — `level != none`, never `count > 0`, so a day GitHub coloured but whose Count did not parse keeps the run alive |
+| `bestDayCount` / `bestDayDate` | the single highest-Count day — **both `null` together** whenever any active day has an unknown Count, because the highest Count *seen* is only a lower bound |
+| `totalDaysActive` | active days, on the same Contribution Level rule |
+| `weeklyAverage` | `totalContributions / weekCount`, and `null` whenever the total is |
+| `bestMonthContributions` / `bestMonth` | month with the highest summed Count, `null` on the same unknown-Count rule |
+
+Every figure derived from Counts is nullable, and `null` means *not knowable* rather than zero
+([ADR 0019](../adr/0019-an-unknown-count-is-null-in-both-clients.md)). Only the two streaks,
+`totalDaysActive` and `bestMonth` stay non-nullable: they count days, which the Contribution Level answers alone.
+**Six of the eight are computed and rendered nowhere** — `StatsPanel` shows the two streaks and the calendar's own
+total.
 
 ### Export
 
@@ -120,7 +126,7 @@ Build-time config is supplied via `dart-defines.json` (dev) and `dart-defines.pr
 
 ## Shared design tokens
 
-The app cannot import `shared/` directly (Flutter bundles only assets inside its own package), so it uses generated copies in `app/assets/*.json`. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit `app/assets/` by hand. `release-app.yml` re-copies them before building the AAB, but `ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
+The app uses generated copies in `app/assets/*.json` — see **[shared/](../../shared/README.md)** and [ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) for why. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit `app/assets/` by hand. Note that this moves **palettes and suggested usernames only**: nothing in Dart reads `shapes.json`, so adding a shape there changes the web and does nothing here. `release-app.yml` re-copies them before building the AAB, but `ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
 
 ---
 

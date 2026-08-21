@@ -76,7 +76,7 @@ flutter pub get
 
 | Command                                                      | Action                              |
 | ------------------------------------------------------------ | ----------------------------------- |
-| `flutter run --dart-define=REVENUECAT_KEY=<key>`             | Run locally                         |
+| `flutter run --dart-define-from-file=dart-defines.json`      | Run locally                         |
 | `dart run build_runner watch`                                | Watch codegen (riverpod, freezed)   |
 | `flutter test --coverage`                                    | Run tests                           |
 | `flutter analyze`                                            | Static analysis                     |
