@@ -15,6 +15,12 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
   push a `shadcn_ui` import into `features/` — they move complexity rather than concentrating it. A wrapper with
   *no* caller has no such defence, which is why `AppBadge` was deleted; the one surface that wanted a badge, the
   `cached` pill in `viewer_screen.dart`, had hand-rolled its own beside it without ever reaching for the wrapper.
+  **A dead parameter is not a scale, and the two are treated differently.** `AppButton.destructive` and
+  `AppTextField`'s `onChanged` / `autofocus` had no caller and are gone — each was a `shadcn_ui` argument forwarded
+  through a wrapper that nothing asked for, and re-adding one is a line. `AppButtonSize`'s three cases and
+  `Tokens`' `space1…space12`, `radiusSm…radiusFull` and `textXs…text3Xl` stay complete even where a rung has no
+  reader: a scale with holes gets the missing rung reintroduced with a different number, and `AppButtonSize.md`
+  exists so the app never has to spell shadcn's word for it, `regular`.
 - **Never `MaterialApp`.** The root is `ShadApp`, configured in `app/lib/main.dart`.
 - **Never a hardcoded colour, spacing or duration.** `Tokens`, `AppColors` and the rest of
   [`theme/`](./theme/CLAUDE.md). That includes the ones that look incidental: the sheet scrim is `AppColors.scrim`,

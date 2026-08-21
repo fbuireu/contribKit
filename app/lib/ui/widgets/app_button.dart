@@ -36,14 +36,6 @@ class AppButton extends StatelessWidget {
     this.enabled = true,
   }) : _variant = ShadButtonVariant.ghost;
 
-  const AppButton.destructive({
-    super.key,
-    required this.onPressed,
-    required this.child,
-    this.size,
-    this.enabled = true,
-  }) : _variant = ShadButtonVariant.destructive;
-
   final VoidCallback? onPressed;
   final Widget child;
   final AppButtonSize? size;
