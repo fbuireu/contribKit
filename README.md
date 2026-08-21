@@ -105,7 +105,7 @@ Tooling that applies to the whole repo:
 - **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)). Install once with `brew install lefthook && lefthook install`
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows. [`ci-app.yml`](.github/workflows/ci-app.yml) runs on `app/**`; [`ci-web.yml`](.github/workflows/ci-web.yml) runs on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md` and the three root config files. The documentation-consistency contract lives in the web test suite but asserts things about both clients, so each workflow runs it
+- **CI:** path-filtered workflows. [`ci-app.yml`](.github/workflows/ci-app.yml) runs on `app/**`; [`ci-web.yml`](.github/workflows/ci-web.yml) runs on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files, its own workflow file and the `prepare-web-env` action. The documentation-consistency contract lives in the web test suite but asserts things about both clients, so each workflow runs it
 
 GitHub Environments are namespaced by component (`<component>-<stage>`) because they are repo-global and hold component-specific secrets:
 

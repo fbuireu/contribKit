@@ -20,11 +20,13 @@ The second option is not really available. The first one is a visible change to 
 
 **The formulas live in one module per language, and the app's ratio is the one that is right.**
 
-`CellGeometryService` in `app/lib/domain/services/` owns `cornerRadiusFor`, `dotRadiusFor` and `hexVerticesFor`, over `cornerRadiusRatio` (0.2), `dotBaseRadius` (1.4), `dotReferenceCellSize` (10.0) and `hexVertexCount` (6). `svg-geometry.ts` in `web/src/domain/services/` is the same three formulas over the same first three constants, and `calendarLayout` is the single call every web renderer takes its whole geometry from.
+`CellGeometryService` in `app/lib/domain/services/` owns `cornerRadiusFor`, `dotRadiusFor` and `hexVerticesFor`, over `cornerRadiusRatio` (0.2), `dotBaseRadius` (1.4), `dotReferenceCellSize` (10.0) and `hexVertexCount` (6). `svg-geometry.ts` in `web/src/domain/services/` is the same three formulas over the same first three constants, and `calendarLayout` is the single call the two **calendar** renderers, `svgStringRenderer` and `renderCalendarString`, take their whole geometry from.
 
 **The published Embed's rounded corner moved from 2.5 to 2.0**, because `SVG_DEFAULT_CELL_SIZE` is 10 and 10 times 0.2 is 2. That was accepted rather than worked around. A per-client constant would have kept the old pixel and re-created the divergence it was there to remove.
 
-**Kotlin is the third copy and cannot be made a reference.** `drawCell` in `ContribKitWidgetProvider.kt` spells `0.2f`, `1.4f`, `10f` and `6` as literals, because a widget provider runs in the Android process with no access to Dart. Changing a constant in the Dart or the TypeScript produces no compile error and no failing test there.
+**The web's miniatures are out of scope, and stay out.** `mini-grid.ts` (`CELL_SIZE = 4`), `ContributionCode.astro` (`CELL_SIZE = 18`) and `shapePreviewSVG` draw decorative shapes at fixed sizes rather than Cells at a chosen one, and `code-preview.ts` computes its own view box while still asking the geometry module for its radii. `web/src/ui/components/CLAUDE.md` lists all four. This decision binds anything that renders a Contribution Calendar; a 20 by 20 swatch is not one.
+
+**Kotlin is the third copy and cannot be made a reference.** `drawCell` in `ContribKitWidgetProvider.kt` spells `0.2f`, `1.4f` and `10f` as literals, and its sibling `hexPath` spells the `6`, because a widget provider runs in the Android process with no access to Dart. Changing a constant in the Dart or the TypeScript produces no compile error and no failing test there.
 
 ## Consequences
 

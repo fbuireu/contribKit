@@ -20,6 +20,8 @@ Doc comments complicate this. `///` in Dart and JSDoc in TypeScript are normally
 
 The ban covers `app/lib`, `app/test`, `web/src`, `web/e2e`, `web/workers`, `docs/`, `scripts/` and the three `web/*.config.ts`. Generated Dart is excluded because it is generated. The exception list is exactly two directives the tooling reads and would break without: `// @vitest-environment` and `/// <reference>`.
 
+**Kotlin, XML and the root config files are outside it, deliberately.** `ContribKitWidgetProvider.kt` carries comments, `AndroidManifest.xml` carries XML comments, and `commitlint.config.cjs` opens with a JSDoc block. The rule earns its keep where the reasoning has a document to live in; the Android sources have no colocated guide of their own, and `app/lib/ui/CLAUDE.md` documents them from the Dart side instead. Extending the ban there means giving them a guide first.
+
 The rejected alternative is the ordinary one: allow doc comments, ban the rest. It was rejected because the boundary is unenforceable. `///` above a class and `//` inside a method are the same characters to a regex, and the moment the rule needs judgement it stops being checked, which is how the block form `/* */` went unnoticed here for a year while the line form was policed.
 
 ## Consequences

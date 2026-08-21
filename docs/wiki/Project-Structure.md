@@ -107,5 +107,5 @@ See **[Git Hooks](Git-Hooks)** for how these run.
 - **Package manager:** pnpm workspaces (`pnpm-workspace.yaml`)
 - **Commits:** Conventional Commits, enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows: `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md` and the three root config files; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
+- **CI:** path-filtered workflows: `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files and its own wiring; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
 - **Git hooks:** lefthook (`lefthook install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)

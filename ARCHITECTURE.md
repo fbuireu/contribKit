@@ -324,9 +324,9 @@ opens a file in that exact folder, so a deeper split costs reach.
 Most of what this section used to list has either been fixed in the source or promoted to an ADR, because the
 divergence turned out to be deliberate: `shapes.json` bundled but unread
 ([0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)), `noneLight` app-only
-([0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the app unable to represent an unknown Count
-([0008](./docs/adr/0008-the-mobile-app-fetches-github-directly.md)), and Cell Size named in one client and numeric
-in the other ([0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+([0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the app unable to represent an unknown Count until
+[0019](./docs/adr/0019-an-unknown-count-is-null-in-both-clients.md) closed it, and Cell Size named in one client
+and numeric in the other ([0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
 
 One is outstanding:
 
