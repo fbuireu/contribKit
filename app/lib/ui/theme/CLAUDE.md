@@ -35,13 +35,17 @@ palette is an edit to `shared/palettes.json` plus `pnpm sync:assets`
 
 ## `BackgroundPreset`
 
-`system` · `charcoal` · `github` · `navy` · `black`, with a `labels` map for display and a `colors` map for
-painting.
+`system` · `charcoal` · `github` · `navy` · `black`. `label` and `color` are getters on the enum, each an
+exhaustive `switch (this)`, so a sixth case is a compile error in both — the same shape `CellSize` already had.
+They were two hand-maintained `const Map`s reached as `labels[preset]!`, and that `!` was the crash: a case added
+to the enum and not to the map took down the Customizer the first time it rendered.
 
-- **`colors[BackgroundPreset.system]` is `null` on purpose** — the caller falls back to the theme's `card` colour,
-  which is what makes "system" follow the light/dark toggle instead of pinning a shade.
-- **`BackgroundPresets.byName` never throws**; an unknown name resolves to `system`. That is what makes a removed
-  or renamed preset degrade instead of crashing on launch.
+- **`color` is `null` for `system` on purpose** — that is what makes "system" follow the light/dark toggle instead
+  of pinning a shade. **Read it through `colorOr(fallback)`**, never the raw getter: three call sites each
+  re-decided the `?? colors.card` / `?? systemColor` fallback, and one of them could have forgotten.
+- **`BackgroundPreset.byName` returns `null` for an unknown name**, and the caller pairs it with
+  `BackgroundPreset.fallback`. It used to coerce silently to `system`, which is the same answer but hides from the
+  reader that a stored value was rejected.
 - **Persisted by `name`, under the `backgroundPreset` key, with a legacy fallback to `cardBackground`.** Renaming a
   case is therefore a migration: add the fallback and a test, or every user silently loses their background.
 

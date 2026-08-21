@@ -25,11 +25,11 @@ class BackgroundPicker extends StatelessWidget {
       selected: selected,
       onSelected: onSelected,
       optionBuilder: (preset, isSelected, onTap) => AppTooltip(
-        message: Text(BackgroundPresets.labels[preset]!),
+        message: Text(preset.label),
         child: SettingSwatch(
           isSelected: isSelected,
           onTap: onTap,
-          color: BackgroundPresets.colors[preset] ?? systemColor,
+          color: preset.colorOr(systemColor),
           size: Tokens.swatchSize * 2,
           borderRadius: Tokens.radiusSm,
         ),

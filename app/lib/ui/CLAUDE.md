@@ -163,7 +163,7 @@ contains** a known fragment — `coffee`, `croissant`, `lunch` — and falls bac
 is a contract with Play and App Store SKUs, and the fallback means **renaming a SKU degrades silently** rather than
 failing: the Tip Jar keeps working and quietly shows a generic tile. It lived as a private static on the sheet's
 `State`, where nothing could reach it and it ran twice per product per frame. Display copy belongs in `ui/` — the
-same place as `BackgroundPresets.labels` and `FailureMessage` — so it stays here rather than moving to the domain,
+same place as `BackgroundPreset.label` and `FailureMessage` — so it stays here rather than moving to the domain,
 but as a module with a test.
 
 `TipProduct.title` comes from the store and **nothing renders it**; the label above wins. Do not assume the store's

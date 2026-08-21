@@ -17,7 +17,6 @@ import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
-import 'package:contribkit/ui/theme/background_presets.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:contribkit/ui/widgets/app_card.dart';
@@ -458,8 +457,7 @@ class _CalendarCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
-    final gridBg =
-        BackgroundPresets.colors[state.backgroundPreset] ?? colors.card;
+    final gridBg = state.backgroundPreset.colorOr(colors.card);
 
     return AppCard(
       padding: EdgeInsets.zero,

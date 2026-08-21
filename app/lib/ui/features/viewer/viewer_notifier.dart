@@ -52,9 +52,11 @@ class ViewerNotifier extends _$ViewerNotifier {
         palette: resolvedPalette,
         cellShape: shape ?? CellShape.fallback,
         cellSize: cellSizeSaved ?? CellSize.fallback,
-        backgroundPreset: backgroundName != null
-            ? BackgroundPresets.byName(backgroundName)
-            : BackgroundPreset.system,
+        backgroundPreset:
+            (backgroundName == null
+                ? null
+                : BackgroundPreset.byName(backgroundName)) ??
+            BackgroundPreset.fallback,
       );
 
       if (username != null) {

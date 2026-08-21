@@ -96,7 +96,7 @@ class _CalendarPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final gridBg = BackgroundPresets.colors[backgroundPreset] ?? colors.card;
+    final gridBg = backgroundPreset.colorOr(colors.card);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: gridBg,
