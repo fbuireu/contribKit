@@ -264,7 +264,7 @@ describe("architecture decision records", () => {
 			if (heading !== title.trim()) mismatched.push(`${file}: index says "${title.trim()}", ADR says "${heading}"`);
 		}
 		expect(mismatched).toEqual([]);
-		expect(rows.length, "the index table stopped matching — reformatting it would make this vacuous").toBe(
+		expect(rows.length, "the index table stopped matching, and reformatting it would make this vacuous").toBe(
 			adrs().filter((name) => name !== ADR_TEMPLATE).length,
 		);
 	});
@@ -308,7 +308,7 @@ describe("shared design tokens", () => {
 		for (const name of tokenFiles()) {
 			const mirrored = join(assetsDir, name);
 			expect(existsSync(mirrored), `${name} is missing from app/assets`).toBe(true);
-			expect(normalise(read(mirrored)), `${name} is out of sync — run pnpm sync:assets`).toBe(
+			expect(normalise(read(mirrored)), `${name} is out of sync, run pnpm sync:assets`).toBe(
 				normalise(read(join(sharedDir, name))),
 			);
 		}

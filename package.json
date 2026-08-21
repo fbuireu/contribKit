@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "author": "Ferran Buireu <contact@contribkit.app>",
-  "description": "Visualize and export your GitHub contribution calendar — web app & Android & iOS app",
+  "description": "Visualize and export your GitHub contribution calendar: web app, Android and iOS app",
   "keywords": [
     "github",
     "contributions",

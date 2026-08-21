@@ -71,7 +71,7 @@ jobs:
             echo "Released app v$VERSION"
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
-            echo "No releasable changes — nothing to publish."
+            echo "No releasable changes, nothing to publish."
           fi
 
       - name: Update major version tag
@@ -207,7 +207,7 @@ jobs:
           echo "Release notes for versionCode ${VERSION_CODE}:"
           cat "$DEST/${VERSION_CODE}.txt"
           {
-            echo "### 📝 Google Play release notes — versionCode ${VERSION_CODE}"
+            echo "### 📝 Google Play release notes for versionCode ${VERSION_CODE}"
             echo '```text'
             cat "$DEST/${VERSION_CODE}.txt"
             echo '```'

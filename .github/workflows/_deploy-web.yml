@@ -8,7 +8,7 @@ on:
         type: string
         description: >-
           The GitHub Environment, namespaced <component>-<stage> per ADR 0001.
-          The wrangler env is the stage half, derived here rather than passed —
+          The wrangler env is the stage half, derived here rather than passed,
           it used to be a second input, and nothing stopped a caller pairing
           web-production with development.
       url:
