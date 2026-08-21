@@ -41,8 +41,9 @@ and the SVG endpoint will not be rate-limited
 
 ### Improving documentation
 
-Always welcome, and here it is real work rather than a consolation prize. The source carries **no explanatory
-comments** by design, so the documents are where the explanation lives. Use the
+Always welcome, and here it is real work rather than a consolation prize. The source carries **no comments at
+all** by design, doc comments included, so the documents are where the explanation lives
+([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)). Use the
 [documentation template](.github/ISSUE_TEMPLATE/documentation.yml). Fair game: the READMEs, the
 [wiki](./docs/wiki/), the per-layer `CLAUDE.md` files, and the glossary.
 

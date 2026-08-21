@@ -83,7 +83,8 @@ Both clients use the same layered architecture with a strict inward dependency d
 ## Conventions
 
 - **Speak the glossary.** [`CONTEXT.md`](./CONTEXT.md) is prescriptive: if the code says something its `_Avoid_` list names, the code is what is wrong. Do not "fix" the glossary to match a stale identifier.
-- **No code comments.** Rationale belongs in commit messages, ADRs, or memory: not inline.
+- **No code comments**, of any kind, doc comments included. Rationale belongs in commit messages, ADRs, or a
+  folder's guide, never inline ([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)).
 - **Errors are a sealed, typed set.** Returned as values on the web, thrown and matched without a wildcard in the app ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). Never widen a match with `_` to silence the compiler.
 - **Never invent data for the user.** An unknown Count is not zero, and must not be estimated, summed, or displayed as exact.
 - **Edit `shared/`, never `app/assets/`.** The copies are generated.
