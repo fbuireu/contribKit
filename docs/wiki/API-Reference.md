@@ -106,7 +106,7 @@ Errors return `{ "error": "<message>" }` with an appropriate status:
 |--------|---------|
 | `400` | Missing `user`, or invalid username/year |
 | `404` | GitHub has no such user (`"User not found"`) |
-| `429` | **Two different things.** With a `Retry-After: 60` header it is this endpoint's own per-IP limit, refused by the middleware before the route runs. Without one it is GitHub rate-limiting ContribKit, and the body says so |
+| `429` | **Two different things, and the body is what tells them apart.** `"Too many requests"` is this endpoint's own per-IP limit, refused by the middleware before the route runs. `"GitHub is rate-limiting this Worker"` is upstream. Both carry `Retry-After` when a wait is known — a fixed `60` for ours, GitHub's own figure for theirs — and neither carries one when it is not |
 | `502` | GitHub unreachable, or the page couldn't be parsed |
 
 ---
@@ -144,7 +144,12 @@ Content-Type: application/json
 { "error": "Too many requests" }
 ```
 
-The `/user/:username.svg` route is not rate-limited at the middleware level and leans on caching instead.
+The `/user/:username.svg` route is not rate-limited at the middleware level and leans on caching instead. It can still
+answer `429` when GitHub rate-limits the Worker, as `text/plain` with the same `Retry-After` when GitHub named one.
+
+**`Retry-After` is a number of seconds either way.** GitHub is allowed to answer with an HTTP date instead, and the
+scraper converts it; anything that is neither all digits nor a parseable date is dropped rather than guessed at, so
+a missing header means *we do not know*, never *retry now*.
 
 ---
 

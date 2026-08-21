@@ -12,3 +12,8 @@ export const statusFor = (failure: Failure): number => STATUS_BY_KIND[failure.ki
 
 export const messageFor = (failure: Failure): string =>
 	failure.kind === FailureKind.NotFound ? "User not found" : failure.message;
+
+export const retryAfterHeader = (failure: Failure): Record<string, string> =>
+	failure.kind === FailureKind.RateLimited && failure.retryAfterSeconds !== null
+		? { "Retry-After": String(failure.retryAfterSeconds) }
+		: {};

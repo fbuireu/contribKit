@@ -14,9 +14,10 @@ It is also the only entry point for HTTP traffic.
   routes and nowhere else; the `:username` route param and the `ck_user` cookie go through `parseUsername`, which
   is the domain's own validator and returns a `Failure` rather than throwing. Zod is for the *shape* of a query
   string, not a substitute for a value object.
-- **Map `Failure` to HTTP only through `@application/http/failure-http`** (`statusFor`, `messageFor`), guarded by
-  `isFailure` from `@domain/failures/failure`. Never inline a status or a message — **with one exemption, and it is
-  the only one**: a request that fails the Zod shape check has produced no `Failure` to map, so
+- **Map `Failure` to HTTP only through `@application/http/failure-http`** (`statusFor`, `messageFor`,
+  `retryAfterHeader`), guarded by `isFailure` from `@domain/failures/failure`. Never inline a status, a message or
+  a `Retry-After` — **with one exemption, and it is the only one**: a request that fails the Zod shape check has
+  produced no `Failure` to map, so
   `/api/contributions` answers a missing `user` with a hand-written 400. Anything that reached a value object maps
   through `failure-http`.
 - **Compose at module scope, not per request** — and in an `.astro` file there is no module scope, because the

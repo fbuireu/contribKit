@@ -1,4 +1,4 @@
-import { messageFor, statusFor } from "@application/http/failure-http";
+import { messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
 import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
 import { isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
@@ -42,7 +42,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
 			status,
 			endpoint: ContributionsEndpoint.Api,
 		});
-		return Response.json({ error: messageFor(result) }, { status });
+		return Response.json({ error: messageFor(result) }, { status, headers: retryAfterHeader(result) });
 	}
 
 	const days = result.days.map((day) => ({ date: day.date, level: day.level, count: day.count }));

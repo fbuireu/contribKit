@@ -2,7 +2,7 @@
 
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { Selector } from "@ui/utils/dom-contract";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	getActiveExportTab,
 	getActivePalette,
@@ -111,5 +111,40 @@ describe("getActivePalette", () => {
 		const palette = getActivePalette();
 
 		expect(palette.colors).toEqual(PALETTES[palette.key].colors);
+	});
+});
+
+describe("the copy button", () => {
+	const clickCopy = async (writeText: () => Promise<void>) => {
+		vi.stubGlobal("navigator", { clipboard: { writeText } });
+		document.body.innerHTML = `<div id="export-tabs"><button data-key="svg" aria-selected="true"></button></div><div id="export-preview"></div>`;
+		renderExportPreview();
+		const button = document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton);
+		button?.click();
+		await vi.advanceTimersByTimeAsync(0);
+		return button;
+	};
+
+	beforeEach(() => {
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		vi.unstubAllGlobals();
+	});
+
+	it("says it copied, then goes back to offering to", async () => {
+		const button = await clickCopy(async () => {});
+
+		expect(button?.textContent).toBe("copied!");
+		await vi.advanceTimersByTimeAsync(1500);
+		expect(button?.textContent).toBe("copy");
+	});
+
+	it("says it failed rather than staying silent when the clipboard refuses", async () => {
+		const button = await clickCopy(() => Promise.reject(new Error("denied")));
+
+		expect(button?.textContent).toBe("copy failed");
 	});
 });

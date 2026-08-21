@@ -1,4 +1,4 @@
-import { messageFor, statusFor } from "@application/http/failure-http";
+import { messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
 import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
 import { isFailure } from "@domain/failures/failure";
 import { buildRollingGrid } from "@domain/services/calendar-grid";
@@ -42,7 +42,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 		});
 		return new Response(messageFor(calendar), {
 			status,
-			headers: { "Content-Type": "text/plain" },
+			headers: { "Content-Type": "text/plain", ...retryAfterHeader(calendar) },
 		});
 	}
 

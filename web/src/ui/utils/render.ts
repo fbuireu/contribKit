@@ -12,6 +12,25 @@ import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
 import { formatHeroError } from "./contribution-errors";
 import { getDays, getUsername } from "./state";
 
+const COPIED_FEEDBACK_MS = 1500;
+
+const copyToClipboard = async (text: string): Promise<boolean> => {
+	try {
+		await navigator.clipboard.writeText(text);
+		return true;
+	} catch {
+		return false;
+	}
+};
+
+const flash = ({ button, message }: { button: HTMLButtonElement; message: string }): void => {
+	const original = button.textContent;
+	button.textContent = message;
+	setTimeout(() => {
+		button.textContent = original;
+	}, COPIED_FEEDBACK_MS);
+};
+
 export const getActivePalette = (): Palette =>
 	paletteByKey(document.querySelector<HTMLElement>(Selector.ActivePaletteRow)?.dataset.key ?? DEFAULT_PALETTE_KEY);
 
@@ -97,11 +116,8 @@ export function renderExportPreview(): void {
 		copyButton.className = `${ClassName.CopyButton} mono`;
 		copyButton.textContent = "copy";
 		copyButton.addEventListener("click", () => {
-			navigator.clipboard.writeText(plainText).then(() => {
-				copyButton.textContent = "copied!";
-				setTimeout(() => {
-					copyButton.textContent = "copy";
-				}, 1500);
+			void copyToClipboard(plainText).then((copied) => {
+				flash({ button: copyButton, message: copied ? "copied!" : "copy failed" });
 			});
 		});
 		card.appendChild(copyButton);

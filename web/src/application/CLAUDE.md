@@ -108,8 +108,10 @@ The single mapping from a domain `Failure` to HTTP. Never inline either function
   their `kind`, so the distinction survives where it matters.
 - **`RateLimited` is a claim about a specific upstream answer.** GitHub's 429 used to arrive as `Network` and
   therefore as 502 — "could not reach github" for a service that answered perfectly well and said *slow down*. It
-  carries `retryAfterSeconds`, which nothing renders yet; the kind is what matters, and the status is 429 rather
-  than 502 so a caller can back off.
+  carries `retryAfterSeconds`, and `retryAfterHeader` is what turns it back into a `Retry-After` on the way out —
+  both data routes spread it into their error response, so the wait GitHub named survives the round trip instead of
+  being parsed and dropped. It answers `{}` for every other kind and for a 429 that named no wait, because a
+  fabricated `Retry-After` is worse than none.
 - **`SERVER_ERROR_STATUS` no longer lives here.** It is a logging threshold, and it moved to `http/failure-log.ts`
   beside the code that applies it. It sat in this file and was imported by the logging module, which is the seam
   being crossed backwards.
