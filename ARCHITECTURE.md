@@ -229,6 +229,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | `ci-web-noop.yml` | PR to `main` under **anything `ci-web.yml` ignores** | Reports a passing `E2E (preview)` so that check can be required in the ruleset without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly — the two are one filter written twice |
 | `cleanup-web-development.yml` | PR closed, under the same paths as `ci-web.yml` | Deletes the per-PR preview Worker. Its filter must mirror the one that creates the preview, or a PR leaves a Worker behind — **the docs contract asserts all three copies are identical**, because this one had silently drifted four entries behind |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | Publishes `docs/wiki/` to the GitHub Wiki |
+| `commit-message.yml` | PR opened, edited, reopened or synchronised | Runs commitlint on the **pull request title**, which is what a squash-merge commits. The `commit-msg` hook only sees what is typed locally, so this is the copy that guards `main` |
 | `zizmor.yml` | — | Static analysis of the workflow files themselves |
 | `dependabot-auto-merge.yml` · `renovate-auto-approve.yml` | dependency PRs | Auto-approve and merge low-risk updates |
 

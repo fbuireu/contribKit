@@ -119,8 +119,16 @@ choose is the version bump you get.
 Breaking changes take a `!` after the type or a `BREAKING CHANGE:` footer, and bump the major.
 
 **A scope, if you use one, must be a workspace package name.** `@commitlint/config-pnpm-scopes` derives the allowed
-set from `pnpm-workspace.yaml`, so the scopes are `contribkit-web` and `contribkit-app` — **`feat(web):` and
-`fix(app):` are rejected.** The scope is optional; `docs:` with none is always fine.
+set from `pnpm-workspace.yaml`, so the scopes are `contribkit-web`, `contribkit-app` and `global` — **`feat(web):`
+and `fix(app):` are rejected.** The scope is optional; `docs:` with none is always fine. Use `global` for a change
+that belongs to neither client — CI, the root manifests, the docs contract.
+
+**The hook is not the only place this runs, because the hook is not where most commits are written.** `commit-msg`
+lints what you type locally; a squash-merge through GitHub commits the **pull request title**, which never passes
+through any local hook. That is how `ci(web):` reached `main` twice while this document said it was rejected.
+`commit-message.yml` lints the PR title on every open and edit, so the message that actually lands is the one that
+was checked. It matters because semantic-release parses these to decide the version and which component's
+changelog the entry goes in.
 
 ### One commit may not touch both clients
 

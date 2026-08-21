@@ -21,6 +21,7 @@ CI is split per component with **path filters**, so an app change never triggers
 | `cleanup-web-development.yml` | PR close | deletes the per-PR preview worker |
 | `dependabot-auto-merge.yml`, `renovate-auto-approve.yml` | dependency PRs | automated dependency updates |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |
+| `commit-message.yml` | PR opened / edited | commitlint on the PR title — the message a squash-merge actually commits |
 | `zizmor.yml` | push / PR | GitHub Actions security linting |
 
 ---
