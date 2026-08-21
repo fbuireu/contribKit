@@ -121,17 +121,17 @@ in [§7](#7-where-things-live).
 | # | Call | Layer | Notes |
 | --- | --- | --- | --- |
 | 1 | `parseUsername(params.username)` | domain | Returns a `Username` or an `InvalidInput` failure; nothing downstream sees an unvalidated handle |
-| 2 | `fetchContributions(repository)({ username, year: null })` | application | Curried once in `web/src/pages/_contributions.ts`, which every data route imports: the repository is bound at module load, the call takes the request |
+| 2 | `loadContributions({ username, year: null })` | pages | Bound once in `web/src/pages/_contributions.ts`, which every data route imports: the repository method is captured at module load, the call takes the request |
 | 3 | `githubHtmlContributionsRepository.fetch(...)` fetches and parses | infrastructure | Regexes over the rendered page — there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
 | 4 | `querySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
 | 5 | `buildRollingGrid(...)` then `svgStringRenderer({ calendar, options })` | domain → infrastructure | The lattice first, then string concatenation — no DOM |
-| 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`; `/api/health` is the exception at `no-store` |
+| 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Two routes differ: `/api/health` is `no-store`, and the landing page is `private` either way — one hour once a visitor has asked for someone, `no-store` for the default view |
 
 Any failure short-circuits: `isFailure` guards the result and `statusFor` / `messageFor` in
 `web/src/application/http/failure-http.ts` turn it into a response. Anything at or above `SERVER_ERROR_STATUS` is
 also reported to Better Stack with the username, kind and endpoint — from all three data consumers, the landing page
-included. That reporting is one call to `logContributionsFailure`, which applies the threshold itself, rather than a
-condition each route repeats. This endpoint is deliberately **not** rate-limited — README embeds arrive through
+included. That reporting is one call to `logContributionsFailure` in `web/src/application/http/failure-log.ts`,
+which owns the threshold and the port it logs through, rather than a condition each route repeats. This endpoint is deliberately **not** rate-limited — README embeds arrive through
 GitHub's shared image proxy, so a per-IP limit would throttle every reader at once
 ([ADR 0010](./docs/adr/0010-rate-limit-only-the-json-api.md)).
 
@@ -162,12 +162,16 @@ the difference is the point: each client can only fail in the ways it can actual
 
 | Web (`Failure` union, returned as a value) | App (`sealed class Failure`, thrown and caught) |
 | --- | --- |
-| `NotFound`, `InvalidInput`, `Network`, `Parse` | `NotFoundFailure`, `NetworkFailure`, `ParseFailure`, `RateLimitedFailure`, `CacheFailure`, `ExportFailure`, `PurchaseFailure`, `UnexpectedFailure` |
+| `NotFound`, `InvalidInput`, `Network`, `Parse`, `RateLimited` | `NotFoundFailure`, `NetworkFailure`, `ParseFailure`, `RateLimitedFailure`, `CacheFailure`, `ExportFailure`, `TipFailure`, `UnexpectedFailure` |
 
 The web returns failures because a Worker route is a function from request to response and a thrown error there is
 just a 500 with no shape. The app throws them because a `sealed class` plus an exhaustive `switch` is how Dart makes
 a missed case a compile error. Adding a kind to either set means updating the exhaustive match that renders it, in
 the same commit.
+
+`RateLimited` is the newest and the two sets agree on it now: GitHub's 429 used to reach the web as `Network`, so a
+service that answered perfectly well and said *slow down* was reported to the reader as unreachable. The app has
+distinguished it since ADR 0004.
 
 ## 5. Shared design tokens
 
@@ -205,8 +209,12 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   Dart code is AOT-compiled and untouched. Anything the app reaches by reflection or by name from outside Dart
   would need a keep rule, so a plugin added later can break in release while debug stays green.
 - **Hooks.** lefthook, composed from `lefthook.yml` plus `app/lefthook.yml` and `web/lefthook.yml`. `pre-commit`
-  formats staged Dart and web files and re-stages them, and syncs `shared/*.json`; `commit-msg` runs
-  `scripts/auto-scope.mjs` then commitlint; `pre-push` runs `flutter analyze --fatal-infos` and `pnpm lint:astro`.
+  formats staged Dart and web files and re-stages them, runs `flutter analyze --fatal-infos`, and syncs
+  `shared/*.json`; `commit-msg` runs `scripts/auto-scope.mjs` then commitlint; `pre-push` runs
+  `flutter analyze --fatal-infos` and `pnpm lint:astro`.
+  **`auto-scope.mjs` ignores `app/assets/`**, because the pre-commit sync stages those mirrors before it runs — so
+  editing `shared/palettes.json` alongside `web/src/domain/value-objects/palette.ts`, the most natural shared
+  change there is, was rejected as touching both packages.
 - **Releases.** semantic-release per component, own tag series (`web-vX.Y.Z`, `app-vX.Y.Z`), configured in
   `web/.releaserc.json` and `app/.releaserc.json`.
 
@@ -214,20 +222,24 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `ci-web.yml` | push/PR to `main` under `web/**`, `shared/**`, `docs/**`, `*.md` or its own config | Lint, test + coverage, build, typecheck; then release and deploy |
+| `ci-web.yml` | push/PR to `main` under `web/**`, `shared/**`, `docs/**`, `scripts/**`, `*.md`, the root `package.json`, `pnpm-workspace.yaml`, `lefthook.yml` or its own config | Lint, test + coverage, build, typecheck; then release and deploy |
 | `_deploy-web.yml` | called by `ci-web.yml` | Reusable Cloudflare deploy, parameterised by environment |
 | `ci-app.yml` | push/PR to `main` under `app/**`, its own config, or `prepare-web-env` | `pnpm test:docs`, `dart format --set-exit-if-changed`, `flutter analyze --fatal-infos`, `flutter test` with coverage, debug APK build |
 | `release-app.yml` | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
+| `ci-web-noop.yml` | PR to `main` under **anything `ci-web.yml` ignores** | Reports a passing `E2E (preview)` so that check can be required in the ruleset without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly — the two are one filter written twice |
 | `cleanup-web-development.yml` | PR closed, under the same paths as `ci-web.yml` | Deletes the per-PR preview Worker. Its filter must mirror the one that creates the preview, or a docs-only PR leaves a Worker behind |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | Publishes `docs/wiki/` to the GitHub Wiki |
 | `zizmor.yml` | — | Static analysis of the workflow files themselves |
 | `dependabot-auto-merge.yml` · `renovate-auto-approve.yml` | dependency PRs | Auto-approve and merge low-risk updates |
 
-**`ci-web.yml`'s path filter is load-bearing in two directions.** `docs/**`, `shared/**` and `*.md` are in the
-trigger list so the docs-consistency contract actually runs on the changes most likely to break it — removing them
-disables the guard silently ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)). The
+**`ci-web.yml`'s path filter is load-bearing in two directions.** `docs/**`, `shared/**`, `scripts/**`, `*.md` and
+the three root config files are in the trigger list so the docs-consistency contract actually runs on the changes
+most likely to break it — removing them disables the guard silently ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)). The
 cost is that `deploy-production` sits behind the same filter, so a docs-only push to `main` redeploys the Worker.
-That is accepted: the deploy is idempotent and the alternative is a guard that does not guard. Nothing under
+That is accepted: the deploy is idempotent and the alternative is a guard that does not guard.
+`scripts/**` and the root `package.json` were added late, and their absence was the third instance of this
+project's own trap: the contract polices comments in `scripts/` and asserts the pnpm and Node pins that live in
+that manifest, and a change to either triggered no workflow at all. Nothing under
 `app/**` triggers that workflow, though, so `ci-app.yml` runs `pnpm test:docs` in a job of its own — otherwise the
 assertions about `app/assets/`, the nested guides under `app/lib/` and the Dart comment ban would never fire on an
 app-only change.

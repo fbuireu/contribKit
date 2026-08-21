@@ -35,6 +35,7 @@ class ViewerScreen extends ConsumerStatefulWidget {
 
 class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   late final TextEditingController _usernameController;
+  bool _seededUsername = false;
   late final FocusNode _usernameFocusNode;
   String _inputError = '';
 
@@ -74,11 +75,13 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     final state = ref.watch(viewerProvider);
     final colors = AppColors.of(context);
 
-    if (!state.isLoadingSettings &&
-        state.username != null &&
-        _usernameController.text.isEmpty) {
-      _usernameController.text = state.username!.value;
-    }
+    ref.listen(viewerProvider, (_, next) {
+      if (_seededUsername || next.isLoadingSettings) return;
+      final restored = next.username;
+      if (restored == null) return;
+      _seededUsername = true;
+      _usernameController.text = restored.value;
+    });
 
     return ColoredBox(
       color: colors.background,
@@ -101,8 +104,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                       focusNode: _usernameFocusNode,
                       error: _inputError,
                       onSubmit: _onSubmit,
-                      isLoading:
-                          state.isLoadingSettings || state.isLoadingCalendar,
+                      isLoading: state.isBusy,
                     ),
                     const _YearPills(),
                     _Body(state: state),
@@ -413,16 +415,19 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (state.isLoadingSettings || state.isLoadingCalendar) {
+    if (state.isBusy) {
       return const _Loader();
     }
-    if (state.error != null) {
-      return _ErrorState(failure: state.error!);
+    if (state.blockingFailure case final failure?) {
+      return _ErrorState(failure: failure);
     }
-    if (state.username == null ||
-        state.calendar == null ||
-        state.palette == null) {
+    if (state.username == null || state.calendar == null) {
       return const _EmptyState();
+    }
+    if (state.palette == null || state.stats == null) {
+      return const _ErrorState(
+        failure: ParseFailure(message: 'palettes unavailable'),
+      );
     }
 
     return Column(

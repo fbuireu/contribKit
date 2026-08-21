@@ -7,6 +7,7 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
@@ -53,12 +54,7 @@ ContributionCalendar _calendar({
   );
 }
 
-const _options = RenderOptions(
-  palette: _palette,
-  shape: CellShape.rounded,
-  cellSize: 11.0,
-  gap: 2.0,
-);
+const _options = RenderOptions(palette: _palette, shape: CellShape.rounded);
 
 Future<String> _render({
   RenderOptions options = _options,
@@ -154,12 +150,7 @@ void main() {
 
     test('draws every Cell Shape it is asked for', () async {
       Future<String> withShape(CellShape shape) => _render(
-        options: RenderOptions(
-          palette: _palette,
-          shape: shape,
-          cellSize: 11.0,
-          gap: 2.0,
-        ),
+        options: RenderOptions(palette: _palette, shape: shape),
       );
 
       expect(await withShape(CellShape.square), contains('<rect '));
@@ -176,14 +167,13 @@ void main() {
           options: const RenderOptions(
             palette: _palette,
             shape: CellShape.dot,
-            cellSize: 14.0,
-            gap: 3.0,
+            namedSize: CellSize.large,
           ),
           calendar: _calendar(level: ContributionLevel.veryHigh, count: 1),
         );
         final radius = CellGeometryService.dotRadiusFor(
           levelIndex: ContributionLevel.veryHigh.index,
-          cellSize: 14.0,
+          cellSize: CellSize.large.pixels,
         );
 
         expect(svg, contains('r="${radius.toStringAsFixed(2)}"'));
@@ -192,12 +182,7 @@ void main() {
 
     test('gives a hex six vertices', () async {
       final svg = await _render(
-        options: const RenderOptions(
-          palette: _palette,
-          shape: CellShape.hex,
-          cellSize: 11.0,
-          gap: 2.0,
-        ),
+        options: const RenderOptions(palette: _palette, shape: CellShape.hex),
       );
       final points = RegExp('<polygon points="([^"]+)"').firstMatch(svg)!;
 

@@ -12,7 +12,7 @@ be constructible and testable with `const FetchContributions(repository: fake)` 
   [`ui/di/providers.dart`](../ui/di/CLAUDE.md).
 - **Stateless.** Every one of them is a `const` constructor over a repository. State lives in `ui/`.
 - **Named parameters** for anything taking more than one argument, matching the repository interface it fronts.
-  `PurchaseTip.call(TipProduct product)` is the one positional signature, because it has exactly one argument.
+  `GiveTip.call(TipProduct product)` is the one positional signature, because it has exactly one argument.
 
 ## The five use cases
 
@@ -21,8 +21,13 @@ be constructible and testable with `const FetchContributions(repository: fake)` 
 | `FetchContributions` | `ContributionRepository.fetchCalendar` | `({ ContributionCalendar calendar, bool fromCache })` |
 | `InvalidateContributionCache` | `ContributionRepository.invalidateCache` | `Future<void>` |
 | `ExportCalendar` | `ExportRepository.export` | `List<int>` — the encoded bytes |
-| `FetchTipProducts` | `PurchaseRepository.getProducts` | `List<TipProduct>` |
-| `PurchaseTip` | `PurchaseRepository.purchase` | `Future<void>` |
+| `FetchTipProducts` | `TipRepository.getProducts` | `List<TipProduct>` |
+| `GiveTip` | `TipRepository.give` | `TipOutcome` |
+
+**`GiveTip` returns a `TipOutcome`, and that is the point of it.** It returned `Future<void>`, so *completed* and
+*cancelled* were the same value and the Tip Jar could not tell them apart — which is exactly why nobody noticed
+that the repository below it had an unreachable cancel arm. A store sheet the person backs out of is an ordinary
+outcome, not an error and not a success, and it is a value now.
 
 All five are one-line delegations today, and that is fine. They exist so `ui/` depends on `application/` rather than
 on a repository interface it would also have to call, and so a rule belonging between the widget and the repository
@@ -58,9 +63,12 @@ options were a fifth use case or an admission that `invalidateCache` was exempt;
   `Failure`: the exhaustive match is `FailureMessage.of`'s alone, so anything caring about one kind tests it with
   `is`. Adding a `try`/`catch` in this layer would not have fixed any of it — it would have hidden it
   one layer earlier.
-- **`PurchaseTip` returns `void` on purpose.** A tip unlocks nothing, so there is no entitlement to hand back and
-  nothing downstream may branch on purchase state
-  ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)). A future signature returning a
-  receipt would be the first step toward breaking that.
+- **`GiveTip` returns a `TipOutcome`, and a `TipOutcome` is not an entitlement.** It says only whether the store
+  sheet finished or the person backed out, which is what the Tip Jar needs to decide between "Thanks! ❤️" and
+  saying nothing at all. It carries no receipt, no product state and no expiry, and **nothing may branch on it
+  other than the sheet that offered the Tip**
+  ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)). It returned `void` before,
+  which is what let a cancelled Tip look identical to a completed one; a signature that returned anything
+  *persisted* would be the first step toward breaking ADR 0009, and this one deliberately does not.
 - `ExportCalendar` returns bytes, not a file path. Writing and sharing them is `infrastructure/export/` and the UI's
   share flow; this layer never touches the filesystem.

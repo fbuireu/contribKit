@@ -50,12 +50,12 @@ final class ExportFailure extends Failure {
   String toString() => 'ExportFailure: $message';
 }
 
-final class PurchaseFailure extends Failure {
-  const PurchaseFailure({required this.message});
+final class TipFailure extends Failure {
+  const TipFailure({required this.message});
   final String message;
 
   @override
-  String toString() => 'PurchaseFailure: $message';
+  String toString() => 'TipFailure: $message';
 }
 
 final class UnexpectedFailure extends Failure {

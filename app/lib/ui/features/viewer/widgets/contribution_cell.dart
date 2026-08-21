@@ -5,6 +5,7 @@ import 'package:contribkit/ui/theme/app_colors.dart';
 
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
@@ -35,7 +36,7 @@ class ContributionCell extends StatelessWidget {
     final count = day.count;
     final tooltip =
         '${day.date.toIso8601String().substring(0, 10)}: '
-        '${count == null ? 'contributions unknown' : '$count contribution${count == 1 ? '' : 's'}'}';
+        '${count == null ? unknownTotalPhrase : '$count contribution${count == 1 ? '' : 's'}'}';
 
     return AppTooltip(
       message: Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),

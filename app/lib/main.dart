@@ -34,7 +34,9 @@ void callbackDispatcher() {
         palettes: AssetPaletteRepository(),
         contributions: GitHubContributionRepository(),
       )();
-    } catch (_) {}
+    } catch (_) {
+      return false;
+    }
 
     return true;
   });
@@ -45,10 +47,27 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await Hive.initFlutter();
+
+  await _bestEffort(_dropLegacyCaches);
+  await _bestEffort(_scheduleWidgetRefresh);
+  await _bestEffort(_initRevenueCat);
+
+  runApp(const ProviderScope(child: ContribKitApp()));
+}
+
+Future<void> _bestEffort(Future<void> Function() step) async {
+  try {
+    await step();
+  } catch (_) {}
+}
+
+Future<void> _dropLegacyCaches() async {
   for (final box in legacyContributionCacheBoxNames) {
     await Hive.deleteBoxFromDisk(box);
   }
+}
 
+Future<void> _scheduleWidgetRefresh() async {
   await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(
     _widgetRefreshTask,
@@ -56,9 +75,6 @@ Future<void> main() async {
     frequency: const Duration(hours: 24),
     existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
   );
-
-  await _initRevenueCat();
-  runApp(const ProviderScope(child: ContribKitApp()));
 }
 
 Future<void> _initRevenueCat() async {

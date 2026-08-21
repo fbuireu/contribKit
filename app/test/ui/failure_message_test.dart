@@ -9,7 +9,7 @@ const _everyFailure = <Failure>[
   ParseFailure(message: 'markup changed'),
   CacheFailure(message: 'box closed'),
   ExportFailure(message: 'no bytes'),
-  PurchaseFailure(message: 'declined'),
+  TipFailure(message: 'declined'),
   UnexpectedFailure(message: 'boom'),
 ];
 
@@ -32,7 +32,7 @@ void main() {
         contains('no bytes'),
       );
       expect(
-        FailureMessage.of(const PurchaseFailure(message: 'declined')),
+        FailureMessage.of(const TipFailure(message: 'declined')),
         contains('declined'),
       );
     });
@@ -83,6 +83,22 @@ void main() {
       const Object error = ExportFailure(message: 'no bytes');
 
       expect(FailureMessage.ofAny(error), contains('no bytes'));
+    });
+
+    test('tells the reader when the rate limit lifts, when GitHub said', () {
+      final resetAt = DateTime(2026, 8, 21, 14, 32);
+
+      expect(
+        FailureMessage.of(RateLimitedFailure(resetAt: resetAt)),
+        contains('14:32'),
+      );
+    });
+
+    test('still says something useful when GitHub sent no Retry-After', () {
+      expect(
+        FailureMessage.of(const RateLimitedFailure()),
+        contains('Try again later'),
+      );
     });
   });
 }

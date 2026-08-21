@@ -16,6 +16,8 @@ part 'viewer_notifier.g.dart';
 
 @riverpod
 class ViewerNotifier extends _$ViewerNotifier {
+  int _generation = 0;
+
   @override
   ViewerState build() {
     Future.microtask(_loadSettings);
@@ -28,10 +30,13 @@ class ViewerNotifier extends _$ViewerNotifier {
     List<Palette> allPalettes = [];
     try {
       allPalettes = await ref.read(palettesProvider.future);
-      if (allPalettes.isNotEmpty) {
-        state = state.copyWith(palette: allPalettes.first);
-      }
-    } catch (_) {}
+      state = state.copyWith(
+        palette: allPalettes.isEmpty ? null : allPalettes.first,
+        paletteFailure: null,
+      );
+    } catch (e) {
+      state = state.copyWith(paletteFailure: _asFailure(e));
+    }
 
     try {
       final repo = ref.read(settingsRepositoryProvider);
@@ -77,6 +82,7 @@ class ViewerNotifier extends _$ViewerNotifier {
     required Username username,
     required Year year,
   }) async {
+    final generation = ++_generation;
     state = state.copyWith(
       username: username,
       year: year,
@@ -92,6 +98,7 @@ class ViewerNotifier extends _$ViewerNotifier {
         username: username,
         year: year,
       );
+      if (generation != _generation) return;
       state = state.copyWith(
         calendar: calendar,
         stats: ContributionStatsService.compute(calendar),
@@ -102,13 +109,20 @@ class ViewerNotifier extends _$ViewerNotifier {
 
       _updateWidget();
     } on Failure catch (f) {
-      state = state.copyWith(error: f);
+      if (generation == _generation) state = state.copyWith(error: f);
     } catch (e) {
-      state = state.copyWith(error: UnexpectedFailure(message: e.toString()));
+      if (generation == _generation) {
+        state = state.copyWith(error: UnexpectedFailure(message: e.toString()));
+      }
     } finally {
-      state = state.copyWith(isLoadingCalendar: false);
+      if (generation == _generation) {
+        state = state.copyWith(isLoadingCalendar: false);
+      }
     }
   }
+
+  static Failure _asFailure(Object error) =>
+      error is Failure ? error : UnexpectedFailure(message: error.toString());
 
   void setPalette(Palette palette) {
     state = state.copyWith(palette: palette);

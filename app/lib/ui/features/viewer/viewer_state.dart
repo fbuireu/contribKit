@@ -26,9 +26,14 @@ abstract class ViewerState with _$ViewerState {
     @Default(CellSize.fallback) CellSize cellSize,
     @Default(BackgroundPreset.system) BackgroundPreset backgroundPreset,
     @Default(null) Failure? error,
+    @Default(null) Failure? paletteFailure,
   }) = _ViewerState;
 
   const ViewerState._();
 
   Year get effectiveYear => year ?? Year.current;
+
+  bool get isBusy => isLoadingSettings || isLoadingCalendar;
+
+  Failure? get blockingFailure => error ?? paletteFailure;
 }

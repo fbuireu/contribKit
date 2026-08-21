@@ -5,6 +5,7 @@ import 'package:contribkit/ui/widgets/app_sheet.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
+import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
@@ -63,8 +64,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
   RenderOptions get _options => RenderOptions(
     palette: widget.palette,
     shape: widget.cellShape,
-    cellSize: widget.cellSize.pixels,
-    gap: widget.cellSize.gap,
+    namedSize: widget.cellSize,
   );
 
   Future<void> _save() async {
@@ -137,6 +137,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 padding: const EdgeInsets.only(bottom: Tokens.space2),
                 child: _FormatTile(
                   fmt: fmt,
+                  cellSize: widget.cellSize,
                   isSelected: fmt == _selected,
                   colors: colors,
                   onTap: () => setState(() => _selected = fmt),
@@ -226,7 +227,7 @@ class _ExportPreview extends StatelessWidget {
                 calendar: calendar,
                 palette: palette,
                 shape: cellShape,
-                cellSize: CellSize.compact,
+                cellSize: cellSize,
               ),
             ),
             Positioned(
@@ -289,25 +290,31 @@ class _CheckerPainter extends CustomPainter {
 class _FormatTile extends StatelessWidget {
   const _FormatTile({
     required this.fmt,
+    required this.cellSize,
     required this.isSelected,
     required this.colors,
     required this.onTap,
   });
 
   final ExportFormat fmt;
+  final CellSize cellSize;
   final bool isSelected;
   final AppColors colors;
   final VoidCallback onTap;
 
-  static const _meta = {
-    ExportFormat.png: (detail: '2880×720 · transparent', size: '~186 KB'),
-    ExportFormat.svg: (detail: 'Vector · scalable', size: '~24 KB'),
-    ExportFormat.markdown: (detail: 'README embed snippet', size: '~1 KB'),
+  String get _detail => switch (fmt) {
+    ExportFormat.png => _pngDetail,
+    ExportFormat.svg => 'Vector · scales to any size',
+    ExportFormat.markdown => 'README embed snippet',
   };
+
+  String get _pngDetail {
+    final pixels = ExportGeometryService.pngPixelSizeFor(cellSize: cellSize);
+    return '${pixels.width}×${pixels.height} · transparent';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final m = _meta[fmt]!;
     final accent = colors.accent;
 
     return GestureDetector(
@@ -365,20 +372,13 @@ class _FormatTile extends StatelessWidget {
                   ),
                   const SizedBox(height: Tokens.hairlineGap),
                   Text(
-                    m.detail,
+                    _detail,
                     style: TextStyle(
                       fontSize: Tokens.textXs,
                       color: colors.mutedForeground,
                     ),
                   ),
                 ],
-              ),
-            ),
-            Text(
-              m.size,
-              style: AppTextStyles.mono(
-                fontSize: Tokens.textXs,
-                color: colors.mutedForeground,
               ),
             ),
           ],

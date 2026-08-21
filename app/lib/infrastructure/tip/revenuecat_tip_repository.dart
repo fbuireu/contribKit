@@ -1,9 +1,11 @@
 import 'package:contribkit/domain/failures/failure.dart';
-import 'package:contribkit/domain/repositories/purchase_repository.dart';
+import 'package:contribkit/domain/repositories/tip_repository.dart';
+import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
+import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
-final class RevenueCatPurchaseRepository implements PurchaseRepository {
+final class RevenueCatTipRepository implements TipRepository {
   @override
   Future<List<TipProduct>> getProducts() async {
     try {
@@ -24,29 +26,35 @@ final class RevenueCatPurchaseRepository implements PurchaseRepository {
             ),
           )
           .toList();
+    } on TipFailure {
+      rethrow;
     } catch (e) {
-      throw PurchaseFailure(message: e.toString());
+      throw TipFailure(message: e.toString());
     }
   }
 
   @override
-  Future<void> purchase(TipProduct product) async {
+  Future<TipOutcome> give(TipProduct product) async {
     try {
       final offerings = await Purchases.getOfferings();
       final matches = offerings.current?.availablePackages.where(
         (p) => p.storeProduct.identifier == product.id,
       );
       if (matches == null || matches.isEmpty) {
-        throw const PurchaseFailure(message: 'Product not found');
+        throw const TipFailure(message: 'Tip Product not found');
       }
       await Purchases.purchase(PurchaseParams.package(matches.first));
-    } on PurchaseFailure {
+      return TipOutcome.completed;
+    } on TipFailure {
       rethrow;
-    } on PurchasesErrorCode catch (e) {
-      if (e == PurchasesErrorCode.purchaseCancelledError) return;
-      throw PurchaseFailure(message: e.name);
+    } on PlatformException catch (e) {
+      if (PurchasesErrorHelper.getErrorCode(e) ==
+          PurchasesErrorCode.purchaseCancelledError) {
+        return TipOutcome.cancelled;
+      }
+      throw TipFailure(message: e.message ?? e.code);
     } catch (e) {
-      throw PurchaseFailure(message: e.toString());
+      throw TipFailure(message: e.toString());
     }
   }
 }

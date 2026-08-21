@@ -232,53 +232,46 @@ final class ContributionRepositoryProvider
 String _$contributionRepositoryHash() =>
     r'7bb8b16906957922dcc2e88d824e87b06f96cafd';
 
-@ProviderFor(purchaseRepository)
-final purchaseRepositoryProvider = PurchaseRepositoryProvider._();
+@ProviderFor(tipRepository)
+final tipRepositoryProvider = TipRepositoryProvider._();
 
-final class PurchaseRepositoryProvider
-    extends
-        $FunctionalProvider<
-          PurchaseRepository,
-          PurchaseRepository,
-          PurchaseRepository
-        >
-    with $Provider<PurchaseRepository> {
-  PurchaseRepositoryProvider._()
+final class TipRepositoryProvider
+    extends $FunctionalProvider<TipRepository, TipRepository, TipRepository>
+    with $Provider<TipRepository> {
+  TipRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'purchaseRepositoryProvider',
+        name: r'tipRepositoryProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$purchaseRepositoryHash();
+  String debugGetCreateSourceHash() => _$tipRepositoryHash();
 
   @$internal
   @override
-  $ProviderElement<PurchaseRepository> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+  $ProviderElement<TipRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
-  PurchaseRepository create(Ref ref) {
-    return purchaseRepository(ref);
+  TipRepository create(Ref ref) {
+    return tipRepository(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(PurchaseRepository value) {
+  Override overrideWithValue(TipRepository value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<PurchaseRepository>(value),
+      providerOverride: $SyncValueProvider<TipRepository>(value),
     );
   }
 }
 
-String _$purchaseRepositoryHash() =>
-    r'be34ccfee76a727e3271ee6b0a8973f5ca5f4e8a';
+String _$tipRepositoryHash() => r'9395e450f5769b7c837515cfed0016b32cca711c';
 
 @ProviderFor(fetchTipProducts)
 final fetchTipProductsProvider = FetchTipProductsProvider._();
@@ -324,48 +317,48 @@ final class FetchTipProductsProvider
   }
 }
 
-String _$fetchTipProductsHash() => r'48d2b5547b380b425712d1966eec595cc46605a7';
+String _$fetchTipProductsHash() => r'0dab6cbc4190a630dc761845c998bf069fa173c2';
 
-@ProviderFor(purchaseTip)
-final purchaseTipProvider = PurchaseTipProvider._();
+@ProviderFor(giveTip)
+final giveTipProvider = GiveTipProvider._();
 
-final class PurchaseTipProvider
-    extends $FunctionalProvider<PurchaseTip, PurchaseTip, PurchaseTip>
-    with $Provider<PurchaseTip> {
-  PurchaseTipProvider._()
+final class GiveTipProvider
+    extends $FunctionalProvider<GiveTip, GiveTip, GiveTip>
+    with $Provider<GiveTip> {
+  GiveTipProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'purchaseTipProvider',
+        name: r'giveTipProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$purchaseTipHash();
+  String debugGetCreateSourceHash() => _$giveTipHash();
 
   @$internal
   @override
-  $ProviderElement<PurchaseTip> $createElement($ProviderPointer pointer) =>
+  $ProviderElement<GiveTip> $createElement($ProviderPointer pointer) =>
       $ProviderElement(pointer);
 
   @override
-  PurchaseTip create(Ref ref) {
-    return purchaseTip(ref);
+  GiveTip create(Ref ref) {
+    return giveTip(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(PurchaseTip value) {
+  Override overrideWithValue(GiveTip value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<PurchaseTip>(value),
+      providerOverride: $SyncValueProvider<GiveTip>(value),
     );
   }
 }
 
-String _$purchaseTipHash() => r'd336b78f2db08c2fb24f59e35f55db51cba794d2';
+String _$giveTipHash() => r'0b18483dec8ceb777ed1850be2d241b8e4a537c9';
 
 @ProviderFor(settingsRepository)
 final settingsRepositoryProvider = SettingsRepositoryProvider._();

@@ -25,6 +25,10 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   have made every state unequal and rebuilt the screen on every notification — a value object carried in Riverpod
   state needs value equality or it is not behaving as one. `CellShape`, `CellSize`, `ExportFormat` and
   `ContributionLevel` are plain enums and need nothing.
+  **`AssetPaletteRepository` calls `Color.fromHex`**, and did not always: it carried its own `_hex` that ran
+  `hex.substring(1)` unconditionally, so a value without a leading `#` lost its first digit and produced a silently
+  wrong colour instead of throwing into the `ParseFailure` that layer exists to raise. The validated parser had no
+  production caller at all while the unvalidated copy was the only one running.
 - **Errors are `Failure` subclasses**, never a raw `Exception` or a `String` — with the one documented exception
   below.
 - **Repositories are `abstract interface class` only.** Six of them live here; every implementation is in
@@ -36,7 +40,13 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 wildcard ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)):
 
 `NetworkFailure` · `NotFoundFailure` · `RateLimitedFailure` · `ParseFailure` · `CacheFailure` · `ExportFailure` ·
-`PurchaseFailure` · `UnexpectedFailure`
+`TipFailure` · `UnexpectedFailure`
+
+**It is `TipFailure`, not `PurchaseFailure`.** The glossary's `_Avoid_` list for Tip names `purchase`, and the whole
+stack was named after it — `PurchaseRepository`, `PurchaseTip`, `PurchaseFailure`, `purchase()`. The
+docs-consistency guard could not see it: it policed only `_Avoid_` terms that are *code-shaped* (`ShapeKind`,
+`DOW`, `IAP`, `SKU`), which is four of a hundred and six, and every plain lowercase word went unchecked. It now
+polices a curated set of unambiguous ones, and `purchase` is in it.
 
 **Value-object constructors do not throw those.** `Username` throws `ArgumentError`, `Year` throws `RangeError`.
 That is intentional and worth stating because it looks like a violation: a `Failure` describes something that went
@@ -55,6 +65,7 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `Year` | integer in `Year.minYear` (2005) … the current year, else `RangeError`. `Year.current` is the shorthand |
 | `CellSize` | `compact` / `normal` / `large`, each mapping to a `pixels` and a `gap` |
 | `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
+| `TipOutcome` | `completed` / `cancelled` — what came back from the store when a Tip was offered |
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | — |
 
 `Year.minYear` is **2005**, a product floor rather than GitHub's launch year — GitHub launched in 2008, and four
@@ -101,7 +112,7 @@ day has an unknown Count, because the largest Count *seen* is a lower bound and 
 same lie `_totalFor` refuses to tell. `currentStreak`, `longestStreak`, `totalDaysActive` and `bestMonth` stay
 non-nullable: they count *days*, which the Contribution Level answers on its own.
 
-**Five of the eight figures have no reader.** `StatsPanel` renders `currentStreak`, `longestStreak` and the
+**Six of the eight figures have no reader.** `StatsPanel` renders `currentStreak` and `longestStreak`, plus the
 calendar's own `totalContributions`, and nothing else in `lib/` touches the rest. They are computed for a surface
 that does not exist yet — which is exactly why their handling of an unknown Count was wrong for a while with
 nothing going visibly wrong. They are computed **once per Contribution Calendar** now, in `ViewerNotifier`;
@@ -115,6 +126,13 @@ every frame and no test could reach the derivation through the notifier at all.
   circuiting to `low`. **GitHub does not publish its bucketing algorithm; this matches observed behaviour and is a
   guess.** It is only ever a fallback — the parser reads `data-level` and this runs solely when that attribute is
   missing. The web has no equivalent, because it drops such a day and lets the grid backfill it.
+  The `yearMax == 0` arm is unreachable from both call sites: it sits after the `count == 0` check, and both
+  derive `yearMax` as the maximum over the counts, so a positive count implies a positive maximum. It is kept as a
+  total function's answer for an input the callers happen not to produce, not as a live branch.
+- **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
+  `pngPixelSizeFor` (those units times `pngPixelRatio`, 3.0). The PNG repository used to compute this inline while
+  the Export sheet's format tile advertised the constant string `2880×720` — a size no `CellSize` produces, against
+  a renderer that emits 2061×267 at `normal`. The tile computes it now, from the same function the renderer uses.
 - **`ContributionStatsService.compute(calendar)`** returns the full `ContributionStats`: current and longest streak,
   best day and its date, active days, weekly average, best month and its total. The web's `ContributionStats` shares
   exactly **two** of those eight — the two streaks — and adds a `totalContributions` the app keeps on the calendar
@@ -133,7 +151,7 @@ every frame and no test could reach the derivation through the notifier at all.
   `DateTime.now()` — or from the end of the padded day list — hit a zero immediately and returned **0** for every
   past Year. `StatsPanel` labels that figure `FINAL`, so a year that closed on a forty-day run read as `FINAL 0 day
   streak`. Days outside `calendar.year` are dropped before the walk begins.
-- **Trailing days after the anchor are skipped, and the anchor day itself is skipped while its count is `0`** —
+- **Trailing days after the anchor are skipped, and the anchor day itself is skipped while it is inactive** —
   otherwise a streak would appear to break at midnight over a day that has not happened yet. The web's
   `computeContributionStats` makes the same allowance, keyed on the level rather than the count.
 
@@ -183,6 +201,9 @@ ratio**.
 - **`bestDayDate` and `bestMonth` are nullable and are `null` for an empty or wholly inactive calendar.** They
   are the only optional fields in `ContributionStats`; a UI that force-unwraps either will crash on a brand-new
   account.
+- **`bestDayDate` is nulled with `bestDayCount`, not separately.** The date used to survive the `incomplete` flag
+  that nulls the count, so the stats said *the best day was 15 June, and we cannot tell you how many* — which is a
+  claim about which day was best, made from counts that are known to be partial. The pair is one fact.
 - `ContributionCalendar` and `ContributionWeek` each carry a private `_listEquals`, because Dart's `==` on `List` is
   identity. Any new entity holding a list needs the same treatment or its equality is quietly wrong — and Riverpod
   rebuilds hang off exactly that comparison.

@@ -184,4 +184,23 @@ void main() {
       expect(stats.longestStreak, 2);
     });
   });
+  group('an unknown Count nulls the best day and its date together', () {
+    test('because a date with no number beside it is not an answer', () {
+      final stats = ContributionStatsService.compute(
+        _calendarWithUnknownCount(),
+      );
+
+      expect(stats.bestDayCount, isNull);
+      expect(stats.bestDayDate, isNull);
+    });
+
+    test('and reports both when every active day carries a Count', () {
+      final stats = ContributionStatsService.compute(
+        _calendar([(_d(6, 15), 30), (_d(6, 16), 1)]),
+      );
+
+      expect(stats.bestDayCount, 30);
+      expect(stats.bestDayDate?.day, 15);
+    });
+  });
 }

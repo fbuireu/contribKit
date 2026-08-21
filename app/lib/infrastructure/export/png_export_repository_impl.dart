@@ -1,6 +1,7 @@
-import 'package:contribkit/domain/services/cell_geometry_service.dart';
-
 import 'dart:ui' as ui;
+
+import 'package:contribkit/domain/services/cell_geometry_service.dart';
+import 'package:contribkit/domain/services/export_geometry_service.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
@@ -8,8 +9,6 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 
 final class PngExportRepository implements ExportRepository {
-  static const _pixelRatio = 3.0;
-
   @override
   Future<List<int>> export({
     required ContributionCalendar calendar,
@@ -21,14 +20,14 @@ final class PngExportRepository implements ExportRepository {
       final step = cell + gap;
       final weeks = calendar.weeks;
 
-      final logicalWidth = weeks.length * step - gap;
-      final logicalHeight = 7 * step - gap;
-      final pxW = (logicalWidth * _pixelRatio).ceil();
-      final pxH = (logicalHeight * _pixelRatio).ceil();
+      final pixels = ExportGeometryService.pngPixelSizeFor(
+        cellSize: options.namedSize,
+        weeks: weeks.length,
+      );
 
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);
-      canvas.scale(_pixelRatio);
+      canvas.scale(ExportGeometryService.pngPixelRatio);
 
       final paint = ui.Paint()..isAntiAlias = true;
 
@@ -72,14 +71,24 @@ final class PngExportRepository implements ExportRepository {
       }
 
       final picture = recorder.endRecording();
-      final image = await picture.toImage(pxW, pxH);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      try {
+        final image = await picture.toImage(pixels.width, pixels.height);
+        try {
+          final byteData = await image.toByteData(
+            format: ui.ImageByteFormat.png,
+          );
 
-      if (byteData == null) {
-        throw const ExportFailure(message: 'Failed to encode PNG');
+          if (byteData == null) {
+            throw const ExportFailure(message: 'Failed to encode PNG');
+          }
+
+          return byteData.buffer.asUint8List().toList();
+        } finally {
+          image.dispose();
+        }
+      } finally {
+        picture.dispose();
       }
-
-      return byteData.buffer.asUint8List().toList();
     } on ExportFailure {
       rethrow;
     } catch (e) {

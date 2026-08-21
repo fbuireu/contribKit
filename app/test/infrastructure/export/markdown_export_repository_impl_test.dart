@@ -22,12 +22,7 @@ const _palette = Palette(
   veryHigh: Color(0xFF505050),
 );
 
-const _options = RenderOptions(
-  palette: _palette,
-  shape: CellShape.rounded,
-  cellSize: 11.0,
-  gap: 2.0,
-);
+const _options = RenderOptions(palette: _palette, shape: CellShape.rounded);
 
 final _calendar = ContributionCalendar(
   username: Username('octocat'),

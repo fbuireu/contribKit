@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 
 const PACKAGES = ['app', 'web'];
+const GENERATED_MIRRORS = ['app/assets/'];
 
 let staged;
 try {
@@ -9,7 +10,12 @@ try {
   process.exit(0);
 }
 
-const files = staged.trim().split('\n').filter(Boolean);
+const files = staged
+  .trim()
+  .split('\n')
+  .filter(Boolean)
+  .filter(file => !GENERATED_MIRRORS.some(prefix => file.startsWith(prefix)));
+
 const touchedPackages = PACKAGES.filter(pkg => files.some(f => f.startsWith(`${pkg}/`)));
 
 if (touchedPackages.length > 1) {

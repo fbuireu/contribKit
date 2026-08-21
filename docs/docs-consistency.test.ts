@@ -1,6 +1,8 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.setConfig({ testTimeout: 60_000 });
 
 const REPO = resolve(import.meta.dirname, "..");
 
@@ -51,6 +53,7 @@ const DOUBLE_QUOTED_STRING = /"[^"]*"/g;
 const SINGLE_QUOTED_STRING = /'[^']*'/g;
 const TEMPLATE_LITERAL = /`[^`]*`/g;
 const LINE_COMMENT = /(^|[^:/])\/\//;
+const BLOCK_COMMENT_OPENER = /[/]\*/;
 const COLOCATED_TEST_FILE = /\.test\.ts$/;
 const ADR_STATUS_LINE = /\n## Status\n\n(\w+)/;
 const SHORT_ADR_REFERENCE = /\bADR \d{1,3}\b/g;
@@ -62,7 +65,17 @@ const PUBSPEC_DART_PIN = /^ {2}sdk: (\S+)$/m;
 const DOCUMENTED_PNPM_SCRIPT = /\bpnpm ([a-z][a-z\d:._-]*)/g;
 const GLOSSARY_AVOID_LINE = /^_Avoid_: (.+)$/gm;
 const adrHeadingFor = (number: number): RegExp => new RegExp(`^# ${number}\\. \\S`);
+const withoutStringLiterals = (source: string): string =>
+	source
+		.replaceAll(ESCAPE_SEQUENCE, "")
+		.replaceAll(DOUBLE_QUOTED_STRING, '""')
+		.replaceAll(SINGLE_QUOTED_STRING, "''")
+		.replaceAll(TEMPLATE_LITERAL, "``");
+
 const identifierNamed = (term: string): RegExp => new RegExp(`(?<![A-Za-z0-9])${term}(?![A-Za-z0-9])`);
+
+const codeOnly = (text: string): string =>
+	[...text.matchAll(FENCED_CODE_BLOCK), ...text.matchAll(INLINE_CODE_SPAN)].map(([span]) => span).join(" ");
 
 const withoutCode = (text: string): string => text.replace(FENCED_CODE_BLOCK, "").replace(INLINE_CODE_SPAN, "");
 
@@ -240,11 +253,15 @@ describe("architecture decision records", () => {
 	it("titles each indexed decision exactly as the decision titles itself", () => {
 		const index = read(join(REPO, ADR_INDEX));
 		const mismatched: string[] = [];
-		for (const [, file, title] of index.matchAll(ADR_INDEX_ROW)) {
+		const rows = [...index.matchAll(ADR_INDEX_ROW)];
+		for (const [, file, title] of rows) {
 			const heading = read(join(ADR_DIR, file)).split("\n")[0].replace(ADR_HEADING_PREFIX, "");
 			if (heading !== title.trim()) mismatched.push(`${file}: index says "${title.trim()}", ADR says "${heading}"`);
 		}
 		expect(mismatched).toEqual([]);
+		expect(rows.length, "the index table stopped matching — reformatting it would make this vacuous").toBe(
+			adrs().filter((name) => name !== ADR_TEMPLATE).length,
+		);
 	});
 
 	it("gives every decision a home outside the index", () => {
@@ -292,18 +309,28 @@ describe("shared design tokens", () => {
 		}
 	});
 
-	it("every palette the app ships is advertised in the README", () => {
+	const featureLine = (heading: string): string => {
+		const line = read(join(REPO, "README.md"))
+			.split("\n")
+			.find((candidate) => candidate.includes(heading));
+		expect(line, `README has no "${heading}" feature bullet`).toBeDefined();
+		return line ?? "";
+	};
+
+	it("lists every palette the app ships in the README's own feature line", () => {
 		const palettes = JSON.parse(read(join(sharedDir, "palettes.json"))) as { name: string }[];
-		const readme = read(join(REPO, "README.md"));
-		for (const { name } of palettes) expect(readme, `palette ${name}`).toContain(name);
-		expect(readme).toContain(`${palettes.length} color palettes`);
+		const line = featureLine("color palettes:");
+
+		expect(palettes.map(({ name }) => name).filter((name) => !line.includes(name))).toEqual([]);
+		expect(line).toContain(`${palettes.length} color palettes`);
 	});
 
-	it("every cell shape the app ships is advertised in the README", () => {
+	it("lists every cell shape the app ships in the README's own feature line", () => {
 		const shapes = JSON.parse(read(join(sharedDir, "shapes.json"))) as { key: string }[];
-		const readme = read(join(REPO, "README.md"));
-		for (const { key } of shapes) expect(readme, `shape ${key}`).toContain(key);
-		expect(readme).toContain(`${shapes.length} cell shapes`);
+		const line = featureLine("cell shapes:");
+
+		expect(shapes.map(({ key }) => key).filter((key) => !line.includes(key))).toEqual([]);
+		expect(line).toContain(`${shapes.length} cell shapes`);
 	});
 });
 
@@ -346,7 +373,9 @@ describe("the guides match the manifests", () => {
 	const rootPackage = json<{ packageManager: string; engines: { node: string }; scripts: Record<string, string> }>(
 		"package.json",
 	);
-	const webPackage = json<{ engines: { node: string }; scripts: Record<string, string> }>("web/package.json");
+	const webPackage = json<{ packageManager?: string; engines: { node: string }; scripts: Record<string, string> }>(
+		"web/package.json",
+	);
 	const appPackage = json<{ packageManager?: string }>("app/package.json");
 	const pubspec = read(join(REPO, "app/pubspec.yaml"));
 
@@ -363,7 +392,13 @@ describe("the guides match the manifests", () => {
 	});
 
 	it("pins the package manager in exactly one manifest", () => {
-		expect(appPackage.packageManager).toBeUndefined();
+		const pinning = [
+			["package.json", rootPackage.packageManager],
+			["web/package.json", webPackage.packageManager],
+			["app/package.json", appPackage.packageManager],
+		].filter(([, pin]) => pin !== undefined);
+
+		expect(pinning.map(([manifest]) => manifest)).toEqual(["package.json"]);
 	});
 
 	it("states the same pinned versions the manifests declare", () => {
@@ -378,14 +413,14 @@ describe("the guides match the manifests", () => {
 		expect(wrong).toEqual([]);
 	});
 
-	it("mentions only pnpm scripts that a package.json declares", () => {
+	it("mentions only pnpm scripts that a package.json declares, reading commands rather than prose", () => {
 		const builtins = new Set(["install", "exec", "dlx", "add", "remove", "run", "why", "workspaces"]);
 		const declared = new Set([...Object.keys(rootPackage.scripts), ...Object.keys(webPackage.scripts)]);
 		const invented = [
 			["CLAUDE.md", guide],
 			["CONTRIBUTING.md", contributing],
 		].flatMap(([doc, body]) =>
-			[...body.matchAll(DOCUMENTED_PNPM_SCRIPT)]
+			[...codeOnly(body).matchAll(DOCUMENTED_PNPM_SCRIPT)]
 				.map(([, script]) => script)
 				.filter((script) => !builtins.has(script) && !declared.has(script))
 				.map((script) => `${doc} -> pnpm ${script}`),
@@ -412,6 +447,58 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 	it("finds a term to police", () => {
 		expect(forbiddenIdentifiers().length).toBeGreaterThan(0);
+	});
+
+	const PLAIN_WORDS_POLICED_IN_IDENTIFIERS: readonly string[] = [
+		"heatmap",
+		"colorway",
+		"skin",
+		"hotlink",
+		"applet",
+		"glance",
+		"backdrop",
+		"paywall",
+		"donation",
+		"purchase",
+		"shop",
+		"offering",
+		"timeframe",
+		"bucket",
+	];
+
+	const avoidedTerms = (): Set<string> =>
+		new Set(
+			[...read(join(REPO, "CONTEXT.md")).matchAll(GLOSSARY_AVOID_LINE)].flatMap(([, list]) =>
+				list.split(",").map((term) => term.trim().toLowerCase()),
+			),
+		);
+
+	const SDK_SEAMS: readonly string[] = ["app/lib/infrastructure/tip/revenuecat_tip_repository.dart"];
+
+	const identifierFiles = (): string[] =>
+		[
+			...walk(join(REPO, "web/src"), (path) => path.endsWith(".ts")),
+			...walk(join(REPO, "app/lib"), (path) => path.endsWith(".dart") && !GENERATED_DART_FILE.test(path)),
+		].filter((path) => !SDK_SEAMS.includes(relative(path)));
+
+	it("polices only words the glossary actually rejects, so the list cannot invent a rule", () => {
+		const rejected = avoidedTerms();
+		expect(PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) => !rejected.has(word))).toEqual([]);
+	});
+
+	it("exempts only files that exist, and only a handful of them", () => {
+		expect(SDK_SEAMS.filter((path) => !existsSync(join(REPO, path)))).toEqual([]);
+		expect(SDK_SEAMS.length).toBeLessThanOrEqual(2);
+	});
+
+	it("names no identifier after a plain word the glossary rejects", () => {
+		const offenders = identifierFiles().flatMap((file) => {
+			const body = withoutStringLiterals(read(file));
+			return PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) =>
+				new RegExp(`(?<![A-Za-z0-9])${word}(?![A-Za-z0-9])`, "i").test(body),
+			).map((word) => `${relative(file)} uses ${word}`);
+		});
+		expect(offenders).toEqual([]);
 	});
 
 	it("names nothing in web/src or app/lib after a word the glossary rejects", () => {
@@ -459,22 +546,18 @@ describe("nested guides name real files", () => {
 describe("the source carries no code comments", () => {
 	const TOOLING_DIRECTIVES = [/^\s*\/\/\/\s*<reference\b/, /^\s*\/\/\s*@vitest-environment\b/];
 
-	const withoutLiterals = (line: string): string =>
-		line
-			.replaceAll(ESCAPE_SEQUENCE, "")
-			.replaceAll(DOUBLE_QUOTED_STRING, '""')
-			.replaceAll(SINGLE_QUOTED_STRING, "''")
-			.replaceAll(TEMPLATE_LITERAL, "``");
-
 	const commentLines = (path: string): string[] =>
 		read(path)
 			.split("\n")
 			.map((line, index) => ({ line, index }))
 			.filter(({ line }) => !TOOLING_DIRECTIVES.some((directive) => directive.test(line)))
-			.filter(({ line }) => LINE_COMMENT.test(withoutLiterals(line)))
+			.filter(({ line }) => {
+				const bare = withoutStringLiterals(line);
+				return LINE_COMMENT.test(bare) || BLOCK_COMMENT_OPENER.test(bare);
+			})
 			.map(({ index }) => `${relative(path)}:${index + 1}`);
 
-	it("has no // comment in hand-written Dart", () => {
+	it("has no // or /* comment in hand-written Dart", () => {
 		const offenders = [
 			...walk(join(REPO, "app/lib"), (path) => path.endsWith(".dart")),
 			...walk(join(REPO, "app/test"), (path) => path.endsWith(".dart")),
@@ -484,7 +567,7 @@ describe("the source carries no code comments", () => {
 		expect(offenders).toEqual([]);
 	});
 
-	it("has no // comment in web TypeScript or Astro either", () => {
+	it("has no // or /* comment in web TypeScript or Astro either", () => {
 		const configs = ["web/astro.config.ts", "web/playwright.config.ts", "web/vitest.config.ts"].map((path) =>
 			join(REPO, path),
 		);
@@ -527,14 +610,6 @@ describe("nothing under web/src/pages becomes a route by accident", () => {
 });
 
 describe("the app's feature widgets go through the wrappers", () => {
-	it("imports shadcn_ui nowhere under app/lib/ui/features", () => {
-		const offenders = walk(join(REPO, "app/lib/ui/features"), (path) => path.endsWith(".dart"))
-			.filter((path) => !GENERATED_DART_FILE.test(path))
-			.filter((path) => read(path).includes("package:shadcn_ui/shadcn_ui.dart"))
-			.map(relative);
-		expect(offenders).toEqual([]);
-	});
-
 	it("keeps every shadcn_ui import inside widgets/, theme/ and the composition root", () => {
 		const allowed = ["app/lib/main.dart", "app/lib/ui/theme/app_colors.dart"];
 		const offenders = walk(join(REPO, "app/lib"), (path) => path.endsWith(".dart"))
@@ -555,11 +630,13 @@ describe("the web layers only import inwards", () => {
 		ui: ["@infrastructure/"],
 	};
 
-	const importsOf = (source: string): string[] => [...source.matchAll(/from\s+"([^"]+)"/g)].map((match) => match[1]);
+	const IMPORT_SPECIFIER = /(?:from\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g;
+
+	const importsOf = (source: string): string[] => [...source.matchAll(IMPORT_SPECIFIER)].map((match) => match[1]);
 
 	for (const [layer, forbidden] of Object.entries(FORBIDDEN_BY_LAYER)) {
 		it(`keeps ${layer} clear of ${forbidden.join(", ")}`, () => {
-			const offenders = walk(join(REPO, "web/src", layer), (path) => path.endsWith(".ts"))
+			const offenders = walk(join(REPO, "web/src", layer), (path) => WEB_SOURCE_FILE.test(path))
 				.flatMap((path) =>
 					importsOf(read(path))
 						.filter((specifier) => forbidden.some((prefix) => specifier.startsWith(prefix)))

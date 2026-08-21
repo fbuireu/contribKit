@@ -23,8 +23,8 @@ for widgets and notifiers to watch. Everything else in `ui/` sees a provider, ne
 Three tiers, in dependency order, plus one notifier that does not fit them:
 
 1. **Repository providers** — `paletteRepository`, `suggestedUsernameRepository`, `contributionRepository`,
-   `purchaseRepository`, `settingsRepository`, and one export repository per format.
-2. **Use-case providers** — `fetchTipProducts`, `purchaseTip`, `fetchContributions`, and `exportCalendar`, which
+   `tipRepository`, `settingsRepository`, and one export repository per format.
+2. **Use-case providers** — `fetchTipProducts`, `giveTip`, `fetchContributions`, and `exportCalendar`, which
    takes an `ExportFormat` and is therefore one provider rather than one per format.
 3. **Async data providers** — `palettes`, `suggestedUsernames`, which await a repository's load and are consumed as
    an `AsyncValue`.

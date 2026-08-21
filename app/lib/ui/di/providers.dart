@@ -2,11 +2,11 @@ import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/application/use_cases/fetch_contributions.dart';
 import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
 import 'package:contribkit/application/use_cases/invalidate_contribution_cache.dart';
-import 'package:contribkit/application/use_cases/purchase_tip.dart';
+import 'package:contribkit/application/use_cases/give_tip.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/repositories/palette_repository.dart';
-import 'package:contribkit/domain/repositories/purchase_repository.dart';
+import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/repositories/suggested_username_repository.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
@@ -18,7 +18,7 @@ import 'package:contribkit/infrastructure/export/png_export_repository_impl.dart
 import 'package:contribkit/infrastructure/export/svg_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
-import 'package:contribkit/infrastructure/purchase/revenuecat_purchase_repository.dart';
+import 'package:contribkit/infrastructure/tip/revenuecat_tip_repository.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -44,16 +44,15 @@ ContributionRepository contributionRepository(Ref ref) =>
     GitHubContributionRepository();
 
 @riverpod
-PurchaseRepository purchaseRepository(Ref ref) =>
-    RevenueCatPurchaseRepository();
+TipRepository tipRepository(Ref ref) => RevenueCatTipRepository();
 
 @riverpod
 FetchTipProducts fetchTipProducts(Ref ref) =>
-    FetchTipProducts(repository: ref.watch(purchaseRepositoryProvider));
+    FetchTipProducts(repository: ref.watch(tipRepositoryProvider));
 
 @riverpod
-PurchaseTip purchaseTip(Ref ref) =>
-    PurchaseTip(repository: ref.watch(purchaseRepositoryProvider));
+GiveTip giveTip(Ref ref) =>
+    GiveTip(repository: ref.watch(tipRepositoryProvider));
 
 @riverpod
 SettingsRepository settingsRepository(Ref ref) => HiveSettingsRepository();

@@ -29,7 +29,7 @@ Flutter widgets, and must never import from `ui/`.
 | `persistence/` | `HiveSettingsRepository` — every stored setting |
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames) — generated copies of `shared/` |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown |
-| `purchase/` | The RevenueCat implementation of `PurchaseRepository` |
+| `tip/` | The RevenueCat implementation of `TipRepository` |
 
 ## `github/` — the second scraper
 
@@ -42,17 +42,26 @@ equivalent, and the differences are the whole reason this section exists:
 | URL range | no query at all when no year is asked for (the live SVG-embed path); otherwise `from`, plus `to` only for a past year | **`from` and `to` always**, so the current year is closed at 31 December |
 | `User-Agent` | a desktop Chrome string | `ContribKit/1.0 (Flutter)` |
 | `X-Requested-With` | `XMLHttpRequest` | not sent |
-| A `<td>` with no `id` | kept, `count: null` | **dropped** — the id is the join key |
+| A `<td>` with no `id` | kept, `count: null` | kept, `count: null` |
 | A day outside the requested year | kept | **dropped** (`date.year != year.value`) |
 | Missing `data-level` | day dropped, grid backfills it | derived by `ContributionLevelService` |
 | Unknown Count | `null` | `null` |
-| HTTP 429 | `network(…, 429)` | `RateLimitedFailure`, with `resetAt` from `Retry-After` |
-| Timeout | none set | 20 s → `NetworkFailure` |
+| HTTP 429 | `rateLimited(…, retryAfterSeconds)` | `RateLimitedFailure`, with `resetAt` from `Retry-After` |
+| Timeout | 20 s → `network` | 20 s → `NetworkFailure` |
 | Grid construction | in the domain layer | in the domain layer, `ContributionGridService` |
 
-**Two passes over the HTML, joined on the `<td>`'s `id`.** Pass one builds `id → (date, level?)` from every `<td>`
+**Two passes over the HTML, joined on the `<td>`'s `id`.** Pass one collects `(date, level?, id?)` from every `<td>`
 carrying `ContributionCalendar-day`; pass two builds `id → count` from every `<tool-tip for="…">`, taking the
 leading digits of its text. A tool-tip with no leading number is skipped, so the day's Count is `null` rather than a zero nobody measured.
+
+**A `<td>` with no `id` is kept, not dropped.** The id is the join key for the Count, so a day without one simply
+has an unknown Count — which is exactly the state
+[ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md) exists to represent, in its own
+words: "a day whose Count could not be read still counts as active, because GitHub said it was". Pass one keyed
+its map on the id and therefore dropped those days entirely; `ContributionGridService` re-inserted them at
+`ContributionLevel.none`, so a day GitHub had coloured broke the Streak and vanished from `totalDaysActive`. The
+web's parser has always kept them. This was the one divergence in the table above that contradicted an ADR
+rather than being a deliberate difference.
 
 **An empty first pass is a `ParseFailure`, never an empty calendar** — a calendar of zeros is a lie a reader cannot
 detect ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-html.md)).
@@ -75,11 +84,20 @@ the streak walk in `ui/features/widget/calendar_widget_service.dart`, which had 
 - **Box `contribution_cache_v3`, keyed `<username>:<year>`.** Changing what a cached calendar *means* requires
   bumping that name; `legacyContributionCacheBoxNames` lists every previous one, and `app/lib/main.dart` deletes them at
   startup ([ADR 0014](../../../docs/adr/0014-cached-calendars-are-versioned.md)).
-- **The current year expires after 1 hour. Past years never expire**, because a finished year cannot change.
+- **The current year expires after 1 hour. An entry written after its Year ended never expires**, because a
+  finished year cannot change — **but a snapshot taken while that year was still running can**. The check was
+  `year.value < DateTime.now().year`, evaluated against today rather than against the entry: cache 2025 at 23:30
+  on 31 December and two days later that entry became permanently unexpirable, so every Contribution made in the
+  last hours of the year stayed invisible for the life of the install, in the app and on the Home Screen Widget.
+  It is `cachedAt.isAfter(DateTime(year.value + 1))` now, and the repository takes a `now` so the rule has a test.
 - **A cache read that throws anything at all returns `null`,** which the caller reads as a miss and refetches. A
   corrupt or schema-drifted entry therefore heals itself silently and never surfaces as a `CacheFailure`. Do not
   "improve" this into a throw: a bad cache entry must never make the app unusable.
 - **A cache write that throws is swallowed entirely.** Failing to cache is not failing to fetch.
+- **The key is lower-cased, because GitHub handles are case-insensitive.** `Torvalds` and `torvalds` are one
+  account and used to be two entries — two fetches, and an `invalidateCache` that cleared only the spelling it
+  was handed, so the refresh button could appear to do nothing. `Username` still carries what the person typed:
+  the normalisation belongs to the key, not to the value object, which stays display-faithful.
 - `invalidateCache(username)` deletes every key with that username prefix, so it clears all years at once.
 - **A cache hit builds the same lattice as a fresh fetch.** `_toDomain` flattens the stored weeks back to days and
   hands them to `ContributionGridService`, rather than trusting the shape it read. It used to map the DTO's weeks
@@ -132,19 +150,36 @@ SVG failure through unchanged. PNG composes nothing — it paints straight onto 
 `ExportFailure` *itself* mid-method when the encode returns no bytes, and the arm is what stops its own throw from
 being re-wrapped as `PNG render failed: ExportFailure: …`. The SVG repository has neither situation and has no arm.
 
-## `purchase/`
+## `tip/`
 
-The RevenueCat implementation, mapping every SDK error to `PurchaseFailure`. **It exposes products and a purchase
-call, and nothing that reports entitlement**, because a Tip unlocks nothing and no code may start checking purchase
-state ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)).
+`RevenueCatTipRepository`, mapping every SDK error to `TipFailure`. **It exposes Tip Products and a `give` call, and
+nothing that reports entitlement**, because a Tip unlocks nothing and no code may start checking whether one was
+given ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)). It was
+`purchase/RevenueCatPurchaseRepository` implementing `PurchaseRepository` until the glossary guard learned to see
+the word `purchase`, which Tip's `_Avoid_` list has always named.
 
-`purchase` carries an `on PurchaseFailure { rethrow; }` arm ahead of its catch-all, for the same reason two of the
-export repositories do: it throws `PurchaseFailure` *itself* when no package matches the Tip Product, and without
-the arm its own throw came back re-wrapped. Finding the package is a `where` plus an `isEmpty` check, **not
-`firstWhere`** — `firstWhere` throws `StateError` rather than returning null, so the `'Product not found'` sentence
-was unreachable and a missing product id surfaced to the user as `Bad state: No element`. The `?.` on the offering
-made the null guard look sound. `getProducts` sorts a **copy** of `availablePackages`, because the list it is given
-belongs to the SDK.
+**`give` returns a `TipOutcome`, and the cancel arm it used to carry could never run.** `Purchases.purchase` throws
+a `PlatformException`; `PurchasesErrorCode` is a plain enum that nothing in the package ever throws, so
+`on PurchasesErrorCode catch (e) { if (e == purchaseCancelledError) return; }` matched nothing at all — a person
+who backed out of the store sheet fell through to the catch-all and was shown
+`Tip failed: PlatformException(1, Purchase was cancelled., null, null)`, the raw SDK string, presented as an error.
+The conversion the package documents is `PurchasesErrorHelper.getErrorCode(PlatformException)`, and that is what
+runs now: the cancel code becomes `TipOutcome.cancelled`, anything else a `TipFailure` carrying `e.message` rather
+than a stringified exception. **A dead catch clause is invisible to the analyzer and to every test**, and this one
+survived a pass that fixed the `firstWhere` two lines below it.
+
+`give` carries an `on TipFailure { rethrow; }` arm ahead of its catch-all, for the same reason two of the export
+repositories do: it throws `TipFailure` *itself* when no package matches the Tip Product, and without the arm its
+own throw came back re-wrapped. Finding the package is a `where` plus an `isEmpty` check, **not `firstWhere`** —
+`firstWhere` throws `StateError` rather than returning null, so the `'Tip Product not found'` sentence was
+unreachable and a missing product id surfaced to the user as `Bad state: No element`. The `?.` on the offering made
+the null guard look sound. `getProducts` sorts a **copy** of `availablePackages`, because the list it is given
+belongs to the SDK, and carries the same rethrow arm for symmetry.
+
+**There is still no seam here.** Every entry point is a static `Purchases` call and `Offering` / `Package` /
+`StoreProduct` are concrete classes, so a fake would assert against RevenueCat's wire shape rather than this code.
+That is why the cancel defect had to be found by reading the package's source, and it is the reason to be
+suspicious of this file specifically.
 
 ## Gotchas
 
@@ -159,8 +194,9 @@ belongs to the SDK.
   This is the first of the three traps in the [root guide](../../../CLAUDE.md#maintenance-contract).
 - **`_toDto` is hand-written; the DTOs are read-only.** Serialisation is a map literal in the repository, so codegen
   cannot tell you when the two drift — see [`github/dtos/`](./github/dtos/CLAUDE.md).
-- **`_readCache` reconstructs the `Username` from the cache key** by splitting on `:`. It sits inside the same
-  catch-all, so an unparseable key is a miss rather than a crash.
+- **`_readCache` takes the `Username` it was called with** rather than rebuilding one from the cache key. It used
+  to split the key on `:` and re-parse the first half, which once the key was lower-cased would have handed back
+  a differently-cased calendar on a cache hit than on a fresh fetch.
 - **`yearMax` is computed over the days actually present**, so a derived level depends on the rest of the year. Two
   partial fetches of the same year can disagree about a day's level — another reason a parsed `data-level` is
   preferred wherever it exists.
