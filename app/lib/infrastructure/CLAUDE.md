@@ -143,6 +143,15 @@ does not), the `<title>`, one Cell per Contribution Day, `isDark: true` keeping 
 ([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the `unknown` wording for a Count
 nobody measured ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)), all five Cell
 Shapes, and that the corner radius and dot radius come from `CellGeometryService` rather than a local number.
+**Both Exports take their size from `ExportGeometryService.logicalSizeFor`, and the SVG one used not to.**
+`_buildSvg` computed `weeks.length * step - gap` and `7 * step - gap` inline, with a literal `7` where
+`ContributionGridService.daysPerWeek` exists, while the PNG repository and the Export sheet's format tile both
+asked the service. Two Exports of the same Contribution Calendar therefore derived their document size from two
+different pieces of code, which is the shape of the defect that had the tile advertising `2880x720` against a
+renderer that emits `2061x267`. The test asserts the two **agree**; the formula itself is pinned separately in
+`export_geometry_service_test.dart`, because a test that reads the same function it is checking can only catch a
+divergence, not a wrong number.
+
 `MarkdownExportRepository` no longer composes anything. It builds an **Embed URL** and needs no renderer at all. `PngExportRepository` paints on a `dart:ui` canvas: reachable under `flutter test` via the Skia software
 path, but its assertions would be PNG header and pixel probes, and its `byteData == null` arm cannot be reached
 from outside at all.

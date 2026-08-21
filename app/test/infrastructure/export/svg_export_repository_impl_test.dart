@@ -6,6 +6,7 @@ import 'package:contribkit/domain/entities/contribution_week.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
+import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/color.dart';
@@ -77,21 +78,58 @@ void main() {
       expect(svg.trimRight(), endsWith('</svg>'));
     });
 
-    test('sizes the document to the grid, without a trailing gap', () async {
+    test('sizes the document with ExportGeometryService, not a second formula', () async {
       final svg = await _render();
-      const step = 11.0 + 2.0;
-      const width = ContributionGridService.weeksPerYear * step - 2.0;
-      const height = 7 * step - 2.0;
+      final size = ExportGeometryService.logicalSizeFor(
+        cellSize: CellSize.fallback,
+        weeks: ContributionGridService.weeksPerYear,
+      );
 
-      expect(svg, contains('width="${width.toStringAsFixed(1)}"'));
-      expect(svg, contains('height="${height.toStringAsFixed(1)}"'));
+      expect(svg, contains('width="${size.width.toStringAsFixed(1)}"'));
+      expect(svg, contains('height="${size.height.toStringAsFixed(1)}"'));
       expect(
         svg,
         contains(
-          'viewBox="0 0 ${width.toStringAsFixed(1)} ${height.toStringAsFixed(1)}"',
+          'viewBox="0 0 ${size.width.toStringAsFixed(1)} ${size.height.toStringAsFixed(1)}"',
         ),
       );
     });
+
+    test(
+      'agrees with the PNG Export on how large the same calendar is',
+      () async {
+        for (final cellSize in CellSize.values) {
+          final svg = await _render(
+            options: RenderOptions(
+              palette: _palette,
+              shape: CellShape.rounded,
+              namedSize: cellSize,
+            ),
+          );
+          final logical = ExportGeometryService.logicalSizeFor(
+            cellSize: cellSize,
+            weeks: ContributionGridService.weeksPerYear,
+          );
+          final pixels = ExportGeometryService.pngPixelSizeFor(
+            cellSize: cellSize,
+            weeks: ContributionGridService.weeksPerYear,
+          );
+
+          expect(
+            svg,
+            contains('width="${logical.width.toStringAsFixed(1)}"'),
+            reason: 'the SVG Export must not re-derive its own document size',
+          );
+          expect(
+            pixels.width,
+            (logical.width * ExportGeometryService.pngPixelRatio).ceil(),
+            reason:
+                'the PNG Export scales the same logical size, it does not '
+                'compute a second one',
+          );
+        }
+      },
+    );
 
     test('titles the document with the username and the Year', () async {
       final svg = await _render(calendar: _calendar(username: 'torvalds'));

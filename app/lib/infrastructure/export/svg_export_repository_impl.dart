@@ -1,10 +1,10 @@
-import 'package:contribkit/domain/services/cell_geometry_service.dart';
-
 import 'dart:convert';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
+import 'package:contribkit/domain/services/cell_geometry_service.dart';
+import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 
 final class SvgExportRepository implements ExportRepository {
@@ -27,8 +27,12 @@ final class SvgExportRepository implements ExportRepository {
     final step = cell + gap;
 
     final weeks = calendar.weeks;
-    final width = weeks.length * step - gap;
-    final height = 7 * step - gap;
+    final size = ExportGeometryService.logicalSizeFor(
+      cellSize: options.namedSize,
+      weeks: weeks.length,
+    );
+    final width = size.width;
+    final height = size.height;
 
     final buffer = StringBuffer()
       ..writeln('<?xml version="1.0" encoding="UTF-8"?>')
