@@ -116,19 +116,22 @@ void main() {
       expect((await repository.load()).cellShape, CellShape.fallback);
     });
 
-    test('loses only the corrupt value, not every setting beside it', () async {
-      final box = await settingsBox();
-      await box.put('cellShape', 0);
-      await box.put('paletteKey', 'nord');
-      await box.put('lastUsername', 'torvalds');
-      await box.put('cellSize', 'large');
+    test(
+      'loses only the corrupt value, and this is the test that proves it',
+      () async {
+        final box = await settingsBox();
+        await box.put('cellShape', 0);
+        await box.put('paletteKey', 'nord');
+        await box.put('lastUsername', 'torvalds');
+        await box.put('cellSize', 'large');
 
-      final settings = await repository.load();
+        final settings = await repository.load();
 
-      expect(settings.cellShape, CellShape.fallback);
-      expect(settings.paletteKey, 'nord');
-      expect(settings.lastUsername?.value, 'torvalds');
-      expect(settings.cellSize, CellSize.large);
-    });
+        expect(settings.cellShape, CellShape.fallback);
+        expect(settings.paletteKey, 'nord');
+        expect(settings.lastUsername?.value, 'torvalds');
+        expect(settings.cellSize, CellSize.large);
+      },
+    );
   });
 }

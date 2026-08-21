@@ -119,7 +119,10 @@ void main() {
           expect(
             svg,
             contains('height="${logical.height.toStringAsFixed(1)}"'),
-            reason: 'the height is where the literal 7 used to be',
+            reason:
+                'both dimensions follow the service at every Cell Size. The '
+                'literal 7 it replaced is not itself testable, because '
+                'daysPerWeek is 7',
           );
         }
       },

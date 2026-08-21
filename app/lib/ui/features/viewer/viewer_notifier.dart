@@ -26,9 +26,11 @@ class ViewerNotifier extends _$ViewerNotifier {
   }
 
   Future<void> _loadSettings() async {
+    if (!ref.mounted) return;
     state = state.copyWith(isLoadingSettings: true);
 
     final allPalettes = await _loadPalettes();
+    if (!ref.mounted) return;
 
     try {
       final repo = ref.read(settingsRepositoryProvider);
@@ -119,8 +121,8 @@ class ViewerNotifier extends _$ViewerNotifier {
   Future<List<Palette>> _loadPalettesOnce() async {
     try {
       final palettes = await ref.read(paletteRepositoryProvider).loadAll();
-      ref.invalidate(palettesProvider);
       if (!ref.mounted) return palettes;
+      ref.invalidate(palettesProvider);
       state = state.copyWith(
         palette: palettes.isEmpty ? null : palettes.first,
         paletteFailure: palettes.isEmpty ? _noPalettes : null,

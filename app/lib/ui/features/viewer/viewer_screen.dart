@@ -627,10 +627,10 @@ class _PulsingDots extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.failure, this.onRetry});
+  const _ErrorState({required this.failure, required this.onRetry});
 
   final Failure failure;
-  final VoidCallback? onRetry;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -648,8 +648,7 @@ class _ErrorState extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          if (onRetry case final retry?)
-            AppButton.ghost(onPressed: retry, child: const Text('Try again')),
+          AppButton.ghost(onPressed: onRetry, child: const Text('Try again')),
         ],
       ),
     ),

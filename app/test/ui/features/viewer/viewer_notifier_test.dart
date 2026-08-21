@@ -59,13 +59,23 @@ ContributionCalendar _calendar({int year = 2024}) {
 }
 
 final class _FakePaletteRepository implements PaletteRepository {
-  _FakePaletteRepository({this.palettes = const [_nord], this.failure});
+  _FakePaletteRepository({
+    this.palettes = const [_nord],
+    this.failure,
+    this.gate,
+  });
 
   final List<Palette> palettes;
   final Object? failure;
+  final Future<List<Palette>>? gate;
+
+  int reads = 0;
 
   @override
   Future<List<Palette>> loadAll() async {
+    reads++;
+    if (gate != null) return gate!;
+    await Future<void>.delayed(Duration.zero);
     if (failure != null) throw failure!;
     return palettes;
   }
@@ -333,22 +343,33 @@ void main() {
       expect(state.blockingFailure, isA<AssetFailure>());
     });
 
-    test('two retries in flight share one load, not a disposed one', () async {
-      final container = _container(
-        palettes: _FakePaletteRepository(
-          failure: const AssetFailure(asset: 'assets/palettes.json'),
-        ),
+    test('two retries in flight read the asset once, not twice', () async {
+      final palettes = _FakePaletteRepository(
+        failure: const AssetFailure(asset: 'assets/palettes.json'),
       );
+      final container = _container(palettes: palettes);
       final notifier = await _ready(container);
+      expect(palettes.reads, 1, reason: 'the startup load');
 
       await Future.wait([notifier.retry(), notifier.retry()]);
+      expect(
+        palettes.reads,
+        2,
+        reason:
+            'the retry button has no disabled state, so two taps must share '
+            'one in-flight load rather than start two',
+      );
 
+      await notifier.retry();
+      expect(
+        palettes.reads,
+        3,
+        reason: 'and the memo must not outlive the load it shared',
+      );
       expect(
         container.read(viewerProvider).paletteFailure,
         isA<AssetFailure>(),
-        reason:
-            'invalidating a provider that is still loading rejects its '
-            'future with a framework message the user would have seen',
+        reason: 'the failure is the reason retry keeps reloading at all',
       );
     });
 
@@ -375,6 +396,96 @@ void main() {
         expect(state.blockingFailure, isA<AssetFailure>());
       },
     );
+  });
+
+  group('being disposed mid-flight', () {
+    ProviderContainer bare({
+      _FakeSettingsRepository? settings,
+      _FakePaletteRepository? palettes,
+      _FakeContributionRepository? contributions,
+    }) => ProviderContainer(
+      overrides: [
+        settingsRepositoryProvider.overrideWithValue(
+          settings ?? _FakeSettingsRepository(),
+        ),
+        paletteRepositoryProvider.overrideWithValue(
+          palettes ?? _FakePaletteRepository(),
+        ),
+        contributionRepositoryProvider.overrideWithValue(
+          contributions ?? _FakeContributionRepository(),
+        ),
+      ],
+    );
+
+    test('drops the startup load before it even begins', () async {
+      final gate = Completer<List<Palette>>();
+      final container = bare(
+        palettes: _FakePaletteRepository(gate: gate.future),
+      );
+      container.listen(viewerProvider, (_, _) {});
+
+      container.dispose();
+      gate.complete(const [_nord]);
+
+      await _settle();
+    });
+
+    test('drops a Palette read that was already in flight', () async {
+      final gate = Completer<List<Palette>>();
+      final palettes = _FakePaletteRepository(gate: gate.future);
+      final container = bare(palettes: palettes);
+      container.listen(viewerProvider, (_, _) {});
+
+      await _settle();
+      expect(palettes.reads, 1, reason: 'the load must have started');
+
+      container.dispose();
+      gate.complete(const [_nord]);
+
+      await _settle();
+    });
+
+    test('drops a fetch in flight rather than writing to a dead Ref', () async {
+      final answer = Completer<_Fetched>();
+      final container = bare(
+        contributions: _FakeContributionRepository(
+          answer: (username, year) => answer.future,
+        ),
+      );
+      container.listen(viewerProvider, (_, _) {});
+      await _settle();
+
+      final pending = container
+          .read(viewerProvider.notifier)
+          .fetchContributions(username: Username('torvalds'), year: Year(2024));
+
+      container.dispose();
+      answer.complete((calendar: _calendar(), fromCache: false));
+
+      await pending;
+      await _settle();
+    });
+
+    test('drops a failing fetch in flight the same way', () async {
+      final answer = Completer<_Fetched>();
+      final container = bare(
+        contributions: _FakeContributionRepository(
+          answer: (username, year) => answer.future,
+        ),
+      );
+      container.listen(viewerProvider, (_, _) {});
+      await _settle();
+
+      final pending = container
+          .read(viewerProvider.notifier)
+          .fetchContributions(username: Username('torvalds'), year: Year(2024));
+
+      container.dispose();
+      answer.completeError(const NetworkFailure(message: 'down'));
+
+      await pending;
+      await _settle();
+    });
   });
 
   group('refreshContributions', () {

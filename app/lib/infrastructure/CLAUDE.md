@@ -114,9 +114,14 @@ stale snapshot.
 
 `load()` returns an `AppSettings` that is already defaulted, and **every field tolerates its own corruption**.
 `_tolerating` wraps each read, so a `cellShape` written as an `int` by an older build costs you the Cell Shape and
-nothing else; only a box that will not open at all returns `const AppSettings()` whole. It was seven separate
-getters each wrapped in a `_read` helper, which had the same per-field tolerance, and the collapse to one call is
-where that property was nearly lost. `settings_repository_impl_test.dart` pins it.
+nothing else. It was seven separate getters each wrapped in a `_read` helper, which had the same per-field
+tolerance, and the collapse to one call is where that property was nearly lost; `loses only the corrupt value` in
+`settings_repository_impl_test.dart` is the one test that proves it, and the one beside it passes either way.
+
+**The outer `try` is a backstop, not the mechanism.** It wraps `_settingsIn` as well as the box open, so a field
+added without `_tolerating` degrades the whole object to `const AppSettings()` rather than throwing a raw
+`TypeError` out of a layer whose rule is that only a `Failure` leaves it. That is the lesser of two bad outcomes,
+not the intended one: wrap the new field.
 
 `_write` wraps any failure in `CacheFailure`. Before these helpers existed the accessors were unguarded, so a value
 written as an `int` by an older build reached an `as String?` cast and threw a `TypeError` out of a layer whose
