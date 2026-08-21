@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { ClassName, ElementId, Selector } from "../src/ui/utils/dom-contract";
 
 const ANY_NON_EMPTY_TITLE = /.+/;
@@ -171,5 +171,40 @@ test.describe("rendering a username", () => {
 		await expect(page.locator(byId(ElementId.HeroUsernameDisplay))).toHaveText("octocat");
 		await expect(page.locator(`${byId(ElementId.HeroGrid)} svg`)).toBeVisible();
 		await expect(page.locator(byId(ElementId.HeroError))).toBeEmpty();
+	});
+});
+
+test.describe("the DOM contract", () => {
+	const CODE_TAB_ONLY = ["ExportCodePreview", "ExportCopyButton"];
+	const PNG_TAB_ONLY = ["ExportPngPreview"];
+
+	const unmatched = async (page: Page, names: string[]): Promise<string[]> => {
+		const missing: string[] = [];
+		for (const name of names) {
+			const selector = Selector[name as keyof typeof Selector];
+			if ((await page.locator(selector).count()) === 0) missing.push(`${name} -> ${selector}`);
+		}
+		return missing;
+	};
+
+	test("every Selector matches something in the state that owns it", async ({ page }) => {
+		await page.goto("/");
+
+		const all = Object.keys(Selector);
+		const onLoad = all.filter((name) => !CODE_TAB_ONLY.includes(name));
+
+		expect(
+			await unmatched(page, onLoad),
+			"a Selector matching nothing is a renderer that has silently become a no-op",
+		).toEqual([]);
+
+		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="svg"]`).click();
+		await expect(page.locator(Selector.ExportCodePreview)).toBeVisible();
+
+		expect(await unmatched(page, CODE_TAB_ONLY)).toEqual([]);
+		expect(
+			await unmatched(page, PNG_TAB_ONLY),
+			"the PNG preview belongs to the PNG tab and must go when it is not selected",
+		).toEqual(PNG_TAB_ONLY.map((name) => `${name} -> ${Selector[name as keyof typeof Selector]}`));
 	});
 });
