@@ -44,7 +44,7 @@ describe("hexPoints", () => {
 	});
 });
 
-describe("calendarLayout — the radius each Cell Shape is drawn with", () => {
+describe("calendarLayout: the radius each Cell Shape is drawn with", () => {
 	it("rounded → a fifth of the cell", () => expect(layoutFor({ shape: "rounded" }).radius).toBe(cornerRadiusFor(SIZE)));
 	it("square → 0", () => expect(layoutFor({ shape: "square" }).radius).toBe(0));
 	it("other shapes → size / 2", () => {
@@ -53,7 +53,7 @@ describe("calendarLayout — the radius each Cell Shape is drawn with", () => {
 	});
 });
 
-describe("calendarLayout — dimensions", () => {
+describe("calendarLayout: dimensions", () => {
 	it("is a whole Contribution Grid wide, plus the weekday gutter and the padding", () => {
 		expect(layoutFor().width).toBe(WEEKS_PER_YEAR * CELL_WIDTH + 28 + 12 * 2);
 	});
@@ -76,7 +76,7 @@ describe("calendarLayout — dimensions", () => {
 	});
 });
 
-describe("calendarLayout — month labels", () => {
+describe("calendarLayout: month labels", () => {
 	const labelsFor = (days: ContributionDay[]) => calendarLayout({ days, shape: "rounded" }).monthLabels;
 
 	it("names twelve months for a calendar year, in order", () => {
@@ -109,7 +109,7 @@ describe("calendarLayout — month labels", () => {
 	});
 });
 
-describe("calendarLayout — weekday labels", () => {
+describe("calendarLayout: weekday labels", () => {
 	it("draws three labels on alternate rows", () => {
 		const rows = layoutFor().weekdayLabels.map(({ y }) => y);
 
@@ -125,7 +125,7 @@ describe("calendarLayout — weekday labels", () => {
 	});
 });
 
-describe("calendarLayout — cells", () => {
+describe("calendarLayout: cells", () => {
 	it("places one Cell per Contribution Day of the whole grid", () => {
 		expect(layoutFor().cells).toHaveLength(GRID_CELL_COUNT);
 	});
