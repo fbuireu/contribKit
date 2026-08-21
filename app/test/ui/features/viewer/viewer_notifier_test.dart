@@ -352,18 +352,29 @@ void main() {
       );
     });
 
-    test('an empty Palette list leaves no Palette and no failure', () async {
-      final container = _container(
-        palettes: _FakePaletteRepository(palettes: const []),
-      );
-      container.listen(viewerProvider, (_, _) {});
+    test(
+      'an empty Palette list is a broken asset, not a quiet nothing',
+      () async {
+        final container = _container(
+          palettes: _FakePaletteRepository(palettes: const []),
+        );
+        container.listen(viewerProvider, (_, _) {});
 
-      await _settle();
-      final state = container.read(viewerProvider);
+        await _settle();
+        final state = container.read(viewerProvider);
 
-      expect(state.palette, isNull);
-      expect(state.paletteFailure, isNull);
-    });
+        expect(state.palette, isNull);
+        expect(
+          state.paletteFailure,
+          isA<AssetFailure>(),
+          reason:
+              'we ship that file, so zero Palettes in it is a fault, and '
+              '_Body used to synthesise this failure because the state could '
+              'not express it',
+        );
+        expect(state.blockingFailure, isA<AssetFailure>());
+      },
+    );
   });
 
   group('refreshContributions', () {

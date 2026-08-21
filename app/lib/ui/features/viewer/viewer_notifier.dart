@@ -123,7 +123,7 @@ class ViewerNotifier extends _$ViewerNotifier {
       if (!ref.mounted) return palettes;
       state = state.copyWith(
         palette: palettes.isEmpty ? null : palettes.first,
-        paletteFailure: null,
+        paletteFailure: palettes.isEmpty ? _noPalettes : null,
       );
       return palettes;
     } catch (e) {
@@ -131,6 +131,8 @@ class ViewerNotifier extends _$ViewerNotifier {
       return const [];
     }
   }
+
+  static const _noPalettes = AssetFailure(asset: 'assets/palettes.json');
 
   static Failure _asFailure(Object error) =>
       error is Failure ? error : UnexpectedFailure(message: error.toString());

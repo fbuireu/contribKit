@@ -426,15 +426,6 @@ class _Body extends ConsumerWidget {
     if (state.username == null || state.calendar == null) {
       return const _EmptyState();
     }
-    if (state.palette == null) {
-      return _ErrorState(
-        failure:
-            state.paletteFailure ??
-            const AssetFailure(asset: 'assets/palettes.json'),
-        onRetry: ref.read(viewerProvider.notifier).retry,
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: Tokens.space4,
