@@ -32,7 +32,7 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- Home screen widget — medium (grid + streak) -->
+        <!-- Home screen widget: medium (grid + streak) -->
         <receiver
             android:name=".ContribKitWidgetProvider"
             android:label="@string/widget_name"
@@ -45,7 +45,7 @@
                 android:resource="@xml/contribkit_widget_info" />
         </receiver>
 
-        <!-- Home screen widget — small (streak counter only) -->
+        <!-- Home screen widget: small (streak counter only) -->
         <receiver
             android:name=".ContribKitSmallWidgetProvider"
             android:label="@string/widget_small_name"

@@ -92,7 +92,7 @@ void main() {
           stats.totalDaysActive,
           greaterThan(0),
           reason:
-              'the day is still active — only the figures derived from '
+              'the day is still active, and only the figures derived from '
               'Counts are unknowable',
         );
       },

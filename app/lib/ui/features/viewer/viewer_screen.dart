@@ -688,7 +688,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: Tokens.space3),
           Text(
-            'Paste any GitHub username above to visualize, customize, and export their contribution calendar — no token required.',
+            'Paste any GitHub username above to visualize, customize, and export their contribution calendar. No token required.',
             style: TextStyle(
               fontSize: Tokens.textSm,
               color: AppColors.of(context).mutedForeground,
