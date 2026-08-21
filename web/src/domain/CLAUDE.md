@@ -138,7 +138,8 @@ test helper reintroduces the same bug in the test rather than the code.
   walk: the same dimensions destructure, the same label loops, the same `translate` group, a byte-identical
   close. Only the geometry had been shared; the composition had not. What each renderer keeps is its own string
   templates, which is the part that genuinely differs.
-- **The Cell maths is the app's, in TypeScript.** `CORNER_RADIUS_RATIO` (0.2), `DOT_BASE_RADIUS` (1.4) and
+- **The Cell maths is the app's, in TypeScript**
+  ([ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md))**.** `CORNER_RADIUS_RATIO` (0.2), `DOT_BASE_RADIUS` (1.4) and
   `DOT_REFERENCE_CELL_SIZE` (10) are the same three constants `app/lib/domain/services/cell_geometry_service.dart`
   holds, and `ContribKitWidgetProvider.kt` mirrors as literals. `rounded` gets `cornerRadiusFor(size)`, `square`
   gets 0, and `circle` / `dot` / `hex` get `size / 2`. That is what makes a rect look like a circle if it is ever
