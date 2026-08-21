@@ -54,6 +54,14 @@ derives a radius. Both used to, identically: twelve imports each and the same th
 byte-identical closing `parts.push("</g></svg>")`. Only the geometry primitives had been shared, so the *rule* was
 in one place and the *composition* was in two.
 
+**Collapsing the two into one parameterised walk was designed and rejected.** The config it would need is
+`rootAttributes` (fixed pixels against `width="100%"`), `background` (server only), a style string for each of the
+two label kinds, and an optional per-cell attribute callback: five fields, one of them a function, in front of a
+thirty-line loop. That is the shallow-module failure one level up, where the interface costs as much as the body it
+hides. The one row that could be **deleted** rather than parameterised is the Palette lookup, since
+`getActivePalette` goes through `paletteByKey` now and `palette[level] || palette[0]` guards a level the domain
+already clamps. Do not re-propose the unification without a smaller config than that; do consider deleting rows.
+
 **One asymmetry the table used to carry has gone:** the client re-ran `clampLevel` and the server did not, because
 the server's `day.level` is a type-guaranteed 0–4 union while the client's arrives from placeholder data and from
 the API. `calendarLayout` clamps for both now: a no-op on the typed path, and one fewer thing for a renderer to
