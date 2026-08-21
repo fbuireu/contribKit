@@ -17,6 +17,7 @@ part 'viewer_notifier.g.dart';
 @riverpod
 class ViewerNotifier extends _$ViewerNotifier {
   int _generation = 0;
+  Future<List<Palette>>? _paletteLoad;
 
   @override
   ViewerState build() {
@@ -33,6 +34,7 @@ class ViewerNotifier extends _$ViewerNotifier {
       final repo = ref.read(settingsRepositoryProvider);
 
       final settings = await repo.load();
+      if (!ref.mounted) return;
       final backgroundName = settings.backgroundPresetName;
 
       final resolvedPalette =
@@ -61,7 +63,7 @@ class ViewerNotifier extends _$ViewerNotifier {
       }
     } catch (_) {
     } finally {
-      state = state.copyWith(isLoadingSettings: false);
+      if (ref.mounted) state = state.copyWith(isLoadingSettings: false);
     }
   }
 
@@ -85,7 +87,7 @@ class ViewerNotifier extends _$ViewerNotifier {
         username: username,
         year: year,
       );
-      if (generation != _generation) return;
+      if (generation != _generation || !ref.mounted) return;
       state = state.copyWith(
         calendar: calendar,
         stats: ContributionStatsService.compute(calendar),
@@ -95,29 +97,37 @@ class ViewerNotifier extends _$ViewerNotifier {
 
       _updateWidget();
     } on Failure catch (f) {
-      if (generation == _generation) state = state.copyWith(error: f);
+      if (_stillOurs(generation)) state = state.copyWith(error: f);
     } catch (e) {
-      if (generation == _generation) {
+      if (_stillOurs(generation)) {
         state = state.copyWith(error: UnexpectedFailure(message: e.toString()));
       }
     } finally {
-      if (generation == _generation) {
+      if (_stillOurs(generation)) {
         state = state.copyWith(isLoadingCalendar: false);
       }
     }
   }
 
-  Future<List<Palette>> _loadPalettes() async {
+  bool _stillOurs(int generation) => generation == _generation && ref.mounted;
+
+  Future<List<Palette>> _loadPalettes() =>
+      _paletteLoad ??= _loadPalettesOnce().whenComplete(() {
+        _paletteLoad = null;
+      });
+
+  Future<List<Palette>> _loadPalettesOnce() async {
     try {
+      final palettes = await ref.read(paletteRepositoryProvider).loadAll();
       ref.invalidate(palettesProvider);
-      final palettes = await ref.read(palettesProvider.future);
+      if (!ref.mounted) return palettes;
       state = state.copyWith(
         palette: palettes.isEmpty ? null : palettes.first,
         paletteFailure: null,
       );
       return palettes;
     } catch (e) {
-      state = state.copyWith(paletteFailure: _asFailure(e));
+      if (ref.mounted) state = state.copyWith(paletteFailure: _asFailure(e));
       return const [];
     }
   }
@@ -163,6 +173,7 @@ class ViewerNotifier extends _$ViewerNotifier {
     try {
       final settings = ref.read(settingsRepositoryProvider);
       await settings.saveLastUsername(username);
+      if (!ref.mounted) return;
       await settings.saveLastYear(year);
     } on Failure {
       return;
@@ -172,12 +183,15 @@ class ViewerNotifier extends _$ViewerNotifier {
   Future<void> refreshContributions() async {
     final username = state.username;
     if (username == null) return;
+    final year = state.effectiveYear;
     await ref.read(invalidateContributionCacheProvider)(username);
-    await fetchContributions(username: username, year: state.effectiveYear);
+    if (!ref.mounted) return;
+    await fetchContributions(username: username, year: year);
   }
 
   Future<void> retry() async {
     if (state.palette == null) await _loadPalettes();
+    if (!ref.mounted) return;
     final username = state.username;
     if (username == null) return;
     await fetchContributions(username: username, year: state.effectiveYear);
