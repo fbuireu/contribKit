@@ -275,6 +275,7 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0017](./docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md) | The SVG endpoint opts out of the same-origin resource policy |
 | [0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) | `src/pages` is a public namespace, not a folder |
 | [0019](./docs/adr/0019-an-unknown-count-is-null-in-both-clients.md) | An unknown Count is null in both clients |
+| [0020](./docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) | The Cell geometry is the app's, in three languages |
 
 Every one of them follows [0000, the template](./docs/adr/0000-adr-template.md): `# N. Title`, a date, a status,
 then *Context*, *Decision*, *Consequences*. A new ADR starts by copying that file, not by writing one from scratch,

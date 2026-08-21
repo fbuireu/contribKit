@@ -60,7 +60,7 @@ Corner rounding is decided inside `calendarLayout` and reaches the renderers as 
 - **dot** uses a level-scaled radius: `dotRadius({ level, size })` is `1.4` at level 0 and `1.4 + level` above it, multiplied by `size / 10`. At level 4 that is 5.4 against a half-cell of 5: it overflows its own cell deliberately, and still fits the 12 px pitch.
 - **hex** is drawn as a polygon via `hexPoints({ cx, cy, radius })`, computing six vertices offset by `π/6`.
 
-The rounded corner was a fixed `2.5` here and `size × 0.2` in the app, at *every* size. The web adopted the app's ratio, so a published Embed's corner moved from 2.5 to 2.0: one rule across five renderers, at a visible cost taken on purpose.
+The rounded corner was a fixed `2.5` here and `size × 0.2` in the app, at *every* size. The web adopted the app's ratio, so a published Embed's corner moved from 2.5 to 2.0: one rule across five renderers, at a visible cost taken on purpose ([ADR 0020](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md)).
 
 `renderCellShape` emits the right markup per shape, shared between the server renderer and the client.
 
