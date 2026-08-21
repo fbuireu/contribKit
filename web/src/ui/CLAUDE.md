@@ -45,10 +45,12 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   was the e2e, which spelled the same strings by hand; and the suite clicked `.theme-toggle`, a class the contract
   does not own, sitting beside the id it does — dropping that redundant-looking class would have broken the e2e
   with nothing to explain why. Add a selector here and use it from both sides, tests included.
-- **`getActiveShape` returns a `CellShape`, not a `string`.** It reads a `data-key` from the DOM, so it goes
-  through `isCellShape` before it is anything — the same treatment `getActivePalette` has always given a palette
-  key, and for the same reason the components guide states: markup can name a shape the domain does not define.
-  It used to hand a bare string to three callers, each of which re-guarded or did not.
+- **Both getters guard, and neither always did.** `getActiveShape` reads a `data-key` from the DOM and goes
+  through `isCellShape` before it is anything; `getActivePalette` goes through `paletteByKey`. The shape path
+  carried its guard first and handed a bare `string` to three callers, each of which re-guarded or did not; the
+  palette path had none at all, so a `data-key` naming a palette `shared/palettes.json` does not define threw a
+  `TypeError` in three renderers instead of falling back. The long version is in the
+  [components guide](./components/CLAUDE.md), which owns the renderers.
 - **State is module-level, in `state.ts`** — two variables, `days` and `username`, behind getters and setters.
   There is no store and no framework. Anything needing the current grid calls `getDays()`; anything changing it
   calls `setDays()` and then a `render*` function. Nothing subscribes, so **a mutation without a matching render
@@ -66,7 +68,9 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   server, and the render button being re-enabled either way. Nothing else about it changed — the default is what
   every event handler in this file uses.
 - **The client and the server build the same grid.** `page-init` calls `buildGridFromApi` and
-  `computeContributionStats` from the domain layer, exactly as `index.astro` does. Neither reimplements the other.
+  `statsWithScrapedTotal` from the domain layer, exactly as `index.astro` does — the wrapper, not the
+  `computeContributionStats` underneath it, because letting a scraped total beat the computed sum is the domain's
+  decision and not a caller's. Neither reimplements the other.
 - **The year is decided once, before the request, and reused for the grid.** `renderFromGitHub` reads the select,
   clamps it to the current year and sends that as `&year=`, then builds the grid for the same number. It used to
   infer the year back out of `days[0].date`, which only agreed with the request because the select always has a

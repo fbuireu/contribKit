@@ -75,7 +75,7 @@ stay local or the pair stops round-tripping.
 
 It did not, until `toIsoDate` was `date.toISOString().slice(0, 10)` — UTC. The noon anchor only absorbs offsets
 inside ±12 h, so at UTC+13 and UTC+14 the returned date fell a day behind and at UTC−12 a day ahead. Every date
-`buildCalendarGrid` walked was shifted, so every `map.get(date)` missed and the client rendered a **blank
+`buildGridFromApi` walked was shifted, so every `map.get(date)` missed and the client rendered a **blank
 calendar** — in New Zealand only while NZDT is in force, which is why nobody hit it in June. Under
 `TZ=Pacific/Auckland` three `addDays` assertions failed; the streak test then failed too, because its own helper
 formatted "today" through `toISOString`. Run the suite under `Pacific/Auckland`, `Pacific/Kiritimati` and
@@ -87,7 +87,7 @@ test helper reintroduces the same bug in the test rather than the code.
 ## Gotchas
 
 - **`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7)`**, all three declared in `services/dates.ts`.
-  `buildCalendarGrid` walks those 371 days from the Sunday on or before January 1st, so the grid always starts
+  `buildGridFromApi` walks those 371 days from the Sunday on or before January 1st, so the grid always starts
   between December 26th of the previous year and January 1st, and always ends between December 30th and January
   6th of the next. Days outside the requested year are simply absent from the map and emerge as
   `{ level: 0, count: null }`. **An absent day is not a zero day** — it is a day with an unknown Count that
@@ -156,7 +156,7 @@ test helper reintroduces the same bug in the test rather than the code.
   Tightening the pattern is not free — it would turn a truthful "user not found" into a misleading "invalid
   username" for any handle GitHub later starts allowing — so the rule is deliberately looser than GitHub's, and the
   app's Dart regex is looser in the same way.
-- **`buildRollingGrid` is the anchor-free sibling of `buildCalendarGrid`.** It keys the days by date and ends on
+- **`buildRollingGrid` is the anchor-free sibling of `buildGridFromApi`.** It keys the days by date and ends on
   the Saturday of the latest day it was given, rather than on a calendar year, because the Embed deliberately
   shows a rolling window and never a pinned Year. Reach for it whenever days arrive without a Year to anchor on —
   never for `chunkWeeks` alone, which trusts its input to already be a date-ordered lattice.

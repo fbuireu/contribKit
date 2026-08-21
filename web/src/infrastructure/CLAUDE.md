@@ -76,7 +76,7 @@ no activity, which is a lie the reader cannot detect
 
 **`total` is `null` the moment a Contribution Day at level 1 or above has an unknown Count.** It is not GitHub's own
 headline figure — nothing here reads that — so it is only as complete as the tool-tip pass, and a partial pass
-cannot be reported as a measurement. A level-0 day with no Count does **not** void it, because GitHub's level 0is
+cannot be reported as a measurement. A level-0 day with no Count does **not** void it, because GitHub's level 0 is
 zero. That is the same rule `computeContributionStats` applies in the domain and the same one the app's `_totalFor`
 applies, and this file did not follow it: it summed `count ?? 0` whenever *any* tool-tip parsed, so a page whose
 `<td>`s parsed and whose tool-tips half failed produced an **understated total presented as exact** — which
@@ -116,8 +116,9 @@ Callers reach it through **`loggerFor(locals)`**, which performs the `Astro.loca
 `@astrojs/cloudflare` puts the context — in the one place that should know about it. The old `locals.runtime.*`
 accessors are still defined, as getters that throw: `runtime.ctx` tells you to use `cfContext`, and `runtime.env`
 tells you to `import { env } from "cloudflare:workers"` — which is exactly what `middleware.ts` does for the rate
-limiter binding. Both API routes, the landing page and the 500 page go through `loggerFor`; keep doing that rather than casting
-`locals` again.
+limiter binding. Both data routes, the landing page and the 500 page go through `loggerFor`; keep doing that
+rather than casting `locals` again. `/api/health` is the one route without a logger, because it has nothing to
+report.
 
 **This folder holds the client and nothing else.** Turning something that went wrong into a log line is
 `failure-log.ts` in [`application/http/`](../application/CLAUDE.md) — it takes a logger as a parameter rather than
