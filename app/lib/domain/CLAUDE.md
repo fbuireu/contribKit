@@ -193,6 +193,9 @@ Background to embed and the app's Export does not.
 
 ## `CellGeometryService`: one Cell, five renderers
 
+The decision, including why the published Embed's corner moved and why Kotlin cannot be held to it, is
+[ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md).
+
 The maths a Cell Shape is drawn with lives here, not in whichever renderer needs it: `cornerRadiusFor`,
 `dotRadiusFor` and `hexVerticesFor`. The on-screen Cell, the SVG Export and the PNG Export all call all three.
 
