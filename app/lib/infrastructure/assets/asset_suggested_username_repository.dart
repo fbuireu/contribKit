@@ -15,7 +15,7 @@ final class AssetSuggestedUsernameRepository
       final data = jsonDecode(raw) as List<dynamic>;
       return List<String>.from(data);
     } catch (e) {
-      throw ParseFailure(message: 'Could not read $_assetKey: $e');
+      throw const AssetFailure(asset: _assetKey);
     }
   }
 }

@@ -182,11 +182,21 @@ void main() {
         ).fetchCalendar(username: username, year: year);
 
         final days = _allDays(result.calendar);
-        final padded = days.where((day) => day.count == 0);
+        final padded = days
+            .where((day) => day.date != DateTime(2023, 3, 6))
+            .toList();
+
+        expect(padded, isNotEmpty);
+        expect(
+          padded.every((day) => day.count == null),
+          isTrue,
+          reason: 'a padding day has no Count, and null is not zero',
+        );
         expect(
           padded.every((day) => day.level == ContributionLevel.none),
           isTrue,
         );
+        expect(padded.any((day) => day.count == 0), isFalse);
         expect(result.calendar.totalContributions, 4);
       },
     );

@@ -35,5 +35,6 @@ abstract class ViewerState with _$ViewerState {
 
   bool get isBusy => isLoadingSettings || isLoadingCalendar;
 
-  Failure? get blockingFailure => error ?? paletteFailure;
+  Failure? get blockingFailure =>
+      error ?? (palette == null ? paletteFailure : null);
 }

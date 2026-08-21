@@ -419,14 +419,20 @@ class _Body extends ConsumerWidget {
       return const _Loader();
     }
     if (state.blockingFailure case final failure?) {
-      return _ErrorState(failure: failure);
+      return _ErrorState(
+        failure: failure,
+        onRetry: ref.read(viewerProvider.notifier).retry,
+      );
     }
     if (state.username == null || state.calendar == null) {
       return const _EmptyState();
     }
-    if (state.palette == null || state.stats == null) {
-      return const _ErrorState(
-        failure: ParseFailure(message: 'palettes unavailable'),
+    if (state.palette == null) {
+      return _ErrorState(
+        failure:
+            state.paletteFailure ??
+            const AssetFailure(asset: 'assets/palettes.json'),
+        onRetry: ref.read(viewerProvider.notifier).retry,
       );
     }
 
@@ -632,21 +638,30 @@ class _PulsingDots extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.failure});
+  const _ErrorState({required this.failure, this.onRetry});
 
   final Failure failure;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.all(Tokens.space8),
-      child: Text(
-        FailureMessage.of(failure),
-        style: TextStyle(
-          fontSize: Tokens.textBase,
-          color: AppColors.of(context).destructive,
-        ),
-        textAlign: TextAlign.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: Tokens.space4,
+        children: [
+          Text(
+            FailureMessage.of(failure),
+            style: TextStyle(
+              fontSize: Tokens.textBase,
+              color: AppColors.of(context).destructive,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (onRetry case final retry?)
+            AppButton.ghost(onPressed: retry, child: const Text('Try again')),
+        ],
       ),
     ),
   );

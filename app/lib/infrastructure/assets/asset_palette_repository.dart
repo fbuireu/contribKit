@@ -16,7 +16,7 @@ final class AssetPaletteRepository implements PaletteRepository {
       final data = jsonDecode(raw) as List<dynamic>;
       return data.map(_fromJson).toList(growable: false);
     } catch (e) {
-      throw ParseFailure(message: 'Could not read $_assetKey: $e');
+      throw const AssetFailure(asset: _assetKey);
     }
   }
 

@@ -39,8 +39,13 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 `Failure` is a `sealed class` implementing `Exception`, thrown by operations and matched exhaustively without a
 wildcard ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)):
 
-`NetworkFailure` · `NotFoundFailure` · `RateLimitedFailure` · `ParseFailure` · `CacheFailure` · `ExportFailure` ·
-`TipFailure` · `UnexpectedFailure`
+`NetworkFailure` · `NotFoundFailure` · `RateLimitedFailure` · `ParseFailure` · `AssetFailure` · `CacheFailure` ·
+`ExportFailure` · `TipFailure` · `UnexpectedFailure`
+
+**`AssetFailure` exists because `ParseFailure` meant two different things.** The asset repositories threw
+`ParseFailure` when `assets/palettes.json` could not be read, and `FailureMessage` renders that kind as *"GitHub
+changed its contributions page. Please update the app."* — a sentence about the scrape, shown for a file the app
+ships with itself. It carries the asset key and says so.
 
 **It is `TipFailure`, not `PurchaseFailure`.** The glossary's `_Avoid_` list for Tip names `purchase`, and the whole
 stack was named after it — `PurchaseRepository`, `PurchaseTip`, `PurchaseFailure`, `purchase()`. The

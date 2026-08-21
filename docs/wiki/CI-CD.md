@@ -158,5 +158,5 @@ semantic-release runs per component and tags `web-vX.Y.Z` / `app-vX.Y.Z`, driven
 
 - **[Git Hooks](Git-Hooks)** runs the same checks locally before push.
 - **[Web Application](Web-Application)** explains the `@astrojs/cloudflare` deploy gotcha.
-- **[Mobile App](Mobile-App)** covers build configuration, signing, and in-app purchases.
+- **[Mobile App](Mobile-App)** covers build configuration, signing, and the Tip Jar.
 - **[Project Structure](Project-Structure)** covers the monorepo tooling.

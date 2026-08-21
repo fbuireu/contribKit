@@ -27,16 +27,7 @@ class ViewerNotifier extends _$ViewerNotifier {
   Future<void> _loadSettings() async {
     state = state.copyWith(isLoadingSettings: true);
 
-    List<Palette> allPalettes = [];
-    try {
-      allPalettes = await ref.read(palettesProvider.future);
-      state = state.copyWith(
-        palette: allPalettes.isEmpty ? null : allPalettes.first,
-        paletteFailure: null,
-      );
-    } catch (e) {
-      state = state.copyWith(paletteFailure: _asFailure(e));
-    }
+    final allPalettes = await _loadPalettes();
 
     try {
       final repo = ref.read(settingsRepositoryProvider);
@@ -104,8 +95,7 @@ class ViewerNotifier extends _$ViewerNotifier {
         stats: ContributionStatsService.compute(calendar),
         fromCache: fromCache,
       );
-      await ref.read(settingsRepositoryProvider).saveLastUsername(username);
-      await ref.read(settingsRepositoryProvider).saveLastYear(year);
+      await _remember(username: username, year: year);
 
       _updateWidget();
     } on Failure catch (f) {
@@ -118,6 +108,21 @@ class ViewerNotifier extends _$ViewerNotifier {
       if (generation == _generation) {
         state = state.copyWith(isLoadingCalendar: false);
       }
+    }
+  }
+
+  Future<List<Palette>> _loadPalettes() async {
+    try {
+      ref.invalidate(palettesProvider);
+      final palettes = await ref.read(palettesProvider.future);
+      state = state.copyWith(
+        palette: palettes.isEmpty ? null : palettes.first,
+        paletteFailure: null,
+      );
+      return palettes;
+    } catch (e) {
+      state = state.copyWith(paletteFailure: _asFailure(e));
+      return const [];
     }
   }
 
@@ -156,10 +161,30 @@ class ViewerNotifier extends _$ViewerNotifier {
     }
   }
 
+  Future<void> _remember({
+    required Username username,
+    required Year year,
+  }) async {
+    try {
+      final settings = ref.read(settingsRepositoryProvider);
+      await settings.saveLastUsername(username);
+      await settings.saveLastYear(year);
+    } on Failure {
+      return;
+    }
+  }
+
   Future<void> refreshContributions() async {
     final username = state.username;
     if (username == null) return;
     await ref.read(invalidateContributionCacheProvider)(username);
+    await fetchContributions(username: username, year: state.effectiveYear);
+  }
+
+  Future<void> retry() async {
+    if (state.palette == null) await _loadPalettes();
+    final username = state.username;
+    if (username == null) return;
     await fetchContributions(username: username, year: state.effectiveYear);
   }
 

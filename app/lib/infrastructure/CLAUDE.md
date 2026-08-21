@@ -27,7 +27,7 @@ Flutter widgets, and must never import from `ui/`.
 | `github/` | `GitHubContributionRepository` — scraping plus the Hive calendar cache |
 | `github/dtos/` | JSON transfer objects for the cache, converted before leaving the layer |
 | `persistence/` | `HiveSettingsRepository` — every stored setting |
-| `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames) — generated copies of `shared/` |
+| `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames) — generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown |
 | `tip/` | The RevenueCat implementation of `TipRepository` |
 
@@ -123,6 +123,11 @@ The stored keys, and the two that carry a legacy fallback:
 | `cellShape` · `cellSize` · `themeMode` | — | the enum's `name` |
 | `backgroundPreset` | `cardBackground` | the enum's `name` |
 
+**Three shapes are extracted rather than spelled out.** `_enumByName` is the one enum-by-name lookup (it was
+written three times), and `_readWithLegacy` / `_writeReplacingLegacy` are the migration pair (four hand-spelled
+lines over two keys). That matters for the rule below: "add the legacy fallback" used to mean remembering `??` in
+the getter *and* `delete` in the setter, in two separate places, with nothing linking them.
+
 **Enums are persisted by `name`, never by `index`.** Reordering the enum is then free; renaming a *case* is a
 migration. Adding or renaming a key means adding the legacy fallback **and** a migration test in the same commit, or
 users silently lose the setting.
@@ -157,6 +162,14 @@ nothing that reports entitlement**, because a Tip unlocks nothing and no code ma
 given ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)). It was
 `purchase/RevenueCatPurchaseRepository` implementing `PurchaseRepository` until the glossary guard learned to see
 the word `purchase`, which Tip's `_Avoid_` list has always named.
+
+**The cancellation check lives in `store_error.dart`, and it exists because the SDK helper throws.**
+`PurchasesErrorHelper.getErrorCode` is `num.parse(e.code).round()` — it throws `FormatException` on any
+non-numeric code, and Flutter raises `PlatformException(code: 'channel-error')` on a channel fault. Called from
+inside `on PlatformException catch`, that `FormatException` does **not** fall into the sibling `catch (e)`; it
+escapes the layer whose first rule forbids exactly that. `isTipCancellation` parses the code itself first and
+returns false for anything non-numeric or negative, so the helper is only ever handed input it can survive. It is
+a separate module because it is the one part of this file with a seam, and it has five tests.
 
 **`give` returns a `TipOutcome`, and the cancel arm it used to carry could never run.** `Purchases.purchase` throws
 a `PlatformException`; `PurchasesErrorCode` is a plain enum that nothing in the package ever throws, so

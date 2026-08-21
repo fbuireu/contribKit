@@ -162,7 +162,7 @@ the difference is the point: each client can only fail in the ways it can actual
 
 | Web (`Failure` union, returned as a value) | App (`sealed class Failure`, thrown and caught) |
 | --- | --- |
-| `NotFound`, `InvalidInput`, `Network`, `Parse`, `RateLimited` | `NotFoundFailure`, `NetworkFailure`, `ParseFailure`, `RateLimitedFailure`, `CacheFailure`, `ExportFailure`, `TipFailure`, `UnexpectedFailure` |
+| `NotFound`, `InvalidInput`, `Network`, `Parse`, `RateLimited` | `NotFoundFailure`, `NetworkFailure`, `ParseFailure`, `RateLimitedFailure`, `AssetFailure`, `CacheFailure`, `ExportFailure`, `TipFailure`, `UnexpectedFailure` |
 
 The web returns failures because a Worker route is a function from request to response and a thrown error there is
 just a 500 with no shape. The app throws them because a `sealed class` plus an exhaustive `switch` is how Dart makes

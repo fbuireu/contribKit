@@ -44,15 +44,19 @@ void main() {
       );
     });
 
-    test('reports whole pixels a PNG can actually be', () {
-      for (final cellSize in CellSize.values) {
-        final pixels = ExportGeometryService.pngPixelSizeFor(
-          cellSize: cellSize,
-        );
-
-        expect(pixels.width, greaterThan(0), reason: cellSize.name);
-        expect(pixels.height, greaterThan(0), reason: cellSize.name);
-      }
+    test('reports the exact pixel size the export tile advertises', () {
+      expect(ExportGeometryService.pngPixelSizeFor(cellSize: CellSize.normal), (
+        width: 2061,
+        height: 267,
+      ), reason: 'the tile shows this, and it used to be an invented 2880x720');
+      expect(
+        ExportGeometryService.pngPixelSizeFor(cellSize: CellSize.compact),
+        (width: 1743, height: 225),
+      );
+      expect(ExportGeometryService.pngPixelSizeFor(cellSize: CellSize.large), (
+        width: 2694,
+        height: 348,
+      ));
     });
 
     test('a larger Cell Size makes a larger PNG, so the tile cannot lie', () {

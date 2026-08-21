@@ -11,6 +11,7 @@ abstract final class FailureMessage {
     RateLimitedFailure(:final resetAt) => _rateLimited(resetAt),
     ParseFailure() =>
       'GitHub changed its contributions page. Please update the app.',
+    AssetFailure() => 'ContribKit could not read its own design tokens. Reinstalling should fix it.',
     NetworkFailure(:final message) => 'Network error: $message',
     CacheFailure() => 'Could not read saved data. Please try again.',
     ExportFailure(:final message) => 'Export failed: $message',

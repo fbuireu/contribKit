@@ -34,6 +34,14 @@ final class ParseFailure extends Failure {
   String toString() => 'ParseFailure: $message';
 }
 
+final class AssetFailure extends Failure {
+  const AssetFailure({required this.asset});
+  final String asset;
+
+  @override
+  String toString() => 'AssetFailure: could not read bundled asset "$asset"';
+}
+
 final class CacheFailure extends Failure {
   const CacheFailure({required this.message});
   final String message;

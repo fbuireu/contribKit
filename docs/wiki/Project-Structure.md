@@ -60,7 +60,7 @@ Every layer carries a colocated `CLAUDE.md` documenting its rules, and the docs-
 ```
 domain/          Entities, value objects, repository interfaces, services, failures
 application/     Use cases (fetch, export, tips)
-infrastructure/  GitHub repo, asset repos, export (png/svg/markdown), persistence, purchases
+infrastructure/  GitHub repo, asset repos, export (png/svg/markdown), persistence, tip
 ui/              Features (viewer, customizer, export, tip), widgets, theme, DI
 ```
 

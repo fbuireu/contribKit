@@ -36,6 +36,32 @@ final class HiveSettingsRepository implements SettingsRepository {
     }
   }
 
+  static T? _enumByName<T extends Enum>(
+    Box<dynamic> box,
+    String key,
+    List<T> values,
+  ) {
+    final raw = box.get(key) as String?;
+    if (raw == null) return null;
+    return values.where((value) => value.name == raw).firstOrNull;
+  }
+
+  static String? _readWithLegacy(
+    Box<dynamic> box,
+    String key,
+    String legacyKey,
+  ) => (box.get(key) ?? box.get(legacyKey)) as String?;
+
+  static Future<void> _writeReplacingLegacy(
+    Box<dynamic> box,
+    String key,
+    String legacyKey,
+    String value,
+  ) async {
+    await box.put(key, value);
+    await box.delete(legacyKey);
+  }
+
   @override
   Future<Username?> getLastUsername() => _read((box) {
     final raw = box.get(_keyLastUsername) as String?;
@@ -58,33 +84,26 @@ final class HiveSettingsRepository implements SettingsRepository {
 
   @override
   Future<String?> getSavedPaletteKey() => _read(
-    (box) =>
-        (box.get(_keyPaletteKey) ?? box.get(_keyLegacyPaletteName)) as String?,
+    (box) => _readWithLegacy(box, _keyPaletteKey, _keyLegacyPaletteName),
   );
 
   @override
-  Future<void> savePaletteKey(String key) => _write((box) async {
-    await box.put(_keyPaletteKey, key);
-    await box.delete(_keyLegacyPaletteName);
-  });
+  Future<void> savePaletteKey(String key) => _write(
+    (box) =>
+        _writeReplacingLegacy(box, _keyPaletteKey, _keyLegacyPaletteName, key),
+  );
 
   @override
-  Future<CellShape?> getSavedCellShape() => _read((box) {
-    final raw = box.get(_keyCellShape) as String?;
-    if (raw == null) return null;
-    return CellShape.values.where((s) => s.name == raw).firstOrNull;
-  });
+  Future<CellShape?> getSavedCellShape() =>
+      _read((box) => _enumByName(box, _keyCellShape, CellShape.values));
 
   @override
   Future<void> saveCellShape(CellShape shape) =>
       _write((box) => box.put(_keyCellShape, shape.name));
 
   @override
-  Future<CellSize?> getSavedCellSize() => _read((box) {
-    final raw = box.get(_keyCellSize) as String?;
-    if (raw == null) return null;
-    return CellSize.values.where((s) => s.name == raw).firstOrNull;
-  });
+  Future<CellSize?> getSavedCellSize() =>
+      _read((box) => _enumByName(box, _keyCellSize, CellSize.values));
 
   @override
   Future<void> saveCellSize(CellSize size) =>
@@ -93,22 +112,22 @@ final class HiveSettingsRepository implements SettingsRepository {
   @override
   Future<String?> getSavedBackgroundPreset() => _read(
     (box) =>
-        (box.get(_keyBackgroundPreset) ?? box.get(_keyLegacyCardBackground))
-            as String?,
+        _readWithLegacy(box, _keyBackgroundPreset, _keyLegacyCardBackground),
   );
 
   @override
-  Future<void> saveBackgroundPreset(String presetName) => _write((box) async {
-    await box.put(_keyBackgroundPreset, presetName);
-    await box.delete(_keyLegacyCardBackground);
-  });
+  Future<void> saveBackgroundPreset(String presetName) => _write(
+    (box) => _writeReplacingLegacy(
+      box,
+      _keyBackgroundPreset,
+      _keyLegacyCardBackground,
+      presetName,
+    ),
+  );
 
   @override
-  Future<AppThemeMode?> getThemeMode() => _read((box) {
-    final raw = box.get(_keyThemeMode) as String?;
-    if (raw == null) return null;
-    return AppThemeMode.values.where((m) => m.name == raw).firstOrNull;
-  });
+  Future<AppThemeMode?> getThemeMode() =>
+      _read((box) => _enumByName(box, _keyThemeMode, AppThemeMode.values));
 
   @override
   Future<void> saveThemeMode(AppThemeMode mode) =>

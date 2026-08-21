@@ -48,6 +48,7 @@ const BARE_FILENAME_IN_BACKTICKS = /`([a-z0-9_.-]+\.(?:ts|dart|astro))`/g;
 const SOURCE_PATH_IN_BACKTICKS =
 	/`((?:web\/src|app\/lib|shared|scripts)\/[A-Za-z0-9_\-./[\]]+\.(?:ts|dart|astro|json|mjs|yml))`/g;
 const PATH_SEPARATOR = /[\\/]/;
+const DART_RAW_STRING = /\br(['"])(?:(?!\1).)*\1/g;
 const ESCAPE_SEQUENCE = /\\./g;
 const DOUBLE_QUOTED_STRING = /"[^"]*"/g;
 const SINGLE_QUOTED_STRING = /'[^']*'/g;
@@ -65,12 +66,16 @@ const PUBSPEC_DART_PIN = /^ {2}sdk: (\S+)$/m;
 const DOCUMENTED_PNPM_SCRIPT = /\bpnpm ([a-z][a-z\d:._-]*)/g;
 const GLOSSARY_AVOID_LINE = /^_Avoid_: (.+)$/gm;
 const adrHeadingFor = (number: number): RegExp => new RegExp(`^# ${number}\\. \\S`);
-const withoutStringLiterals = (source: string): string =>
-	source
+const withoutStringLiteralsOnOneLine = (line: string): string =>
+	line
+		.replaceAll(DART_RAW_STRING, "''")
 		.replaceAll(ESCAPE_SEQUENCE, "")
 		.replaceAll(DOUBLE_QUOTED_STRING, '""')
 		.replaceAll(SINGLE_QUOTED_STRING, "''")
 		.replaceAll(TEMPLATE_LITERAL, "``");
+
+const withoutStringLiterals = (source: string): string =>
+	source.split("\n").map(withoutStringLiteralsOnOneLine).join("\n");
 
 const identifierNamed = (term: string): RegExp => new RegExp(`(?<![A-Za-z0-9])${term}(?![A-Za-z0-9])`);
 

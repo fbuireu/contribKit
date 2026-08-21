@@ -133,7 +133,9 @@ class _DotPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DotPainter old) =>
-      old.color != color || old.levelIndex != levelIndex;
+      old.color != color ||
+      old.levelIndex != levelIndex ||
+      old.cellSize != cellSize;
 }
 
 class _HexPainter extends CustomPainter {

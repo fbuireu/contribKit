@@ -1,6 +1,6 @@
 # Mobile App
 
-The mobile component (`app/`) is a single Flutter codebase shipping native iOS & Android apps with home-screen widgets. State is managed with Riverpod; in-app purchases use RevenueCat.
+The mobile component (`app/`) is a single Flutter codebase shipping native iOS & Android apps with home-screen widgets. State is managed with Riverpod; Tips go through RevenueCat.
 
 - **Google Play:** [com.fbuireu.contribkit](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)
 - **App Store:** coming soon
@@ -25,8 +25,8 @@ Same DDD-ish layers as the web (see **[Architecture](Architecture)**):
 ```
 app/lib/
 ├── domain/          entities, value objects, repository interfaces, services, failures
-├── application/     use cases: fetch_contributions, export_calendar, fetch_tip_products, purchase_tip
-├── infrastructure/  github repo, asset repos, export (png/svg/markdown), persistence, purchases
+├── application/     use cases: fetch_contributions, export_calendar, fetch_tip_products, give_tip
+├── infrastructure/  github repo, asset repos, export (png/svg/markdown), persistence, tip
 └── ui/              features (viewer, customizer, export, tip), widgets, theme, DI (Riverpod)
 ```
 
@@ -64,7 +64,7 @@ Three repositories implement the `ExportRepository` interface, each producing a 
 
 [Riverpod](https://riverpod.dev) is the app's **DI container and reactive state layer**, living entirely inside `ui/` — it's the only layer that knows Flutter or Riverpod exist. It does not replace the DDD layering; it's the mechanism that wires that layering together and exposes it to widgets.
 
-**Composition root.** `ui/di/providers.dart` (code-generated `providers.g.dart`) is the single place allowed to import `infrastructure/` and `application/` at the same time. It instantiates the concrete repositories (GitHub, assets, settings, purchases, export), passes them into the curried use cases, and exposes each as an `@riverpod` provider:
+**Composition root.** `ui/di/providers.dart` (code-generated `providers.g.dart`) is the single place allowed to import `infrastructure/` and `application/` at the same time. It instantiates the concrete repositories (GitHub, assets, settings, tip, export), passes them into the curried use cases, and exposes each as an `@riverpod` provider:
 
 ```dart
 @riverpod
@@ -106,9 +106,9 @@ Widgets are driven by `calendar_widget_service.dart` and refreshed by a daily ba
 
 ---
 
-## In-app purchases
+## Tips
 
-ContribKit offers an optional **tip jar** via RevenueCat (`revenuecat_purchase_repository.dart`), surfaced in `ui/features/tip/tip_jar_sheet.dart`. The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `purchase_tip`. Tips are entirely optional, and every feature works without them. The default `dart-defines.json` carries the RevenueCat sandbox key; `dart-defines.prod.json` carries the production one.
+ContribKit offers an optional **Tip Jar** via RevenueCat (`revenuecat_tip_repository.dart`), surfaced in `ui/features/tip/tip_jar_sheet.dart`. The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `give_tip`, which returns a `TipOutcome` so backing out of the store sheet is not reported as a failure. A Tip unlocks nothing and no code may check whether one was given ([ADR 0009](../adr/0009-tips-are-unconditional-and-unlock-nothing.md)) — the glossary reserves **Tip** for this and lists "purchase" under `_Avoid_`, which is why none of these names says it. The default `dart-defines.json` carries the RevenueCat sandbox key; `dart-defines.prod.json` carries the production one.
 
 ## Development
 
