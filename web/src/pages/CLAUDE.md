@@ -61,8 +61,9 @@ decision the shape it is ([ADR 0010](../../../docs/adr/0010-rate-limit-only-the-
 **That header is pinned by an e2e**, in `web/e2e/user/[username].svg.spec.ts`, along with the `background=`
 pattern's reject arm. Changing the cache policy is therefore a failing test rather than a silent loosening of the
 only throttle that route has. **Nothing end to end covers a 429 on either route**, because reproducing one means
-GitHub rate-limiting the Worker; the `Retry-After` passthrough is pinned at the unit level instead, in
-`_tests/contributions.test.ts` and `failure-http.test.ts`.
+GitHub rate-limiting the Worker; the `Retry-After` passthrough is pinned at the unit level instead: both
+arms on both routes, in `_tests/contributions.test.ts` and `_tests/username-svg.test.ts`, over the mapping in
+`failure-http.test.ts`.
 
 ## The two data endpoints diverge on purpose
 

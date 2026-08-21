@@ -48,9 +48,11 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 - **Adding a `Selector` entry adds an e2e obligation.** `web/e2e/index.spec.ts` walks the whole enum against the
   landing page and fails on any entry that matches nothing, because an entry no markup satisfies is a renamed id
   the `if (el)` consumers turn into a silent no-op. Two lists in that spec carve out the entries that only exist
-  once a tab is open: `CODE_TAB_ONLY` (`ExportCodePreview`, `ExportCopyButton`) and `PNG_TAB_ONLY`
-  (`ExportPngPreview`). They are hand-maintained, so a selector belonging to a modal or a second tab has to be
-  added to one of them by hand or the suite fails with nothing saying why.
+  once the SVG tab is open: **`CODE_TAB_ONLY`, and only that one**. `PNG_TAB_ONLY` (`ExportPngPreview`) is not a
+  carve-out: PNG is the default tab, so its entry must match on load and must then be *gone* once the SVG tab is
+  clicked, which the spec asserts in the opposite direction. Putting a modal-only selector there fails the suite
+  twice rather than not at all. Both lists are hand-maintained, so a selector that only exists behind a tab or a
+  modal goes in `CODE_TAB_ONLY`, by hand, or the suite fails with nothing saying why.
 - **Both getters guard, and neither always did.** `getActiveShape` reads a `data-key` from the DOM and goes
   through `isCellShape` before it is anything; `getActivePalette` goes through `paletteByKey`. The shape path
   carried its guard first and handed a bare `string` to three callers, each of which re-guarded or did not; the
@@ -61,6 +63,11 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   There is no store and no framework. Anything needing the current grid calls `getDays()`; anything changing it
   calls `setDays()` and then a `render*` function. Nothing subscribes, so **a mutation without a matching render
   is simply invisible**, which is the failure mode to watch for.
+- **`flash` always restores the label `copy`,** so it belongs to the export copy button and nothing else. It also
+  cancels its own pending timer through a module-level `WeakMap`, because a second click inside the 1500 ms window
+  used to capture `copied!` as the label to restore: two timers raced, the button stuck on `copied!`, and a
+  refused second copy settled there too, claiming a success that never happened. A second caller needs the label
+  parameterised first.
 - **`render.ts` re-reads state and rewrites the DOM**: `renderCustomize`, `renderExportPreview`, `renderWidget`,
   `updateHeroStats`, `updateYearRange`, `setHeroError`. They are idempotent by construction.
 - **The initial grid comes from `window.__INITIAL_DAYS__`,** injected by the SSR page, falling back to
@@ -172,5 +179,7 @@ them together, because the CSS and the screen reader must not disagree.
 - **The three legal pages are pinned by `web/e2e/legal-pages.spec.ts`**, which asserts each answers 200, renders an
   `h1`, and carries `robots: noindex, nofollow`. It also asserts `/privacy` uses the `summary` Twitter card and has
   **no** `og:image`, because the social preview for a privacy policy is a link nobody should be enticed to share.
-  **`robots` is opt-in per page**: each of the three sets it in its own `metadata` and there is no layout default,
-  so a fourth legal page left out of `LEGAL_PAGES` has nothing asserting its `noindex` and ships **indexed**.
+  **`SEO.astro` defaults `robots` to `index, follow`**, and each of the three legal pages overrides it in its own
+  `metadata`. So a fourth one left out of `LEGAL_PAGES` has nothing asserting its `noindex` and, if the override
+  is also forgotten, ships **indexed** by inheriting that default. The failure is a present, wrong header rather
+  than a missing one.

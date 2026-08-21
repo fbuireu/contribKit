@@ -57,6 +57,31 @@ describe("GET /user/[username].svg", () => {
 		expect(await res.text()).toBe("User not found");
 	});
 
+	it("passes GitHub's Retry-After on, even though the body is text", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("", { status: 429, headers: { "retry-after": "90" } })),
+		);
+
+		const res = await call("torvalds");
+
+		expect(res.status).toBe(429);
+		expect(res.headers.get("Retry-After")).toBe("90");
+		expect(res.headers.get("Content-Type")).toContain("text/plain");
+	});
+
+	it("sends no Retry-After when GitHub named no wait", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("", { status: 429 })),
+		);
+
+		const res = await call("torvalds");
+
+		expect(res.status).toBe(429);
+		expect(res.headers.has("Retry-After")).toBe(false);
+	});
+
 	it("honors the shape query param", async () => {
 		vi.stubGlobal(
 			"fetch",
