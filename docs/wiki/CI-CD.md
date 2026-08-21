@@ -1,15 +1,24 @@
 # CI/CD
 
-CI is split per component with **path filters**, so an app change never triggers a web build and vice versa. Each component is linted, tested, built, versioned with semantic-release, and shipped automatically: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
+CI is split per component with **path filters**, so an app change never triggers a web build and vice versa.
+
+> **Path filters are where guards die here.** `ci-web.yml` carries `docs/**`, `shared/**`, `scripts/**` and the root
+> manifests specifically so the docs-consistency contract runs on the changes most likely to break it, and
+> `ci-app.yml` runs that contract in a job of its own because nothing under `app/**` triggers the web workflow.
+> Narrowing either filter disables a guard silently, which has now happened three times — the app side, the
+> preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose comments and version pins the
+> contract asserts while no workflow watched them. Each component is linted, tested, built, versioned with semantic-release, and shipped automatically: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
-| `ci-web.yml` | `web/**`, `shared/**`, `docs/**`, `*.md` changes | lint, test, build, typecheck, deploy, release |
-| `ci-app.yml` | `app/**` changes | docs-consistency contract, Flutter format check, analyze, test (+coverage), build |
+| `ci-web.yml` | `web/**`, `shared/**`, `docs/**`, `scripts/**`, `*.md`, the root `package.json`, `pnpm-workspace.yaml`, `lefthook.yml`, its own config, `prepare-web-env` | lint, test, build, typecheck, deploy, release |
+| `ci-web-noop.yml` | PRs touching **none** of the above | reports a passing `E2E (preview)` so that check can be required without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly |
+| `ci-app.yml` | `app/**`, its own config, `prepare-web-env` | docs-consistency contract, Flutter format check, analyze, test (+coverage), build |
 | `release-app.yml` | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
 | `_deploy-web.yml` | reusable | shared web deploy steps |
 | `cleanup-web-development.yml` | PR close | deletes the per-PR preview worker |
 | `dependabot-auto-merge.yml`, `renovate-auto-approve.yml` | dependency PRs | automated dependency updates |
+| `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |
 | `zizmor.yml` | push / PR | GitHub Actions security linting |
 
 ---

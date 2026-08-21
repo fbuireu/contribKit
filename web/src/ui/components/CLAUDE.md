@@ -15,11 +15,10 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 
 ## Invariants & rules
 
-- **Props in, markup out.** No fetching, no domain logic. Interactivity lives in `ui/utils/page-init.ts`, not in
-  per-component `<script>` blocks.
-- **CSS is colocated**: `Hero.astro` imports `./hero.css`, and so on.
-- **Palette colours and Cell Shapes come from `@domain/value-objects/`.** Never a hex literal, never a bare shape
-  string. Anything fed from a DOM `dataset` is re-guarded before it is used as a key: `render-svg.ts` calls
+The layer's rules — props in / markup out, colocated CSS, Palette colours and Cell Shapes from
+`@domain/value-objects/` — are in the [parent guide](../CLAUDE.md) and are not restated here. What this folder adds:
+
+- **Anything fed from a DOM `dataset` is re-guarded before it is used as a key:** `render-svg.ts` calls
   `isCellShape`, and `getActivePalette` in `ui/utils/render.ts` returns a `Palette` through `paletteByKey` rather
   than a key its callers would index `PALETTES` with. The shape path had that guard from the start and the palette
   path did not, so a `data-key` naming a palette `shared/palettes.json` does not define threw a `TypeError` in
@@ -42,12 +41,14 @@ worth knowing:
 | Per-cell attributes | none — fill only | `data-date`, plus `data-count` **only when the count is known** |
 | Root sizing | fixed `width`/`height` in pixels | `width="100%"` with `overflow:visible`, so it scales in the card |
 | Label colour | hardcoded `rgba(255,255,255,…)` | `var(--text-dim)` / `var(--text-dimmer)`, so it follows the page theme |
+| Label font | a `font-family="ui-monospace,monospace"` **attribute** | `font-family:var(--font-mono)` inside a `style`, for the same reason |
+| Month label opacity | none | an extra `opacity:.85` |
 | Background | a `<rect>` when the Background is not transparent | never — the card behind it is the background |
 | Palette lookup | `palette.colors[level]`, a `Palette` | `palette[level] \|\| palette[0]`, a bare array from the DOM |
 | Cell Shape | taken as given — `options.shape` is a typed `CellShape` | re-guarded with `isCellShape`, because it arrives from a `dataset` |
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 
-That table is now the **complete** list. Each renderer is a loop over `layout.monthLabels`, `layout.weekdayLabels`
+That table is the complete list, and it took three passes to become one — the font-family and the month-label opacity rows sat outside it while the guide claimed completeness, which is the failure mode a table like this has. Nothing detects a new divergence; adding a row is manual. Each renderer is a loop over `layout.monthLabels`, `layout.weekdayLabels`
 and `layout.cells`, emitting its own strings; neither chunks weeks, computes a dimension, positions a label or
 derives a radius. Both used to, identically — twelve imports each and the same thirty-line walk, down to a
 byte-identical closing `parts.push("</g></svg>")`. Only the geometry primitives had been shared, so the *rule* was
@@ -79,8 +80,8 @@ Saturday of the current week and walks 371 days back from there, so it never sho
 
 ## `error/`
 
-`404.astro` and `500.astro` render the **same** `ErrorView` and `ContributionCode`, driven entirely by props. Never
-fork a second copy for a new status. Tone is token-only — `.error-page.is-danger` remaps the `--grid-*` / `--error-*`
+`404.astro` and `500.astro` share `ErrorView` and `ContributionCode` — the [pages guide](../../pages/CLAUDE.md)
+states the rule. Tone is token-only — `.error-page.is-danger` remaps the `--grid-*` / `--error-*`
 custom properties to the red ramp — so a new tone is a class and a token block, never an inlined hex.
 
 ## Gotchas

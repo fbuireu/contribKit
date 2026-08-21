@@ -35,7 +35,7 @@ Each layer documents its own rules in a colocated `CLAUDE.md`.
 
 ### Pure domain
 
-`domain/` imports no packages, only TS stdlib types plus the design-token JSON from `@shared` as data. Functional style: factory functions return readonly objects with a discriminating `_tag`. No classes.
+`domain/` imports no packages, only TS stdlib types plus the design-token JSON from `@shared` as data. Functional style: factory functions return readonly objects, no classes. **Only `Username` and `Year` carry a discriminating `_tag`**, and only they validate on construction; `ContributionDay`, `ContributionCalendar` and `Palette` carry none, because there is nothing about them that can fail.
 
 ### Validated value objects
 

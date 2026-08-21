@@ -28,7 +28,7 @@ Common issues and how to resolve them. ContribKit maps every failure to a typed 
 
 ## Counts show but `total` is `null` (or counts are `null`)
 
-GitHub doesn't always emit a `<tool-tip>` for every cell. ContribKit reports the `level` (0–4) regardless, but the exact `count` is `null` when no tooltip exists for that day, and `total` is `null` when no counts were found at all. The calendar still renders correctly. See **[HTML Parsing](HTML-Parsing)**.
+GitHub doesn't always emit a `<tool-tip>` for every cell. ContribKit reports the `level` (0–4) regardless, but the exact `count` is `null` when no tooltip exists for that day — and `total` is `null` as soon as **any one** active day is in that state, not only when every count is missing. That is deliberate: a sum over the days that did parse is a lower bound, and printing it would present a guess as a measurement. The calendar still renders correctly. See **[HTML Parsing](HTML-Parsing)**.
 
 ---
 
@@ -45,7 +45,13 @@ This usually means GitHub is unreachable or changed the structure of its contrib
 
 ## Rate limited (HTTP 429)
 
-The API is rate-limited per IP at **100 requests/minute**. Back off and retry. For README embeds this is rarely an issue thanks to caching (`max-age=3600, stale-while-revalidate=86400`).
+A 429 means one of two different things, and the headers tell them apart.
+
+**With `Retry-After: 60`** it is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute**, refused by the middleware before the route runs. Back off and retry.
+
+**Without it** it is GitHub rate-limiting ContribKit, forwarded to you rather than disguised as an outage — it used to come back as a `502` saying GitHub was unreachable, about a service that had answered perfectly well and said *slow down*. Retrying sooner will not help; the whole Worker is throttled upstream, not just you.
+
+`/user/:username.svg` is never rate-limited by ContribKit ([ADR 0010](../adr/0010-rate-limit-only-the-json-api.md)), so a 429 there is always GitHub's. For README embeds this is rarely an issue thanks to caching (`max-age=3600, stale-while-revalidate=86400`).
 
 ---
 
@@ -55,9 +61,11 @@ The environment is chosen at **build** time: `CLOUDFLARE_ENV=<env> astro build` 
 
 ---
 
-## Mobile: palettes/shapes look stale
+## Mobile: palettes look stale (and shapes never change)
 
-The app uses generated copies of the design tokens in `app/assets/`. If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `ci-app.yml` does not. See **[Project Structure](Project-Structure)**.
+The app uses generated copies of the design tokens in `app/assets/`. If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `ci-app.yml` does not.
+
+**Syncing will never change a Cell Shape**, however. `shapes.json` is mirrored and bundled but no Dart file reads it — the app's shapes are a hardcoded `CellShape` enum ([ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)). Adding a shape there changes the web only. See **[Project Structure](Project-Structure)**.
 
 ---
 

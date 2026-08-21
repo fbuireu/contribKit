@@ -32,7 +32,7 @@ From `start`, it walks forward exactly `GRID_CELL_COUNT` days, producing one `Co
 |--------|----------|
 | `getWeekday(iso)` | `0`–`6` (Sun–Sat) via `Date.getDay()` |
 | `addDays({ iso, days })` | shifts an ISO date by N days |
-| `toIsoDate(date)` | `YYYY-MM-DD` slice |
+| `toIsoDate(date)` | `YYYY-MM-DD` from the **local** calendar fields |
 
 The two that construct a date — `getWeekday` and `addDays` — do it at **`T12:00:00`** (local noon) rather than midnight; `toIsoDate` builds no `Date` at all, it formats one out of its local calendar fields. Anchoring at noon avoids off-by-one errors where a DST transition or timezone offset would otherwise push a midnight timestamp into the previous/next day.
 
@@ -63,7 +63,17 @@ For each of the 371 positions:
 - if present, use its `level` (run through `clampLevel`) and `count`,
 - if absent, emit `{ level: 0, count: null }`.
 
-This guarantees a complete, gap-free grid even when GitHub omits leading/trailing days outside the year.
+This guarantees a complete, gap-free grid even when GitHub omits leading/trailing days outside the year. **An absent day is not a zero day** — it is a day with an unknown Count that happens to render like an empty one ([ADR 0019](../adr/0019-an-unknown-count-is-null-in-both-clients.md)).
+
+---
+
+## The other builder: `buildRollingGrid`
+
+`buildCalendarGrid` anchors on a calendar Year. The Embed does not have one — `/user/:username.svg` ignores `?year=` entirely, because an embed URL is pasted into a README once and a pinned year would quietly go stale. So it uses **`buildRollingGrid`**, which keys the days by date and ends on the Saturday of the latest day it was given rather than on 31 December.
+
+It is not optional there. GitHub emits its table **weekday-major**, so the scraped days arrive as fifty-three Sundays, then fifty-three Mondays; handing them straight to a renderer draws the transpose of the calendar, every cell after the first carrying the wrong date's Contribution Level. Anything that reaches a renderer goes through a grid builder first — the rolling one for the Embed, the Year-anchored one everywhere else.
+
+Never reach for `chunkWeeks` alone: it trusts its input to already be a date-ordered lattice.
 
 ---
 
@@ -76,4 +86,4 @@ Because the grid is derived purely from the date and the parsed map, the same in
 ## See also
 
 - **[HTML Parsing](HTML-Parsing)** produces the days fed into the grid.
-- **[SVG Rendering](SVG-Rendering)** chunks the grid back into weeks to draw it.
+- **[SVG Rendering](SVG-Rendering)** lays the grid out and draws it — `calendarLayout` does the chunking, not the renderers.

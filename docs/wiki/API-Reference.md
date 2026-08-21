@@ -52,6 +52,7 @@ Errors return `text/plain` with the message:
 |--------|---------|
 | `400` | invalid username |
 | `404` | GitHub has no such user (`User not found`) |
+| `429` | GitHub is rate-limiting ContribKit. **Not** this endpoint rate-limiting you — it is never rate-limited ([ADR 0010](../adr/0010-rate-limit-only-the-json-api.md)) |
 | `502` | GitHub unreachable, or the page couldn't be parsed |
 
 ---
@@ -92,8 +93,10 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
   against the original shape keep working; it will be removed in a release that says so.
 - `level` is `0`–`4` (GitHub's intensity bucket).
 - `count` is the exact contribution count for that day, or `null` when GitHub doesn't expose a tooltip for the Cell.
-- `total` is the sum of the counts that were recovered, or `null` when none were. It is not GitHub's own headline
-  figure — nothing reads that — so treat it as complete only when every `count` is non-`null`.
+- `total` is the sum of every Count, or **`null` the moment any day at level 1 or above has no Count**. It is
+  never a partial sum: a total that skipped unknown days would be a lower bound presented as a measurement.
+  A level-0 day with no Count does not void it, because GitHub's level 0 is zero, so a year of genuine
+  inactivity reports `0` rather than `null`. It is not GitHub's own headline figure — nothing reads that.
 
 ### Errors
 
@@ -103,7 +106,7 @@ Errors return `{ "error": "<message>" }` with an appropriate status:
 |--------|---------|
 | `400` | Missing `user`, or invalid username/year |
 | `404` | GitHub has no such user (`"User not found"`) |
-| `429` | Rate limit exceeded |
+| `429` | **Two different things.** With a `Retry-After: 60` header it is this endpoint's own per-IP limit, refused by the middleware before the route runs. Without one it is GitHub rate-limiting ContribKit, and the body says so |
 | `502` | GitHub unreachable, or the page couldn't be parsed |
 
 ---

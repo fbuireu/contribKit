@@ -29,7 +29,7 @@ domain/
   services/        calendar-grid, svg-geometry, cell-shapes, dates, contribution-stats, SvgRenderer type
   failures/        Failure union + constructors + isFailure
 application/
-  use-cases/       fetchContributions, loadInitialContributions, resolveViewerIdentity
+  use-cases/       loadInitialContributions (the one use case); resolve-initial-view.ts, which is request policy rather than a use case
   http/            failure-http (statusFor, messageFor)
 infrastructure/
   github/          githubHtmlContributionsRepository (HTML scraping)

@@ -11,17 +11,9 @@ pnpm install
 cd web
 ```
 
-| Command | Action |
-|---------|--------|
-| `pnpm dev` | Local dev server (generates wrangler types) |
-| `pnpm wrangler:dev` | Build + run under the Workers runtime |
-| `pnpm build` | Production build |
-| `pnpm test` | Vitest unit tests |
-| `pnpm test:e2e` | Playwright e2e tests |
-| `pnpm lint:all` | Biome lint |
-| `pnpm lint:astro` | `astro check` (Astro diagnostics) |
-| `pnpm lint:ts:typecheck` | `tsc --noEmit` |
-| `pnpm format:all` | Biome format (write) |
+The command table lives in [`web/README.md`](https://github.com/fbuireu/ContribKit/blob/main/web/README.md#development)
+and is not repeated here — the copy that used to sit in this page had already lost `pnpm format:check`, which is
+the one command CI actually runs.
 
 ---
 
