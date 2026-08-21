@@ -58,9 +58,14 @@ in one place and the *composition* was in two.
 `rootAttributes` (fixed pixels against `width="100%"`), `background` (server only), a style string for each of the
 two label kinds, and an optional per-cell attribute callback: five fields, one of them a function, in front of a
 thirty-line loop. That is the shallow-module failure one level up, where the interface costs as much as the body it
-hides. The one row that could be **deleted** rather than parameterised is the Palette lookup, since
-`getActivePalette` goes through `paletteByKey` now and `palette[level] || palette[0]` guards a level the domain
-already clamps. Do not re-propose the unification without a smaller config than that; do consider deleting rows.
+hides.
+
+**Two of the nine rows could be deleted rather than parameterised, which is the cheaper move.** The Palette lookup:
+`palette[level] || palette[0]` guards a level `calendarLayout` already ran through `clampLevel`, against a
+`PaletteColors` that is always five long. The Cell Shape: `renderCalendarString` takes a `string` and re-runs
+`isCellShape`, but `getActiveShape` already returns a typed `CellShape` and `index.astro` passes one, so the only
+callers handing it a bare string are its own tests. Neither deletion needs the unification. Do not re-propose that
+without a smaller config than five fields; do take the two rows.
 
 **One asymmetry the table used to carry has gone:** the client re-ran `clampLevel` and the server did not, because
 the server's `day.level` is a type-guaranteed 0–4 union while the client's arrives from placeholder data and from
