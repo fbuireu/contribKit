@@ -69,7 +69,6 @@ export async function renderFromGitHub({
 	const year = selectedYear && selectedYear <= CURRENT_YEAR ? selectedYear : CURRENT_YEAR;
 
 	if (updateHistory) syncUrl({ username, year: selectedYear, currentYear: CURRENT_YEAR });
-	void writeUsernameCookie(username);
 	syncSuggestionSelection(username);
 	setUsername(username);
 
@@ -87,6 +86,7 @@ export async function renderFromGitHub({
 				year,
 			});
 		} else {
+			void writeUsernameCookie(username);
 			setDays(buildGridFromApi({ days: data.days, year }));
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;

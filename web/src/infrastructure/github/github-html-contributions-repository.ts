@@ -1,11 +1,13 @@
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
-import { type Failure, network, notFound, parse } from "@domain/failures/failure";
+import { type Failure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
 import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/types";
 import { clampLevel } from "@domain/value-objects/contribution-level";
 import type { Year } from "@domain/value-objects/year";
 
 const USER_AGENT =
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+const FETCH_TIMEOUT_MS = 20_000;
+const TOO_MANY_REQUESTS = 429;
 const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
 const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
 const LEVEL_REGEX = /data-level="(\d)"/;
@@ -76,6 +78,14 @@ const totalFor = (days: readonly ContributionDay[]): number | null => {
 	return total;
 };
 
+const retryAfterFrom = (header: string | null): number | null => {
+	if (!header) return null;
+	const seconds = Number(header);
+	if (Number.isInteger(seconds) && seconds >= 0) return seconds;
+	const at = Date.parse(header);
+	return Number.isNaN(at) ? null : Math.max(0, Math.round((at - Date.now()) / 1000));
+};
+
 export const githubHtmlContributionsRepository: ContributionsRepository = {
 	async fetch({ username, year }: FetchContributionsParams): Promise<ContributionCalendar | Failure> {
 		const url = buildUrl({ username: username.value, year });
@@ -84,6 +94,7 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 		try {
 			response = await fetch(url, {
 				redirect: "follow",
+				signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
 				headers: {
 					"User-Agent": USER_AGENT,
 					Accept: "text/html, */*",
@@ -97,6 +108,11 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 		}
 
 		if (response.status === 404) return notFound(username.value);
+		if (response.status === TOO_MANY_REQUESTS)
+			return rateLimited({
+				message: "GitHub is rate-limiting this Worker",
+				retryAfterSeconds: retryAfterFrom(response.headers.get("retry-after")),
+			});
 		if (!response.ok) return network({ message: `GitHub returned ${response.status}`, status: response.status });
 
 		const html = await response.text();

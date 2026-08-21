@@ -1,4 +1,4 @@
-import { DEFAULT_USERNAME } from "@domain/value-objects/username";
+import { DEFAULT_USERNAME, isUsername, MAX_USERNAME_LENGTH, parseUsername } from "@domain/value-objects/username";
 import { describe, expect, it } from "vitest";
 import { DaySource, daySourceFor, resolveViewerIdentity } from "./resolve-initial-view";
 
@@ -24,8 +24,27 @@ describe("resolveViewerIdentity", () => {
 		expect(identity.isExplicit).toBe(false);
 	});
 
-	it("ignores a requested username the domain rejects", () => {
-		expect(resolveViewerIdentity({ requestedUsername: "a".repeat(40) }).username).toBe(DEFAULT_USERNAME);
+	it("passes a requested username the domain rejects straight through, so the loader can answer 400", () => {
+		const identity = resolveViewerIdentity({ requestedUsername: "not a handle", savedUsername: "gaearon" });
+
+		expect(identity.username).toBe("not a handle");
+		expect(identity.isExplicit).toBe(true);
+	});
+
+	it("never answers a rejected request with somebody else's calendar", () => {
+		for (const requestedUsername of ["not a handle", "-leading-dash", "a".repeat(40)]) {
+			const identity = resolveViewerIdentity({ requestedUsername, savedUsername: "gaearon" });
+
+			expect(identity.username).not.toBe(DEFAULT_USERNAME);
+			expect(identity.username).not.toBe("gaearon");
+		}
+	});
+
+	it("bounds an overlong request without ever truncating it into a valid username", () => {
+		const identity = resolveViewerIdentity({ requestedUsername: "a".repeat(5000) });
+
+		expect(identity.username.length).toBe(MAX_USERNAME_LENGTH + 1);
+		expect(isUsername(parseUsername(identity.username))).toBe(false);
 	});
 
 	it("trims what it is given", () => {

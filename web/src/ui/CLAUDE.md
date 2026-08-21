@@ -91,6 +91,7 @@ The status → human sentence map, in lowercase, prefixed with `↳` by `formatH
 | --- | --- |
 | 400 | `invalid username` |
 | 404 | `user not found — check the username and try again` |
+| 429 | `github is rate-limiting us, try again in a moment` |
 | 502 | `could not reach github, try again in a moment` |
 | anything else | `something went wrong` |
 
@@ -124,6 +125,11 @@ them together, because the CSS and the screen reader must not disagree.
 - **`updateYearRange` reads `days[7]`, and that index is not arbitrary.** The grid starts on the Sunday on or before
   January 1st, so it is at most six days early and the eighth cell is always inside the requested year. It bails out
   below eight days rather than guessing.
+- **The username cookie is written on success, not on submit.** `renderFromGitHub` used to call
+  `writeUsernameCookie` before the request went out, so a format-valid typo — `torvalsd` — was persisted whatever
+  came back. The SSR page reads that cookie on every visit, `resolveViewerIdentity` accepts it (it only checks the
+  GitHub *format*), and the visitor got a blank grid plus "user not found" on every load for the cookie's full
+  week. It is written next to `usernameDisplay.textContent`, on the branch where the answer is known.
 - **The username cookie has two writers.** `cookie.ts` prefers the Cookie Store API and falls back to
   `document.cookie` where it is missing — Safari and Firefox, where the whole feature was silently dead before,
   since the SSR page reads that cookie on every request. Biome's `noDocumentCookie` is turned off for that one file

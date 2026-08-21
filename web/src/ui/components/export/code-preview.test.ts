@@ -2,18 +2,18 @@
 
 import { GRID_CELL_COUNT } from "@domain/services/dates";
 import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
-import { EmbedParam } from "@domain/value-objects/embed";
+import { buildEmbedUrl, EmbedParam } from "@domain/value-objects/embed";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
-import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES, userSvgUrl } from "./code-preview";
+import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES } from "./code-preview";
 
 type Lines = ReturnType<typeof buildMarkdownLines>;
 
 const toText = (lines: Lines): string => lines.map((line) => line.map(([, text]) => text).join("")).join("\n");
 
-describe("userSvgUrl", () => {
+describe("the embed url the snippets carry", () => {
 	it("builds the public svg url for a username", () => {
-		expect(userSvgUrl("torvalds")).toBe("https://contribkit.app/user/torvalds.svg");
+		expect(buildEmbedUrl({ username: "torvalds" })).toBe("https://contribkit.app/user/torvalds.svg");
 	});
 });
 
@@ -48,7 +48,7 @@ describe("SVG_LINES", () => {
 describe("buildMarkdownLines", () => {
 	it("embeds the username, palette and shape", () => {
 		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: "hex" }));
-		expect(text).toContain(userSvgUrl("torvalds"));
+		expect(text).toContain(buildEmbedUrl({ username: "torvalds" }));
 		expect(text).toContain("catppuccin");
 		expect(text).toContain("hex");
 	});

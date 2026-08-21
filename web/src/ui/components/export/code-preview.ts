@@ -16,8 +16,6 @@ const SAMPLE_FILLS = [low, high, veryHigh];
 const REMAINING_RECTS = GRID_CELL_COUNT - SAMPLE_FILLS.length;
 const IMAGE_ALT = "contributions";
 
-export const userSvgUrl = (username: string): string => buildEmbedUrl({ username });
-
 export interface MarkdownSnippetParams {
 	username: string;
 	palette?: string;

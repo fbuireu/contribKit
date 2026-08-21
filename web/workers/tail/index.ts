@@ -45,7 +45,7 @@ export default {
 
 		if (entries.length === 0) return;
 
-		await fetch(env.BETTER_STACK_INGESTING_URL, {
+		const response = await fetch(env.BETTER_STACK_INGESTING_URL, {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${env.BETTER_STACK_SOURCE_TOKEN}`,
@@ -53,5 +53,9 @@ export default {
 			},
 			body: JSON.stringify(entries),
 		});
+
+		if (!response.ok) {
+			throw new Error(`Better Stack rejected ${entries.length} entries with ${response.status}`);
+		}
 	},
 };

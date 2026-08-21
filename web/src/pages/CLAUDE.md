@@ -6,14 +6,19 @@ It is also the only entry point for HTTP traffic.
 
 ## Invariants & rules
 
-- **`export const prerender = false` on every dynamic route.** The site is server-rendered because the SVG endpoint
-  cannot be built ahead of time ([ADR 0007](../../../docs/adr/0007-server-rendered-web-app-on-the-edge.md)).
+- **`export const prerender = false` on every endpoint route.** The three `.ts` routes carry it; the `.astro`
+  pages do not, because `output: "server"` already makes SSR the default and there is nothing to opt out of. The
+  site is server-rendered because the SVG endpoint cannot be built ahead of time
+  ([ADR 0007](../../../docs/adr/0007-server-rendered-web-app-on-the-edge.md)).
 - **Validate every external input before it reaches the domain.** Query strings go through Zod, in the two API
   routes and nowhere else; the `:username` route param and the `ck_user` cookie go through `parseUsername`, which
   is the domain's own validator and returns a `Failure` rather than throwing. Zod is for the *shape* of a query
   string, not a substitute for a value object.
 - **Map `Failure` to HTTP only through `@application/http/failure-http`** (`statusFor`, `messageFor`), guarded by
-  `isFailure` from `@domain/failures/failure`. Never inline a status or a message.
+  `isFailure` from `@domain/failures/failure`. Never inline a status or a message — **with one exemption, and it is
+  the only one**: a request that fails the Zod shape check has produced no `Failure` to map, so
+  `/api/contributions` answers a missing `user` with a hand-written 400. Anything that reached a value object maps
+  through `failure-http`.
 - **Compose at module scope, not per request** — and in an `.astro` file there is no module scope, because the
   frontmatter runs on every request. That is why the repository and the curried use cases live in
   `_contributions.ts` and are imported. The leading underscore keeps Astro from routing it. The landing page built
@@ -29,7 +34,7 @@ It is also the only entry point for HTTP traffic.
 | `user/[username].svg.ts` | `GET /user/:username.svg` | The embed endpoint |
 | `api/contributions.ts` | `GET /api/contributions?user=&year=` | JSON |
 | `api/health.ts` | `GET /api/health` | Configuration presence check |
-| `404.astro`, `500.astro` | — | Both render the shared `ErrorView` |
+| `404.astro`, `500.astro` | `/404`, `/500` | Both render the shared `ErrorView` — **and both are reachable by hand** |
 | `legal-notice.astro`, `privacy.astro`, `terms.astro` | — | Static legal pages |
 | `_contributions.ts` | — | Not a route: the shared composition all three data consumers import |
 | `_tests/` | — | Not routes: the three route tests, kept out of the namespace by the underscore |
@@ -98,9 +103,12 @@ Runs on every request and does three things.
    locally" proves nothing. A rejection is a 429 with `Retry-After: 60`. The binding is read with
    `import { env } from "cloudflare:workers"`, the only supported route since `locals.runtime.env` became a getter
    that throws.
-3. **Security headers on every response**, including that 429. They are applied by copying the response
+3. **Security headers on every SSR response**, including that 429. They are applied by copying the response
    (`new Response(response.body, response)`) and setting headers on the copy, because the `Response` returned by
-   `next()` has immutable headers.
+   `next()` has immutable headers. **They do not reach static assets.** `wrangler.toml` declares `[assets]` without
+   `run_worker_first`, so Workers Assets answers `/og.png`, `/favicon.ico` and everything under `/_astro/` before
+   this middleware runs — no CSP, no `nosniff`, on any of them. `middleware.test.ts` cannot see that: it calls
+   `onRequest` directly, so it tests the function rather than the request path.
 
 The CSP allows `'unsafe-inline'` for scripts and styles and names Google Tag Manager, Better Stack and Google Fonts
 explicitly. Adding a third-party origin means editing that list; there is no wildcard to fall back on. One header is
@@ -120,9 +128,13 @@ nothing else, so the calendar embeds outside GitHub
   a GitHub outage on `/` produced no log line.
 - **`loggerFor(Astro.locals)` is how a route gets a logger.** It is the only place that knows the execution context
   hides behind a cast on `locals`; four files performed that cast by hand before it existed.
-- **`500.astro` logs as a side effect of rendering.** `logServerError` runs in the frontmatter, so anything that
-  renders the 500 page twice reports twice. It reads the throwable from `Astro.props.error`, which Astro populates
-  only when it invokes the page as an error handler — visiting `/500` by hand logs `undefined`.
+- **`500.astro` logs as a side effect of rendering, and `/500` is a public URL.** `logServerError` runs in the
+  frontmatter, so anything that renders the 500 page twice reports twice. It reads the throwable from
+  `Astro.props.error`, which Astro populates only when it invokes the page as an error handler — so a hand-typed
+  `GET /500` used to write a fabricated incident with `reason: "unknown"`, on a route the middleware does not
+  rate-limit (that is `/api/*` only), and the e2e suite wrote six of them per run. **The helper now returns early
+  when `error` is `undefined`**, the same way it owns the server-error threshold; the page still calls it
+  unconditionally.
 - **The terminal block on the error pages is decoration, and must not read as data.** It once printed a fixed
   `trace: 8f3c1a`, an identifier that corresponded to nothing and that a user could reasonably have quoted in a bug
   report. Keep those lines free of anything that looks like a real identifier.
@@ -137,8 +149,17 @@ nothing else, so the calendar embeds outside GitHub
   someone who asked — that would be inventing data for them.
   The frontmatter spelled all of this out, along with the cache decision, and **nothing could test it**: vitest does
   not load `.astro`. It now passes what it read to those two functions and renders what they return.
-- **A saved username is validated and the validated value is what gets used.** The cookie went through
-  `parseUsername` and then the *raw* string was used anyway, so the parse was decoration.
+- **A saved username is validated and discarded if it fails; a requested one is passed straight through.** That
+  asymmetry is the rule, not an oversight. The cookie is storage this page wrote, so a value that no longer parses
+  is stale state and is ignored — it went through `parseUsername` and then the *raw* string was used anyway, so the
+  parse was decoration. A `?user=` is **a person asking**, and `resolveViewerIdentity` used to validate it the same
+  way: an unparseable handle fell through to the cookie, then to `DEFAULT_USERNAME`, with `isExplicit: false` — so
+  `/?user=not a handle` rendered **torvalds' real Contribution Calendar** with no error at all, and `page-init`
+  then rewrote the URL to `?user=torvalds` and erased the evidence. `/api/contributions` answered the same input
+  with 400, and so did the client-side render path; only SSR invented an answer. It now hands the raw value to
+  `loadInitialContributions`, whose `parseUsername` returns `InvalidInput` → 400 → the empty grid and "invalid
+  username" the other two surfaces already gave. It is bounded to `MAX_USERNAME_LENGTH + 1` characters first,
+  because that string is rendered into the page and a slice that short can never become valid.
 - **The scraped total wins over the computed sum**, and that rule lives in `statsWithScrapedTotal` in the domain,
   because it is a claim about what a Total Contributions is rather than a page concern. The check is `!= null`, not
   truthiness: a scraped total of `0` is a fact and has to beat a sum, and it used to lose. The page and

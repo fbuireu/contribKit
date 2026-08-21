@@ -24,7 +24,7 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 - **Never throw.** Errors are the `Failure` discriminated union, returned as values. Adding a kind is a compile
   error at every exhaustive site, which is the point
   ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). `isFailure` is structural —
-  an object whose `kind` is one of the four — so it does not depend on the constructors having been used.
+  an object whose `kind` is one of the five — so it does not depend on the constructors having been used.
 - **Repositories are interfaces only.** `ContributionsRepository` lives here; every implementation lives in
   `infrastructure/`.
 - **Never invent a Count.** An unknown Count is `null`, and `null` is not `0`. The one place that has to reconcile
@@ -95,11 +95,17 @@ test helper reintroduces the same bug in the test rather than the code.
 - **`computeContributionStats().totalContributions` is `number | null`, and `null` means "not knowable".** It adds
   only known Counts, and the moment a day at level 1 or above has `count: null` it discards the sum entirely and
   returns `null` — a total that skipped unknown days would be a lower bound presented as a measurement. A level-0
-  day with an unknown Count does **not** void it, because GitHub's level 0 is zero. **`statsWithScrapedTotal` is where that gets reconciled**: it computes the
-  stats and then lets a scraped `ContributionCalendar.total` beat the sum, because GitHub's own figure is a
-  measurement and ours is at best a lower bound. Both call sites — the server render in `pages/index.astro` and the
-  client refresh in `ui/utils/page-init.ts` — go through it rather than mutating the returned object themselves,
-  which is what they each used to do. `ui/` renders the `null` as the word `unknown` rather than a figure. It summed `count ?? 0` and printed the result as exact until that changed; do not put the
+  day with an unknown Count does **not** void it, because GitHub's level 0 is zero. **`statsWithScrapedTotal` is
+  where that gets reconciled**: it computes the stats and then lets `ContributionCalendar.total` beat the sum.
+  **Not because it is GitHub's own headline figure — nothing in this project reads that.** The scraper computes it
+  itself, in `totalFor`, under the same refuse-to-guess rule. It wins because it is computed over exactly the
+  `<td>`s GitHub returned, while the sum here runs over whatever grid the caller built — padded to 371 days, and
+  for the Embed a rolling window rather than a Year. The parameter is named `scrapedTotal` for where it comes
+  from, not for what it measures; the guide claimed it was a measurement beating an estimate, and that was never
+  true of either side. It returns a **new** `ContributionStats` rather than assigning to
+  the one it was handed; the fields are `readonly`, and this was the only mutation of a value in the layer. Both
+  call sites — the server render in `pages/index.astro` and the client refresh in `ui/utils/page-init.ts` — go
+  through it rather than reassigning the field themselves, which is what they each used to do. `ui/` renders the `null` as the word `unknown` rather than a figure. It summed `count ?? 0` and printed the result as exact until that changed; do not put the
   `??` back.
 - **`clampLevel` lives in `value-objects/contribution-level.ts`, not in `services/`.** It is a value-object
   constructor that happens to be total.

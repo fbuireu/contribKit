@@ -1,12 +1,12 @@
 import type { ContributionDay } from "@domain/entities/types";
 import { type Failure, isFailure } from "@domain/failures/failure";
+import type { ContributionsRepository } from "@domain/repositories/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { DEFAULT_USERNAME, parseUsername } from "@domain/value-objects/username";
 import { currentYear, isYear, parseYear } from "@domain/value-objects/year";
 import { messageFor, statusFor } from "../http/failure-http";
-import type { fetchContributions } from "./fetch-contributions";
 
-type LoadContributions = ReturnType<typeof fetchContributions>;
+type LoadContributions = ContributionsRepository["fetch"];
 
 export interface LoadInitialContributionsParams {
 	username?: string;

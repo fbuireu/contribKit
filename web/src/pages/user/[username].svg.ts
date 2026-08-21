@@ -1,5 +1,5 @@
 import { messageFor, statusFor } from "@application/http/failure-http";
-import { ContributionsEndpoint, logContributionsFailure } from "@application/http/log-contributions-failure";
+import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
 import { isFailure } from "@domain/failures/failure";
 import { buildRollingGrid } from "@domain/services/calendar-grid";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";

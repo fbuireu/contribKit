@@ -2,9 +2,9 @@ import type { ContributionDay } from "../entities/types";
 import { toIsoDate } from "./dates";
 
 export interface ContributionStats {
-	totalContributions: number | null;
-	currentStreak: number;
-	longestStreak: number;
+	readonly totalContributions: number | null;
+	readonly currentStreak: number;
+	readonly longestStreak: number;
 }
 
 export function computeContributionStats(days: readonly ContributionDay[]): ContributionStats {
@@ -44,6 +44,5 @@ export interface StatsWithScrapedTotalParams {
 
 export const statsWithScrapedTotal = ({ days, scrapedTotal }: StatsWithScrapedTotalParams): ContributionStats => {
 	const stats = computeContributionStats(days);
-	if (scrapedTotal != null) stats.totalContributions = scrapedTotal;
-	return stats;
+	return scrapedTotal == null ? stats : { ...stats, totalContributions: scrapedTotal };
 };

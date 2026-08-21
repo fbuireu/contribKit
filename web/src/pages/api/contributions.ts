@@ -1,5 +1,5 @@
 import { messageFor, statusFor } from "@application/http/failure-http";
-import { ContributionsEndpoint, logContributionsFailure } from "@application/http/log-contributions-failure";
+import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
 import { isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";

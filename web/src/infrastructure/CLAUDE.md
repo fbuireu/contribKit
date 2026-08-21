@@ -46,10 +46,21 @@ derives a level from a count — the app does, and only when the attribute is mi
 
 | Situation | Result |
 | --- | --- |
-| `fetch` throws | `network({ message })`, no status |
+| `fetch` throws, including the 20 s timeout | `network({ message })`, no status |
 | status 404 | `notFound(username)` |
+| status 429 | `rateLimited({ message, retryAfterSeconds })` |
 | any other non-OK status | `network({ message: "GitHub returned <status>", status })` |
 | zero days parsed | `parse("Could not parse contributions")` |
+
+**A 429 is not an outage, and saying so was a lie the reader could act on.** Every non-404 status used to become
+`network`, which `failure-http` maps to 502 and `contribution-errors` renders as "could not reach github" — so
+GitHub saying *slow down* was reported as GitHub being unreachable. `rateLimited` carries `retryAfterSeconds`,
+parsed from `Retry-After` in either form the RFC allows (a count of seconds, or an HTTP date), and maps to 429.
+The app has had `RateLimitedFailure` since ADR 0004; this is the same distinction, in TypeScript.
+
+**The outbound fetch carries `AbortSignal.timeout(20_000)`.** It had none, so a hung GitHub held the invocation open
+until the platform killed it and the visitor got a generic edge error rather than a `Failure`. Twenty seconds is the
+same budget the app pins, deliberately.
 
 **Zero days is a parse failure, never an empty calendar.** An empty calendar renders as a plausible-looking year of
 no activity, which is a lie the reader cannot detect
@@ -100,14 +111,13 @@ tells you to `import { env } from "cloudflare:workers"` — which is exactly wha
 limiter binding. Both API routes, the landing page and the 500 page go through `loggerFor`; keep doing that rather than casting
 `locals` again.
 
-**This folder holds the client and nothing else.** The two helpers that turn something that went wrong into a log
-line — `log-contributions-failure.ts` and `log-server-error.ts` — live in
-[`application/http/`](../application/CLAUDE.md), because they take a logger as a parameter rather than reaching for
-one, and the port they take is declared there. `log-server-error.ts` sat here for a long time while its twin sat in
-`application/`, and the two declared **character-for-character identical** one-method interfaces (`ServerErrorLogger`
-and `FailureLogger`) in different layers. There is one port now, `application/http/failure-logger.ts`, and
-`Logger` here satisfies it structurally — this layer still declares no dependency on that one, which is the whole
-reason the port is not declared here.
+**This folder holds the client and nothing else.** Turning something that went wrong into a log line is
+`failure-log.ts` in [`application/http/`](../application/CLAUDE.md) — it takes a logger as a parameter rather than
+reaching for one, and it declares the port it takes. That port and the two helpers were three files in two layers
+before, two of them declaring **character-for-character identical** one-method interfaces (`ServerErrorLogger` here
+and `FailureLogger` there) so that two helpers doing the same job could each be tested with a fake. `Logger` here
+satisfies the one remaining port structurally — this layer still declares no dependency on that one, which is the
+whole reason the port is not declared here.
 
 ## Gotchas
 

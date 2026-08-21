@@ -1,5 +1,6 @@
 import type { ContributionDay } from "../entities/types";
 import { MONTH_LABELS, WEEKDAY_LABELS } from "../value-objects/calendar-labels";
+import { CellShape } from "../value-objects/cell-shape";
 import { type ContributionLevel, clampLevel } from "../value-objects/contribution-level";
 import { chunkWeeks, DAYS_PER_WEEK, WEEKS_PER_YEAR } from "./dates";
 
@@ -35,6 +36,22 @@ export const dotRadius = ({ level, size }: DotRadiusParams): number =>
 	(level === 0 ? DOT_BASE_RADIUS : DOT_BASE_RADIUS + level) * (size / DOT_REFERENCE_CELL_SIZE);
 
 export const cornerRadiusFor = (size: number): number => size * CORNER_RADIUS_RATIO;
+
+interface RadiusForParams {
+	shape: CellShape;
+	size: number;
+}
+
+const radiusFor = ({ shape, size }: RadiusForParams): number => {
+	switch (shape) {
+		case CellShape.Rounded:
+			return cornerRadiusFor(size);
+		case CellShape.Square:
+			return 0;
+		default:
+			return size / 2;
+	}
+};
 
 export interface HexPointsParams {
 	cx: number;
@@ -91,7 +108,7 @@ export interface CalendarLayout {
 
 export interface CalendarLayoutParams {
 	days: readonly ContributionDay[];
-	shape: string;
+	shape: CellShape;
 	size?: number;
 	gap?: number;
 	showLabels?: boolean;
@@ -142,7 +159,7 @@ export const calendarLayout = ({
 		width: WEEKS_PER_YEAR * cellWidth + labelWidth + SVG_PAD_X * 2,
 		height: DAYS_PER_WEEK * cellWidth + labelHeight + SVG_PAD_Y * 2,
 		size,
-		radius: shape === "rounded" ? cornerRadiusFor(size) : shape === "square" ? 0 : size / 2,
+		radius: radiusFor({ shape, size }),
 		origin: { x: SVG_PAD_X + labelWidth, y: SVG_PAD_Y + labelHeight },
 		monthLabels,
 		weekdayLabels,

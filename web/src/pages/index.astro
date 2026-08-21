@@ -1,5 +1,5 @@
 ---
-import { ContributionsEndpoint, logContributionsFailure } from "@application/http/log-contributions-failure";
+import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
 import { DaySource, daySourceFor, resolveViewerIdentity } from "@application/use-cases/resolve-initial-view";
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";

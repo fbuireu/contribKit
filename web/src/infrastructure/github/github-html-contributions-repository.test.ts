@@ -1,3 +1,4 @@
+import { FailureKind } from "@domain/failures/failure";
 import type { Username } from "@domain/value-objects/username";
 import type { Year } from "@domain/value-objects/year";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -48,6 +49,50 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
 
 		expect(result).toEqual({ kind: "Network", status: 503, message: "GitHub returned 503" });
+	});
+
+	it("tells a 429 apart from an outage, so the reader is not told GitHub is unreachable", async () => {
+		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": "120" } }));
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toEqual({
+			kind: FailureKind.RateLimited,
+			message: "GitHub is rate-limiting this Worker",
+			retryAfterSeconds: 120,
+		});
+	});
+
+	it("reads the other Retry-After form, an HTTP date", async () => {
+		const at = new Date(Date.now() + 60_000).toUTCString();
+		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": at } }));
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.RateLimited });
+		if (!("retryAfterSeconds" in result)) return;
+		expect(result.retryAfterSeconds).toBeGreaterThan(50);
+		expect(result.retryAfterSeconds).toBeLessThanOrEqual(60);
+	});
+
+	it("survives a 429 with no Retry-After at all", async () => {
+		stubFetch(async () => new Response("", { status: 429 }));
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.RateLimited, retryAfterSeconds: null });
+	});
+
+	it("gives up on a hung GitHub rather than holding the invocation open", async () => {
+		let passedSignal: AbortSignal | undefined;
+		stubFetch(async (_url, init) => {
+			passedSignal = (init as RequestInit | undefined)?.signal ?? undefined;
+			return new Response(HTML, { status: 200 });
+		});
+
+		await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(passedSignal).toBeInstanceOf(AbortSignal);
 	});
 
 	it("returns Network when fetch throws", async () => {
