@@ -203,7 +203,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 - **App.** Flutter 3.47.0 / Dart 3.13.0, pinned in `app/pubspec.yaml`. A mismatched local Flutter blocks `pub get`
   and codegen. Do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
   `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is
-  passed, and `--flavor` fails. The Android `release` build type runs **R8**: `isMinifyEnabled` and
+  passed, and `--flavor` fails ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)). The Android `release` build type runs **R8**: `isMinifyEnabled` and
   `isShrinkResources`, on `proguard-android-optimize.txt` alone, because the engine and every plugin here ship
   their own consumer rules and the app carries no `proguard-rules.pro`. R8 only touches the Java/Kotlin side; the
   Dart code is AOT-compiled and untouched. Anything the app reaches by reflection or by name from outside Dart
@@ -277,6 +277,7 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0019](./docs/adr/0019-an-unknown-count-is-null-in-both-clients.md) | An unknown Count is null in both clients |
 | [0020](./docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) | The Cell geometry is the app's, in three languages |
 | [0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md) | The source carries no comments and the documents carry the reasons |
+| [0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md) | The app has no build flavors and the stage is a dart-defines file |
 
 Every one of them follows [0000, the template](./docs/adr/0000-adr-template.md): `# N. Title`, a date, a status,
 then *Context*, *Decision*, *Consequences*. A new ADR starts by copying that file, not by writing one from scratch,

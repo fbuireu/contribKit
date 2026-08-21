@@ -96,7 +96,9 @@ dart run build_runner build   # after touching any @freezed, @riverpod or DTO cl
 ```
 
 There are **no build flavors**. The stage comes from which dart-defines file you pass
-(`dart-defines.json` or `dart-defines.prod.json`); `--flavor` will fail.
+(`dart-defines.json` or `dart-defines.prod.json`); `--flavor` will fail
+([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)). Forgetting the
+flag is not an error either: `REVENUECAT_KEY` comes back empty and the Tip Jar renders as unavailable.
 
 ### Working on the shared tokens
 
