@@ -155,6 +155,13 @@ void main() {
       );
     });
 
+    test('every Cell Shape has a label, and no two share one', () {
+      final labels = CellShape.values.map((shape) => shape.label).toList();
+
+      expect(labels.every((label) => label.isNotEmpty), isTrue);
+      expect(labels.toSet(), hasLength(CellShape.values.length));
+    });
+
     test('a rounded corner is the ratio, and the hex is cell-local', () {
       final rounded = CellGeometryService.figureFor(
         shape: CellShape.rounded,

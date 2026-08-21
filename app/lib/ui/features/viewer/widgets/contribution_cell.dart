@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show listEquals;
+
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_figure.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -150,5 +152,5 @@ class _PolygonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PolygonPainter old) =>
-      old.color != color || old.vertices != vertices;
+      old.color != color || !listEquals(old.vertices, vertices);
 }

@@ -89,8 +89,8 @@ final class SvgExportRepository implements ExportRepository {
             final pts = vertices
                 .map(
                   (v) =>
-                      '${(v.x + x).toStringAsFixed(1)},'
-                      '${(v.y + y).toStringAsFixed(1)}',
+                      '${(v.x + x).toStringAsFixed(2)},'
+                      '${(v.y + y).toStringAsFixed(2)}',
                 )
                 .join(' ');
             buffer.writeln(

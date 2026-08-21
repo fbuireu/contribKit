@@ -200,7 +200,9 @@ The decision, including why the published Embed's corner moved and why Kotlin ca
 **`figureFor` is the one place a Cell Shape becomes a primitive.** It answers a `CellFigure`: `SquareFigure`,
 `RoundedFigure(radius)`, `CircleFigure(radius)` or `PolygonFigure(vertices)`, in the cell's own coordinates, with
 the centre at `cellSize / 2`. The three Dart renderers match on those four cases instead of on the five Cell
-Shapes, so **a sixth Cell Shape is an edit here and nowhere else** unless it needs a primitive none of them draws.
+Shapes, so **a sixth Cell Shape needs no renderer change at all** unless it needs a primitive none of them draws.
+It still needs a `label` arm on the enum, which is a compile error until you write it, and a `when` arm in Kotlin,
+which is not.
 
 It collapses two arms into one: a Circle and a Dot are both a circle at the cell's centre, differing only in
 radius, and each renderer used to know that. Each also re-derived its own radius inline, which is how the
@@ -212,7 +214,8 @@ none of those belongs in `domain/`. Kotlin still spells its own mapping, for the
 [ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) gives.
 
 The maths a Cell Shape is drawn with lives here, not in whichever renderer needs it: `cornerRadiusFor`,
-`dotRadiusFor` and `hexVerticesFor`. The on-screen Cell, the SVG Export and the PNG Export all call all three.
+`dotRadiusFor` and `hexVerticesFor`. **No renderer calls them any more**: all three go through `figureFor`, which
+is the only caller left outside the tests.
 
 **It exists because the four copies had drifted.** The dot radius and the hex vertices agreed everywhere, but the
 rounded corner did not: the exports and the Android widget scaled it with the Cell Size (`cell * 0.2`) while the
