@@ -1,12 +1,12 @@
 import 'dart:ui' as ui;
 
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
+import 'package:contribkit/domain/value_objects/cell_figure.dart';
 import 'package:contribkit/domain/services/export_geometry_service.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
-import 'package:contribkit/domain/value_objects/cell_shape.dart';
 
 final class PngExportRepository implements ExportRepository {
   @override
@@ -42,30 +42,24 @@ final class PngExportRepository implements ExportRepository {
 
           final rect = ui.Rect.fromLTWH(x, y, cell, cell);
 
-          switch (options.shape) {
-            case CellShape.square:
+          final figure = CellGeometryService.figureFor(
+            shape: options.shape,
+            levelIndex: day.level.index,
+            cellSize: cell,
+          );
+
+          switch (figure) {
+            case SquareFigure():
               canvas.drawRect(rect, paint);
-            case CellShape.rounded:
+            case RoundedFigure(:final radius):
               canvas.drawRRect(
-                ui.RRect.fromRectXY(
-                  rect,
-                  CellGeometryService.cornerRadiusFor(cell),
-                  CellGeometryService.cornerRadiusFor(cell),
-                ),
+                ui.RRect.fromRectXY(rect, radius, radius),
                 paint,
               );
-            case CellShape.circle:
-              canvas.drawCircle(rect.center, cell / 2, paint);
-            case CellShape.dot:
-              final li = day.level.index;
-              final r = CellGeometryService.dotRadiusFor(
-                levelIndex: li,
-                cellSize: cell,
-              );
-              canvas.drawCircle(rect.center, r, paint);
-            case CellShape.hex:
-              final path = _hexPath(x + cell / 2, y + cell / 2, cell / 2);
-              canvas.drawPath(path, paint);
+            case CircleFigure(:final radius):
+              canvas.drawCircle(rect.center, radius, paint);
+            case PolygonFigure(:final vertices):
+              canvas.drawPath(_pathThrough(vertices, dx: x, dy: y), paint);
           }
         }
       }
@@ -97,18 +91,19 @@ final class PngExportRepository implements ExportRepository {
   }
 }
 
-ui.Path _hexPath(double cx, double cy, double r) {
+ui.Path _pathThrough(
+  List<HexVertex> vertices, {
+  required double dx,
+  required double dy,
+}) {
   final path = ui.Path();
-  final vertices = CellGeometryService.hexVerticesFor(
-    centerX: cx,
-    centerY: cy,
-    radius: r,
-  );
   for (var i = 0; i < vertices.length; i++) {
+    final x = vertices[i].x + dx;
+    final y = vertices[i].y + dy;
     if (i == 0) {
-      path.moveTo(vertices[i].x, vertices[i].y);
+      path.moveTo(x, y);
     } else {
-      path.lineTo(vertices[i].x, vertices[i].y);
+      path.lineTo(x, y);
     }
   }
   return path..close();

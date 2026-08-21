@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:contribkit/domain/value_objects/cell_figure.dart';
+import 'package:contribkit/domain/value_objects/cell_shape.dart';
+
 typedef HexVertex = ({double x, double y});
 
 abstract final class CellGeometryService {
@@ -10,6 +13,26 @@ abstract final class CellGeometryService {
   static const dotReferenceCellSize = 10.0;
 
   static const hexVertexCount = 6;
+
+  static CellFigure figureFor({
+    required CellShape shape,
+    required int levelIndex,
+    required double cellSize,
+  }) => switch (shape) {
+    CellShape.square => const SquareFigure(),
+    CellShape.rounded => RoundedFigure(radius: cornerRadiusFor(cellSize)),
+    CellShape.circle => CircleFigure(radius: cellSize / 2),
+    CellShape.dot => CircleFigure(
+      radius: dotRadiusFor(levelIndex: levelIndex, cellSize: cellSize),
+    ),
+    CellShape.hex => PolygonFigure(
+      vertices: hexVerticesFor(
+        centerX: cellSize / 2,
+        centerY: cellSize / 2,
+        radius: cellSize / 2,
+      ),
+    ),
+  };
 
   static double cornerRadiusFor(double cellSize) =>
       cellSize * cornerRadiusRatio;

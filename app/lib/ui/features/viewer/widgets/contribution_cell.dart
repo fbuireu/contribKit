@@ -1,4 +1,5 @@
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
+import 'package:contribkit/domain/value_objects/cell_figure.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:contribkit/ui/widgets/app_tooltip.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
@@ -77,54 +78,40 @@ class _CellShape extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
-      child: switch (shape) {
-        CellShape.square => DecoratedBox(
-          decoration: BoxDecoration(color: color),
-        ),
-        CellShape.rounded => DecoratedBox(
+      child: switch (CellGeometryService.figureFor(
+        shape: shape,
+        levelIndex: levelIndex,
+        cellSize: size,
+      )) {
+        SquareFigure() => DecoratedBox(decoration: BoxDecoration(color: color)),
+        RoundedFigure(:final radius) => DecoratedBox(
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(
-              CellGeometryService.cornerRadiusFor(size),
-            ),
+            borderRadius: BorderRadius.circular(radius),
           ),
         ),
-        CellShape.circle => DecoratedBox(
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        CircleFigure(:final radius) => CustomPaint(
+          painter: _CirclePainter(color: color, radius: radius),
         ),
-        CellShape.dot => CustomPaint(
-          painter: _DotPainter(
-            color: color,
-            levelIndex: levelIndex,
-            cellSize: size,
-          ),
+        PolygonFigure(:final vertices) => CustomPaint(
+          painter: _PolygonPainter(color: color, vertices: vertices),
         ),
-        CellShape.hex => CustomPaint(painter: _HexPainter(color: color)),
       },
     );
   }
 }
 
-class _DotPainter extends CustomPainter {
-  const _DotPainter({
-    required this.color,
-    required this.levelIndex,
-    required this.cellSize,
-  });
+class _CirclePainter extends CustomPainter {
+  const _CirclePainter({required this.color, required this.radius});
 
   final Color color;
-  final int levelIndex;
-  final double cellSize;
+  final double radius;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final r = CellGeometryService.dotRadiusFor(
-      levelIndex: levelIndex,
-      cellSize: cellSize,
-    );
     canvas.drawCircle(
       Offset(size.width / 2, size.height / 2),
-      r,
+      radius,
       Paint()
         ..color = color
         ..isAntiAlias = true,
@@ -132,28 +119,19 @@ class _DotPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DotPainter old) =>
-      old.color != color ||
-      old.levelIndex != levelIndex ||
-      old.cellSize != cellSize;
+  bool shouldRepaint(_CirclePainter old) =>
+      old.color != color || old.radius != radius;
 }
 
-class _HexPainter extends CustomPainter {
-  const _HexPainter({required this.color});
+class _PolygonPainter extends CustomPainter {
+  const _PolygonPainter({required this.color, required this.vertices});
 
   final Color color;
+  final List<HexVertex> vertices;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = size.width / 2;
     final path = Path();
-    final vertices = CellGeometryService.hexVerticesFor(
-      centerX: cx,
-      centerY: cy,
-      radius: r,
-    );
     for (var i = 0; i < vertices.length; i++) {
       if (i == 0) {
         path.moveTo(vertices[i].x, vertices[i].y);
@@ -171,5 +149,6 @@ class _HexPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_HexPainter old) => old.color != color;
+  bool shouldRepaint(_PolygonPainter old) =>
+      old.color != color || old.vertices != vertices;
 }
