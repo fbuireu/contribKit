@@ -50,7 +50,7 @@ The repository never throws. Network and HTTP outcomes are converted to a domain
 |-----------|--------|
 | `fetch` throws, including the 20-second `AbortSignal.timeout` | `network({ message })`, with no status |
 | `404` | `notFound(username)` |
-| `429` | `rateLimited({ message, retryAfterSeconds })` — the wait GitHub named, in either RFC form, or `null` |
+| `429` | `rateLimited({ message, retryAfterSeconds })`: the wait GitHub named, in either RFC form, or `null` |
 | any other non-OK status | `network({ message: "GitHub returned <status>", status })` |
 | OK but no Contribution Days parsed | `parse("Could not parse contributions")` |
 | OK with Contribution Days | `ContributionCalendar` |

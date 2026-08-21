@@ -4,7 +4,7 @@
 
 # ContribKit
 
-**Visualize, customize, and export your GitHub contribution calendar — custom palettes, shapes, and backgrounds. No token required. Available on the web and as an iOS & Android app, with home-screen widgets on Android.**
+**Visualize, customize, and export your GitHub contribution calendar: custom palettes, shapes, and backgrounds. No token required. Available on the web and as an iOS & Android app, with home-screen widgets on Android.**
 
 [![CI Web](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-web.yml?style=flat-square&logo=github&label=CI%20Web)](https://github.com/fbuireu/contribkit/actions/workflows/ci-web.yml)
 [![CI App](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-app.yml?style=flat-square&logo=github&label=CI%20App)](https://github.com/fbuireu/contribkit/actions/workflows/ci-app.yml)
@@ -34,7 +34,7 @@
 
 Type a GitHub username and get a fully customizable contribution calendar you can pin, embed, or carry on your home screen:
 
-- **Live SVG endpoint** — this image is rendered by ContribKit right now:
+- **Live SVG endpoint**: this image is rendered by ContribKit right now:
 
   <img src="https://contribkit.app/user/torvalds.svg" alt="torvalds' GitHub contributions rendered by ContribKit" width="800">
 
@@ -49,8 +49,8 @@ Type a GitHub username and get a fully customizable contribution calendar you ca
 - 🎨 **11 color palettes:** GitHub, Catppuccin, Nord, Dracula, Gruvbox, Sunset, Tokyo Night, One Dark, Rosé Pine, Solarized, Monokai
 - 🔷 **5 cell shapes:** rounded, square, circle, dot, hex
 - 📤 **3 export formats:** PNG for the readme, SVG for the portfolio, Markdown for the bio
-- 🔓 **No token required:** only public contribution data — no OAuth, no PAT
-- 📱 **Home-screen widgets:** small (streak counter) and medium (grid, streak and total) — Android only, refreshed daily
+- 🔓 **No token required:** only public contribution data; no OAuth, no PAT
+- 📱 **Home-screen widgets:** small (streak counter) and medium (grid, streak and total); Android only, refreshed daily
 - 🗓️ **Year selector:** any year back to 2005
 - 🌗 **Dark/light theme:** follows your system scheme, with manual override
 - 🧩 **Shared design tokens:** palettes defined once in [`shared/`](shared) and read by both apps; shapes are shared with the web only (see [ADR 0002](docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
@@ -102,10 +102,10 @@ Both apps also share one vocabulary: **[CONTEXT.md](CONTEXT.md)** is the domain 
 Tooling that applies to the whole repo:
 
 - **Package manager:** pnpm workspaces ([`pnpm-workspace.yaml`](pnpm-workspace.yaml))
-- **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)) — install once with `brew install lefthook && lefthook install`
+- **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)). Install once with `brew install lefthook && lefthook install`
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows — [`ci-app.yml`](.github/workflows/ci-app.yml) runs on `app/**`; [`ci-web.yml`](.github/workflows/ci-web.yml) runs on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md` and the three root config files. The documentation-consistency contract lives in the web test suite but asserts things about both clients, so each workflow runs it
+- **CI:** path-filtered workflows. [`ci-app.yml`](.github/workflows/ci-app.yml) runs on `app/**`; [`ci-web.yml`](.github/workflows/ci-web.yml) runs on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md` and the three root config files. The documentation-consistency contract lives in the web test suite but asserts things about both clients, so each workflow runs it
 
 GitHub Environments are namespaced by component (`<component>-<stage>`) because they are repo-global and hold component-specific secrets:
 
@@ -154,7 +154,7 @@ The user-facing guides are published as the repository wiki:
 | **[Git Hooks](../../wiki/Git-Hooks)** | What lefthook runs, and when |
 | **[Troubleshooting](../../wiki/Troubleshooting)** | Common failures and what they actually mean |
 
-For *why* it is built this way — one decision per file — see the [architecture decision records](docs/adr), indexed in [ARCHITECTURE.md](ARCHITECTURE.md#7-where-things-live).
+For *why* it is built this way (one decision per file), see the [architecture decision records](docs/adr), indexed in [ARCHITECTURE.md](ARCHITECTURE.md#7-where-things-live).
 
 ---
 

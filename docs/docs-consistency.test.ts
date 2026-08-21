@@ -559,6 +559,25 @@ describe("the web path filter is written three times and must agree", () => {
 	});
 });
 
+describe("the tail consumer names a Worker that declares that name", () => {
+	const SITE = join(REPO, "web/wrangler.toml");
+	const TAIL = join(REPO, "web/workers/tail/wrangler.toml");
+
+	const declaredName = (): string | undefined => /^name\s*=\s*"([^"]+)"/m.exec(read(TAIL))?.[1];
+
+	const consumers = (): string[] =>
+		[...read(SITE).matchAll(/tail_consumers\]\]\s*service\s*=\s*"([^"]+)"/g)].map((match) => match[1]);
+
+	it("finds a tail Worker and at least one consumer pointing somewhere", () => {
+		expect(declaredName()).toBeTruthy();
+		expect(consumers().length).toBeGreaterThan(0);
+	});
+
+	it("points every consumer at that Worker, or log forwarding stops with no error", () => {
+		expect([...new Set(consumers())]).toEqual([declaredName()]);
+	});
+});
+
 describe("the glossary's forbidden names stay out of the code", () => {
 	const codeShaped = (term: string): boolean => /^[A-Za-z]+$/.test(term) && /[A-Z]/.test(term.slice(1));
 

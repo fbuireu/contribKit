@@ -47,7 +47,7 @@ Unknown option values silently fall back to the default, so the image never brea
 
 1. Install from **[Google Play](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)** (App Store coming soon).
 2. Enter your username.
-3. On Android, add a **Home Screen Widget**: small (streak counter) or medium (grid, streak and total). iOS has none — the app carries no WidgetKit extension.
+3. On Android, add a **Home Screen Widget**: small (streak counter) or medium (grid, streak and total). iOS has none: the app carries no WidgetKit extension.
 
 Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** for details.
 
@@ -57,7 +57,7 @@ Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** f
 
 ContribKit is a pnpm-workspace monorepo (`web/`, `app/`, `shared/`).
 
-**Prerequisites:** Node `26.7.0` — the same in the root `engines`, in `web/engines` and in `web/.nvmrc`, which is what CI installs — plus `pnpm@11.21.0`, and, for the app, Flutter `3.47.0` / Dart `3.13.0` exactly as pinned in `app/pubspec.yaml`. Install [lefthook](Git-Hooks) once so the local checks fire.
+**Prerequisites:** Node `26.7.0` (the same in the root `engines`, in `web/engines` and in `web/.nvmrc`, which is what CI installs) plus `pnpm@11.21.0`, and, for the app, Flutter `3.47.0` / Dart `3.13.0` exactly as pinned in `app/pubspec.yaml`. Install [lefthook](Git-Hooks) once so the local checks fire.
 
 To work on the **web** app:
 

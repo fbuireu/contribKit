@@ -35,12 +35,12 @@ flowchart TD
    - `parseUsername` trims input and tests it against a deliberately looser approximation of GitHub's rules: alphanumeric, hyphens allowed inside, 1–39 chars. It does **not** reject consecutive hyphens, so `a--b` passes here and 404s at GitHub. If a `Username` exists, it is valid.
    - `parseYear` accepts `null`/empty (→ latest rolling year), rejects non-integers, and bounds the year to `2005 … currentYear`.
    - Any invalid input becomes a typed `Failure` **before any network call**.
-3. **`loadContributions({ username, year })`** reaches the repository. It is a one-line arrow over `githubHtmlContributionsRepository.fetch`, bound once at the module scope of `pages/_contributions.ts` — there is no use case between the route and the repository, because the one that used to sit there was `repository => params => repository.fetch(params)` and asserted only that JavaScript forwards arguments.
+3. **`loadContributions({ username, year })`** reaches the repository. It is a one-line arrow over `githubHtmlContributionsRepository.fetch`, bound once at the module scope of `pages/_contributions.ts`. There is no use case between the route and the repository, because the one that used to sit there was `repository => params => repository.fetch(params)` and asserted only that JavaScript forwards arguments.
 4. **Fetching** requests the public contributions HTML from GitHub with browser-like headers. See **[Fetching Contributions](Fetching-Contributions)**.
 5. **Parsing** extracts each day's `date`, `level` (0–4, run through `clampLevel`), and exact `count` (from the linked `<tool-tip>`) via regex over the HTML. See **[HTML Parsing](HTML-Parsing)**.
 6. **Grid building** maps the parsed days onto a fixed 53×7 (371-cell) grid aligned to week boundaries. See **[Calendar Grid](Calendar-Grid)**.
 7. **Rendering** turns the grid into an SVG string using the selected palette, shape, and background. See **[SVG Rendering](SVG-Rendering)**.
-8. **Response** is returned with cache headers `public, max-age=3600, stale-while-revalidate=86400` on the data routes. Two exceptions: `/api/health` is `no-store`, and the landing page is `private` either way — `private, max-age=3600, stale-while-revalidate=86400` for an explicitly requested user, `private, no-store` otherwise.
+8. **Response** is returned with cache headers `public, max-age=3600, stale-while-revalidate=86400` on the data routes. Two exceptions: `/api/health` is `no-store`, and the landing page is `private` either way: `private, max-age=3600, stale-while-revalidate=86400` for an explicitly requested user, `private, no-store` otherwise.
 
 The `/api/contributions` and `/user/:username.svg` routes instantiate the repository and use cases **once at module load** (not per request), so warm Worker isolates reuse them.
 
@@ -69,9 +69,9 @@ At the HTTP boundary, `statusFor` and `messageFor` (in `application/http/failure
 | `Parse` | HTML structure changed, no Contribution Days found | `502` | the failure's `message` |
 | `RateLimited` | GitHub answered `429` | `429` | the failure's `message` |
 
-A `RateLimited` also emits a `Retry-After`, through `retryAfterHeader` — the figure GitHub named, in whichever of the two RFC forms it used, and no header at all when it named none.
+A `RateLimited` also emits a `Retry-After`, through `retryAfterHeader`: the figure GitHub named, in whichever of the two RFC forms it used, and no header at all when it named none.
 
-Responses with status `>= 500` are logged to Better Stack with the username, failure `kind`, reason, status, and endpoint (`api`, `svg` or `page` — the landing page logs its own 5xx too).
+Responses with status `>= 500` are logged to Better Stack with the username, failure `kind`, reason, status, and endpoint (`api`, `svg` or `page`; the landing page logs its own 5xx too).
 
 ---
 

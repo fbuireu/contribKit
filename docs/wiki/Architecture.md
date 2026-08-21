@@ -34,7 +34,7 @@ Each layer documents its own rules in a colocated `CLAUDE.md`.
 ## Where the detail lives
 
 This page is the shape, not the rules. Every layer states its own, next to the code, and those guides are what the
-maintenance contract keeps honest — a table here was a second copy that nothing checked, and it had gone wrong in
+maintenance contract keeps honest. A table here was a second copy that nothing checked, and it had gone wrong in
 four places at once: the `Failure` union missing `RateLimited`, a curried use case that had been deleted, a
 hardcoded default Cell Shape that comes from `shared/shapes.json`, and a `total` rule stated backwards.
 

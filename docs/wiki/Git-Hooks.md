@@ -90,7 +90,7 @@ semantic-release-monorepo lists a commit in **every** package changelog whose fi
 Commit touches app and web: split into separate commits.
 ```
 
-**`app/assets/` is exempt.** The pre-commit sync stages those mirrors whenever `shared/*.json` changes, so editing `shared/palettes.json` alongside `web/src/domain/value-objects/palette.ts` — the most natural shared change there is — was being rejected as touching both packages. `GENERATED_MIRRORS` in the script is what carves it out.
+**`app/assets/` is exempt.** The pre-commit sync stages those mirrors whenever `shared/*.json` changes, so editing `shared/palettes.json` alongside `web/src/domain/value-objects/palette.ts` (the most natural shared change there is) was being rejected as touching both packages. `GENERATED_MIRRORS` in the script is what carves it out.
 
 Keep each commit scoped to a single package.
 
@@ -110,7 +110,7 @@ module.exports = {
 ```
 
 - **[Conventional Commits](https://www.conventionalcommits.org):** `type(scope): subject` (e.g. `feat(contribkit-web): add hex shape`).
-- **pnpm scopes:** valid scopes are derived from the workspace package **names**, so they are `contribkit-web` and `contribkit-app` — not `web` and `app`, which commitlint rejects — plus `global`, for a change that belongs to neither client. The scope is optional.
+- **pnpm scopes:** valid scopes are derived from the workspace package **names**, so they are `contribkit-web` and `contribkit-app` (not `web` and `app`, which commitlint rejects) plus `global`, for a change that belongs to neither client. The scope is optional.
 - **scope-case:** scopes may be `lower-case`, `PascalCase`, or `camelCase`.
 - **header-max-length:** the header may be up to **130** characters.
 

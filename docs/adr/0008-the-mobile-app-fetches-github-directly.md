@@ -4,7 +4,7 @@ Date: 2026-07-26
 
 ## Status
 
-Accepted. The rationale below is reconstructed from the code — the original decision left no record in the history, so nothing here should be read as an account of what was intended at the time. It was re-examined on its merits and upheld in [11](0011-keep-the-apps-own-scraper-for-now.md).
+Accepted. The rationale below is reconstructed from the code: the original decision left no record in the history, so nothing here should be read as an account of what was intended at the time. It was re-examined on its merits and upheld in [11](0011-keep-the-apps-own-scraper-for-now.md).
 
 ## Context
 
@@ -21,5 +21,5 @@ The app owns its own `ContributionRepository` implementation against GitHub, and
 - **A change to GitHub's markup must be fixed twice**, and the app's fix reaches users through store review rather than a deploy. This is the standing cost.
 - Duplication let the implementations drift in ways that changed results, not just structure. The app used to ignore GitHub's `data-level` and recompute each day's level from its count against the year's maximum, so the same user and year could be painted differently on web and mobile. Both now treat `data-level` as authoritative.
 - They still differ when the attribute is missing: the app derives a level from the count, the web drops the day and lets the grid backfill it as level zero. In practice GitHub always emits it, so this only decides who degrades more gracefully.
-- The two still model a calendar differently — the app as weeks carrying a Year, the web as a flat list of days. They no longer differ on the Count: it is nullable in both, which closes the departure from the glossary this consequence used to record ([19](0019-an-unknown-count-is-null-in-both-clients.md)).
+- The two still model a calendar differently: the app as weeks carrying a Year, the web as a flat list of days. They no longer differ on the Count: it is nullable in both, which closes the departure from the glossary this consequence used to record ([19](0019-an-unknown-count-is-null-in-both-clients.md)).
 - Why the app cannot simply be pointed at the API today is [10](0010-rate-limit-only-the-json-api.md); what adopting it would take is `docs/plans/0001-app-consumes-contribkit-api.md`.

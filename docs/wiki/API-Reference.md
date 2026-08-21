@@ -32,7 +32,7 @@ Renders the contribution calendar for `:username` as an SVG image. Always uses t
 
 Unknown values silently fall back to the default, so the image never breaks.
 
-The username must pass ContribKit's own check: alphanumeric, hyphens allowed inside, 1–39 chars. It is deliberately looser than GitHub's rule — consecutive hyphens pass here and 404 at GitHub. This endpoint always renders the **latest rolling year**; use `/api/contributions?year=` for historical data.
+The username must pass ContribKit's own check: alphanumeric, hyphens allowed inside, 1–39 chars. It is deliberately looser than GitHub's rule: consecutive hyphens pass here and 404 at GitHub. This endpoint always renders the **latest rolling year**; use `/api/contributions?year=` for historical data.
 
 ### Example
 
@@ -52,7 +52,7 @@ Errors return `text/plain` with the message:
 |--------|---------|
 | `400` | invalid username |
 | `404` | GitHub has no such user (`User not found`) |
-| `429` | GitHub is rate-limiting ContribKit. **Not** this endpoint rate-limiting you — it is never rate-limited ([ADR 0010](../adr/0010-rate-limit-only-the-json-api.md)) |
+| `429` | GitHub is rate-limiting ContribKit. **Not** this endpoint rate-limiting you: it is never rate-limited ([ADR 0010](../adr/0010-rate-limit-only-the-json-api.md)) |
 | `502` | GitHub unreachable, or the page couldn't be parsed |
 
 ---
@@ -96,7 +96,7 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
 - `total` is the sum of every Count, or **`null` the moment any day at level 1 or above has no Count**. It is
   never a partial sum: a total that skipped unknown days would be a lower bound presented as a measurement.
   A level-0 day with no Count does not void it, because GitHub's level 0 is zero, so a year of genuine
-  inactivity reports `0` rather than `null`. It is not GitHub's own headline figure — nothing reads that.
+  inactivity reports `0` rather than `null`. It is not GitHub's own headline figure, and nothing reads that.
 
 ### Errors
 
@@ -106,7 +106,7 @@ Errors return `{ "error": "<message>" }` with an appropriate status:
 |--------|---------|
 | `400` | Missing `user`, or invalid username/year |
 | `404` | GitHub has no such user (`"User not found"`) |
-| `429` | **Two different things, and the body is what tells them apart.** `"Too many requests"` is this endpoint's own per-IP limit, refused by the middleware before the route runs. `"GitHub is rate-limiting this Worker"` is upstream. Both carry `Retry-After` when a wait is known — a fixed `60` for ours, GitHub's own figure for theirs — and neither carries one when it is not |
+| `429` | **Two different things, and the body is what tells them apart.** `"Too many requests"` is this endpoint's own per-IP limit, refused by the middleware before the route runs. `"GitHub is rate-limiting this Worker"` is upstream. Both carry `Retry-After` when a wait is known (a fixed `60` for ours, GitHub's own figure for theirs), and neither carries one when it is not |
 | `502` | GitHub unreachable, or the page couldn't be parsed |
 
 ---
@@ -180,7 +180,7 @@ Every response (set by the middleware) includes:
 | `Cross-Origin-Resource-Policy` | `same-origin` |
 | `Cross-Origin-Embedder-Policy` | `unsafe-none` |
 
-**`/user/:username.svg` is the one exception:** it is served with `Cross-Origin-Resource-Policy: cross-origin`, so a browser will render it in an `<img>` on any site. Every other response — the pages and all of `/api/*` — stays `same-origin`. See [ADR 0017](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md).
+**`/user/:username.svg` is the one exception:** it is served with `Cross-Origin-Resource-Policy: cross-origin`, so a browser will render it in an `<img>` on any site. Every other response (the pages and all of `/api/*`) stays `same-origin`. See [ADR 0017](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md).
 
 ---
 

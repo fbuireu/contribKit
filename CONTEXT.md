@@ -34,7 +34,7 @@ The intensity band of a Contribution Day, from none through low, medium, high, t
 _Avoid_: intensity, bucket, tier, shade, heat
 
 **Contribution Stats**:
-Aggregate figures derived from a Contribution Calendar — streaks, best day, best month, weekly average, and active days.
+Aggregate figures derived from a Contribution Calendar: streaks, best day, best month, weekly average, and active days.
 _Avoid_: metrics, summary, cell summary, analytics
 
 **Streak**:
@@ -44,7 +44,7 @@ _Avoid_: run, chain
 ## Identity and Scope
 
 **Username**:
-The handle identifying a GitHub account whose calendar is being rendered. Valid on construction — an invalid handle never becomes a Username.
+The handle identifying a GitHub account whose calendar is being rendered. Valid on construction: an invalid handle never becomes a Username.
 _Avoid_: user, handle, account, profile, login
 
 **Suggested Username**:
@@ -63,14 +63,14 @@ _Avoid_: theme, color scheme, colorway, skin
 
 **Cell**:
 The single rendered square standing for one Contribution Day. A Cell is the visual form; the Contribution Day is the data behind it.
-_Avoid_: tile, box, pixel — and "square" or "dot" as a name for the Cell itself, which is what they name the *shape* of.
+_Avoid_: tile, box, pixel; "square" or "dot" as a name for the Cell itself, which is what they name the *shape* of.
 
 **Cell Tooltip**:
 The transient label revealing a Contribution Day's date and Count when its Cell is pointed at or focused. Never shortened to "tip", which in this domain means a payment.
 _Avoid_: cell tip, tip, hint, popover
 
 **Cell Shape**:
-The geometry every Cell is drawn with — rounded, square, circle, dot, or hex.
+The geometry every Cell is drawn with: rounded, square, circle, dot, or hex.
 _Avoid_: shape kind, ShapeKind, style, form
 
 **Cell Size**:
@@ -78,7 +78,7 @@ How large each Cell is drawn, and the gap left between neighbours. Chosen from a
 _Avoid_: scale, density, zoom, grid preset
 
 **Background**:
-What sits behind the calendar when it is rendered — a color, or nothing at all so whatever is underneath shows through.
+What sits behind the calendar when it is rendered: a color, or nothing at all so whatever is underneath shows through.
 _Avoid_: card background, backdrop, canvas, fill
 
 **Background Preset**:
@@ -108,7 +108,7 @@ Producing a standalone artifact of a rendered Contribution Calendar that a perso
 _Avoid_: download, save, render out
 
 **Export Format**:
-The form an Export takes — an image, a vector, or a snippet of markup.
+The form an Export takes: an image, a vector, or a snippet of markup.
 _Avoid_: output type, file type, extension
 
 **Embed**:
@@ -116,7 +116,7 @@ A live reference to a user's Contribution Calendar placed in someone else's docu
 _Avoid_: link, badge, hotlink, remote image
 
 **Home Screen Widget**:
-The small always-visible surface on a phone's home screen showing a user's calendar or streak without opening the app. Always qualified — never bare "widget", which means a unit of UI construction.
+The small always-visible surface on a phone's home screen showing a user's calendar or streak without opening the app. Always qualified: never bare "widget", which means a unit of UI construction.
 _Avoid_: widget, applet, tile, glance
 
 ## Support
