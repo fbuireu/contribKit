@@ -434,6 +434,40 @@ describe("the guides match the manifests", () => {
 	});
 });
 
+describe("the dark palette is written twice and must agree", () => {
+	const VARIABLES = join(REPO, "web/src/ui/styles/global/variables.css");
+
+	const declarationsAfter = (body: string, selector: string): string[] => {
+		const start = body.indexOf(selector);
+		if (start === -1) return [];
+		const open = body.indexOf("{", start);
+		const close = body.indexOf("}", open);
+		return body
+			.slice(open + 1, close)
+			.split(";")
+			.map((declaration) => declaration.trim())
+			.filter(Boolean);
+	};
+
+	const blocks = (): { label: string; declarations: string[] }[] => {
+		const css = read(VARIABLES);
+		return [
+			{ label: ":root:not(.theme-light)", declarations: declarationsAfter(css, ":root:not(.theme-light)") },
+			{ label: ":root.theme-dark", declarations: declarationsAfter(css, ":root.theme-dark") },
+		];
+	};
+
+	it("finds both blocks", () => {
+		expect(blocks().filter(({ declarations }) => declarations.length === 0).map(({ label }) => label)).toEqual([]);
+	});
+
+	it("keeps the system-dark and the pinned-dark palettes identical", () => {
+		const [system, pinned] = blocks();
+
+		expect(pinned.declarations).toEqual(system.declarations);
+	});
+});
+
 describe("the web path filter is written three times and must agree", () => {
 	const WORKFLOWS = join(REPO, ".github/workflows");
 

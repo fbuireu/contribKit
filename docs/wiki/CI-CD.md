@@ -17,7 +17,7 @@ CI is split per component with **path filters**, so an app change never triggers
 | `ci-web-noop.yml` | PRs touching **none** of the above | reports a passing `E2E (preview)` so that check can be required without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly |
 | `ci-app.yml` | `app/**`, its own config, `prepare-web-env` | docs-consistency contract, Flutter format check, analyze, test (+coverage), build |
 | `release-app.yml` | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
-| `_deploy-web.yml` | reusable | shared web deploy steps |
+| `_deploy-web.yml` | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
 | `cleanup-web-development.yml` | PR close | deletes the per-PR preview worker |
 | `dependabot-auto-merge.yml`, `renovate-auto-approve.yml` | dependency PRs | automated dependency updates |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |

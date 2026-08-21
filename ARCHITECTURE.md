@@ -223,7 +223,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | `ci-web.yml` | push/PR to `main` under `web/**`, `shared/**`, `docs/**`, `scripts/**`, `*.md`, the root `package.json`, `pnpm-workspace.yaml`, `lefthook.yml` or its own config | Lint, test + coverage, build, typecheck; then release and deploy |
-| `_deploy-web.yml` | called by `ci-web.yml` | Reusable Cloudflare deploy, parameterised by environment |
+| `_deploy-web.yml` | called by `ci-web.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed — `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching |
 | `ci-app.yml` | push/PR to `main` under `app/**`, its own config, or `prepare-web-env` | `pnpm test:docs`, `dart format --set-exit-if-changed`, `flutter analyze --fatal-infos`, `flutter test` with coverage, debug APK build |
 | `release-app.yml` | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
 | `ci-web-noop.yml` | PR to `main` under **anything `ci-web.yml` ignores** | Reports a passing `E2E (preview)` so that check can be required in the ruleset without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly — the two are one filter written twice |
