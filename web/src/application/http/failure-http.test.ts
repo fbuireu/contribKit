@@ -34,6 +34,12 @@ describe("retryAfterHeader", () => {
 		expect(retryAfterHeader(rateLimited({ message: "slow down", retryAfterSeconds: null }))).toEqual({});
 	});
 
+	it("passes a zero through, because a wait that has already elapsed is not an unknown one", () => {
+		expect(retryAfterHeader(rateLimited({ message: "slow down", retryAfterSeconds: 0 }))).toEqual({
+			"Retry-After": "0",
+		});
+	});
+
 	it("is empty for every other kind, so a 404 never carries one", () => {
 		expect(retryAfterHeader(notFound("ghost"))).toEqual({});
 		expect(retryAfterHeader(network({ message: "down" }))).toEqual({});

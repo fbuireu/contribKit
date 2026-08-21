@@ -14,6 +14,8 @@ import { getDays, getUsername } from "./state";
 
 const COPIED_FEEDBACK_MS = 1500;
 
+const flashTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>();
+
 const copyToClipboard = async (text: string): Promise<boolean> => {
 	try {
 		await navigator.clipboard.writeText(text);
@@ -23,12 +25,19 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
 	}
 };
 
+const COPY_LABEL = "copy";
+
 const flash = ({ button, message }: { button: HTMLButtonElement; message: string }): void => {
-	const original = button.textContent;
+	const pending = flashTimers.get(button);
+	if (pending !== undefined) clearTimeout(pending);
 	button.textContent = message;
-	setTimeout(() => {
-		button.textContent = original;
-	}, COPIED_FEEDBACK_MS);
+	flashTimers.set(
+		button,
+		setTimeout(() => {
+			flashTimers.delete(button);
+			button.textContent = COPY_LABEL;
+		}, COPIED_FEEDBACK_MS),
+	);
 };
 
 export const getActivePalette = (): Palette =>
@@ -114,7 +123,7 @@ export function renderExportPreview(): void {
 			: markdownSnippet({ username, palette: paletteKey, shape });
 		const copyButton = document.createElement("button");
 		copyButton.className = `${ClassName.CopyButton} mono`;
-		copyButton.textContent = "copy";
+		copyButton.textContent = COPY_LABEL;
 		copyButton.addEventListener("click", () => {
 			void copyToClipboard(plainText).then((copied) => {
 				flash({ button: copyButton, message: copied ? "copied!" : "copy failed" });

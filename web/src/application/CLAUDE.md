@@ -111,7 +111,9 @@ The single mapping from a domain `Failure` to HTTP. Never inline either function
   carries `retryAfterSeconds`, and `retryAfterHeader` is what turns it back into a `Retry-After` on the way out:
   both data routes spread it into their error response, so the wait GitHub named survives the round trip instead of
   being parsed and dropped. It answers `{}` for every other kind and for a 429 that named no wait, because a
-  fabricated `Retry-After` is worse than none.
+  fabricated `Retry-After` is worse than none. **Zero is not the same as none**: `retryAfterFrom` clamps an
+HTTP-date already in the past to `0`, and that goes out as `Retry-After: 0`, which is the honest answer to "how
+long must I wait" when the answer is "no longer". Only `null` means we were not told.
 - **`SERVER_ERROR_STATUS` no longer lives here.** It is a logging threshold, and it moved to `http/failure-log.ts`
   beside the code that applies it. It sat in this file and was imported by the logging module, which is the seam
   being crossed backwards.

@@ -172,5 +172,5 @@ them together, because the CSS and the screen reader must not disagree.
 - **The three legal pages are pinned by `web/e2e/legal-pages.spec.ts`**, which asserts each answers 200, renders an
   `h1`, and carries `robots: noindex, nofollow`. It also asserts `/privacy` uses the `summary` Twitter card and has
   **no** `og:image`, because the social preview for a privacy policy is a link nobody should be enticed to share.
-  Adding a fourth legal page means adding it to `LEGAL_PAGES` there, or it ships unindexed by accident rather than
-  on purpose.
+  **`robots` is opt-in per page**: each of the three sets it in its own `metadata` and there is no layout default,
+  so a fourth legal page left out of `LEGAL_PAGES` has nothing asserting its `noindex` and ships **indexed**.

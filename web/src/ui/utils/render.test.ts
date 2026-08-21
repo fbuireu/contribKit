@@ -147,4 +147,34 @@ describe("the copy button", () => {
 
 		expect(button?.textContent).toBe("copy failed");
 	});
+
+	it("settles back on copy after a second click, never on a stale label", async () => {
+		const button = await clickCopy(async () => {});
+		expect(button?.textContent).toBe("copied!");
+
+		await vi.advanceTimersByTimeAsync(500);
+		button?.click();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(button?.textContent).toBe("copied!");
+
+		await vi.advanceTimersByTimeAsync(1500);
+		expect(button?.textContent).toBe("copy");
+	});
+
+	it("does not claim success when the second click is the one that failed", async () => {
+		let refuse = false;
+		const button = await clickCopy(async () => {
+			if (refuse) throw new Error("denied");
+		});
+		expect(button?.textContent).toBe("copied!");
+
+		refuse = true;
+		await vi.advanceTimersByTimeAsync(500);
+		button?.click();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(button?.textContent).toBe("copy failed");
+
+		await vi.advanceTimersByTimeAsync(1500);
+		expect(button?.textContent).toBe("copy");
+	});
 });
