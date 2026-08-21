@@ -58,6 +58,10 @@ reconciled, so a returning visitor's own calendar was never cached. Caching is a
 only thing standing between the SVG endpoint and unthrottled origin load, which is what makes the rate-limiting
 decision the shape it is ([ADR 0010](../../../docs/adr/0010-rate-limit-only-the-json-api.md)).
 
+**That header is pinned by an e2e**, in `web/e2e/user/[username].svg.spec.ts`, along with the `Retry-After` a 429
+carries and the `background=` pattern's reject arm. Changing the cache policy is therefore a failing test rather
+than a silent loosening of the only throttle that route has.
+
 ## The two data endpoints diverge on purpose
 
 They look symmetrical and are not:

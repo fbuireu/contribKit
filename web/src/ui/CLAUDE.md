@@ -45,6 +45,12 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   was the e2e, which spelled the same strings by hand; and the suite clicked `.theme-toggle`, a class the contract
   does not own, sitting beside the id it does. Dropping that redundant-looking class would have broken the e2e
   with nothing to explain why. Add a selector here and use it from both sides, tests included.
+- **Adding a `Selector` entry adds an e2e obligation.** `web/e2e/index.spec.ts` walks the whole enum against the
+  landing page and fails on any entry that matches nothing, because an entry no markup satisfies is a renamed id
+  the `if (el)` consumers turn into a silent no-op. Two lists in that spec carve out the entries that only exist
+  once a tab is open: `CODE_TAB_ONLY` (`ExportCodePreview`, `ExportCopyButton`) and `PNG_TAB_ONLY`
+  (`ExportPngPreview`). They are hand-maintained, so a selector belonging to a modal or a second tab has to be
+  added to one of them by hand or the suite fails with nothing saying why.
 - **Both getters guard, and neither always did.** `getActiveShape` reads a `data-key` from the DOM and goes
   through `isCellShape` before it is anything; `getActivePalette` goes through `paletteByKey`. The shape path
   carried its guard first and handed a bare `string` to three callers, each of which re-guarded or did not; the
@@ -163,3 +169,8 @@ them together, because the CSS and the screen reader must not disagree.
   theme silently loses it. The third block, `:root.theme-light`, is a different palette and is not checked.
 - `unshuffle.ts` de-obfuscates the contact details on the legal pages. It is anti-scraping decoration, not a security
   control. Treat anything it protects as public.
+- **The three legal pages are pinned by `web/e2e/legal-pages.spec.ts`**, which asserts each answers 200, renders an
+  `h1`, and carries `robots: noindex, nofollow`. It also asserts `/privacy` uses the `summary` Twitter card and has
+  **no** `og:image`, because the social preview for a privacy policy is a link nobody should be enticed to share.
+  Adding a fourth legal page means adding it to `LEGAL_PAGES` there, or it ships unindexed by accident rather than
+  on purpose.
