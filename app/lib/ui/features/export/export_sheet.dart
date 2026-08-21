@@ -112,73 +112,65 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
 
     return AppSheet(
       title: const Text('Export'),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          Tokens.space6,
-          0,
-          Tokens.space6,
-          Tokens.space8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _ExportPreview(
-              calendar: widget.calendar,
-              palette: widget.palette,
-              cellShape: widget.cellShape,
-              cellSize: widget.cellSize,
-              filename: _selected.previewNameFor(widget.calendar.username),
-              colors: colors,
-            ),
-            const SizedBox(height: Tokens.space4),
-            for (final fmt in ExportFormat.values)
-              Padding(
-                padding: const EdgeInsets.only(bottom: Tokens.space2),
-                child: _FormatTile(
-                  fmt: fmt,
-                  cellSize: widget.cellSize,
-                  isSelected: fmt == _selected,
-                  colors: colors,
-                  onTap: () => setState(() => _selected = fmt),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _ExportPreview(
+            calendar: widget.calendar,
+            palette: widget.palette,
+            cellShape: widget.cellShape,
+            cellSize: widget.cellSize,
+            filename: _selected.previewNameFor(widget.calendar.username),
+            colors: colors,
+          ),
+          const SizedBox(height: Tokens.space4),
+          for (final fmt in ExportFormat.values)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Tokens.space2),
+              child: _FormatTile(
+                fmt: fmt,
+                cellSize: widget.cellSize,
+                isSelected: fmt == _selected,
+                colors: colors,
+                onTap: () => setState(() => _selected = fmt),
               ),
-            if (_exportError != null) ...[
-              const SizedBox(height: Tokens.space2),
-              Text(
-                _exportError!,
-                style: AppTextStyles.mono(
-                  fontSize: Tokens.textSm,
-                  color: colors.destructive,
+            ),
+          if (_exportError != null) ...[
+            const SizedBox(height: Tokens.space2),
+            Text(
+              _exportError!,
+              style: AppTextStyles.mono(
+                fontSize: Tokens.textSm,
+                color: colors.destructive,
+              ),
+            ),
+          ],
+          const SizedBox(height: Tokens.space2),
+          Row(
+            spacing: Tokens.space2,
+            children: [
+              AppButton.outline(
+                onPressed: _exporting ? null : _save,
+                child: const Icon(LucideIcons.share, size: Tokens.iconMd),
+              ),
+              Expanded(
+                child: AppButton(
+                  onPressed: _exporting ? null : _save,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.download, size: Tokens.iconSm),
+                      const SizedBox(width: Tokens.space2),
+                      Text('Save ${_selected.label}'),
+                    ],
+                  ),
                 ),
               ),
             ],
-            const SizedBox(height: Tokens.space2),
-            Row(
-              spacing: Tokens.space2,
-              children: [
-                AppButton.outline(
-                  onPressed: _exporting ? null : _save,
-                  child: const Icon(LucideIcons.share, size: Tokens.iconMd),
-                ),
-                Expanded(
-                  child: AppButton(
-                    onPressed: _exporting ? null : _save,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(LucideIcons.download, size: Tokens.iconSm),
-                        const SizedBox(width: Tokens.space2),
-                        Text('Save ${_selected.label}'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

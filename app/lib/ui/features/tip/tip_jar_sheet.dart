@@ -79,19 +79,11 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
       description: const Text(
         'ContribKit is free and open-source. A small tip helps keep it alive.',
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          Tokens.space6,
-          Tokens.space2,
-          Tokens.space6,
-          Tokens.space8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: Tokens.space3,
-          children: _content(context),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: Tokens.space3,
+        children: _content(context),
       ),
     );
   }

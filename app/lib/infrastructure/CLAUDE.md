@@ -143,15 +143,19 @@ does not), the `<title>`, one Cell per Contribution Day, `isDark: true` keeping 
 ([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the `unknown` wording for a Count
 nobody measured ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)), all five Cell
 Shapes, and that the corner radius and dot radius come from `CellGeometryService` rather than a local number.
-`MarkdownExportRepository` is tested through a fake `ExportRepository`, which is the seam it already had and nobody
-was using. `PngExportRepository` paints on a `dart:ui` canvas: reachable under `flutter test` via the Skia software
+`MarkdownExportRepository` no longer composes anything — it builds an **Embed URL** and needs no renderer at all. `PngExportRepository` paints on a `dart:ui` canvas: reachable under `flutter test` via the Skia software
 path, but its assertions would be PNG header and pixel probes, and its `byteData == null` arm cannot be reached
 from outside at all.
 
-Two of the three carry an `on ExportFailure { rethrow; }` arm ahead of the catch-all, so a failure that is already typed
-keeps its own message instead of being wrapped twice — **and they need it for different reasons**. Markdown is the
-only one that composes another repository: it holds the SVG repository and embeds its output, so the arm passes an
-SVG failure through unchanged. PNG composes nothing — it paints straight onto a `dart:ui` canvas — but throws
+**The Markdown Export is an Embed, and used to be a lie.** It emitted `![alt](data:image/svg+xml;base64,…)`, and
+the format tile calls it a "README embed snippet" — but GitHub proxies every README image through Camo and does
+not render a `data:` URI in Markdown, so the one place it was labelled for was the one place it could not work. It
+emits `https://contribkit.app/user/<name>.svg` now, through `Embed.urlFor`, omitting a Palette or Cell Shape that
+is already the default. That also makes it match the glossary: an Embed re-renders with current data, and a
+`data:` URI was a fixed copy wearing an Embed's name. The web has always built its snippet this way.
+
+PNG carries an `on ExportFailure { rethrow; }` arm ahead of its catch-all, so a failure that is already typed
+keeps its own message instead of being wrapped twice. It composes nothing — it paints straight onto a `dart:ui` canvas — but throws
 `ExportFailure` *itself* mid-method when the encode returns no bytes, and the arm is what stops its own throw from
 being re-wrapped as `PNG render failed: ExportFailure: …`. The SVG repository has neither situation and has no arm.
 

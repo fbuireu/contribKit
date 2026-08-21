@@ -64,9 +64,8 @@ ExportRepository svgExportRepository(Ref ref) => SvgExportRepository();
 ExportRepository pngExportRepository(Ref ref) => PngExportRepository();
 
 @riverpod
-ExportRepository markdownExportRepository(Ref ref) => MarkdownExportRepository(
-  svgRepository: ref.watch(svgExportRepositoryProvider),
-);
+ExportRepository markdownExportRepository(Ref ref) =>
+    const MarkdownExportRepository();
 
 @riverpod
 FetchContributions fetchContributions(Ref ref) =>

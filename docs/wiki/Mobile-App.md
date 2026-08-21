@@ -106,6 +106,10 @@ Widgets are driven by `calendar_widget_service.dart` and refreshed by a daily ba
 
 ---
 
+> **Markdown export is an Embed, not a file.** It emits `![alt](https://contribkit.app/user/<name>.svg)`, the same
+> snippet the web builds. It used to embed the SVG as a base64 `data:` URI — which GitHub does not render in
+> Markdown, so the one surface the tile is labelled for ("README embed snippet") was the one it could not work on.
+
 ## Tips
 
 ContribKit offers an optional **Tip Jar** via RevenueCat (`revenuecat_tip_repository.dart`), surfaced in `ui/features/tip/tip_jar_sheet.dart`. The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `give_tip`, which returns a `TipOutcome` so backing out of the store sheet is not reported as a failure. A Tip unlocks nothing and no code may check whether one was given ([ADR 0009](../adr/0009-tips-are-unconditional-and-unlock-nothing.md)) — the glossary reserves **Tip** for this and lists "purchase" under `_Avoid_`, which is why none of these names says it. The default `dart-defines.json` carries the RevenueCat sandbox key; `dart-defines.prod.json` carries the production one.

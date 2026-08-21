@@ -71,6 +71,7 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `CellSize` | `compact` / `normal` / `large`, each mapping to a `pixels` and a `gap` |
 | `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
 | `TipOutcome` | `completed` / `cancelled` — what came back from the store when a Tip was offered |
+| `Embed` | the one spelling of an Embed URL — origin, segment, extension, and which options are worth a query param |
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | — |
 
 `Year.minYear` is **2005**, a product floor rather than GitHub's launch year — GitHub launched in 2008, and four
