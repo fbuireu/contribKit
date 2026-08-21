@@ -59,22 +59,16 @@ ContributionCalendar _calendar({int year = 2024}) {
 }
 
 final class _FakePaletteRepository implements PaletteRepository {
-  _FakePaletteRepository({
-    this.palettes = const [_nord],
-    this.failure,
-    this.gate,
-  });
+  _FakePaletteRepository({this.palettes = const [_nord], this.failure});
 
   final List<Palette> palettes;
   final Object? failure;
-  final Future<List<Palette>>? gate;
 
   int reads = 0;
 
   @override
   Future<List<Palette>> loadAll() async {
     reads++;
-    if (gate != null) return gate!;
     await Future<void>.delayed(Duration.zero);
     if (failure != null) throw failure!;
     return palettes;
@@ -417,32 +411,21 @@ void main() {
       ],
     );
 
-    test('drops the startup load before it even begins', () async {
-      final gate = Completer<List<Palette>>();
-      final container = bare(
-        palettes: _FakePaletteRepository(gate: gate.future),
-      );
-      container.listen(viewerProvider, (_, _) {});
-
-      container.dispose();
-      gate.complete(const [_nord]);
-
-      await _settle();
-    });
-
-    test('drops a Palette read that was already in flight', () async {
-      final gate = Completer<List<Palette>>();
-      final palettes = _FakePaletteRepository(gate: gate.future);
+    test('never starts the startup load at all', () async {
+      final palettes = _FakePaletteRepository();
       final container = bare(palettes: palettes);
       container.listen(viewerProvider, (_, _) {});
 
-      await _settle();
-      expect(palettes.reads, 1, reason: 'the load must have started');
-
       container.dispose();
-      gate.complete(const [_nord]);
-
       await _settle();
+
+      expect(
+        palettes.reads,
+        0,
+        reason:
+            'the entry guard returns before _loadPalettes, so the whole '
+            'sequence is skipped rather than half-run',
+      );
     });
 
     test('drops a fetch in flight rather than writing to a dead Ref', () async {

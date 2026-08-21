@@ -73,6 +73,7 @@ class ViewerNotifier extends _$ViewerNotifier {
     required Username username,
     required Year year,
   }) async {
+    if (!ref.mounted) return;
     final generation = ++_generation;
     state = state.copyWith(
       username: username,
