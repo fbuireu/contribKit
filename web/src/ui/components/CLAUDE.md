@@ -18,11 +18,13 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 The layer's rules (props in / markup out, colocated CSS, Palette colours and Cell Shapes from
 `@domain/value-objects/`) are in the [parent guide](../CLAUDE.md) and are not restated here. What this folder adds:
 
-- **Anything fed from a DOM `dataset` is re-guarded before it is used as a key:** `render-svg.ts` calls
-  `isCellShape`, and `getActivePalette` in `ui/utils/render.ts` returns a `Palette` through `paletteByKey` rather
-  than a key its callers would index `PALETTES` with. The shape path had that guard from the start and the palette
-  path did not, so a `data-key` naming a palette `shared/palettes.json` does not define threw a `TypeError` in
-  three renderers instead of falling back.
+- **Anything fed from a DOM `dataset` is guarded where it is read, not where it is used.** `getActiveShape` and
+  `getActivePalette` in `ui/utils/render.ts` are the two places a `data-key` becomes a `CellShape` or a `Palette`,
+  through `isCellShape` and `paletteByKey`. The palette path had no guard at all until a `data-key` naming a
+  palette `shared/palettes.json` does not define threw a `TypeError` in three renderers; the shape path had one
+  and then `renderCalendarString` ran it a second time, which is the guard that has since gone. A renderer takes
+  the typed value and trusts it. `shapePreviewSVG` is the exception and still guards, because it is called with a
+  raw `kind` from the picker's markup.
 - **The number in the hero goes through `formatTotalContributions`**, in `grid/contribution.ts`, which is the same
   function the SSR page and the client renderer call. It prints `unknown` for a `null` total. Never interpolate
   `stats.totalContributions` directly.
@@ -44,8 +46,6 @@ worth knowing:
 | Label font | a `font-family="ui-monospace,monospace"` **attribute** | `font-family:var(--font-mono)` inside a `style`, for the same reason |
 | Month label opacity | none | an extra `opacity:.85` |
 | Background | a `<rect>` when the Background is not transparent | never: the card behind it is the background |
-| Palette lookup | `palette.colors[level]`, a `Palette` | `palette[level] \|\| palette[0]`, a bare array from the DOM |
-| Cell Shape | taken as given: `options.shape` is a typed `CellShape` | re-guarded with `isCellShape`, because it arrives from a `dataset` |
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 
 That table is the complete list, and it took three passes to become one: the font-family and the month-label opacity rows sat outside it while the guide claimed completeness, which is the failure mode a table like this has. Nothing detects a new divergence; adding a row is manual. Each renderer is a loop over `layout.monthLabels`, `layout.weekdayLabels`
@@ -60,12 +60,17 @@ two label kinds, and an optional per-cell attribute callback: five fields, one o
 thirty-line loop. That is the shallow-module failure one level up, where the interface costs as much as the body it
 hides.
 
-**Two of the nine rows could be deleted rather than parameterised, which is the cheaper move.** The Palette lookup:
-`palette[level] || palette[0]` guards a level `calendarLayout` already ran through `clampLevel`, against a
-`PaletteColors` that is always five long. The Cell Shape: `renderCalendarString` takes a `string` and re-runs
-`isCellShape`, but `getActiveShape` already returns a typed `CellShape` and `index.astro` passes one, so the only
-callers handing it a bare string are its own tests. Neither deletion needs the unification. Do not re-propose that
-without a smaller config than five fields; do take the two rows.
+**Two of the nine rows were deleted rather than parameterised, which is the cheaper move and is done.** The table
+is seven rows now. `renderCalendarString` takes a `PaletteColors` and a `CellShape` rather than a `readonly
+string[]` and a `string`, so `palette[level] || palette[0]` and the `isCellShape` re-guard both went: the tuple
+type makes the five-ness a compile error to break, and `calendarLayout` already runs every level through
+`clampLevel`. Every production caller was passing a typed shape already, and `index.astro` stopped spreading
+`PALETTES.github.colors` into a plain array to keep it. Only the tests were handing over bare strings, and a typo
+in one is now a type error rather than a silent fallback to `rounded`.
+
+Do not re-propose the unification without a config smaller than five fields. Deleting a row is always cheaper than
+parameterising it, and two of the seven that remain are the label styling, which is one difference wearing two
+rows.
 
 **One asymmetry the table used to carry has gone:** the client re-ran `clampLevel` and the server did not, because
 the server's `day.level` is a type-guaranteed 0–4 union while the client's arrives from placeholder data and from

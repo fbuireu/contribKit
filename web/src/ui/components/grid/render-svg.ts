@@ -9,11 +9,12 @@ import {
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
 } from "@domain/services/svg-geometry";
 import { CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
+import type { PaletteColors } from "@domain/value-objects/palette";
 
 export interface RenderCalendarParams {
 	days: ContributionDay[];
-	palette: readonly string[];
-	shape?: string;
+	palette: PaletteColors;
+	shape?: CellShape;
 	size?: number;
 	gap?: number;
 	showLabels?: boolean;
@@ -27,8 +28,7 @@ export function renderCalendarString({
 	gap,
 	showLabels,
 }: RenderCalendarParams): string {
-	const resolvedShape = isCellShape(shape) ? shape : DEFAULT_CELL_SHAPE;
-	const layout = calendarLayout({ days, shape: resolvedShape, size, gap, showLabels });
+	const layout = calendarLayout({ days, shape, size, gap, showLabels });
 
 	const parts: string[] = [];
 	parts.push(
@@ -53,12 +53,12 @@ export function renderCalendarString({
 		const attributes = count === null ? ` data-date="${date}"` : ` data-date="${date}" data-count="${count}"`;
 		parts.push(
 			renderCellShape({
-				shape: resolvedShape,
+				shape,
 				x,
 				y,
 				size: layout.size,
 				radius: layout.radius,
-				fill: palette[level] || palette[0],
+				fill: palette[level],
 				level,
 				attributes,
 			}),
