@@ -25,28 +25,4 @@ final class AppSettings {
   final AppThemeMode themeMode;
 
   Year get year => lastYear ?? Year.current;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AppSettings &&
-          runtimeType == other.runtimeType &&
-          lastUsername == other.lastUsername &&
-          lastYear == other.lastYear &&
-          paletteKey == other.paletteKey &&
-          cellShape == other.cellShape &&
-          cellSize == other.cellSize &&
-          backgroundPresetName == other.backgroundPresetName &&
-          themeMode == other.themeMode;
-
-  @override
-  int get hashCode => Object.hash(
-    lastUsername,
-    lastYear,
-    paletteKey,
-    cellShape,
-    cellSize,
-    backgroundPresetName,
-    themeMode,
-  );
 }

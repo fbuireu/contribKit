@@ -96,7 +96,7 @@ void main() {
     });
 
     test(
-      'agrees with the PNG Export on how large the same calendar is',
+      'takes every dimension from ExportGeometryService, at every Cell Size',
       () async {
         for (final cellSize in CellSize.values) {
           final svg = await _render(
@@ -110,10 +110,6 @@ void main() {
             cellSize: cellSize,
             weeks: ContributionGridService.weeksPerYear,
           );
-          final pixels = ExportGeometryService.pngPixelSizeFor(
-            cellSize: cellSize,
-            weeks: ContributionGridService.weeksPerYear,
-          );
 
           expect(
             svg,
@@ -121,11 +117,9 @@ void main() {
             reason: 'the SVG Export must not re-derive its own document size',
           );
           expect(
-            pixels.width,
-            (logical.width * ExportGeometryService.pngPixelRatio).ceil(),
-            reason:
-                'the PNG Export scales the same logical size, it does not '
-                'compute a second one',
+            svg,
+            contains('height="${logical.height.toStringAsFixed(1)}"'),
+            reason: 'the height is where the literal 7 used to be',
           );
         }
       },

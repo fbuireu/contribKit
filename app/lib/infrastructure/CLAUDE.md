@@ -224,7 +224,7 @@ suspicious of this file specifically.
   **by string literal**, so a rename that updated this layer and not `main.dart` compiled, passed tests, and broke
   the home-screen widget silently. It also re-spelled the legacy-key fallback and the enum defaults, and its first
   two reads sat outside the `try`, so a value stored under the wrong type threw a raw `TypeError` out of the
-  isolate rather than degrading through `_read`. The isolate still constructs its repositories by hand, because a
+  isolate rather than degrading through the repository's own guard (`_read` then, `_tolerating` now). The isolate still constructs its repositories by hand, because a
   background isolate has no `ProviderScope`. But it no longer knows a single storage key, and since the refresh
   sequence moved into `HomeScreenWidgetRefresh` it no longer knows the order of the reads either.
   This is the first of the three traps in the [root guide](../../../CLAUDE.md#maintenance-contract).

@@ -56,13 +56,11 @@ final class HiveSettingsRepository implements SettingsRepository {
 
   @override
   Future<AppSettings> load() async {
-    final Box<dynamic> box;
     try {
-      box = await _box;
+      return _settingsIn(await _box);
     } catch (_) {
       return const AppSettings();
     }
-    return _settingsIn(box);
   }
 
   static T? _tolerating<T>(T? Function() read) {

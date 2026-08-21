@@ -88,6 +88,8 @@ ExportCalendar exportCalendar(Ref ref, ExportFormat format) => ExportCalendar(
 
 @riverpod
 class ThemeModeNotifier extends _$ThemeModeNotifier {
+  bool _chosen = false;
+
   @override
   ThemeMode build() {
     _loadSaved();
@@ -96,11 +98,13 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 
   Future<void> _loadSaved() async {
     final settings = await ref.read(settingsRepositoryProvider).load();
+    if (_chosen || !ref.mounted) return;
     state = _toFlutter(settings.themeMode);
   }
 
   Future<void> cycle() async {
     final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    _chosen = true;
     state = next;
     await ref.read(settingsRepositoryProvider).saveThemeMode(_toDomain(next));
   }
