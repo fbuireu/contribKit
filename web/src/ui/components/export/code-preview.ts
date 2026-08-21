@@ -1,7 +1,14 @@
 import { DAYS_PER_WEEK, GRID_CELL_COUNT, WEEKS_PER_YEAR } from "@domain/services/dates";
-import { SVG_DEFAULT_CELL_GAP, SVG_DEFAULT_CELL_SIZE } from "@domain/services/svg-geometry";
+import {
+	cornerRadiusFor,
+	dotRadius,
+	hexPoints,
+	SVG_DEFAULT_CELL_GAP,
+	SVG_DEFAULT_CELL_SIZE,
+} from "@domain/services/svg-geometry";
+import { CellShape } from "@domain/value-objects/cell-shape";
 import { buildEmbedUrl } from "@domain/value-objects/embed";
-import { PALETTES } from "@domain/value-objects/palette";
+import type { PaletteColors } from "@domain/value-objects/palette";
 
 type Token = [string, string];
 type CodeLine = Token[];
@@ -9,11 +16,9 @@ type CodeLine = Token[];
 const CELL_STEP = SVG_DEFAULT_CELL_SIZE + SVG_DEFAULT_CELL_GAP;
 const VIEWBOX_WIDTH = WEEKS_PER_YEAR * CELL_STEP;
 const VIEWBOX_HEIGHT = DAYS_PER_WEEK * CELL_STEP;
-const CELL_RADIUS = 2;
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-const [, low, , high, veryHigh] = PALETTES.github.colors;
-const SAMPLE_FILLS = [low, high, veryHigh];
-const REMAINING_RECTS = GRID_CELL_COUNT - SAMPLE_FILLS.length;
+const SAMPLE_LEVELS = [1, 3, 4] as const;
+const REMAINING_CELLS = GRID_CELL_COUNT - SAMPLE_LEVELS.length;
 const IMAGE_ALT = "contributions";
 
 export interface MarkdownSnippetParams {
@@ -39,26 +44,68 @@ const attributeTokens = ({ name, value }: AttributeTokensParams): Token[] => [
 const joinWithSpaces = (groups: Token[][]): Token[] =>
 	groups.flatMap((tokens, index) => (index === 0 ? tokens : [["", " "] as Token, ...tokens]));
 
-interface RectLineParams {
+interface CellLineParams {
 	column: number;
-	fill: string;
+	level: number;
+	palette: PaletteColors;
+	shape: CellShape;
 }
 
-const rectLine = ({ column, fill }: RectLineParams): CodeLine => [
-	["", " "],
-	["c-tag", "<rect "],
-	...joinWithSpaces([
-		attributeTokens({ name: "x", value: column * CELL_STEP }),
-		attributeTokens({ name: "y", value: 0 }),
-		attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
-		attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
-		attributeTokens({ name: "rx", value: CELL_RADIUS }),
-		attributeTokens({ name: "fill", value: fill }),
-	]),
-	["c-tag", "/>"],
-];
+const cellLine = ({ column, level, palette, shape }: CellLineParams): CodeLine => {
+	const fill = palette[level] ?? palette[0];
+	const x = column * CELL_STEP;
+	const centre = SVG_DEFAULT_CELL_SIZE / 2;
 
-export const SVG_LINES: CodeLine[] = [
+	if (shape === CellShape.Circle || shape === CellShape.Dot) {
+		return [
+			["", " "],
+			["c-tag", "<circle "],
+			...joinWithSpaces([
+				attributeTokens({ name: "cx", value: x + centre }),
+				attributeTokens({ name: "cy", value: centre }),
+				attributeTokens({
+					name: "r",
+					value: shape === CellShape.Dot ? dotRadius({ level, size: SVG_DEFAULT_CELL_SIZE }) : centre,
+				}),
+				attributeTokens({ name: "fill", value: fill }),
+			]),
+			["c-tag", "/>"],
+		];
+	}
+
+	if (shape === CellShape.Hex) {
+		return [
+			["", " "],
+			["c-tag", "<polygon "],
+			...joinWithSpaces([
+				attributeTokens({ name: "points", value: hexPoints({ cx: x + centre, cy: centre, radius: centre }) }),
+				attributeTokens({ name: "fill", value: fill }),
+			]),
+			["c-tag", "/>"],
+		];
+	}
+
+	return [
+		["", " "],
+		["c-tag", "<rect "],
+		...joinWithSpaces([
+			attributeTokens({ name: "x", value: x }),
+			attributeTokens({ name: "y", value: 0 }),
+			attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
+			attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
+			attributeTokens({ name: "rx", value: shape === CellShape.Rounded ? cornerRadiusFor(SVG_DEFAULT_CELL_SIZE) : 0 }),
+			attributeTokens({ name: "fill", value: fill }),
+		]),
+		["c-tag", "/>"],
+	];
+};
+
+export interface BuildSvgLinesParams {
+	palette: PaletteColors;
+	shape: CellShape;
+}
+
+export const buildSvgLines = ({ palette, shape }: BuildSvgLinesParams): CodeLine[] => [
 	[
 		[
 			"c-comment",
@@ -73,10 +120,10 @@ export const SVG_LINES: CodeLine[] = [
 		]),
 		["c-tag", ">"],
 	],
-	...SAMPLE_FILLS.map((fill, column) => rectLine({ column, fill })),
+	...SAMPLE_LEVELS.map((level, column) => cellLine({ column, level, palette, shape })),
 	[
 		["", " "],
-		["c-comment", `<!-- … ${REMAINING_RECTS} more rects … -->`],
+		["c-comment", `<!-- … ${REMAINING_CELLS} more cells … -->`],
 	],
 	[["c-tag", "</svg>"]],
 ];

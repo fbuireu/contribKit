@@ -69,6 +69,21 @@ The three presets in `grid-presets.ts` — `HERO_GRID_PRESET` (13/3), `CUSTOMIZE
 `EXPORT_GRID_PRESET` is pinned to the domain defaults, so the export preview matches what the SVG endpoint emits —
 a test asserts exactly that, and it is the reason the constant is not just `{ size: 10, gap: 2 }` written out.
 
+**The export tiles compute their own numbers, and the code preview draws the visitor's own choices.**
+`Export.astro` advertised `2880×720 · transparent` and byte sizes of `186 KB` / `24 KB` / `410 B`. The real
+document is **660×108** — `calendarLayout` says so, and the tile asks it now — and the web emits no file at all:
+`renderExportPreview` gives SVG and Markdown a copy button and the PNG tab a preview with no download anywhere, so
+`186 KB` was the weight of something that does not exist. The byte figures are gone rather than re-guessed. This is
+the same defect the app's format tile carried; it was fixed there first and left standing here, which is what
+"fixed" in a guide will do if only one of two surfaces is checked.
+
+`buildSvgLines` takes the Palette and the Cell Shape. It was a module-level constant built from
+`PALETTES.github.colors` with a hardcoded `rx="2"`, while the copy button beside it copied
+`renderCalendarString` with the visitor's real selection — **pick Nord and hex and the preview showed GitHub-green
+rects while the clipboard got Nord polygons.** Its radius comes from `cornerRadiusFor` now rather than being a
+fourth spelling of the corner constant. `code-preview.test.ts` already had a test named "shows exactly what
+`markdownSnippet` copies"; the SVG branch has the equivalent now.
+
 **`RenderCalendarParams` belongs to the renderer, not to the placeholder generator.** It sat in `calendar.ts`,
 which never referenced it, so `render-svg.ts` imported its own signature from the fake-data module — an import
 direction with no reason to exist. Anything a renderer's caller must know goes beside the renderer.

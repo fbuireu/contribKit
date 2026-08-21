@@ -458,7 +458,11 @@ describe("the dark palette is written twice and must agree", () => {
 	};
 
 	it("finds both blocks", () => {
-		expect(blocks().filter(({ declarations }) => declarations.length === 0).map(({ label }) => label)).toEqual([]);
+		expect(
+			blocks()
+				.filter(({ declarations }) => declarations.length === 0)
+				.map(({ label }) => label),
+		).toEqual([]);
 	});
 
 	it("keeps the system-dark and the pinned-dark palettes identical", () => {
@@ -474,7 +478,10 @@ describe("the web path filter is written three times and must agree", () => {
 	const pathListAfter = (body: string, heading: string): string[] => {
 		const start = body.indexOf(heading);
 		if (start === -1) return [];
-		const lines = body.slice(start + heading.length).split("\n").slice(1);
+		const lines = body
+			.slice(start + heading.length)
+			.split("\n")
+			.slice(1);
 		const paths: string[] = [];
 		for (const line of lines) {
 			const entry = /^\s+- "([^"]+)"\s*$/.exec(line);
@@ -500,7 +507,11 @@ describe("the web path filter is written three times and must agree", () => {
 	];
 
 	it("finds a list in each of the three workflows", () => {
-		expect(triggers().filter(({ paths }) => paths.length === 0).map(({ label }) => label)).toEqual([]);
+		expect(
+			triggers()
+				.filter(({ paths }) => paths.length === 0)
+				.map(({ label }) => label),
+		).toEqual([]);
 	});
 
 	it("keeps all three identical, or a preview Worker outlives its pull request", () => {
@@ -611,9 +622,13 @@ describe("nested guides name real files", () => {
 
 	const sourceFilenames = (): Set<string> =>
 		new Set(
-			[...walk(join(REPO, "web/src"), () => true), ...walk(join(REPO, "app/lib"), () => true)].map(
-				(path) => path.split(PATH_SEPARATOR).at(-1) ?? path,
-			),
+			[
+				...walk(join(REPO, "web/src"), () => true),
+				...walk(join(REPO, "web/e2e"), () => true),
+				...walk(join(REPO, "web/workers"), () => true),
+				...walk(join(REPO, "app/lib"), () => true),
+				...walk(join(REPO, "app/test"), () => true),
+			].map((path) => path.split(PATH_SEPARATOR).at(-1) ?? path),
 		);
 
 	it("every bare filename a guide cites still exists somewhere in the source", () => {

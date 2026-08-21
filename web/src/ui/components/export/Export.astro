@@ -1,7 +1,11 @@
 ---
 import { ClassName, ElementId } from "@ui/utils/dom-contract";
 import "./export.css";
+import { DAYS_PER_WEEK, WEEKS_PER_YEAR } from "@domain/services/dates";
+import { calendarLayout } from "@domain/services/svg-geometry";
+import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
+import { EXPORT_GRID_PRESET } from "@ui/components/grid/grid-presets";
 import { ExportFormatKey } from "./export-formats";
 
 interface Props {
@@ -9,10 +13,20 @@ interface Props {
 }
 const { exportSvg } = Astro.props;
 
+const exportLayout = calendarLayout({
+	days: [],
+	shape: DEFAULT_CELL_SHAPE,
+	...EXPORT_GRID_PRESET,
+	showLabels: false,
+});
+
 const EXPORT_FORMATS = [
-	{ key: ExportFormatKey.Png, detail: "2880×720 · transparent", size: "186 KB" },
-	{ key: ExportFormatKey.Svg, detail: "Vector · 53×7 grid", size: "24 KB" },
-	{ key: ExportFormatKey.Md, detail: "GitHub-flavored embed", size: "410 B" },
+	{
+		key: ExportFormatKey.Png,
+		detail: `${exportLayout.width}×${exportLayout.height} · transparent`,
+	},
+	{ key: ExportFormatKey.Svg, detail: `Vector · ${WEEKS_PER_YEAR}×${DAYS_PER_WEEK} grid` },
+	{ key: ExportFormatKey.Md, detail: "Live embed, re-renders on view" },
 ] as const;
 ---
 
@@ -25,7 +39,7 @@ const EXPORT_FORMATS = [
     </h2>
     <div class="export-grid">
       <div class="export-tabs" id={ElementId.ExportTabs} role="tablist" aria-label="Export format">
-        {EXPORT_FORMATS.map(({ key, detail, size }, index) => (
+        {EXPORT_FORMATS.map(({ key, detail }, index) => (
           <button
             class:list={['export-tab', { active: index === 0 }]}
             role="tab"
@@ -37,7 +51,6 @@ const EXPORT_FORMATS = [
             <span class="mono tab-key">.{key}</span>
             <span class="tab-label">{key.toUpperCase()}</span>
             <span class="tab-detail">{detail}</span>
-            <span class="mono dimmer tab-size">{size}</span>
           </button>
         ))}
       </div>

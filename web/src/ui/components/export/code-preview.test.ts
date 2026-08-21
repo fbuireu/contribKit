@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
 
 import { GRID_CELL_COUNT } from "@domain/services/dates";
-import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
+import { cornerRadiusFor, SVG_DEFAULT_CELL_SIZE } from "@domain/services/svg-geometry";
+import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { buildEmbedUrl, EmbedParam } from "@domain/value-objects/embed";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
-import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES } from "./code-preview";
+import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "./code-preview";
 
 type Lines = ReturnType<typeof buildMarkdownLines>;
 
@@ -31,7 +32,10 @@ describe("markdownSnippet", () => {
 	});
 });
 
-describe("SVG_LINES", () => {
+const GITHUB = PALETTES.github.colors;
+const SVG_LINES = buildSvgLines({ palette: GITHUB, shape: DEFAULT_CELL_SHAPE });
+
+describe("buildSvgLines", () => {
 	it("derives the viewBox from the grid geometry", () => {
 		expect(toText(SVG_LINES)).toContain('viewBox="0 0 636 84"');
 	});
@@ -41,7 +45,7 @@ describe("SVG_LINES", () => {
 	});
 
 	it("accounts for every remaining grid cell in the ellipsis comment", () => {
-		expect(toText(SVG_LINES)).toContain(`${GRID_CELL_COUNT - 3} more rects`);
+		expect(toText(SVG_LINES)).toContain(`${GRID_CELL_COUNT - 3} more cells`);
 	});
 });
 
@@ -110,5 +114,33 @@ describe("buildMarkdownLines with the defaults the page opens on", () => {
 
 		expect(lines[1]).toContain(`?${EmbedParam.Palette}=`);
 		expect(lines[1]).toContain(`&${EmbedParam.Shape}=`);
+	});
+});
+
+describe("the SVG preview shows what the copy button copies", () => {
+	const NORD = PALETTES.nord.colors;
+
+	it("draws the visitor's Palette, not the default one", () => {
+		const text = toText(buildSvgLines({ palette: NORD, shape: DEFAULT_CELL_SHAPE }));
+
+		expect(text).toContain(NORD[4]);
+		expect(text).not.toContain(PALETTES.github.colors[4]);
+	});
+
+	it("draws the visitor's Cell Shape, not always a rect", () => {
+		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Hex }))).toContain("<polygon ");
+		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Circle }))).toContain("<circle ");
+		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Square }))).toContain("<rect ");
+	});
+
+	it("squares a square, rather than rounding it like the default", () => {
+		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Square }))).toContain('rx="0"');
+		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Rounded }))).not.toContain('rx="0"');
+	});
+
+	it("takes its corner radius from the geometry every renderer shares", () => {
+		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Rounded }))).toContain(
+			`rx="${cornerRadiusFor(SVG_DEFAULT_CELL_SIZE)}"`,
+		);
 	});
 });

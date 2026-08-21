@@ -1,8 +1,8 @@
 import type { ContributionDay } from "@domain/entities/types";
 import type { ContributionStats } from "@domain/services/contribution-stats";
-import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
+import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, type Palette, paletteByKey } from "@domain/value-objects/palette";
-import { buildCodeBlock, buildMarkdownLines, markdownSnippet, SVG_LINES } from "@ui/components/export/code-preview";
+import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "@ui/components/export/code-preview";
 import { DEFAULT_EXPORT_FORMAT, ExportFormatKey } from "@ui/components/export/export-formats";
 import { formatTotalContributions } from "@ui/components/grid/contribution";
 import { CUSTOMIZE_GRID_PRESET, EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
@@ -15,8 +15,10 @@ import { getDays, getUsername } from "./state";
 export const getActivePalette = (): Palette =>
 	paletteByKey(document.querySelector<HTMLElement>(Selector.ActivePaletteRow)?.dataset.key ?? DEFAULT_PALETTE_KEY);
 
-export const getActiveShape = (): string =>
-	document.querySelector<HTMLElement>(Selector.ActiveShapeButton)?.dataset.key ?? DEFAULT_CELL_SHAPE;
+export const getActiveShape = (): CellShape => {
+	const key = document.querySelector<HTMLElement>(Selector.ActiveShapeButton)?.dataset.key;
+	return key !== undefined && isCellShape(key) ? key : DEFAULT_CELL_SHAPE;
+};
 
 export const getActiveExportTab = (): string =>
 	document.querySelector<HTMLElement>(Selector.SelectedExportTab)?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
@@ -84,7 +86,9 @@ export function renderExportPreview(): void {
 		const isSvgTab = exportTab === ExportFormatKey.Svg;
 		const paletteKey = getActivePalette().key;
 		card.appendChild(
-			buildCodeBlock(isSvgTab ? SVG_LINES : buildMarkdownLines({ username, palette: paletteKey, shape })),
+			buildCodeBlock(
+				isSvgTab ? buildSvgLines({ palette, shape }) : buildMarkdownLines({ username, palette: paletteKey, shape }),
+			),
 		);
 		const plainText = isSvgTab
 			? renderCalendarString({ days, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false })
