@@ -75,7 +75,7 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | — |
 
 `Year.minYear` is **2005**, a product floor rather than GitHub's launch year — GitHub launched in 2008, and four
-documents once claimed otherwise. Do not "correct" it.
+documents once justified the 2005 by calling it the launch year. Do not "correct" it.
 
 **`ExportFormat` is the one value object with no web counterpart.** The web offers the same three Export Formats
 from `ui/components/export/export-formats.ts`, because there the choice never leaves the browser; here it crosses
@@ -115,8 +115,10 @@ always 53×7, so `weeks.length` is a constant and never a partial year
 **Every figure derived from Counts is nullable, and `null` means "not knowable" rather than zero.** `weeklyAverage`
 is `null` when Total Contributions is; `bestDayCount` and `bestMonthContributions` are `null` the moment any active
 day has an unknown Count, because the largest Count *seen* is a lower bound and reporting it as the best day is the
-same lie `_totalFor` refuses to tell. `currentStreak`, `longestStreak`, `totalDaysActive` and `bestMonth` stay
-non-nullable: they count *days*, which the Contribution Level answers on its own.
+same lie `_totalFor` refuses to tell. `currentStreak`, `longestStreak` and `totalDaysActive` stay
+non-nullable: they count *days*, which the Contribution Level answers on its own. `bestMonth` does not count days —
+it names the month with the highest summed Count — so it is nulled by the same rule as `bestMonthContributions`,
+and it is an `int?`.
 
 **Six of the eight figures have no reader.** `StatsPanel` renders `currentStreak` and `longestStreak`, plus the
 calendar's own `totalContributions`, and nothing else in `lib/` touches the rest. They are computed for a surface
@@ -135,6 +137,17 @@ every frame and no test could reach the derivation through the notifier at all.
   The `yearMax == 0` arm is unreachable from both call sites: it sits after the `count == 0` check, and both
   derive `yearMax` as the maximum over the counts, so a positive count implies a positive maximum. It is kept as a
   total function's answer for an input the callers happen not to produce, not as a live branch.
+- **`ContributionGridService.buildFor`** turns a flat list of Contribution Days into the 53 × 7 lattice, padding
+  every date outside the requested Year as a day with no Count
+  ([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)). `weeksPerYear` and `daysPerWeek` are
+  declared here and are what makes the Home Screen Widget's seven separate writes safe — `app/lib/ui/CLAUDE.md`
+  carries that argument.
+- **`PaletteService.resolve({ palettes, storedKey })`** answers which Palette a stored setting names. It accepts a
+  **key or a name**, which is the in-code half of the `paletteKey` / `paletteName` migration, and falls back to the
+  first Palette rather than throwing — a Palette removed from `shared/palettes.json` degrades to the default
+  instead of bricking the Viewer. It returns `null` only for an empty list, which is a broken asset rather than a
+  missing setting, and is what `ViewerState.paletteFailure` exists to report. `ViewerNotifier` spelled this out
+  inline before, so the background isolate could not reuse it.
 - **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
   `pngPixelSizeFor` (those units times `pngPixelRatio`, 3.0). The PNG repository used to compute this inline while
   the Export sheet's format tile advertised the constant string `2880×720` — a size no `CellSize` produces, against
@@ -146,10 +159,13 @@ every frame and no test could reach the derivation through the notifier at all.
   `currentStreak` and `longestStreak` and nothing else, so six of the eight figures are computed and shown nowhere.
   They are in the glossary's definition of Contribution Stats, so they stay; they are just not wired up yet.
 - **`bestMonth` is a month number, 1–12**, straight out of `DateTime.month`. It was called `bestMonthIndex`, which
-  invited a zero-based read and an off-by-one against any month-name table. The field is `null` only when no day in
-  the calendar has a count above zero.
+  invited a zero-based read and an off-by-one against any month-name table. The field is `null` when no day in the
+  calendar has a known Count above zero — and also, more often, the moment any *active* day has an unknown Count,
+  because `compute` guards the whole month block on `!incomplete`. A month total assembled from a partial tool-tip
+  pass is a lower bound, and naming a best month out of lower bounds is the lie `_totalFor` already refuses.
 - **`StreakService.currentFor` owns the current streak, and it is the only copy.** `ContributionStatsService` and
-  `CalendarWidgetService` both call it, so the Viewer and the Home Screen Widget cannot drift apart. It takes
+  `HomeScreenWidgetPayload` both call it, so the Viewer and the Home Screen Widget cannot drift apart — and because
+  the payload is pure, the widget's streak is the one thing about it a test can assert without a device. It takes
   `today` rather than reading the clock, which is what makes it testable at all — the rule had no test before,
   precisely because there was no way to say what day it was.
 - **It anchors on the last day belonging to the calendar's Year, capped at today.** That is the whole fix for past
@@ -204,9 +220,9 @@ ratio**.
 - **Streaks read `day.isActive`, not `day.count > 0`.** They keyed on the Count until the Count could be unknown,
   which meant a day GitHub had coloured broke a run whenever its tool-tip failed to parse — and made the app
   disagree with the web, which has always keyed on the level.
-- **`bestDayDate` and `bestMonth` are nullable and are `null` for an empty or wholly inactive calendar.** They
-  are the only optional fields in `ContributionStats`; a UI that force-unwraps either will crash on a brand-new
-  account.
+- **`bestDayDate` and `bestMonth` are `null` for an empty or wholly inactive calendar.** They are two of the
+  **five** optional fields — `bestDayCount`, `weeklyAverage` and `bestMonthContributions` are the others, and every
+  one of the five is derived from Counts. A UI that force-unwraps any of them will crash on a brand-new account.
 - **`bestDayDate` is nulled with `bestDayCount`, not separately.** The date used to survive the `incomplete` flag
   that nulls the count, so the stats said *the best day was 15 June, and we cannot tell you how many* — which is a
   claim about which day was best, made from counts that are known to be partial. The pair is one fact.

@@ -33,11 +33,13 @@ All five are one-line delegations today, and that is fine. They exist so `ui/` d
 on a repository interface it would also have to call, and so a rule belonging between the widget and the repository
 has an obvious home. Do not inline them into the notifiers.
 
-**This was re-examined and upheld.** The web deleted two of its own thin use cases for failing the deletion test,
-which invites the same question here, and the answer is not the same: the two the web deleted were provable
-identities — `renderer => params => renderer(params)`, and a factory returning a module constant. These five bind a
-dependency in a constructor and name the operation in the domain's language. The web's `fetchContributions`, which
-is exactly this shape, was kept for exactly this reason.
+**This was re-examined and upheld.** The web deleted **both** of its own thin use cases for failing the deletion
+test, which invites the same question here, and the answer is not the same. `renderCalendarSvg` was
+`renderer => params => renderer(params)`; `fetchContributions` was `repository => params =>
+repository.fetch(params)`, and its stated justification — that a route could then depend on `@application/*` alone
+— was an import path rather than a behaviour. Neither bound anything, and neither survives. These five bind a
+dependency in a constructor and name the operation in the domain's language, which is the difference that keeps
+them.
 
 **`InvalidateContributionCache` is the fifth, and it exists to close a hole this guide used to record rather than
 fix.** `ViewerNotifier.refreshContributions` called
