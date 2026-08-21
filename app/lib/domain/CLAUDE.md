@@ -71,7 +71,7 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `CellSize` | `compact` / `normal` / `large`, each mapping to a `pixels` and a `gap` |
 | `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
 | `TipOutcome` | `completed` / `cancelled` — what came back from the store when a Tip was offered |
-| `Embed` | the one spelling of an Embed URL — origin, segment, extension, and which options are worth a query param |
+| `Embed` | the one spelling of an Embed URL — origin, segment, extension, and which options are worth a query param. It has a TypeScript twin the docs contract diffs it against; see below |
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | — |
 
 `Year.minYear` is **2005**, a product floor rather than GitHub's launch year — GitHub launched in 2008, and four
@@ -126,6 +126,20 @@ that does not exist yet — which is exactly why their handling of an unknown Co
 nothing going visibly wrong. They are computed **once per Contribution Calendar** now, in `ViewerNotifier`;
 `StatsPanel` used to call `ContributionStatsService.compute` from its own `build`, so all eight were re-derived on
 every frame and no test could reach the derivation through the notifier at all.
+
+## `Embed` is half of a cross-language contract
+
+`Embed.origin`, `Embed.segment` and `Embed.extension` are the same three strings
+`web/src/domain/value-objects/embed.ts` exports as `EMBED_ORIGIN`, `EMBED_SEGMENT` and `EMBED_EXTENSION`, because
+the Markdown Export writes a URL the web has to serve. Nothing links the two languages, so the docs contract diffs
+them: it parses the `static const` values here with a regex and asserts the TypeScript contains each one verbatim.
+The defaults are checked too — `defaultPaletteKey` must be `github`, and `defaultShape` must be **the first key in
+`shared/shapes.json`**, which is what the web derives its own default from. Reordering that file therefore changes
+the Dart default as well, and the test is the only thing that will say so.
+
+`Embed.urlFor` takes a Palette key and a Cell Shape and omits either when it equals the default. It does **not**
+take a Background, and the web's `buildEmbedUrl` does — a deliberate divergence, because the Customizer has a
+Background to embed and the app's Export does not.
 
 ## Services
 
