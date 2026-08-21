@@ -156,5 +156,10 @@ them together, because the CSS and the screen reader must not disagree.
   UTC while the browser's is the visitor's — so the streak the SSR page computes and the one the client computes
   after a fetch can differ by a day for anyone whose offset has already crossed midnight. The client's answer is the
   correct one; do not "fix" it by forcing UTC, which is the bug the domain layer already had.
+- **`styles/global/variables.css` writes the dark palette twice, and the docs contract asserts the two are
+  identical.** `:root:not(.theme-light)` is what an untouched browser gets from `prefers-color-scheme`;
+  `:root.theme-dark` is what the toggle pins. They have to hold the same declarations in the same order, and the
+  test compares them declaration for declaration — add a variable to one and forget the other and a pinned dark
+  theme silently loses it. The third block, `:root.theme-light`, is a different palette and is not checked.
 - `unshuffle.ts` de-obfuscates the contact details on the legal pages. It is anti-scraping decoration, not a security
   control — treat anything it protects as public.

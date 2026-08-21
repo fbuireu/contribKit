@@ -67,6 +67,15 @@ and the copy button copied a different string again — the bare URL, with the v
 dropped. Build an Embed URL through `buildEmbedUrl` or the same class of bug comes back; it is not a place to
 interpolate by hand.
 
+**This file has a Dart twin, and the docs contract diffs them.** `app/lib/domain/value_objects/embed.dart` holds
+the same origin, segment and extension, because the app's Markdown Export writes an Embed URL the web has to serve.
+The test reads the Dart with a regex and looks for the literal `const EMBED_ORIGIN = "…"` here, so **the shape of
+these three declarations is load-bearing**: split one across two lines, or move it onto an object, and the contract
+fails against code that is perfectly correct. It also asserts that both clients omit the *same* defaults — the
+Palette `github`, and the Cell Shape that is **first in `shared/shapes.json`**, which is the second thing reordering
+that file silently changes. The two deliberately diverge on one point: `buildEmbedUrl` takes a `background` and
+`Embed.urlFor` does not, because the app has no Background to put in an Embed.
+
 ## Dates live in local time, both halves
 
 `addDays` and `getWeekday` parse an ISO date at **local noon** (`new Date("YYYY-MM-DDT12:00:00")`), and `toIsoDate`
