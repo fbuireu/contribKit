@@ -45,11 +45,11 @@ This usually means GitHub is unreachable or changed the structure of its contrib
 
 ## Rate limited (HTTP 429)
 
-A 429 means one of two different things, and the headers tell them apart.
+A 429 means one of two different things, and the **body** is what tells them apart — the headers look the same either way.
 
-**With `Retry-After: 60`** it is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute**, refused by the middleware before the route runs. Back off and retry.
+**`{"error":"Too many requests"}`** is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute**, refused by the middleware before the route runs, with a fixed `Retry-After: 60`. Back off and retry.
 
-**Without it** it is GitHub rate-limiting ContribKit, forwarded to you rather than disguised as an outage — it used to come back as a `502` saying GitHub was unreachable, about a service that had answered perfectly well and said *slow down*. Retrying sooner will not help; the whole Worker is throttled upstream, not just you.
+**`GitHub is rate-limiting this Worker`** is upstream, forwarded to you rather than disguised as an outage — it used to come back as a `502` saying GitHub was unreachable, about a service that had answered perfectly well and said *slow down*. When GitHub names a wait, that figure is passed straight through as `Retry-After`; when it names none, no header is sent, because a fabricated one is worse than none. Retrying sooner will not help either way; the whole Worker is throttled upstream, not just you.
 
 `/user/:username.svg` is never rate-limited by ContribKit ([ADR 0010](../adr/0010-rate-limit-only-the-json-api.md)), so a 429 there is always GitHub's. For README embeds this is rarely an issue thanks to caching (`max-age=3600, stale-while-revalidate=86400`).
 

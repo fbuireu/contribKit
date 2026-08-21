@@ -98,7 +98,7 @@ the diagram is its picture.
 | domain | `web/src/domain/` · `@domain/*` | `app/lib/domain/` | nothing but the language stdlib, plus `shared/*.json` as data on the web | Astro, Cloudflare, `fetch`, Flutter, Riverpod, `dart:ui` |
 | application | `web/src/application/` · `@application/*` | `app/lib/application/` | domain | infrastructure, ui, pages, any framework |
 | infrastructure | `web/src/infrastructure/` · `@infrastructure/*` | `app/lib/infrastructure/` | domain | ui, pages, application |
-| ui | `web/src/ui/` · `@ui/*` | `app/lib/ui/` | domain; the app also reaches application, and infrastructure **only** through `ui/di/` | web-side: application, infrastructure — neither is imported today |
+| ui | `web/src/ui/` · `@ui/*` | `app/lib/ui/` | domain; the app also reaches application, and infrastructure **only** through `ui/di/` | web-side: infrastructure. `application` is permitted there and no file imports it — a web component reaching for `@application/*` is legal and a signal the page should be passing the result down instead |
 | pages | `web/src/pages/` | — (the app's composition root is `ui/di/providers.dart`) | everything | — |
 
 Three rules govern the diagram in both languages:

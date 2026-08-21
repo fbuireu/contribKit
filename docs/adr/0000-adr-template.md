@@ -24,4 +24,4 @@ What follows from this, including what it costs:
 
 - What is now load-bearing and must not be removed, and what breaks if it is.
 - What this makes harder, slower, or impossible. An ADR with no cost recorded is usually not describing a real trade-off.
-- Where the decision bites in the rest of the docs. There is no index; an ADR nothing links to will not be read.
+- Where the decision bites in the rest of the docs. Add the row to the index in `ARCHITECTURE.md` **and** link the decision from wherever it bites — a gotcha, a nested guide, a wiki page. Both are asserted, because an ADR only the index points at will not be read.

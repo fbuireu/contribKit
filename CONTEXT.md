@@ -63,7 +63,7 @@ _Avoid_: theme, color scheme, colorway, skin
 
 **Cell**:
 The single rendered square standing for one Contribution Day. A Cell is the visual form; the Contribution Day is the data behind it.
-_Avoid_: tile, box, square, dot, pixel
+_Avoid_: tile, box, pixel — and "square" or "dot" as a name for the Cell itself, which is what they name the *shape* of.
 
 **Cell Tooltip**:
 The transient label revealing a Contribution Day's date and Count when its Cell is pointed at or focused. Never shortened to "tip", which in this domain means a payment.

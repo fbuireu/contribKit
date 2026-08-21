@@ -91,7 +91,7 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
 
 - `days` is the field to read. **`cells` is a deprecated alias** for the same array, kept so consumers written
   against the original shape keep working; it will be removed in a release that says so.
-- `level` is `0`–`4` (GitHub's intensity bucket).
+- `level` is `0`–`4`, the Contribution Level GitHub itself assigned the day.
 - `count` is the exact contribution count for that day, or `null` when GitHub doesn't expose a tooltip for the Cell.
 - `total` is the sum of every Count, or **`null` the moment any day at level 1 or above has no Count**. It is
   never a partial sum: a total that skipped unknown days would be a lower bound presented as a measurement.

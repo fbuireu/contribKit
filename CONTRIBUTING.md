@@ -141,7 +141,7 @@ git add web/ && git commit -m "feat(contribkit-web): ..."
 git add app/ && git commit -m "feat(contribkit-app): ..."
 ```
 
-Changes to `shared/`, `docs/` or the root touch neither package and commit freely — but if a token change forces a
+Changes to `shared/`, `docs/` or the root touch neither package and commit freely, and `app/assets/` is exempt from the check so the pre-commit sync's own mirrors cannot make a `shared/` + `web/` edit look like a cross-package one — but if a token change forces a
 change in both clients, that is still three commits, not one.
 
 Do **not** add a `Co-Authored-By` trailer for an AI assistant to a commit or a pull request.
@@ -163,7 +163,7 @@ update the docs in the same commit.** A follow-up commit is a promise, not a fix
 The glossary is **prescriptive**. If the code says something a `CONTEXT.md` `_Avoid_` list names, the code is what
 is wrong — do not edit the glossary to match a stale identifier.
 
-`docs/docs-consistency.test.ts` enforces the mechanical half. Both `ci-web.yml` and `ci-app.yml` run it, so it fires on any change under `web/`, `app/`, `shared/`, `docs/` or a root `*.md` — but both workflows are path-filtered, so a pull request that touches only `scripts/`, `lefthook.yml` or the root manifests starts neither and the contract does not run. When it fails,
+`docs/docs-consistency.test.ts` enforces the mechanical half. Both `ci-web.yml` and `ci-app.yml` run it, so it fires on any change under `web/`, `app/`, `shared/`, `docs/`, `scripts/`, a root `*.md`, or the root `package.json` / `pnpm-workspace.yaml` / `lefthook.yml`. The last four were added late: a change to the very version pins the contract asserts used to start no workflow at all. Whenever you add an assertion, ask which filter carries the files it reads. When it fails,
 the docs and the code disagree; fix whichever is wrong. **Never delete an assertion to get green.** It cannot check
 prose or rationale, so a green run is not a correct document.
 

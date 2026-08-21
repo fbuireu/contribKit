@@ -54,7 +54,7 @@ config:
 ---
 flowchart LR
     days["buildGridFromApi<br/>({ days, year })"] --> map["map: date →<br/>{ level, count }"]
-    map --> build["buildCalendarGrid<br/>({ map, year })"]
+    map --> build["walk 371 days<br/>from the anchoring Sunday"]
 ```
 
 For each of the 371 positions:
@@ -69,7 +69,7 @@ This guarantees a complete, gap-free grid even when GitHub omits leading/trailin
 
 ## The other builder: `buildRollingGrid`
 
-`buildCalendarGrid` anchors on a calendar Year. The Embed does not have one — `/user/:username.svg` ignores `?year=` entirely, because an embed URL is pasted into a README once and a pinned year would quietly go stale. So it uses **`buildRollingGrid`**, which keys the days by date and ends on the Saturday of the latest day it was given rather than on 31 December.
+`buildGridFromApi` anchors on a calendar Year. The Embed does not have one — `/user/:username.svg` ignores `?year=` entirely, because an embed URL is pasted into a README once and a pinned year would quietly go stale. So it uses **`buildRollingGrid`**, which keys the days by date and ends on the Saturday of the latest day it was given rather than on 31 December.
 
 It is not optional there. GitHub emits its table **weekday-major**, so the scraped days arrive as fifty-three Sundays, then fifty-three Mondays; handing them straight to a renderer draws the transpose of the calendar, every cell after the first carrying the wrong date's Contribution Level. Anything that reaches a renderer goes through a grid builder first — the rolling one for the Embed, the Year-anchored one everywhere else.
 

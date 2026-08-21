@@ -31,72 +31,27 @@ Each layer documents its own rules in a colocated `CLAUDE.md`.
 
 ---
 
-## Core principles
+## Where the detail lives
 
-### Pure domain
+This page is the shape, not the rules. Every layer states its own, next to the code, and those guides are what the
+maintenance contract keeps honest — a table here was a second copy that nothing checked, and it had gone wrong in
+four places at once: the `Failure` union missing `RateLimited`, a curried use case that had been deleted, a
+hardcoded default Cell Shape that comes from `shared/shapes.json`, and a `total` rule stated backwards.
 
-`domain/` imports no packages, only TS stdlib types plus the design-token JSON from `@shared` as data. Functional style: factory functions return readonly objects, no classes. **Only `Username` and `Year` carry a discriminating `_tag`**, and only they validate on construction; `ContributionDay`, `ContributionCalendar` and `Palette` carry none, because there is nothing about them that can fail.
+| Question | Guide |
+|---|---|
+| What is a value object here, and how does each one fail? | [`web/src/domain/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/domain/CLAUDE.md) · [`app/lib/domain/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/domain/CLAUDE.md) |
+| What use cases are there, and what maps a `Failure` to a status? | [`web/src/application/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/application/CLAUDE.md) · [`app/lib/application/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/application/CLAUDE.md) |
+| How is GitHub scraped, and how is the SVG drawn? | [`web/src/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/CLAUDE.md) · [`app/lib/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/infrastructure/CLAUDE.md) |
+| What does each error mean to a caller? | **[API Reference](API-Reference)** · **[Troubleshooting](Troubleshooting)** |
+| Why are the layers this shape at all? | [ADR 0003](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0003-layered-domain-architecture-in-both-clients.md) |
 
-### Validated value objects
+Two rules are worth stating here because they hold in both clients and in every layer:
 
-Value objects validate on construction. If a `Username` exists, it is valid; same for `Year`. Validation happens once, at the boundary, so the rest of the code never re-checks. Only those two carry the full pair — `parseUsername`/`isUsername` and `parseYear`/`isYear`, the constructors returning `T | Failure`. The other three are narrower by design: `CellShape` exposes `isCellShape` alone, `Palette` a total `paletteByKey` lookup, and `ContributionLevel` a `clampLevel` that cannot fail.
-
-| Value object | Rule | On failure |
-|--------------|------|------------|
-| `Username` | trimmed; matches `^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$` — 1–39 chars, no leading or trailing hyphen. Consecutive hyphens **are** accepted even though GitHub rejects them, so `a--b` validates here and 404s upstream | `InvalidInput(username)` |
-| `Year` | `null`/empty → `null` (latest rolling year); must be an integer in `2005 … currentYear` | `InvalidInput(year)` |
-| `ContributionLevel` | `clampLevel(raw)` clamps any number into `0–4` | never fails (clamps) |
-| `Palette` | looked up by key; unknown key falls back to `github` | never fails (default) |
-| `CellShape` | one of `rounded`, `square`, `circle`, `dot`, `hex`; unknown falls back to `rounded` | never fails (default) |
-
-`Username` and `CellShape`/`Palette` source their suggestion lists and definitions from the shared token JSON, so input validation and the customizer stay in sync.
-
-### Entities
-
-| Entity | Shape |
-|--------|-------|
-| `ContributionDay` | `{ date: string; level: 0–4; count: number \| null }` |
-| `ContributionCalendar` | `{ username: string; days: ContributionDay[]; total: number \| null }` |
-
-A day's `count` is `null` when GitHub exposes no tooltip for it; `total` is `null` when no counts were found at all.
-
-### Domain services
-
-Pure helpers with no I/O, all unit-tested:
-
-| Service | Responsibility |
-|---------|----------------|
-| `calendar-grid` | builds the deterministic 53×7 grid (see **[Calendar Grid](Calendar-Grid)**) |
-| `svg-geometry` | layout constants, dimensions, week/month-label positioning, hex points |
-| `cell-shapes` | per-shape SVG cell markup shared by server and client renderers |
-| `dates` | ISO-string date math (`addDays`, `getWeekday`, `toIsoDate`) |
-| `SvgRenderer` | the pure rendering **function type** implemented in `infrastructure/` |
-
-### Typed failures
-
-On the web, errors are a `Failure` discriminated union: `NotFound`, `InvalidInput`, `Network`, `Parse`. Functions return `T | Failure`; nothing throws across layers. The app uses a sealed `Failure` hierarchy instead and throws it across `infrastructure` to `ui`, matching it without a wildcard where the error is rendered. Failures are built with small constructors and narrowed with `isFailure`:
-
-| Constructor | Produces | Carries |
-|-------------|----------|---------|
-| `notFound(username)` | `NotFound` | `username` |
-| `invalidInput({ field, message })` | `InvalidInput` | `field` (`username`/`year`), `message` |
-| `network({ message, status })` | `Network` | `message`, optional upstream `status` |
-| `parse(message)` | `Parse` | `message` |
-
-The mapping from `Failure` to an HTTP status and message lives in exactly one place: `application/http/failure-http.ts` (`statusFor`, `messageFor`), guarded by `isFailure`. See **[How It Works](How-It-Works)** for the status table.
-
-### Curried use cases
-
-Use cases are curried factory functions: they take repository/service implementations and return the operation. They hold no state and know nothing about Astro, Cloudflare, or `fetch`; everything arrives via the closure.
-
-| Use case | Purpose |
-|----------|---------|
-| `fetchContributions(repo)({ username, year })` | Loads a `ContributionCalendar` for a user/year |
-| `loadInitialContributions(load)({ username?, year? })` | Validates input, loads, and returns the built 53×7 grid |
-
-### Repositories are interfaces
-
-`domain/repositories/` declares interfaces only. Implementations live in `infrastructure/`, e.g. `githubHtmlContributionsRepository`. Network and parsing errors are converted to `Failure` at that boundary; a raw `Error` never escapes.
+- **Repositories are interfaces in `domain/`,** implemented in `infrastructure/`. A network or parsing error becomes
+  a typed failure at that boundary; a raw `Error` never escapes it.
+- **Errors are a sealed set, matched without a wildcard.** The web returns them as values, the app throws them
+  ([ADR 0004](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)).
 
 ---
 

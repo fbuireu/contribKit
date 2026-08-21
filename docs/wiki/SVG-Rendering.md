@@ -110,7 +110,8 @@ The server renderer above powers the `/user/:username.svg` endpoint. The **landi
 | Month label opacity | none | an extra `opacity:.85` |
 | Sizing | fixed `width`/`height` | `width="100%"` + `style="display:block;overflow:visible"` for responsive layout |
 | Background | a `<rect>` when the Background is not transparent | never — the card behind it is the background |
-| Palette lookup | `palette.colors[level]`, a `Palette` | `palette[level] \\| palette[0]`, a bare array from the DOM |
+| Palette lookup | `palette.colors[level]`, a `Palette` | `palette[level] \|\| palette[0]`, a bare array from the DOM |
+| Consumed as | an `<img>` in someone else's document | live DOM on this page |
 | Cell Shape | taken as given, a typed `CellShape` | re-guarded with `isCellShape`, because it arrives from a `dataset` |
 | Per-cell | fill only | also emits `data-date`, plus `data-count` only when the count is known — cells with an unknown count omit it and the tooltip says so |
 
@@ -125,13 +126,17 @@ The landing page has **no reactive framework**. The DOM itself is the source of 
 **1. State.** Two singletons in `ui/utils/state.ts` hold the fetched data: `getDays()` / `setDays()` and the username. The active **shape** and **palette** are read straight from the DOM, from whichever control carries the `.active` class (`ui/utils/render.ts`):
 
 ```ts
-getActivePalette = () => paletteByKey($("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY);
-getActiveShape   = () => $("#shape-list  .shape-btn.active")?.dataset.key   ?? DEFAULT_CELL_SHAPE;
+getActivePalette = () => paletteByKey($(Selector.ActivePaletteRow)?.dataset.key ?? DEFAULT_PALETTE_KEY);
+getActiveShape   = () => { const k = $(Selector.ActiveShapeButton)?.dataset.key;
+                           return k !== undefined && isCellShape(k) ? k : DEFAULT_CELL_SHAPE; };
 ```
 
-`getActivePalette` returns a `Palette`, not a key, and it goes through `paletteByKey` — the same guarded lookup the
-SVG endpoint uses. A `data-key` is markup, so it can name a palette `shared/palettes.json` does not define; the
-three callers indexed `PALETTES` directly and would have thrown a `TypeError` reading `.colors` of `undefined`. It
+**Both getters guard, and for the same reason.** A `data-key` is markup, so it can name a palette
+`shared/palettes.json` does not define or a shape the `CellShape` union does not — `paletteByKey` defaults and
+`isCellShape` rejects, and neither hands a bare string on. `getActivePalette` returns a `Palette` rather than a key,
+through the same guarded lookup the SVG endpoint uses; the three callers indexed `PALETTES` directly and would have
+thrown a `TypeError` reading `.colors` of `undefined`. `getActiveShape` returns a `CellShape` rather than a
+`string`, and used to hand that string to three callers, each of which re-guarded or did not. It
 also means the key it reports is the key it used, so the label under the picker cannot disagree with the colours on
 screen.
 

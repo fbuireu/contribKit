@@ -25,7 +25,7 @@ Same DDD-ish layers as the web (see **[Architecture](Architecture)**):
 ```
 app/lib/
 ├── domain/          entities, value objects, repository interfaces, services, failures
-├── application/     use cases: fetch_contributions, export_calendar, fetch_tip_products, give_tip
+├── application/     use cases: fetch_contributions, invalidate_contribution_cache, export_calendar, fetch_tip_products, give_tip
 ├── infrastructure/  github repo, asset repos, export (png/svg/markdown), persistence, tip
 └── ui/              features (viewer, customizer, export, tip), widgets, theme, DI (Riverpod)
 ```
@@ -45,8 +45,9 @@ The customizer offers palette, shape, **size** and background pickers — **Cell
 | `bestMonthContributions` / `bestMonth` | month with the highest summed Count, `null` on the same unknown-Count rule |
 
 Every figure derived from Counts is nullable, and `null` means *not knowable* rather than zero
-([ADR 0019](../adr/0019-an-unknown-count-is-null-in-both-clients.md)). Only the two streaks,
-`totalDaysActive` and `bestMonth` stay non-nullable: they count days, which the Contribution Level answers alone.
+([ADR 0019](../adr/0019-an-unknown-count-is-null-in-both-clients.md)). Only the two streaks and
+`totalDaysActive` stay non-nullable: they count days, which the Contribution Level answers alone. `bestMonth` names
+a month by summed Count, so it is nulled by the same rule as everything else derived from one.
 **Six of the eight are computed and rendered nowhere** — `StatsPanel` shows the two streaks and the calendar's own
 total.
 

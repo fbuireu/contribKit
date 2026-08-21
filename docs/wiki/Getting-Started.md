@@ -47,7 +47,7 @@ Unknown option values silently fall back to the default, so the image never brea
 
 1. Install from **[Google Play](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)** (App Store coming soon).
 2. Enter your username.
-3. On Android, add a **widget** to your home screen: small (streak counter) or medium (grid, streak and total). iOS has no widget — the app carries no WidgetKit extension.
+3. On Android, add a **Home Screen Widget**: small (streak counter) or medium (grid, streak and total). iOS has none — the app carries no WidgetKit extension.
 
 Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** for details.
 

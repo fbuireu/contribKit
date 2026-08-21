@@ -30,11 +30,11 @@ domain/
   failures/        Failure union + constructors + isFailure
 application/
   use-cases/       loadInitialContributions (the one use case); resolve-initial-view.ts, which is request policy rather than a use case
-  http/            failure-http (statusFor, messageFor)
+  http/            failure-http (statusFor, messageFor, retryAfterHeader); failure-log (logContributionsFailure, logServerError, SERVER_ERROR_STATUS)
 infrastructure/
   github/          githubHtmlContributionsRepository (HTML scraping)
   rendering/       svgStringRenderer
-  logging/         better-stack-logger, logServerError
+  logging/         better-stack-logger — the client and nothing else
 ui/
   components/      Astro components (core/, grid/, error/, icons/, features…)
   utils/           page-init, render/state, roving, url/cookie, mulberry, …
@@ -107,5 +107,5 @@ See **[Git Hooks](Git-Hooks)** for how these run.
 - **Package manager:** pnpm workspaces (`pnpm-workspace.yaml`)
 - **Commits:** Conventional Commits, enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows — `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**` and `*.md`; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
+- **CI:** path-filtered workflows — `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md` and the three root config files; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
 - **Git hooks:** lefthook (`lefthook install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)
