@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
+import { Selector } from "@ui/utils/dom-contract";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
 	getActiveExportTab,
@@ -68,7 +69,7 @@ describe("renderExportPreview", () => {
 	it("renders a png card by default", () => {
 		document.body.innerHTML = `<div id="export-preview"></div>`;
 		renderExportPreview();
-		expect(document.querySelector("#export-preview .png-preview")).not.toBeNull();
+		expect(document.querySelector(Selector.ExportPngPreview)).not.toBeNull();
 	});
 
 	it("renders a code preview when the svg tab is active", () => {

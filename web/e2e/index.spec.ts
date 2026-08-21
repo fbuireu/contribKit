@@ -116,3 +116,60 @@ test.describe("homepage", () => {
 		}
 	});
 });
+
+test.describe("rendering a username", () => {
+	test.beforeEach(async ({ page }) => {
+		await page.goto("/");
+	});
+
+	test("an invalid handle is refused, and nobody else's calendar is shown", async ({ page }) => {
+		await page.route("**/api/contributions**", (route) =>
+			route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "bad" }) }),
+		);
+
+		await page.locator(byId(ElementId.HeroUsername)).fill("not-a-real-user");
+		await page.locator(byId(ElementId.HeroRenderButton)).click();
+
+		await expect(page.locator(byId(ElementId.HeroError))).toContainText("invalid username");
+	});
+
+	test("an unreachable server says so rather than leaving stale numbers", async ({ page }) => {
+		await page.route("**/api/contributions**", (route) => route.abort());
+
+		await page.locator(byId(ElementId.HeroUsername)).fill("torvalds");
+		await page.locator(byId(ElementId.HeroRenderButton)).click();
+
+		await expect(page.locator(byId(ElementId.HeroError))).toContainText("could not reach the server");
+	});
+
+	test("re-enables the render button whether the fetch worked or not", async ({ page }) => {
+		await page.route("**/api/contributions**", (route) => route.abort());
+		const button = page.locator(byId(ElementId.HeroRenderButton));
+
+		await page.locator(byId(ElementId.HeroUsername)).fill("torvalds");
+		await button.click();
+
+		await expect(button).toBeEnabled();
+	});
+
+	test("a successful render fills the grid and names the user", async ({ page }) => {
+		await page.route("**/api/contributions**", (route) =>
+			route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				body: JSON.stringify({
+					username: "octocat",
+					days: [{ date: "2026-06-01", level: 3, count: 7 }],
+					total: 7,
+				}),
+			}),
+		);
+
+		await page.locator(byId(ElementId.HeroUsername)).fill("octocat");
+		await page.locator(byId(ElementId.HeroRenderButton)).click();
+
+		await expect(page.locator(byId(ElementId.HeroUsernameDisplay))).toHaveText("octocat");
+		await expect(page.locator(`${byId(ElementId.HeroGrid)} svg`)).toBeVisible();
+		await expect(page.locator(byId(ElementId.HeroError))).toBeEmpty();
+	});
+});
