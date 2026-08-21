@@ -199,6 +199,20 @@ The format, spelled out because both sides encode it positionally:
 | `widget_username` · `widget_streak` | as written |
 | `widget_total_contributions` | **the finished sentence**, not a number — `"1,234 contributions this year"`, or `"contributions unknown"` |
 
+**The seven keys are written separately, and that is safe only because the payload is fixed-width.**
+`CalendarWidgetService.update` issues seven independent `saveWidgetData` calls and then broadcasts, so a refresh
+triggered by the system or the periodic task can land between them and pair a fresh key with a stale one. The one
+pairing that would matter — `widget_weeks` against `widget_levels`, where Kotlin's `idx = w * 7 + r` indexes the
+level string — **cannot go wrong**: the Contribution Grid is always 53 × 7
+([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)), so `weeks` is invariably 53 and `levels` is
+invariably 371 characters. A stale one and a fresh one are identical, and the `idx < levels.length` guard on the
+Kotlin side can never trip from a torn write. `home_screen_widget_payload_test.dart` pins both widths, because that
+invariant is the whole reason seven separate writes are acceptable — make the grid variable and this becomes a real
+tear.
+
+What can still interleave is cosmetic and self-heals on the next update: new levels painted with the previous
+Palette's colours for one frame. Do not add an eighth key without asking whether it is fixed-width too.
+
 **Never send a `null` across this seam.** `home_widget` deletes the key when the value is null, and the Kotlin side
 cannot tell a deleted key from one that was never written — so an unknown Total Contributions arrived as a missing
 key, was read as `0`, and rendered as a blank footer indistinguishable from a measured zero. That defeated
