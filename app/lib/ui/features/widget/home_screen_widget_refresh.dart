@@ -5,7 +5,6 @@ import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
-import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
 
 typedef HomeScreenWidgetWriter = Future<void> Function({
@@ -28,25 +27,25 @@ final class HomeScreenWidgetRefresh {
   final HomeScreenWidgetWriter _write;
 
   Future<void> call() async {
-    final username = await _settings.getLastUsername();
+    final settings = await _settings.load();
+    final username = settings.lastUsername;
     if (username == null) return;
 
     final palette = PaletteService.resolve(
       palettes: await _palettes.loadAll(),
-      storedKey: await _settings.getSavedPaletteKey(),
+      storedKey: settings.paletteKey,
     );
     if (palette == null) return;
 
-    final year = await _settings.getLastYear() ?? Year.current;
     final (:calendar, fromCache: _) = await _contributions.fetchCalendar(
       username: username,
-      year: year,
+      year: settings.year,
     );
 
     await _write(
       calendar: calendar,
       palette: palette,
-      cellShape: await _settings.getSavedCellShape() ?? CellShape.fallback,
+      cellShape: settings.cellShape,
     );
   }
 }

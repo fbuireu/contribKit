@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:contribkit/domain/repositories/settings_repository.dart';
+import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -29,7 +32,7 @@ void main() {
       () async {
         await (await settingsBox()).put('paletteName', 'Tokyo Night');
 
-        expect(await repository.getSavedPaletteKey(), 'Tokyo Night');
+        expect((await repository.load()).paletteKey, 'Tokyo Night');
       },
     );
 
@@ -38,7 +41,7 @@ void main() {
       await box.put('paletteName', 'Tokyo Night');
       await box.put('paletteKey', 'nord');
 
-      expect(await repository.getSavedPaletteKey(), 'nord');
+      expect((await repository.load()).paletteKey, 'nord');
     });
 
     test('drops the legacy name once a key is saved', () async {
@@ -48,11 +51,11 @@ void main() {
       await repository.savePaletteKey('dracula');
 
       expect(box.get('paletteName'), isNull);
-      expect(await repository.getSavedPaletteKey(), 'dracula');
+      expect((await repository.load()).paletteKey, 'dracula');
     });
 
     test('returns null when nothing was ever stored', () async {
-      expect(await repository.getSavedPaletteKey(), isNull);
+      expect((await repository.load()).paletteKey, isNull);
     });
   });
 
@@ -62,7 +65,7 @@ void main() {
       () async {
         await (await settingsBox()).put('cardBackground', 'navy');
 
-        expect(await repository.getSavedBackgroundPreset(), 'navy');
+        expect((await repository.load()).backgroundPresetName, 'navy');
       },
     );
 
@@ -71,7 +74,7 @@ void main() {
       await box.put('cardBackground', 'navy');
       await box.put('backgroundPreset', 'charcoal');
 
-      expect(await repository.getSavedBackgroundPreset(), 'charcoal');
+      expect((await repository.load()).backgroundPresetName, 'charcoal');
     });
 
     test('drops the legacy value once a preset is saved', () async {
@@ -81,11 +84,11 @@ void main() {
       await repository.saveBackgroundPreset('black');
 
       expect(box.get('cardBackground'), isNull);
-      expect(await repository.getSavedBackgroundPreset(), 'black');
+      expect((await repository.load()).backgroundPresetName, 'black');
     });
 
     test('returns null when nothing was ever stored', () async {
-      expect(await repository.getSavedBackgroundPreset(), isNull);
+      expect((await repository.load()).backgroundPresetName, isNull);
     });
   });
 
@@ -98,17 +101,34 @@ void main() {
       await box.put('themeMode', false);
       await box.put('lastUsername', 42);
 
-      expect(await repository.getSavedCellShape(), isNull);
-      expect(await repository.getSavedCellSize(), isNull);
-      expect(await repository.getLastYear(), isNull);
-      expect(await repository.getThemeMode(), isNull);
-      expect(await repository.getLastUsername(), isNull);
+      final settings = await repository.load();
+
+      expect(settings.cellShape, CellShape.fallback);
+      expect(settings.cellSize, CellSize.fallback);
+      expect(settings.lastYear, isNull);
+      expect(settings.themeMode, AppThemeMode.system);
+      expect(settings.lastUsername, isNull);
     });
 
     test('ignores an unknown enum name rather than failing', () async {
       await (await settingsBox()).put('cellShape', 'triangle');
 
-      expect(await repository.getSavedCellShape(), isNull);
+      expect((await repository.load()).cellShape, CellShape.fallback);
+    });
+
+    test('loses only the corrupt value, not every setting beside it', () async {
+      final box = await settingsBox();
+      await box.put('cellShape', 0);
+      await box.put('paletteKey', 'nord');
+      await box.put('lastUsername', 'torvalds');
+      await box.put('cellSize', 'large');
+
+      final settings = await repository.load();
+
+      expect(settings.cellShape, CellShape.fallback);
+      expect(settings.paletteKey, 'nord');
+      expect(settings.lastUsername?.value, 'torvalds');
+      expect(settings.cellSize, CellSize.large);
     });
   });
 }

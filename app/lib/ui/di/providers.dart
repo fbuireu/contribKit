@@ -95,8 +95,8 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   }
 
   Future<void> _loadSaved() async {
-    final saved = await ref.read(settingsRepositoryProvider).getThemeMode();
-    if (saved != null) state = _toFlutter(saved);
+    final settings = await ref.read(settingsRepositoryProvider).load();
+    state = _toFlutter(settings.themeMode);
   }
 
   Future<void> cycle() async {

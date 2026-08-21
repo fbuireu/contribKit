@@ -106,12 +106,21 @@ the streak walk in `ui/features/widget/calendar_widget_service.dart`, which had 
 
 ## `persistence/`: settings
 
-`HiveSettingsRepository` over the `settings` box. Every accessor goes through one of two private helpers: `_write`
-wraps any failure in `CacheFailure`, and **`_read` returns `null` for anything that goes wrong**: a box that will
-not open, a value stored under the wrong type, a stored username that no longer validates, an enum name that no
-longer exists. A corrupted setting degrades to "unset" rather than blocking the app. Before those helpers existed
-the getters were unguarded, so a value written as an `int` by an older build reached an `as String?` cast and threw
-a `TypeError` out of a layer whose first rule is that nothing but a `Failure` leaves it.
+`HiveSettingsRepository` over the `settings` box. **It reads once, through `load()`, and writes one key at a time.**
+That asymmetry is the point: a read always wants the whole picture, and every one of the seven writes is a distinct
+thing a person did. Collapsing the writes into one `save(AppSettings)` would also make `ThemeModeNotifier` and
+`ViewerNotifier`, which hold different subsets and live in different providers, able to clobber each other from a
+stale snapshot.
+
+`load()` returns an `AppSettings` that is already defaulted, and **every field tolerates its own corruption**.
+`_tolerating` wraps each read, so a `cellShape` written as an `int` by an older build costs you the Cell Shape and
+nothing else; only a box that will not open at all returns `const AppSettings()` whole. It was seven separate
+getters each wrapped in a `_read` helper, which had the same per-field tolerance, and the collapse to one call is
+where that property was nearly lost. `settings_repository_impl_test.dart` pins it.
+
+`_write` wraps any failure in `CacheFailure`. Before these helpers existed the accessors were unguarded, so a value
+written as an `int` by an older build reached an `as String?` cast and threw a `TypeError` out of a layer whose
+first rule is that nothing but a `Failure` leaves it.
 
 The stored keys, and the two that carry a legacy fallback:
 
@@ -123,10 +132,11 @@ The stored keys, and the two that carry a legacy fallback:
 | `cellShape` · `cellSize` · `themeMode` | - | the enum's `name` |
 | `backgroundPreset` | `cardBackground` | the enum's `name` |
 
-**Three shapes are extracted rather than spelled out.** `_enumByName` is the one enum-by-name lookup (it was
-written three times), and `_readWithLegacy` / `_writeReplacingLegacy` are the migration pair (four hand-spelled
-lines over two keys). That matters for the rule below: "add the legacy fallback" used to mean remembering `??` in
-the getter *and* `delete` in the setter, in two separate places, with nothing linking them.
+**Four shapes are extracted rather than spelled out.** `_enumByName` is the one enum-by-name lookup (it was
+written three times), `_readWithLegacy` / `_writeReplacingLegacy` are the migration pair (four hand-spelled lines
+over two keys), and `_tolerating` is the per-field guard. That matters for the rule below: "add the legacy
+fallback" used to mean remembering `??` in the getter *and* `delete` in the setter, in two separate places, with
+nothing linking them.
 
 **Enums are persisted by `name`, never by `index`.** Reordering the enum is then free; renaming a *case* is a
 migration. Adding or renaming a key means adding the legacy fallback **and** a migration test in the same commit, or

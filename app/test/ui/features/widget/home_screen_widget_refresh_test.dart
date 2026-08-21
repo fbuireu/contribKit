@@ -34,38 +34,12 @@ const _dracula = Palette(
 );
 
 final class _FakeSettingsRepository implements SettingsRepository {
-  _FakeSettingsRepository({
-    this.username,
-    this.year,
-    this.paletteKey,
-    this.cellShape,
-  });
+  _FakeSettingsRepository({this.settings = const AppSettings()});
 
-  final Username? username;
-  final Year? year;
-  final String? paletteKey;
-  final CellShape? cellShape;
+  final AppSettings settings;
 
   @override
-  Future<Username?> getLastUsername() async => username;
-
-  @override
-  Future<Year?> getLastYear() async => year;
-
-  @override
-  Future<String?> getSavedPaletteKey() async => paletteKey;
-
-  @override
-  Future<CellShape?> getSavedCellShape() async => cellShape;
-
-  @override
-  Future<CellSize?> getSavedCellSize() async => null;
-
-  @override
-  Future<String?> getSavedBackgroundPreset() async => null;
-
-  @override
-  Future<AppThemeMode?> getThemeMode() async => null;
+  Future<AppSettings> load() async => settings;
 
   @override
   Future<void> saveLastUsername(Username username) async {}
@@ -168,10 +142,12 @@ void main() {
 
       await subject(
         settings: _FakeSettingsRepository(
-          username: username,
-          year: Year(2024),
-          paletteKey: 'dracula',
-          cellShape: CellShape.circle,
+          settings: AppSettings(
+            lastUsername: username,
+            lastYear: Year(2024),
+            paletteKey: 'dracula',
+            cellShape: CellShape.circle,
+          ),
         ),
         contributions: contributions,
         writer: writer,
@@ -189,7 +165,9 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(username: username),
+        settings: _FakeSettingsRepository(
+          settings: AppSettings(lastUsername: username),
+        ),
         contributions: contributions,
         writer: writer,
       )();
@@ -201,7 +179,9 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(username: username),
+        settings: _FakeSettingsRepository(
+          settings: AppSettings(lastUsername: username),
+        ),
         contributions: _FakeContributionRepository(calendar),
         writer: writer,
       )();
@@ -214,8 +194,7 @@ void main() {
 
       await subject(
         settings: _FakeSettingsRepository(
-          username: username,
-          paletteKey: 'Dracula',
+          settings: AppSettings(lastUsername: username, paletteKey: 'Dracula'),
         ),
         contributions: _FakeContributionRepository(calendar),
         writer: writer,
@@ -243,7 +222,9 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(username: username),
+        settings: _FakeSettingsRepository(
+          settings: AppSettings(lastUsername: username),
+        ),
         contributions: contributions,
         writer: writer,
         palettes: const [],

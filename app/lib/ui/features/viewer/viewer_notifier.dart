@@ -32,26 +32,22 @@ class ViewerNotifier extends _$ViewerNotifier {
     try {
       final repo = ref.read(settingsRepositoryProvider);
 
-      final username = await repo.getLastUsername();
-      final year = await repo.getLastYear();
-      final paletteKey = await repo.getSavedPaletteKey();
-      final shape = await repo.getSavedCellShape();
-      final cellSizeSaved = await repo.getSavedCellSize();
-      final backgroundName = await repo.getSavedBackgroundPreset();
+      final settings = await repo.load();
+      final backgroundName = settings.backgroundPresetName;
 
       final resolvedPalette =
           PaletteService.resolve(
             palettes: allPalettes,
-            storedKey: paletteKey,
+            storedKey: settings.paletteKey,
           ) ??
           state.palette;
 
       state = state.copyWith(
-        username: username,
-        year: year,
+        username: settings.lastUsername,
+        year: settings.lastYear,
         palette: resolvedPalette,
-        cellShape: shape ?? CellShape.fallback,
-        cellSize: cellSizeSaved ?? CellSize.fallback,
+        cellShape: settings.cellShape,
+        cellSize: settings.cellSize,
         backgroundPreset:
             (backgroundName == null
                 ? null
@@ -59,11 +55,9 @@ class ViewerNotifier extends _$ViewerNotifier {
             BackgroundPreset.fallback,
       );
 
+      final username = settings.lastUsername;
       if (username != null) {
-        await fetchContributions(
-          username: username,
-          year: year ?? Year.current,
-        );
+        await fetchContributions(username: username, year: settings.year);
       }
     } catch (_) {
     } finally {

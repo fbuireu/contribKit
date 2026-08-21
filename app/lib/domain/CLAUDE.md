@@ -72,6 +72,7 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
 | `TipOutcome` | `completed` / `cancelled`: what came back from the store when a Tip was offered |
 | `Embed` | the one spelling of an Embed URL: origin, segment, extension, and which options are worth a query param. It has a TypeScript twin the docs contract diffs it against; see below |
+| `AppSettings` | everything the app remembers, already defaulted. `SettingsRepository.load()` returns one, and `year` is `lastYear ?? Year.current` so no caller re-decides that |
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | - |
 
 `Year.minYear` is **2005**, a product floor rather than GitHub's launch year: GitHub launched in 2008, and four

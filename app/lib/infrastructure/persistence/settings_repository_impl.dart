@@ -20,14 +20,6 @@ const _keyThemeMode = 'themeMode';
 final class HiveSettingsRepository implements SettingsRepository {
   Future<Box<dynamic>> get _box => Hive.openBox<dynamic>(_settingsBoxName);
 
-  Future<T?> _read<T>(T? Function(Box<dynamic> box) read) async {
-    try {
-      return read(await _box);
-    } catch (_) {
-      return null;
-    }
-  }
-
   Future<void> _write(Future<void> Function(Box<dynamic> box) write) async {
     try {
       await write(await _box);
@@ -63,29 +55,66 @@ final class HiveSettingsRepository implements SettingsRepository {
   }
 
   @override
-  Future<Username?> getLastUsername() => _read((box) {
-    final raw = box.get(_keyLastUsername) as String?;
-    return raw == null ? null : Username(raw);
-  });
+  Future<AppSettings> load() async {
+    final Box<dynamic> box;
+    try {
+      box = await _box;
+    } catch (_) {
+      return const AppSettings();
+    }
+    return _settingsIn(box);
+  }
+
+  static T? _tolerating<T>(T? Function() read) {
+    try {
+      return read();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static AppSettings _settingsIn(Box<dynamic> box) {
+    final username = _tolerating(() => box.get(_keyLastUsername) as String?);
+    final year = _tolerating(() => box.get(_keyLastYear) as int?);
+
+    return AppSettings(
+      lastUsername: _tolerating(
+        () => username == null ? null : Username(username),
+      ),
+      lastYear: _tolerating(() => year == null ? null : Year(year)),
+      paletteKey: _tolerating(
+        () => _readWithLegacy(box, _keyPaletteKey, _keyLegacyPaletteName),
+      ),
+      cellShape:
+          _tolerating(
+            () => _enumByName(box, _keyCellShape, CellShape.values),
+          ) ??
+          CellShape.fallback,
+      cellSize:
+          _tolerating(() => _enumByName(box, _keyCellSize, CellSize.values)) ??
+          CellSize.fallback,
+      backgroundPresetName: _tolerating(
+        () => _readWithLegacy(
+          box,
+          _keyBackgroundPreset,
+          _keyLegacyCardBackground,
+        ),
+      ),
+      themeMode:
+          _tolerating(
+            () => _enumByName(box, _keyThemeMode, AppThemeMode.values),
+          ) ??
+          AppThemeMode.system,
+    );
+  }
 
   @override
   Future<void> saveLastUsername(Username username) =>
       _write((box) => box.put(_keyLastUsername, username.value));
 
   @override
-  Future<Year?> getLastYear() => _read((box) {
-    final raw = box.get(_keyLastYear) as int?;
-    return raw == null ? null : Year(raw);
-  });
-
-  @override
   Future<void> saveLastYear(Year year) =>
       _write((box) => box.put(_keyLastYear, year.value));
-
-  @override
-  Future<String?> getSavedPaletteKey() => _read(
-    (box) => _readWithLegacy(box, _keyPaletteKey, _keyLegacyPaletteName),
-  );
 
   @override
   Future<void> savePaletteKey(String key) => _write(
@@ -94,26 +123,12 @@ final class HiveSettingsRepository implements SettingsRepository {
   );
 
   @override
-  Future<CellShape?> getSavedCellShape() =>
-      _read((box) => _enumByName(box, _keyCellShape, CellShape.values));
-
-  @override
   Future<void> saveCellShape(CellShape shape) =>
       _write((box) => box.put(_keyCellShape, shape.name));
 
   @override
-  Future<CellSize?> getSavedCellSize() =>
-      _read((box) => _enumByName(box, _keyCellSize, CellSize.values));
-
-  @override
   Future<void> saveCellSize(CellSize size) =>
       _write((box) => box.put(_keyCellSize, size.name));
-
-  @override
-  Future<String?> getSavedBackgroundPreset() => _read(
-    (box) =>
-        _readWithLegacy(box, _keyBackgroundPreset, _keyLegacyCardBackground),
-  );
 
   @override
   Future<void> saveBackgroundPreset(String presetName) => _write(
@@ -124,10 +139,6 @@ final class HiveSettingsRepository implements SettingsRepository {
       presetName,
     ),
   );
-
-  @override
-  Future<AppThemeMode?> getThemeMode() =>
-      _read((box) => _enumByName(box, _keyThemeMode, AppThemeMode.values));
 
   @override
   Future<void> saveThemeMode(AppThemeMode mode) =>
