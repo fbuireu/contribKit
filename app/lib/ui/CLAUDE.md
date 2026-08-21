@@ -238,7 +238,7 @@ position and Kotlin reads them positionally. It also changes what every cached c
 `test/ui/features/widget/` pins the enum order for exactly that reason. It is the only thing that would fail, and
 without it the first symptom is a user's home screen in the wrong colours.
 
-**Four more things cross that seam as bare strings, and `dart_kotlin_seam_test.dart` now reads the Kotlin and the
+**Three more things cross that seam as bare strings, and `dart_kotlin_seam_test.dart` now reads the Kotlin and the
 manifest to check them.** None of them is a compile error on either side, and every one of them fails the same way:
 the widget keeps rendering, showing its layout defaults, forever.
 

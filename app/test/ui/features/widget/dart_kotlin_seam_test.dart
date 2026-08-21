@@ -93,7 +93,7 @@ void main() {
         isFalse,
         reason:
             'home_widget picks the SharedPreferences file, and its name is '
-            'internal to that package. Spelling it here is a sixth string '
+            'internal to that package. Spelling it here is a fifth string '
             'crossing this seam with nothing holding the two ends together. '
             'Read it through HomeWidgetPlugin.getData(context) instead',
       );
