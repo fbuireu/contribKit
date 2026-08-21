@@ -1,7 +1,7 @@
 const CONTRIBUTION_ERRORS: Record<number, string> = {
 	400: "invalid username",
 	404: "user not found — check the username and try again",
-	429: "github is rate-limiting us, try again in a moment",
+	429: "too many requests — try again in a moment",
 	502: "could not reach github, try again in a moment",
 };
 

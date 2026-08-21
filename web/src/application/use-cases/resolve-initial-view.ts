@@ -37,6 +37,8 @@ const asSaved = (raw?: string | null): string | undefined => {
 	return isUsername(parsed) ? parsed.value : undefined;
 };
 
+const isServeable = (username: string): boolean => isUsername(parseUsername(username));
+
 export const resolveViewerIdentity = ({
 	requestedUsername,
 	savedUsername,
@@ -46,7 +48,7 @@ export const resolveViewerIdentity = ({
 	return {
 		username: chosen ?? DEFAULT_USERNAME,
 		isExplicit: chosen !== undefined,
-		cacheControl: chosen === undefined ? CACHE_CONTROL_DEFAULT : CACHE_CONTROL_EXPLICIT,
+		cacheControl: chosen !== undefined && isServeable(chosen) ? CACHE_CONTROL_EXPLICIT : CACHE_CONTROL_DEFAULT,
 	};
 };
 

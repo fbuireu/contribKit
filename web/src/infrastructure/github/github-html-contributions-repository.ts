@@ -78,11 +78,15 @@ const totalFor = (days: readonly ContributionDay[]): number | null => {
 	return total;
 };
 
+const RETRY_AFTER_SECONDS = /^\d+$/;
+const RETRY_AFTER_HTTP_DATE = /[a-zA-Z]/;
+
 const retryAfterFrom = (header: string | null): number | null => {
-	if (!header) return null;
-	const seconds = Number(header);
-	if (Number.isInteger(seconds) && seconds >= 0) return seconds;
-	const at = Date.parse(header);
+	const value = header?.trim();
+	if (!value) return null;
+	if (RETRY_AFTER_SECONDS.test(value)) return Number(value);
+	if (!RETRY_AFTER_HTTP_DATE.test(value)) return null;
+	const at = Date.parse(value);
 	return Number.isNaN(at) ? null : Math.max(0, Math.round((at - Date.now()) / 1000));
 };
 
@@ -115,7 +119,13 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 			});
 		if (!response.ok) return network({ message: `GitHub returned ${response.status}`, status: response.status });
 
-		const html = await response.text();
+		let html: string;
+		try {
+			html = await response.text();
+		} catch (error) {
+			return network({ message: error instanceof Error ? error.message : String(error) });
+		}
+
 		const { days, total } = parseHtml(html);
 		if (days.length === 0) return parse("Could not parse contributions");
 

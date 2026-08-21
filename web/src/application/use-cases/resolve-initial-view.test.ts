@@ -82,6 +82,12 @@ describe("resolveViewerIdentity", () => {
 			expect(resolveViewerIdentity({}).cacheControl).toBe("private, no-store");
 		});
 
+		it("never stores a view it could not serve, so an error page is not cached for an hour", () => {
+			for (const requestedUsername of ["not a handle", "-leading-dash", "a".repeat(40)]) {
+				expect(resolveViewerIdentity({ requestedUsername }).cacheControl, requestedUsername).toBe("private, no-store");
+			}
+		});
+
 		it("is always private, so a shared cache never serves one visitor's calendar to another", () => {
 			for (const identity of [resolveViewerIdentity({}), resolveViewerIdentity({ requestedUsername: "torvalds" })]) {
 				expect(identity.cacheControl.startsWith("private")).toBe(true);

@@ -91,9 +91,15 @@ The status → human sentence map, in lowercase, prefixed with `↳` by `formatH
 | --- | --- |
 | 400 | `invalid username` |
 | 404 | `user not found — check the username and try again` |
-| 429 | `github is rate-limiting us, try again in a moment` |
+| 429 | `too many requests — try again in a moment` |
 | 502 | `could not reach github, try again in a moment` |
 | anything else | `something went wrong` |
+
+**The 429 wording is deliberately neutral, because the status has two sources.** On `/api/contributions` it is
+either this site's own per-IP limit (the middleware, with `Retry-After: 60`) or GitHub rate-limiting the Worker
+(a `RateLimited` failure, without one). This table is keyed on status alone, so a sentence naming GitHub would be
+wrong half the time — the same class of mistake as the 502 that said "could not reach github" about a service
+that had answered. Naming the cause needs the `kind` on the wire, which the JSON body does not carry yet.
 
 These mirror `failure-http`'s status choices. **Adding a `Failure` kind that maps to a new status means adding a row
 here too**, or users get the fallback sentence — and nothing fails to compile when you forget.

@@ -55,8 +55,16 @@ derives a level from a count — the app does, and only when the attribute is mi
 **A 429 is not an outage, and saying so was a lie the reader could act on.** Every non-404 status used to become
 `network`, which `failure-http` maps to 502 and `contribution-errors` renders as "could not reach github" — so
 GitHub saying *slow down* was reported as GitHub being unreachable. `rateLimited` carries `retryAfterSeconds`,
-parsed from `Retry-After` in either form the RFC allows (a count of seconds, or an HTTP date), and maps to 429.
+parsed from `Retry-After` in either form the RFC allows — a count of digits, or an HTTP date — and maps to 429.
+**Anything else is `null`, not zero.** The parser used `Number(header)`, which reads `" "` as `0` and lets `"5.5"`
+fall through to `Date.parse`, whose legacy parser accepts it as a date in 2001 and yields `0` as well. "Retry
+immediately" is the worst of the three possible wrong answers, so it now requires all-digits or a string with a
+letter in it.
 The app has had `RateLimitedFailure` since ADR 0004; this is the same distinction, in TypeScript.
+
+**Reading the body is guarded separately from the fetch.** The timeout signal aborts the *response stream* too,
+so a GitHub that answers with headers and then stalls makes `response.text()` reject — outside the `try` that
+wraps the fetch, and therefore out of a layer whose rule is that only a `Failure` leaves it. Both are guarded.
 
 **The outbound fetch carries `AbortSignal.timeout(20_000)`.** It had none, so a hung GitHub held the invocation open
 until the platform killed it and the visitor got a generic edge error rather than a `Failure`. Twenty seconds is the

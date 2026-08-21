@@ -132,7 +132,7 @@ test helper reintroduces the same bug in the test rather than the code.
 - **The Cell maths is the app's, in TypeScript.** `CORNER_RADIUS_RATIO` (0.2), `DOT_BASE_RADIUS` (1.4) and
   `DOT_REFERENCE_CELL_SIZE` (10) are the same three constants `app/lib/domain/services/cell_geometry_service.dart`
   holds, and `ContribKitWidgetProvider.kt` mirrors as literals. `rounded` gets `cornerRadiusFor(size)`, `square`
-  gets 0, everything else `size / 2` — which is what makes a rect look like a circle if it is ever routed through
+  gets 0, and `circle` / `dot` / `hex` get `size / 2` — which is what makes a rect look like a circle if it is ever routed through
   the rect renderer. Read through `calendarLayout().radius`. This file held a fixed `2.5` and an unscaled dot
   radius until that was unified; the Embed's corner moved from 2.5 to 2.0 as a result. **Change a constant here and
   it changes in three languages** — Dart is the source, Kotlin cannot import either.

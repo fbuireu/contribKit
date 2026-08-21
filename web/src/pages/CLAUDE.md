@@ -170,6 +170,9 @@ nothing else, so the calendar embeds outside GitHub
   `loadInitialContributions`, whose `parseUsername` returns `InvalidInput` → 400 → the empty grid and "invalid
   username" the other two surfaces already gave. It is bounded to `MAX_USERNAME_LENGTH + 1` characters first,
   because that string is rendered into the page and a slice that short can never become valid.
+  **The cache header asks a different question from `isExplicit`.** `isExplicit` says a person asked;
+  `Cache-Control` asks whether we could answer them, so a rejected handle gets `no-store` rather than caching an
+  error page for an hour with a day of stale-while-revalidate behind it.
 - **The scraped total wins over the computed sum**, and that rule lives in `statsWithScrapedTotal` in the domain,
   because it is a claim about what a Total Contributions is rather than a page concern. The check is `!= null`, not
   truthiness: a scraped total of `0` is a fact and has to beat a sum, and it used to lose. The page and

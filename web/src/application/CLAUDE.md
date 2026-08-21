@@ -10,8 +10,9 @@ Cloudflare or `fetch` — everything reaches it through a closure. Stateless: st
   one call that takes both, and do not build the repository inside an `.astro` frontmatter — frontmatter is
   per-request code, so the landing page used to rebuild its infrastructure on every visit until that composition
   moved into a module. **The dependency is the repository's own method type**, not a use case wrapping it:
-  `_contributions.ts` binds `githubHtmlContributionsRepository.fetch` and hands it straight to
-  `loadInitialContributions`.
+  `_contributions.ts` wraps `githubHtmlContributionsRepository.fetch` in a one-line arrow typed
+  `ContributionsRepository["fetch"]` and hands that to `loadInitialContributions` — the arrow keeps the reference
+  attached to its object, and adds nothing else.
 - **Never throw.** Every use case returns `T | Failure`, or the `LoadContributionsResult` union described below.
 - **Two arguments means one destructured object.** `logContributionsFailure` and `loadInitialContributions` both
   take a single params object; that is the repo-wide convention, not a local one, and

@@ -95,6 +95,46 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		expect(passedSignal).toBeInstanceOf(AbortSignal);
 	});
 
+	it("turns an aborted request into a Failure, never a throw out of the layer", async () => {
+		stubFetch(async () => {
+			throw new DOMException("The operation was aborted", "TimeoutError");
+		});
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.Network });
+	});
+
+	it("turns an abort mid-body into a Failure too, which the fetch guard alone does not cover", async () => {
+		stubFetch(
+			async () =>
+				({
+					status: 200,
+					ok: true,
+					headers: new Headers(),
+					text: () => Promise.reject(new DOMException("aborted", "TimeoutError")),
+				}) as unknown as Response,
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.Network });
+	});
+
+	it("reads Retry-After only in the two forms the RFC allows", async () => {
+		const parsed = async (retryAfter: string) => {
+			stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": retryAfter } }));
+			const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+			return "retryAfterSeconds" in result ? result.retryAfterSeconds : undefined;
+		};
+
+		expect(await parsed(" ")).toBeNull();
+		expect(await parsed("5.5")).toBeNull();
+		expect(await parsed("-1")).toBeNull();
+		expect(await parsed("nonsense")).toBeNull();
+		expect(await parsed(" 90 ")).toBe(90);
+	});
+
 	it("returns Network when fetch throws", async () => {
 		stubFetch(async () => {
 			throw new Error("boom");

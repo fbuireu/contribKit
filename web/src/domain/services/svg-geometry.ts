@@ -48,7 +48,9 @@ const radiusFor = ({ shape, size }: RadiusForParams): number => {
 			return cornerRadiusFor(size);
 		case CellShape.Square:
 			return 0;
-		default:
+		case CellShape.Circle:
+		case CellShape.Dot:
+		case CellShape.Hex:
 			return size / 2;
 	}
 };
