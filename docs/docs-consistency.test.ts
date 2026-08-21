@@ -32,7 +32,7 @@ const walk = (dir: string, match: (path: string) => boolean): string[] => {
 	return out;
 };
 
-const read = (path: string): string => readFileSync(path, "utf8");
+const read = (path: string): string => readFileSync(path, "utf8").replaceAll("\r\n", "\n");
 
 const FENCED_CODE_BLOCK = /```[\s\S]*?```/g;
 const INLINE_CODE_SPAN = /`[^`\n]*`/g;

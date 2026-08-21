@@ -101,7 +101,7 @@ These documents are not generated. A change that does not update them leaves the
 | Every relative link, `../../wiki/` shorthand and cited source path resolves | |
 | No `file.ts:123` citation anywhere | they rot the moment anything above them moves, so name the symbol instead |
 | The ADR set holds its template | sequential numbering from 0000, `NNNN-kebab-title.md`, the `# N. Title` / Date / Status / *Context* / *Decision* / *Consequences* shape, a row in the [`ARCHITECTURE.md`](./ARCHITECTURE.md) index, and a link from some document **other** than that index |
-| `shared/*.json` equals its mirror in `app/assets/` | normalised for line endings and trailing whitespace, because a Windows checkout rewrites them |
+| `shared/*.json` equals its mirror in `app/assets/` | normalised for trailing whitespace as well. **Every file the contract reads is normalised for line endings**, in `read` itself: a Windows clone with `core.autocrlf=true` used to fail two ADR assertions that compare a heading against a stored title, which is a guard failing for a non-reason |
 | The README's feature *line* names every palette and shape shipped | the line, not the file: `GitHub` and `square` occur elsewhere in the README and made the old whole-file check unfailable |
 | Every pinned version matches the manifest that pins it, and exactly one manifest pins pnpm | |
 | Every documented `pnpm` script is declared in a `package.json` | read from code spans, so prose saying "the pnpm and Node pins" is not mistaken for a command |
