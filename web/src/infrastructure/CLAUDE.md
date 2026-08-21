@@ -40,8 +40,9 @@ them is how this starts silently returning a full HTML page that the regexes the
    [ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md) exists to catch.
 
 **Levels come from GitHub.** `data-level` is authoritative and is only run through `clampLevel`. This layer never
-derives a level from a count; the app does, and only when the attribute is missing
-([ADR 0008](../../../docs/adr/0008-the-mobile-app-fetches-github-directly.md)).
+derives a level from a count; the app does, and only when the attribute is missing. That divergence is recorded in
+[ADR 0008](../../../docs/adr/0008-the-mobile-app-fetches-github-directly.md); why there are two parsers at all is
+[ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md).
 
 **Failure mapping:**
 
