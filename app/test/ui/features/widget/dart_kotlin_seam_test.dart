@@ -85,6 +85,21 @@ void main() {
       );
     });
 
+    test('the store both sides share is named by the plugin, not by us', () {
+      final kotlin = _kotlin();
+
+      expect(
+        kotlin.contains('getSharedPreferences('),
+        isFalse,
+        reason:
+            'home_widget picks the SharedPreferences file, and its name is '
+            'internal to that package. Spelling it here is a sixth string '
+            'crossing this seam with nothing holding the two ends together. '
+            'Read it through HomeWidgetPlugin.getData(context) instead',
+      );
+      expect(kotlin, contains('HomeWidgetPlugin.getData(context)'));
+    });
+
     test('every Cell Shape is drawn by name, not by the rounded fallback', () {
       final kotlin = _kotlin();
       final unhandled = CellShape.values

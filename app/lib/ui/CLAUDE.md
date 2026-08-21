@@ -242,6 +242,13 @@ the widget keeps rendering, showing its layout defaults, forever.
 | `_qualifiedMedium` / `_qualifiedSmall` in `CalendarWidgetService` | `AndroidManifest.xml`'s `<receiver android:name>`, plus the Gradle `applicationId` | the qualified names must resolve to declared receivers |
 | every `CellShape` name | `drawCell`'s `when (shape)` | each name must have its own arm: the `when` ends in `else -> rounded`, so a sixth Cell Shape draws rounded rects and nothing complains |
 
+**A fifth string used to cross it and no longer does.** Both providers opened
+`getSharedPreferences("HomeWidgetPreferences", ...)` by hand, which is `home_widget`'s own file name and is
+`internal` to that package, so nothing on either side would have noticed the plugin renaming it. They call
+`HomeWidgetPlugin.getData(context)` now, which is public and returns the same store, and the test asserts no
+`getSharedPreferences(` literal comes back. That is the shape to prefer whenever it is available: deleting a
+duplicated string beats pinning it.
+
 Renaming a Kotlin class is a valid refactor the IDE will do for you, and it updates the manifest; it does not update
 a Dart string. That combination (a rename that compiles, an analyzer that is happy, and a `catch (_) {}` in
 `CalendarWidgetService`) is why this needed a test rather than a rule.

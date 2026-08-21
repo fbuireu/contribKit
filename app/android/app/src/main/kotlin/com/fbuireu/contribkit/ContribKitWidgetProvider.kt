@@ -13,6 +13,7 @@ import android.graphics.RectF
 import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -59,7 +60,7 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
         try {
             val views = RemoteViews(context.packageName, R.layout.contribkit_widget)
 
-            val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
+            val prefs = HomeWidgetPlugin.getData(context)
             val username = prefs.getString("widget_username", null)
             val streak = prefs.getAll()["widget_streak"]
             val totalContributions = prefs.getAll()["widget_total_contributions"]
