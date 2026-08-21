@@ -1,6 +1,6 @@
 # app/lib/ui
 
-Flutter widgets and Riverpod providers — the only layer that knows either exists. It reaches `application/` and, only
+Flutter widgets and Riverpod providers: the only layer that knows either exists. It reaches `application/` and, only
 through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 
 ## Invariants & rules
@@ -8,15 +8,15 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 - **No business logic in widgets.** If `build` grows more than a trivial conditional, the logic belongs in a
   notifier.
 - **Widgets are dumb**: `ref.watch` to read, `ref.read(notifier).method()` to act.
-- **Never import `shadcn_ui` in a feature widget** — go through the `AppXxx` wrappers in `widgets/`. The whole
+- **Never import `shadcn_ui` in a feature widget**: go through the `AppXxx` wrappers in `widgets/`. The whole
   package is confined to `widgets/`, `theme/app_colors.dart` and `main.dart`, and the docs-consistency test fails
   on any other importer. If a primitive has no wrapper yet, add one rather than reaching past it. **That rule is
   what keeps a thin-looking wrapper**: `AppCard` and `AppTooltip` are near pass-throughs, but deleting them would
-  push a `shadcn_ui` import into `features/` — they move complexity rather than concentrating it. A wrapper with
+  push a `shadcn_ui` import into `features/`. They move complexity rather than concentrating it. A wrapper with
   *no* caller has no such defence, which is why `AppBadge` was deleted; the one surface that wanted a badge, the
   `cached` pill in `viewer_screen.dart`, had hand-rolled its own beside it without ever reaching for the wrapper.
   **A dead parameter is not a scale, and the two are treated differently.** `AppButton.destructive` and
-  `AppTextField`'s `onChanged` / `autofocus` had no caller and are gone — each was a `shadcn_ui` argument forwarded
+  `AppTextField`'s `onChanged` / `autofocus` had no caller and are gone. Each was a `shadcn_ui` argument forwarded
   through a wrapper that nothing asked for, and re-adding one is a line. `AppButtonSize`'s three cases and
   `Tokens`' `space1…space12`, `radiusSm…radiusFull` and `textXs…text3Xl` stay complete even where a rung has no
   reader: a scale with holes gets the missing rung reintroduced with a different number, and `AppButtonSize.md`
@@ -26,7 +26,7 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
   [`theme/`](./theme/CLAUDE.md). That includes the ones that look incidental: the sheet scrim is `AppColors.scrim`,
   a transparent fill is `AppColors.transparent`, and every animation length is a `Tokens.duration*`.
 - **Read colours through `AppColors.of(context)`, never `ShadTheme.of(context).colorScheme`.** The two used to
-  disagree — see the gotcha below.
+  disagree; see the gotcha below.
 - **Match `Failure` exhaustively, without a wildcard.** The single match lives in `FailureMessage.of`, in
   `failure_message.dart`; adding a kind breaks compilation there until it is handled
   ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)).
@@ -35,13 +35,13 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 
 | Directory | Contents |
 |---|---|
-| `di/` | All dependency wiring — the only place that constructs infrastructure objects |
-| `theme/` | `tokens.dart`, `app_colors.dart`, `app_text_styles.dart`, `background_presets.dart` — and no palette table, see [`theme/`](./theme/CLAUDE.md) |
-| `widgets/` | Shared `AppXxx` wrappers over `shadcn_ui` primitives — button, card, text field, tooltip, sheet. **`AppSheet` is not a pass-through**: it decides what a sheet in this app *is* — see below. `AppButton` takes an `AppButtonSize`, not shadcn's, so the type does not leak either. `app_icons.dart` re-exports `LucideIcons`, which arrives through `shadcn_ui` and is not a declared dependency of this package |
+| `di/` | All dependency wiring: the only place that constructs infrastructure objects |
+| `theme/` | `tokens.dart`, `app_colors.dart`, `app_text_styles.dart`, `background_presets.dart`. And no palette table, see [`theme/`](./theme/CLAUDE.md) |
+| `widgets/` | Shared `AppXxx` wrappers over `shadcn_ui` primitives: button, card, text field, tooltip, sheet. **`AppSheet` is not a pass-through**: it decides what a sheet in this app *is*; see below. `AppButton` takes an `AppButtonSize`, not shadcn's, so the type does not leak either. `app_icons.dart` re-exports `LucideIcons`, which arrives through `shadcn_ui` and is not a declared dependency of this package |
 | `features/viewer/` | The Viewer screen and `ViewerNotifier`, which owns nearly all app state |
-| `features/customizer/` | Choosing a Palette, a Cell Shape, a Cell Size and a Background Preset — all four through `SettingPicker` |
-| `features/export/` | Choosing an `ExportFormat` and the share flow — the format itself is a domain value object, not a private enum per surface |
-| `features/tip/` | The Tip Jar, its sealed `TipJarState`, and `TipProductPresentation` — the emoji and label each Tip Product is shown with |
+| `features/customizer/` | Choosing a Palette, a Cell Shape, a Cell Size and a Background Preset: all four through `SettingPicker` |
+| `features/export/` | Choosing an `ExportFormat` and the share flow. The format itself is a domain value object, not a private enum per surface |
+| `features/tip/` | The Tip Jar, its sealed `TipJarState`, and `TipProductPresentation`: the emoji and label each Tip Product is shown with |
 | `features/widget/` | Home-screen widget data sync and configuration |
 
 ## `ViewerNotifier` owns the state
@@ -52,9 +52,9 @@ Generated by `@riverpod` (`part 'viewer_notifier.g.dart'`) over a `freezed` `Vie
 - **`build()` returns synchronously and kicks `_loadSettings` off in a `Future.microtask`.** The first frame is
   therefore always the empty state; anything assuming settings are loaded in `build` is racing.
 - **Every setter writes through immediately**: `setPalette`, `setCellShape`, `setCellSize`, `setBackgroundPreset`
-  update the state, persist via `settingsRepositoryProvider`, and — for the **first two** — refresh the home-screen
+  update the state, persist via `settingsRepositoryProvider`, and (for the **first two**) refresh the home-screen
   widget. **`setBackgroundPreset` and `setCellSize` deliberately do not**, and for the same reason: neither reaches
-  the widget. The Background is a screen-only concern, and the payload carries no size at all — `renderGrid` on the
+  the widget. The Background is a screen-only concern, and the payload carries no size at all. `renderGrid` on the
   Kotlin side draws at a fixed 20 px cell and derives only how many columns to merge the weeks into, from the
   widget's measured bounds. `setCellSize` used to refresh anyway, which
   rewrote seven identical values, woke two `AppWidgetProvider`s and re-rasterised two bitmaps to produce a
@@ -65,24 +65,24 @@ Generated by `@riverpod` (`part 'viewer_notifier.g.dart'`) over a `freezed` `Vie
 - **`fetchContributions` catches in two layers**: `on Failure` keeps the typed failure, and a bare `catch` wraps
   anything else in `UnexpectedFailure`. Nothing else in the app produces `UnexpectedFailure`.
 - **`_loadSettings` swallows the *settings* read** (`catch (_) {}`). A corrupt settings box degrades to defaults
-  rather than an error screen — deliberate, and the reason a broken palette key is invisible rather than fatal.
+  rather than an error screen: deliberate, and the reason a broken palette key is invisible rather than fatal.
   **The Palette load is not in that arm.** It has no default to degrade to, so a failure there used to leave
-  `state.palette` null, and `_Body` — which guarded on `palette == null` — rendered the marketing empty state
+  `state.palette` null, and `_Body` (which guarded on `palette == null`) rendered the marketing empty state
   ("Paste any GitHub username above…") with the username still in the field and a calendar successfully fetched.
   A corrupt `assets/palettes.json` presented as *you have not searched yet*. The failure lands on
   `ViewerState.paletteFailure` now, and `blockingFailure` is what `_Body` reads.
   **`blockingFailure` is `error ?? (palette == null ? paletteFailure : null)`, and the `palette == null` guard is
   load-bearing.** Without it a single transient asset read failure was terminal for the life of the process: it
-  was written once in `_loadSettings`, cleared only on that method's success arm, and `_ErrorState` had no retry —
-  so it went on hiding calendars that afterwards loaded perfectly. `_ErrorState` takes an `onRetry` now, wired to
+  was written once in `_loadSettings`, cleared only on that method's success arm, and `_ErrorState` had no retry.
+  So it went on hiding calendars that afterwards loaded perfectly. `_ErrorState` takes an `onRetry` now, wired to
   `ViewerNotifier.retry`, which re-reads the palettes before refetching.
   **A failed settings *write* no longer hides a loaded calendar either.** `saveLastUsername` / `saveLastYear` were
-  awaited inside the fetch's `try`, and `HiveSettingsRepository` wraps a write failure as `CacheFailure` — a
-  `Failure` — so a settings-box problem set `state.error` and replaced a grid that had arrived fine with "Could
+  awaited inside the fetch's `try`, and `HiveSettingsRepository` wraps a write failure as `CacheFailure` (a
+  `Failure`), so a settings-box problem set `state.error` and replaced a grid that had arrived fine with "Could
   not read saved data." They go through `_remember`, which swallows a `Failure` of its own.
 - **`fetchContributions` carries a generation counter.** Two year pills tapped in quick succession started two
   fetches with no sequencing: whichever finished last wrote the calendar, whichever finished *first* cleared the
-  spinner, and `state.year` — written eagerly at the start — could end up naming a different Year than the grid
+  spinner, and `state.year` (written eagerly at the start) could end up naming a different Year than the grid
   below it, permanently. A stale response is now dropped instead of written.
 - **Palette resolution accepts a key *or* a name** (`p.key == paletteKey || p.name == paletteKey`), which is the
   in-code half of the `paletteKey` / `paletteName` migration. Removing that `||` orphans every pre-migration
@@ -99,26 +99,26 @@ same `Row`.
 `AppSheet` now owns all of it: `AppColors.scrim` (shadcn's default is 80% black, the Customizer used 50%),
 `Tokens.durationSlow` with `easeOutCubic` / `easeInCubic`, `draggable: true`, a drag handle, a 90 % height cap, a
 rounded top with `removeBorderRadiusWhenTiny: false`, `colors.card`, a top-only border, no shadow, a leading title,
-and one content padding. `CustomizerSheet` is a `ConsumerWidget` again — roughly ninety lines of scaffolding and
-drag physics deleted — and the other two dropped their own outer padding, which had been doubling shadcn's.
+and one content padding. `CustomizerSheet` is a `ConsumerWidget` again (roughly ninety lines of scaffolding and
+drag physics deleted) and the other two dropped their own outer padding, which had been doubling shadcn's.
 
 **The decision behind this was "every sheet gets a handle and drags to dismiss."** That is the Material 3 and HIG
-convention, one sheet already shipped it, and the alternative — taking it away from the Customizer — was the only
+convention, one sheet already shipped it, and the alternative (taking it away from the Customizer) was the only
 option that regresses something a person already uses. `draggable: true` is deliberately not `expandable: true`:
 in `ShadSheet` the latter switches on resize-by-drag with snap points, which is a *different interaction* this app
 has never shipped, and the handle would have promised it.
 
 **Two of the differences were silent hazards, not styling.** `AppSheet` passed no `constraints`, so a Tip Jar with
-enough Tip Products, or an Export sheet on a short device, grew to full height with square corners and no handle —
+enough Tip Products, or an Export sheet on a short device, grew to full height with square corners and no handle;
 at which point it read as an opaque page with no way out. And `ExportSheet` wrapped its content in a
 `SingleChildScrollView` *inside* the one `ShadSheet` already provides, so it received unbounded height,
 shrink-wrapped, and never scrolled.
 
 `app/test/ui/widgets/app_sheet_test.dart` pins the handle, `draggable`, the height cap, the corner rule, the title
-alignment and the padding. It drives the real route: **`ShadSheet` cannot be pumped on its own** — it reads an
+alignment and the padding. It drives the real route: **`ShadSheet` cannot be pumped on its own**. It reads an
 animation controller the route supplies and throws a null-check error otherwise.
 
-## `features/customizer/` — one picker, four settings
+## `features/customizer/`: one picker, four settings
 
 `SettingPicker<T>` owns everything a setting row does: the label and its style, the gap between options, the run
 layout, and turning a tap into `onSelected(option)`. Each of the four pickers supplies only its label, its options
@@ -132,15 +132,15 @@ hand-written `if (option != values.first) SizedBox`, two carried a byte-identica
 door. None of the four had a test; the shared module has seven.
 
 **`scrollable` is the one real difference.** The Palette run scrolls horizontally because there are many Palettes;
-everything else wraps. Adding a fifth setting means a label, an options list and a builder — not a fifth file that
+everything else wraps. Adding a fifth setting means a label, an options list and a builder. Not a fifth file that
 re-decides what a label looks like.
 
 **`PalettePicker` hides only while loading.** A *failed* Palette load used to collapse to `SizedBox.shrink()` as
 well, so the Customizer rendered with a silently missing section and no way to tell whether the app had no Palettes
 or had failed to read them. It keeps its label and shows `FailureMessage.ofAny` now. Loading still hides, which is
-right — it is transient, and a flash of an empty section is worse than nothing.
+right: it is transient, and a flash of an empty section is worse than nothing.
 
-## `features/tip/` — a sealed state, and a store id that is a contract
+## `features/tip/`: a sealed state, and a store id that is a contract
 
 `TipJarState` and `TipPhase` in `tip_jar_state.dart` are the sheet's whole state, and they exist because the six
 loose fields they replace made illegal states representable. `_products` / `_loadError` / `_purchasingId` /
@@ -151,8 +151,8 @@ and a re-entrancy guard hand-written as `if (_purchasingId != null) return;`. `T
 `TipCancelled` / `TipFailed` allow none of them, and `beginning` returns `null` rather than re-entering, so the
 guard is a property of the type.
 
-**An empty Tip Product list is `TipJarUnavailable`, not an empty `TipJarReady`** — `TipJarReady.of` decides. `getProducts` returns `[]`
-whenever `offerings.current` is null — which is the *normal* path for any build without a `REVENUECAT_KEY` — and
+**An empty Tip Product list is `TipJarUnavailable`, not an empty `TipJarReady`**. `TipJarReady.of` decides. `getProducts` returns `[]`
+whenever `offerings.current` is null (which is the *normal* path for any build without a `REVENUECAT_KEY`), and
 the sheet rendered that as no tiles, no message and a "Maybe later" button.
 
 **`TipCancelled` is a state because cancelling is not failing.** See
@@ -160,17 +160,17 @@ the sheet rendered that as no tiles, no message and a "Maybe later" button.
 SDK reports a cancel as a `PlatformException`, and until that was converted the sheet showed it as an error with
 the raw platform string in it.
 
-It is tested in `test/ui/features/tip/tip_jar_state_test.dart` — every transition, without a `WidgetTester`, which
+It is tested in `test/ui/features/tip/tip_jar_state_test.dart`: every transition, without a `WidgetTester`, which
 is the point of the state not being six fields on a private `State`.
 
 ### The store id is a contract
 
 `TipProductPresentation.of` picks a Tip Product's emoji and label by testing whether its **store identifier
-contains** a known fragment — `coffee`, `croissant`, `lunch` — and falls back to 🎁 / "Tip" for anything else. That
+contains** a known fragment (`coffee`, `croissant`, `lunch`) and falls back to 🎁 / "Tip" for anything else. That
 is a contract with Play and App Store SKUs, and the fallback means **renaming a SKU degrades silently** rather than
 failing: the Tip Jar keeps working and quietly shows a generic tile. It lived as a private static on the sheet's
-`State`, where nothing could reach it and it ran twice per product per frame. Display copy belongs in `ui/` — the
-same place as `BackgroundPreset.label` and `FailureMessage` — so it stays here rather than moving to the domain,
+`State`, where nothing could reach it and it ran twice per product per frame. Display copy belongs in `ui/` (the
+same place as `BackgroundPreset.label` and `FailureMessage`), so it stays here rather than moving to the domain,
 but as a module with a test.
 
 `TipProduct.title` comes from the store and **nothing renders it**; the label above wins. Do not assume the store's
@@ -178,13 +178,13 @@ own wording reaches the screen.
 
 ## `features/widget/`
 
-Three modules, and the split is deliberate. `HomeScreenWidgetRefresh` owns the **sequence** — stored username, stored
+Three modules, and the split is deliberate. `HomeScreenWidgetRefresh` owns the **sequence**: stored username, stored
 Year, resolved Palette, fetched Contribution Calendar, stored Cell Shape, then the write. `HomeScreenWidgetPayload`
 owns the **format**. `CalendarWidgetService` owns the **platform call**.
 
 **`HomeScreenWidgetRefresh` exists because that sequence used to be written twice.** `ViewerNotifier` spelled it out
 across `_loadSettings` and `fetchContributions`, and `callbackDispatcher` in `app/lib/main.dart` spelled the same
-seven steps again by hand — the two could only be kept in step by remembering to. It takes its three repositories
+seven steps again by hand. The two could only be kept in step by remembering to. It takes its three repositories
 through the constructor and the writer as a parameter defaulting to `CalendarWidgetService.update`, so the whole
 refresh is testable off-device: `test/ui/features/widget/home_screen_widget_refresh_test.dart` drives it with fakes
 and asserts what reaches the writer. The background isolate is now one construction and one call.
@@ -204,24 +204,24 @@ The format, spelled out because both sides encode it positionally:
 | `widget_weeks` | `calendar.weeks.length`, which the Kotlin side lays the grid out with |
 | `widget_shape` | the `CellShape` enum **name**, matched as a string in Kotlin |
 | `widget_username` · `widget_streak` | as written |
-| `widget_total_contributions` | **the finished sentence**, not a number — `"1,234 contributions this year"`, or `"contributions unknown"` |
+| `widget_total_contributions` | **the finished sentence**, not a number: `"1,234 contributions this year"`, or `"contributions unknown"` |
 
 **The seven keys are written separately, and that is safe only because the payload is fixed-width.**
 `CalendarWidgetService.update` issues seven independent `saveWidgetData` calls and then broadcasts, so a refresh
 triggered by the system or the periodic task can land between them and pair a fresh key with a stale one. The one
-pairing that would matter — `widget_weeks` against `widget_levels`, where Kotlin's `idx = w * 7 + r` indexes the
-level string — **cannot go wrong**: the Contribution Grid is always 53 × 7
+pairing that would matter (`widget_weeks` against `widget_levels`, where Kotlin's `idx = w * 7 + r` indexes the
+level string) **cannot go wrong**: the Contribution Grid is always 53 × 7
 ([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)), so `weeks` is invariably 53 and `levels` is
 invariably 371 characters. A stale one and a fresh one are identical, and the `idx < levels.length` guard on the
 Kotlin side can never trip from a torn write. `home_screen_widget_payload_test.dart` pins both widths, because that
-invariant is the whole reason seven separate writes are acceptable — make the grid variable and this becomes a real
+invariant is the whole reason seven separate writes are acceptable. Make the grid variable and this becomes a real
 tear.
 
 What can still interleave is cosmetic and self-heals on the next update: new levels painted with the previous
 Palette's colours for one frame. Do not add an eighth key without asking whether it is fixed-width too.
 
 **Never send a `null` across this seam.** `home_widget` deletes the key when the value is null, and the Kotlin side
-cannot tell a deleted key from one that was never written — so an unknown Total Contributions arrived as a missing
+cannot tell a deleted key from one that was never written. So an unknown Total Contributions arrived as a missing
 key, was read as `0`, and rendered as a blank footer indistinguishable from a measured zero. That defeated
 [ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md) at the one seam this module exists
 to declare. The total now crosses as a finished sentence, which also puts its wording in the same place as the
@@ -229,7 +229,7 @@ on-screen one instead of duplicating a format string in Kotlin.
 
 **Reordering `ContributionLevel` silently recolours every Home Screen Widget**, because both payloads are indexed by
 position and Kotlin reads them positionally. It also changes what every cached calendar means. A test in
-`test/ui/features/widget/` pins the enum order for exactly that reason — it is the only thing that would fail, and
+`test/ui/features/widget/` pins the enum order for exactly that reason. It is the only thing that would fail, and
 without it the first symptom is a user's home screen in the wrong colours.
 
 **Four more things cross that seam as bare strings, and `dart_kotlin_seam_test.dart` now reads the Kotlin and the
@@ -240,11 +240,11 @@ the widget keeps rendering, showing its layout defaults, forever.
 | --- | --- | --- |
 | the seven `HomeScreenWidgetKey` constants | both `*WidgetProvider.kt` files, as string literals | keys read and keys written must be the same set, in both directions |
 | `_qualifiedMedium` / `_qualifiedSmall` in `CalendarWidgetService` | `AndroidManifest.xml`'s `<receiver android:name>`, plus the Gradle `applicationId` | the qualified names must resolve to declared receivers |
-| every `CellShape` name | `drawCell`'s `when (shape)` | each name must have its own arm — the `when` ends in `else -> rounded`, so a sixth Cell Shape draws rounded rects and nothing complains |
+| every `CellShape` name | `drawCell`'s `when (shape)` | each name must have its own arm: the `when` ends in `else -> rounded`, so a sixth Cell Shape draws rounded rects and nothing complains |
 
 Renaming a Kotlin class is a valid refactor the IDE will do for you, and it updates the manifest; it does not update
-a Dart string. That combination — a rename that compiles, an analyzer that is happy, and a `catch (_) {}` in
-`CalendarWidgetService` — is why this needed a test rather than a rule.
+a Dart string. That combination (a rename that compiles, an analyzer that is happy, and a `catch (_) {}` in
+`CalendarWidgetService`) is why this needed a test rather than a rule.
 
 **That `catch (_) {}` is deliberate and stays.** On iOS there is no widget extension, so `home_widget` raises a
 `MissingPluginException` on every call; the Home Screen Widget is an Android-only surface and a failure to update it
@@ -258,7 +258,7 @@ the variant app-only; this is the one app surface that still cannot use it).
 The streak it writes comes from `StreakService.currentFor`, the same module `ContributionStatsService` asks. It
 kept its own `_calculateStreak` until that module existed, and the two answered differently: the copy here walked
 back from `DateTime.now()` through a map keyed by date, so for any past Year it found nothing at today, nothing at
-yesterday, and reported **0**. Do not reintroduce a local streak calculation — the Home Screen Widget and the
+yesterday, and reported **0**. Do not reintroduce a local streak calculation: the Home Screen Widget and the
 Viewer showing different numbers for the same Contribution Calendar is exactly the failure that produced.
 
 Whatever steps a day here does it with **`DateTime(y, m, d - 1)`, never `subtract(Duration(days: 1))`**. Subtracting
@@ -270,23 +270,23 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
 
 - **A colour `AppColors` declares but the theme never receives will render as two different colours.** It happened
   twice. `destructive` was `#7F1D1D` in the token and Slate's `#EF4444` in the scheme, and `#7F1D1D` on the
-  `#09090B` background is 1.99:1 — unreadable, so the token took the colour that was already rendering. `foreground`
+  `#09090B` background is 1.99:1 (unreadable), so the token took the colour that was already rendering. `foreground`
   and the light scheme's `cardForeground` had the same split but were merely invisible rather than illegible, so
   they survived the first fix; there the theme adopted the token instead. `main.dart` now feeds every `AppColors`
   field into both schemes. Adding a field without wiring it re-opens the same defect, and nothing guards it.
 - **The background isolate reaches this layer, but not the notifier.** `callbackDispatcher` in `app/lib/main.dart`
   constructs `HomeScreenWidgetRefresh` with hand-built repositories and calls it, so **a widget refresh happens with
   no notifier, no providers and no `_loadSettings`.** The refresh sequence itself is shared, so it can no longer
-  drift; what is still not shared is anything `ViewerNotifier` does *around* it — the state writes, the error
+  drift; what is still not shared is anything `ViewerNotifier` does *around* it: the state writes, the error
   handling, `saveLastUsername` / `saveLastYear`, Cell Size and Background Preset. Behaviour the Home Screen Widget
   depends on belongs in `HomeScreenWidgetRefresh`, not in the notifier.
 - **`FailureMessage` renders `RateLimitedFailure.resetAt`** rather than dropping it. The `Retry-After` parser
-  handles both RFC forms and is tested twice, and the arm that rendered it destructured nothing — so the whole
+  handles both RFC forms and is tested twice, and the arm that rendered it destructured nothing. So the whole
   parser was dead weight behind "Try again later." It says *Try again after 14:32* when GitHub told us, and falls
   back to the vague sentence when it did not.
 - **`FailureMessage.of` is the exhaustive match, and it lists all nine failures.** It is the **only** `switch` over
   a `Failure` in the app and must stay that way: a second one needs a `_` arm to compile, and a `_` arm is exactly
-  what [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) forbids — adding a kind
+  what [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) forbids. Adding a kind
   would stop being a compile error. It lives in a module of its own rather than inside the widget that renders it,
   because it is a pure `Failure` → sentence function and every surface needs it: the viewer renders it, both export
   surfaces reach it through `ofAny` (each spelled its own `'Export failed: …'` before, byte-identically, while the
@@ -294,17 +294,17 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   `catch (_)`. **Never widen the match, and never re-derive a sentence for a kind it already names.**
   `FailureMessage.ofAny` is the arm for a `catch` that receives an `Object`: a `Failure` keeps its own wording,
   anything else gets the fallback. Widgets that only care about one kind still test it with `is`.
-  It is unit-tested in `test/ui/failure_message_test.dart` — which is the point of it not being a private method on
+  It is unit-tested in `test/ui/failure_message_test.dart`, which is the point of it not being a private method on
   a private widget inside a 700-line screen file.
 - **The export action says what it does, and the Markdown one now says it happened.** Tapping "Save MD" copied to
-  the clipboard and changed nothing on screen — no toast, no state, no message — so it was indistinguishable from a
+  the clipboard and changed nothing on screen (no toast, no state, no message), so it was indistinguishable from a
   no-op. `Tokens.durationCopiedFeedback` (1500 ms) existed for exactly that feedback and had **zero readers**; the
   web shipped the behaviour with the same 1500 as a bare literal. The button reads `Copy MD` / `Share PNG` by
   format, and flips to `Copied!` with a check for the token's duration. The outline share button beside it was a
   second affordance calling the same `_save`, and is gone.
 - **The export preview draws at the chosen Cell Size, and the format tile computes its own numbers.**
   `_ExportPreview` declared a `cellSize`, was handed `widget.cellSize`, and then hardcoded `CellSize.compact` on
-  the grid — a dead field is what made it look wired and survive review, and the preview lied about every export
+  the grid. A dead field is what made it look wired and survive review, and the preview lied about every export
   that was not `compact`. The PNG tile advertised the constant `2880×720 · transparent` and `~186 KB`; the renderer
   produces 2061×267 at `normal`, there is no Cell Size that yields 2880×720, and the three byte figures were
   invented. The tile asks `ExportGeometryService.pngPixelSizeFor` now, which is the same function the renderer
@@ -314,22 +314,22 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   yesterday's data for another day. It returns `false` on a caught failure.
 - **Everything optional in `main()` is wrapped.** `FlutterNativeSplash.preserve` runs first and `remove()` runs in
   `ViewerScreen.initState`; between them sat legacy box deletion, WorkManager registration and RevenueCat
-  configuration, all unguarded — any throw meant `runApp` was never called and the person stared at the splash
+  configuration, all unguarded. Any throw meant `runApp` was never called and the person stared at the splash
   image forever. Only `Hive.initFlutter` is load-bearing; the other three go through `_bestEffort`.
-- **`ExportSheet` is the only export surface, and there is no second one.** There used to be an `ExportPanel` —
+- **`ExportSheet` is the only export surface, and there is no second one.** There used to be an `ExportPanel`:
   217 lines that nothing in `lib/`, the tests or the docs ever constructed, kept "in step with the sheet" by hand.
   It was deleted, and the reason is worth keeping: **that promise was never a mechanism, and it failed twice.** The
   two drifted on filenames and MIME types until `ExportFormat` existed, and then the panel went on sharing Markdown
-  as a `.md` file because it never asked `isCopiedAsText` — the property added to answer exactly that question. A
+  as a `.md` file because it never asked `isCopiedAsText`: the property added to answer exactly that question. A
   surface no user can reach cannot be kept honest by intention, and it is where a defect hid for two passes. If a
   panel layout is wanted again, it is in the history; do not reintroduce a second export flow to be synchronised
   manually.
 - **`ViewerState` answers two questions rather than making every reader re-derive them.** `isBusy` is
   `isLoadingSettings || isLoadingCalendar`, which the screen spelled out twice; `blockingFailure` is
   `error ?? (palette == null ? paletteFailure : null)`, which is what decides between an error screen and an empty
-  one — and the `palette == null` half is the whole fix, not a simplification to drop.
+  one. And the `palette == null` half is the whole fix, not a simplification to drop.
 - **The Username field is seeded once, through `ref.listen`, not from `build`.** It used to refill itself whenever
-  `_usernameController.text.isEmpty` during a rebuild — so clearing the box to type a new handle got the old one
+  `_usernameController.text.isEmpty` during a rebuild. So clearing the box to type a new handle got the old one
   pasted back by the next notification, and a `ChangeNotifier` was being mutated inside the build phase.
 - **`ViewerState.calendar` and `ViewerState.stats` are nulled at the start of every fetch**, so the screen empties
   before it refills rather than showing the previous user's calendar under a new username. The two are written
@@ -339,6 +339,6 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   refactor that drops it removes the user's ability to tell.
 - **A Count that could not be read is `null`, and the Cell Tooltip says `contributions unknown`** rather than
   showing a number nobody measured. Total Contributions goes through `formatTotalContributions`, which prints
-  `unknown` for a `null` — never interpolate `calendar.totalContributions` directly, because `NumberFormat.format`
+  `unknown` for a `null`. Never interpolate `calendar.totalContributions` directly, because `NumberFormat.format`
   takes a `dynamic` and will happily render the string `null`
   ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)).

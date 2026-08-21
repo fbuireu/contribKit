@@ -3,7 +3,7 @@
 The transfer objects for the Hive calendar cache. Their shape mirrors GitHub's `weeks` / `contributionDays`
 structure, which is why they read the way an API response would even though nothing here talks to an API today.
 
-They exist only to turn stored JSON back into entities. **Convert before leaving `infrastructure/github/`** — a DTO
+They exist only to turn stored JSON back into entities. **Convert before leaving `infrastructure/github/`**: a DTO
 must never be referenced from `application/` or `ui/`.
 
 ## Invariants & rules
@@ -40,13 +40,13 @@ entity. Those two conversions are the boundary this folder exists to hold.
   calendar.** If the order ever has to change, bump `_cacheBoxName`
   ([ADR 0014](../../../../../docs/adr/0014-cached-calendars-are-versioned.md)).
 - **A DTO change is a cache-schema change, and the directions are not symmetric.** Renaming a **required** field,
-  or adding one, makes existing entries unparseable — a loud failure that becomes a refetch. Renaming the **nullable**
+  or adding one, makes existing entries unparseable: a loud failure that becomes a refetch. Renaming the **nullable**
   `level` is the dangerous case: the entry still deserialises, `level` simply arrives `null`, and `_toDomain` quietly
   re-derives every level from the counts through `ContributionLevelService`, so a whole cached year silently changes
   colour instead of failing. *Removing* a field does not break anything either: the generated `fromJson` reads
   only the keys it declares and `disallowUnrecognizedKeys` is not set, so an entry still carrying the dropped key
-  deserialises fine and the value is simply ignored. A broken read is survivable either way — it is swallowed and
-  becomes a refetch — but a past-year entry never expires on its own, so the box name is the only real migration
+  deserialises fine and the value is simply ignored. A broken read is survivable either way (it is swallowed and
+  becomes a refetch), but a past-year entry never expires on its own, so the box name is the only real migration
   tool.
 - `date` is written with `toIso8601String().substring(0, 10)`, so it is date-only and timezone-free by construction.
   Anything that starts writing a full timestamp breaks the `DateTime.parse` round-trip's equality with the grid's
