@@ -116,7 +116,8 @@ stale snapshot.
 `_tolerating` wraps each read, so a `cellShape` written as an `int` by an older build costs you the Cell Shape and
 nothing else. It was seven separate getters each wrapped in a `_read` helper, which had the same per-field
 tolerance, and the collapse to one call is where that property was nearly lost; `loses only the corrupt value` in
-`settings_repository_impl_test.dart` is the one test that proves it, and the one beside it passes either way.
+`settings_repository_impl_test.dart` is the only test that proves it; the other two in that group pass whether the
+tolerance is per-field or wholesale.
 
 **The outer `try` is a backstop, not the mechanism.** It wraps `_settingsIn` as well as the box open, so a field
 added without `_tolerating` degrades the whole object to `const AppSettings()` rather than throwing a raw
