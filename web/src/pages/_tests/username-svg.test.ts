@@ -15,7 +15,9 @@ import { GET } from "../user/[username].svg";
 
 const HTML = `<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="c1"></td><tool-tip for="c1">5 contributions</tool-tip>`;
 
-const call = (username: string, query = ""): Promise<Response> =>
+type CallParams = { username: string; query?: string };
+
+const call = ({ username, query = "" }: CallParams): Promise<Response> =>
 	GET({
 		params: { username },
 		url: new URL(`https://contribkit.app/user/${username}.svg${query}`),
@@ -31,7 +33,7 @@ describe("GET /user/[username].svg", () => {
 			vi.fn(async () => new Response(HTML, { status: 200 })),
 		);
 
-		const res = await call("torvalds");
+		const res = await call({ username: "torvalds" });
 
 		expect(res.status).toBe(200);
 		expect(res.headers.get("Content-Type")).toBe("image/svg+xml");
@@ -39,7 +41,7 @@ describe("GET /user/[username].svg", () => {
 	});
 
 	it("400 text/plain on an invalid username", async () => {
-		const res = await call("foo_bar");
+		const res = await call({ username: "foo_bar" });
 
 		expect(res.status).toBe(400);
 		expect(res.headers.get("Content-Type")).toBe("text/plain");
@@ -51,7 +53,7 @@ describe("GET /user/[username].svg", () => {
 			vi.fn(async () => new Response("", { status: 404 })),
 		);
 
-		const res = await call("ghost");
+		const res = await call({ username: "ghost" });
 
 		expect(res.status).toBe(404);
 		expect(await res.text()).toBe("User not found");
@@ -63,7 +65,7 @@ describe("GET /user/[username].svg", () => {
 			vi.fn(async () => new Response("", { status: 429, headers: { "retry-after": "90" } })),
 		);
 
-		const res = await call("torvalds");
+		const res = await call({ username: "torvalds" });
 
 		expect(res.status).toBe(429);
 		expect(res.headers.get("Retry-After")).toBe("90");
@@ -76,7 +78,7 @@ describe("GET /user/[username].svg", () => {
 			vi.fn(async () => new Response("", { status: 429 })),
 		);
 
-		const res = await call("torvalds");
+		const res = await call({ username: "torvalds" });
 
 		expect(res.status).toBe(429);
 		expect(res.headers.has("Retry-After")).toBe(false);
@@ -88,7 +90,7 @@ describe("GET /user/[username].svg", () => {
 			vi.fn(async () => new Response(HTML, { status: 200 })),
 		);
 
-		const res = await call("torvalds", "?shape=hex");
+		const res = await call({ username: "torvalds", query: "?shape=hex" });
 
 		expect(await res.text()).toContain("<polygon");
 	});

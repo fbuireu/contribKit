@@ -18,7 +18,9 @@ const HERO = `
 	<select id="hero-year"><option value="${CURRENT_YEAR}" selected>${CURRENT_YEAR}</option></select>
 `;
 
-const jsonResponse = (body: unknown, status = 200): Response =>
+type JsonResponseParams = { body: unknown; status?: number };
+
+const jsonResponse = ({ body, status = 200 }: JsonResponseParams): Response =>
 	new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 const okPayload = { days: [{ date: `${CURRENT_YEAR}-06-15`, level: 3, count: 9 }], total: 9 };
@@ -52,7 +54,7 @@ describe("renderFromGitHub", () => {
 			updateHistory: false,
 			request: (url) => {
 				requested = url;
-				return Promise.resolve(jsonResponse(okPayload));
+				return Promise.resolve(jsonResponse({ body: okPayload }));
 			},
 		});
 
@@ -70,7 +72,7 @@ describe("renderFromGitHub", () => {
 			updateHistory: false,
 			request: (url) => {
 				requested = url;
-				return Promise.resolve(jsonResponse(okPayload));
+				return Promise.resolve(jsonResponse({ body: okPayload }));
 			},
 		});
 
@@ -83,7 +85,7 @@ describe("renderFromGitHub", () => {
 		await renderFromGitHub({
 			username: "torvalds",
 			updateHistory: false,
-			request: () => Promise.resolve(jsonResponse(okPayload)),
+			request: () => Promise.resolve(jsonResponse({ body: okPayload })),
 		});
 
 		expect(getDays()).toHaveLength(53 * 7);
@@ -97,7 +99,7 @@ describe("renderFromGitHub", () => {
 		await renderFromGitHub({
 			username: "nope",
 			updateHistory: false,
-			request: () => Promise.resolve(jsonResponse({ error: "User not found" }, 404)),
+			request: () => Promise.resolve(jsonResponse({ body: { error: "User not found" }, status: 404 })),
 		});
 
 		expect(byId("hero-error").textContent).toMatch(/not found/i);
@@ -108,13 +110,13 @@ describe("renderFromGitHub", () => {
 		await renderFromGitHub({
 			username: "torvalds",
 			updateHistory: false,
-			request: () => Promise.resolve(jsonResponse(okPayload)),
+			request: () => Promise.resolve(jsonResponse({ body: okPayload })),
 		});
 
 		await renderFromGitHub({
 			username: "nope",
 			updateHistory: false,
-			request: () => Promise.resolve(jsonResponse({ error: "User not found" }, 404)),
+			request: () => Promise.resolve(jsonResponse({ body: { error: "User not found" }, status: 404 })),
 		});
 
 		expect(getDays().every((day) => day.count === null)).toBe(true);

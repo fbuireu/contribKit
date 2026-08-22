@@ -40,23 +40,25 @@ describe("config.onChange", () => {
 
 	afterEach(() => vi.unstubAllGlobals());
 
-	const fire = (changedCategories: string[], changedServices: Record<string, unknown> = {}) =>
+	type FireParams = { changedCategories: string[]; changedServices?: Record<string, unknown> };
+
+	const fire = ({ changedCategories, changedServices = {} }: FireParams) =>
 		config.onChange?.({ changedCategories, changedServices, cookie: {} } as never);
 
 	it("reloads when analytics is toggled off", () => {
 		acceptedCategory.mockReturnValue(false);
-		fire(["analytics"]);
+		fire({ changedCategories: ["analytics"] });
 		expect(reload).toHaveBeenCalledOnce();
 	});
 
 	it("does not reload when analytics stays accepted", () => {
 		acceptedCategory.mockReturnValue(true);
-		fire(["analytics"]);
+		fire({ changedCategories: ["analytics"] });
 		expect(reload).not.toHaveBeenCalled();
 	});
 
 	it("ignores changes unrelated to analytics", () => {
-		fire(["necessary"]);
+		fire({ changedCategories: ["necessary"] });
 		expect(acceptedCategory).not.toHaveBeenCalled();
 		expect(reload).not.toHaveBeenCalled();
 	});
