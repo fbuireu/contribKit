@@ -65,8 +65,7 @@ Do not "fix" a version mismatch by editing the pin.
 git clone https://github.com/YOUR_USERNAME/contribKit.git
 cd contribKit
 
-pnpm install                         # root tooling + the web workspace
-brew install lefthook && lefthook install   # git hooks; do this once
+pnpm install                         # root tooling, git hooks and the web workspace
 
 cd app && flutter pub get            # only if you are touching the app
 ```
