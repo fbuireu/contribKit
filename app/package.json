@@ -1,6 +1,6 @@
 {
   "name": "contribkit-app",
-  "description": "ContribKit Flutter app — release tooling only",
+  "description": "ContribKit Flutter app: release tooling only",
   "version": "1.0.0",
   "private": true,
   "scripts": {

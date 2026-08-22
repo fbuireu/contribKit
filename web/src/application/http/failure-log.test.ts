@@ -1,7 +1,6 @@
 import { FailureKind } from "@domain/failures/failure";
 import { describe, expect, it, vi } from "vitest";
-import { SERVER_ERROR_STATUS } from "./failure-http";
-import { ContributionsEndpoint, logContributionsFailure } from "./log-contributions-failure";
+import { ContributionsEndpoint, logContributionsFailure, logServerError, SERVER_ERROR_STATUS } from "./failure-log";
 
 const loggerSpy = () => ({ error: vi.fn() });
 
@@ -64,5 +63,54 @@ describe("logContributionsFailure", () => {
 
 		const tags = logger.error.mock.calls.map(([call]) => call.context.endpoint);
 		expect(tags).toEqual(["api", "svg", "page"]);
+	});
+});
+
+describe("logServerError", () => {
+	it("logs the 500 message with the Error message as reason", () => {
+		const logger = loggerSpy();
+
+		logServerError({ logger, error: new Error("kaboom"), path: "/oops" });
+
+		expect(logger.error).toHaveBeenCalledWith({
+			message: "Unhandled server error (500)",
+			context: { path: "/oops", reason: "kaboom" },
+		});
+	});
+
+	it("stringifies non-Error values", () => {
+		const logger = loggerSpy();
+
+		logServerError({ logger, error: "boom string", path: "/x" });
+
+		expect(logger.error).toHaveBeenCalledWith(
+			expect.objectContaining({ context: { path: "/x", reason: "boom string" } }),
+		);
+	});
+
+	it("says nothing when Astro handed it no throwable, so visiting /500 by hand reports no incident", () => {
+		const logger = loggerSpy();
+
+		logServerError({ logger, error: undefined, path: "/500" });
+
+		expect(logger.error).not.toHaveBeenCalled();
+	});
+
+	it("still reports a thrown null, which is a real render failure", () => {
+		const logger = loggerSpy();
+
+		logServerError({ logger, error: null, path: "/y" });
+
+		expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ context: { path: "/y", reason: "unknown" } }));
+	});
+
+	it("survives a throwable it cannot serialise", () => {
+		const logger = loggerSpy();
+		const circular: Record<string, unknown> = {};
+		circular.self = circular;
+
+		expect(() => logServerError({ logger, error: circular, path: "/z" })).not.toThrow();
+		expect(() => logServerError({ logger, error: { size: 1n }, path: "/z" })).not.toThrow();
+		expect(logger.error).toHaveBeenCalledTimes(2);
 	});
 });

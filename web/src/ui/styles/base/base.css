@@ -65,7 +65,7 @@
 		counter-increment: section;
 	}
 	.eyebrow .mono::before {
-		content: counter(section, decimal-leading-zero) " — ";
+		content: counter(section, decimal-leading-zero) " · ";
 	}
 	.section-title {
 		font-size: var(--size-fluid-h1);

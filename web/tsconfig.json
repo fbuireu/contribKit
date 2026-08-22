@@ -10,8 +10,7 @@
 			"@domain/*": ["./src/domain/*"],
 			"@application/*": ["./src/application/*"],
 			"@infrastructure/*": ["./src/infrastructure/*"],
-			"@ui/*": ["./src/ui/*"],
-			"@assets/*": ["./src/assets/*"]
+			"@ui/*": ["./src/ui/*"]
 		},
 		"plugins": [{ "name": "@astrojs/ts-plugin" }]
 	}

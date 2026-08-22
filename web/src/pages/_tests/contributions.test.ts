@@ -70,4 +70,70 @@ describe("GET /api/contributions", () => {
 
 		expect(res.status).toBe(502);
 	});
+
+	it("400 on a year the domain rejects, rather than quietly using another one", async () => {
+		const fetchSpy = vi.fn(async (_input: RequestInfo | URL) => new Response(HTML, { status: 200 }));
+		vi.stubGlobal("fetch", fetchSpy);
+
+		const res = await call("?user=torvalds&year=1999");
+
+		expect(res.status).toBe(400);
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("asks GitHub for the year it was given, bounded at both ends for a past one", async () => {
+		const fetchSpy = vi.fn(async (_input: RequestInfo | URL) => new Response(HTML, { status: 200 }));
+		vi.stubGlobal("fetch", fetchSpy);
+
+		await call("?user=torvalds&year=2024");
+
+		const requested = String(fetchSpy.mock.calls[0]?.[0]);
+		expect(requested).toContain("from=2024-01-01");
+		expect(requested).toContain("to=2024-12-31");
+	});
+
+	it("asks for the rolling window when no year is given", async () => {
+		const fetchSpy = vi.fn(async (_input: RequestInfo | URL) => new Response(HTML, { status: 200 }));
+		vi.stubGlobal("fetch", fetchSpy);
+
+		await call("?user=torvalds");
+
+		expect(String(fetchSpy.mock.calls[0]?.[0])).not.toContain("from=");
+	});
+
+	it("429 passes GitHub's Retry-After on rather than dropping it", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("", { status: 429, headers: { "retry-after": "120" } })),
+		);
+
+		const res = await call("?user=torvalds");
+
+		expect(res.status).toBe(429);
+		expect(res.headers.get("Retry-After")).toBe("120");
+	});
+
+	it("429 with no Retry-After sets no header, rather than inventing a wait", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("", { status: 429 })),
+		);
+
+		const res = await call("?user=torvalds");
+
+		expect(res.status).toBe(429);
+		expect(res.headers.has("Retry-After")).toBe(false);
+	});
+
+	it("answers with a null total rather than a sum that skipped an unknown Count", async () => {
+		const partial = `${HTML}<td class="ContributionCalendar-day" data-date="2024-01-02" data-level="3" id="c2"></td>`;
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(partial, { status: 200 })),
+		);
+
+		const res = await call("?user=torvalds");
+
+		expect(((await res.json()) as { total: number | null }).total).toBeNull();
+	});
 });

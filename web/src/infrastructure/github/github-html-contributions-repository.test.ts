@@ -1,3 +1,4 @@
+import { FailureKind } from "@domain/failures/failure";
 import type { Username } from "@domain/value-objects/username";
 import type { Year } from "@domain/value-objects/year";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -50,6 +51,90 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		expect(result).toEqual({ kind: "Network", status: 503, message: "GitHub returned 503" });
 	});
 
+	it("tells a 429 apart from an outage, so the reader is not told GitHub is unreachable", async () => {
+		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": "120" } }));
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toEqual({
+			kind: FailureKind.RateLimited,
+			message: "GitHub is rate-limiting this Worker",
+			retryAfterSeconds: 120,
+		});
+	});
+
+	it("reads the other Retry-After form, an HTTP date", async () => {
+		const at = new Date(Date.now() + 60_000).toUTCString();
+		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": at } }));
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.RateLimited });
+		if (!("retryAfterSeconds" in result)) return;
+		expect(result.retryAfterSeconds).toBeGreaterThan(50);
+		expect(result.retryAfterSeconds).toBeLessThanOrEqual(60);
+	});
+
+	it("survives a 429 with no Retry-After at all", async () => {
+		stubFetch(async () => new Response("", { status: 429 }));
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.RateLimited, retryAfterSeconds: null });
+	});
+
+	it("gives up on a hung GitHub rather than holding the invocation open", async () => {
+		let passedSignal: AbortSignal | undefined;
+		stubFetch(async (_url, init) => {
+			passedSignal = (init as RequestInit | undefined)?.signal ?? undefined;
+			return new Response(HTML, { status: 200 });
+		});
+
+		await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(passedSignal).toBeInstanceOf(AbortSignal);
+	});
+
+	it("turns an aborted request into a Failure, never a throw out of the layer", async () => {
+		stubFetch(async () => {
+			throw new DOMException("The operation was aborted", "TimeoutError");
+		});
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.Network });
+	});
+
+	it("turns an abort mid-body into a Failure too, which the fetch guard alone does not cover", async () => {
+		stubFetch(
+			async () =>
+				({
+					status: 200,
+					ok: true,
+					headers: new Headers(),
+					text: () => Promise.reject(new DOMException("aborted", "TimeoutError")),
+				}) as unknown as Response,
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.Network });
+	});
+
+	it("reads Retry-After only in the two forms the RFC allows", async () => {
+		const parsed = async (retryAfter: string) => {
+			stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": retryAfter } }));
+			const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+			return "retryAfterSeconds" in result ? result.retryAfterSeconds : undefined;
+		};
+
+		expect(await parsed(" ")).toBeNull();
+		expect(await parsed("5.5")).toBeNull();
+		expect(await parsed("-1")).toBeNull();
+		expect(await parsed("nonsense")).toBeNull();
+		expect(await parsed(" 90 ")).toBe(90);
+	});
+
 	it("returns Network when fetch throws", async () => {
 		stubFetch(async () => {
 			throw new Error("boom");
@@ -82,6 +167,66 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		if (!("days" in result)) return;
 		expect(result.total).toBeNull();
 		expect(result.days[0].count).toBeNull();
+	});
+
+	it("reads a Count that GitHub indented onto its own line", async () => {
+		stubFetch(
+			async () =>
+				new Response(
+					[
+						'<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="a"></td>',
+						'<tool-tip for="a">\n      5 contributions on January 1st\n    </tool-tip>',
+					].join(""),
+					{ status: 200 },
+				),
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.days[0].count).toBe(5);
+	});
+
+	it("voids the total when only some tool-tips parse, rather than understating it", async () => {
+		stubFetch(
+			async () =>
+				new Response(
+					[
+						'<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="a"></td>',
+						'<td class="ContributionCalendar-day" data-date="2024-01-02" data-level="3" id="b"></td>',
+						'<tool-tip for="a">5 contributions</tool-tip>',
+					].join(""),
+					{ status: 200 },
+				),
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.days[1].count).toBeNull();
+		expect(result.total).toBeNull();
+	});
+
+	it("still totals when every day whose Count is unknown is a level-0 day", async () => {
+		stubFetch(
+			async () =>
+				new Response(
+					[
+						'<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="a"></td>',
+						'<td class="ContributionCalendar-day" data-date="2024-01-02" data-level="0"></td>',
+						'<tool-tip for="a">5 contributions</tool-tip>',
+					].join(""),
+					{ status: 200 },
+				),
+		);
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.total).toBe(5);
 	});
 
 	it("leaves the current year open-ended so it ends today", async () => {

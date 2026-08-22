@@ -1,15 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_sheet.dart';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
+import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
@@ -19,8 +22,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-
-enum _Fmt { png, svg, md }
 
 class ExportSheet extends ConsumerStatefulWidget {
   const ExportSheet({
@@ -57,15 +58,42 @@ class ExportSheet extends ConsumerStatefulWidget {
 }
 
 class _ExportSheetState extends ConsumerState<ExportSheet> {
-  _Fmt _selected = _Fmt.png;
+  ExportFormat _selected = ExportFormat.fallback;
   bool _exporting = false;
+  bool _copied = false;
   String? _exportError;
+  Timer? _copiedTimer;
+
+  @override
+  void dispose() {
+    _copiedTimer?.cancel();
+    super.dispose();
+  }
+
+  void _showCopied() {
+    _copiedTimer?.cancel();
+    setState(() => _copied = true);
+    _copiedTimer = Timer(Tokens.durationCopiedFeedback, () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  IconData get _actionIcon => _copied
+      ? LucideIcons.check
+      : _selected.isCopiedAsText
+      ? LucideIcons.copy
+      : LucideIcons.share;
+
+  String get _actionLabel => _copied
+      ? 'Copied!'
+      : _selected.isCopiedAsText
+      ? 'Copy ${_selected.label}'
+      : 'Share ${_selected.label}';
 
   RenderOptions get _options => RenderOptions(
     palette: widget.palette,
     shape: widget.cellShape,
-    cellSize: widget.cellSize.pixels,
-    gap: widget.cellSize.gap,
+    namedSize: widget.cellSize,
   );
 
   Future<void> _save() async {
@@ -74,133 +102,101 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
       _exporting = true;
       _exportError = null;
     });
-    final user = widget.calendar.username.value;
-    final year = widget.calendar.year.value;
     try {
-      switch (_selected) {
-        case _Fmt.png:
-          final bytes = await ref.read(pngExportCalendarProvider)(
-            calendar: widget.calendar,
-            options: _options,
-          );
-          await SharePlus.instance.share(
-            ShareParams(
-              files: [
-                XFile.fromData(
-                  Uint8List.fromList(bytes),
-                  name: '${user}_$year.png',
-                  mimeType: 'image/png',
+      final bytes = await ref.read(exportCalendarProvider(_selected))(
+        calendar: widget.calendar,
+        options: _options,
+      );
+
+      if (_selected.isCopiedAsText) {
+        await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+        if (mounted) _showCopied();
+      } else {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [
+              XFile.fromData(
+                Uint8List.fromList(bytes),
+                name: _selected.fileNameFor(
+                  username: widget.calendar.username,
+                  year: widget.calendar.year,
                 ),
-              ],
-            ),
-          );
-        case _Fmt.svg:
-          final bytes = await ref.read(svgExportCalendarProvider)(
-            calendar: widget.calendar,
-            options: _options,
-          );
-          await SharePlus.instance.share(
-            ShareParams(
-              files: [
-                XFile.fromData(
-                  Uint8List.fromList(bytes),
-                  name: '${user}_$year.svg',
-                  mimeType: 'image/svg+xml',
-                ),
-              ],
-            ),
-          );
-        case _Fmt.md:
-          final bytes = await ref.read(markdownExportCalendarProvider)(
-            calendar: widget.calendar,
-            options: _options,
-          );
-          await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+                mimeType: _selected.mimeType,
+              ),
+            ],
+          ),
+        );
       }
     } catch (error) {
-      if (mounted) setState(() => _exportError = _describe(error));
+      if (mounted) {
+        setState(() => _exportError = FailureMessage.ofAny(error));
+      }
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
   }
 
-  static String _describe(Object error) => error is ExportFailure
-      ? 'Export failed: ${error.message}'
-      : 'Export failed. Please try again.';
-
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final user = widget.calendar.username.value;
 
     return AppSheet(
       title: const Text('Export'),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          Tokens.space6,
-          0,
-          Tokens.space6,
-          Tokens.space8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _ExportPreview(
-              calendar: widget.calendar,
-              palette: widget.palette,
-              cellShape: widget.cellShape,
-              cellSize: widget.cellSize,
-              filename: '$user.${_selected.name}',
-              colors: colors,
-            ),
-            const SizedBox(height: Tokens.space4),
-            for (final fmt in _Fmt.values)
-              Padding(
-                padding: const EdgeInsets.only(bottom: Tokens.space2),
-                child: _FormatTile(
-                  fmt: fmt,
-                  isSelected: fmt == _selected,
-                  colors: colors,
-                  onTap: () => setState(() => _selected = fmt),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _ExportPreview(
+            calendar: widget.calendar,
+            palette: widget.palette,
+            cellShape: widget.cellShape,
+            cellSize: widget.cellSize,
+            filename: _selected.previewNameFor(widget.calendar.username),
+            colors: colors,
+          ),
+          const SizedBox(height: Tokens.space4),
+          for (final fmt in ExportFormat.values)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Tokens.space2),
+              child: _FormatTile(
+                fmt: fmt,
+                cellSize: widget.cellSize,
+                isSelected: fmt == _selected,
+                colors: colors,
+                onTap: () => setState(() => _selected = fmt),
               ),
-            if (_exportError != null) ...[
-              const SizedBox(height: Tokens.space2),
-              Text(
-                _exportError!,
-                style: AppTextStyles.mono(
-                  fontSize: Tokens.textSm,
-                  color: colors.destructive,
+            ),
+          if (_exportError != null) ...[
+            const SizedBox(height: Tokens.space2),
+            Text(
+              _exportError!,
+              style: AppTextStyles.mono(
+                fontSize: Tokens.textSm,
+                color: colors.destructive,
+              ),
+            ),
+          ],
+          const SizedBox(height: Tokens.space2),
+          Row(
+            spacing: Tokens.space2,
+            children: [
+              Expanded(
+                child: AppButton(
+                  onPressed: _exporting ? null : _save,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_actionIcon, size: Tokens.iconSm),
+                      const SizedBox(width: Tokens.space2),
+                      Text(_actionLabel),
+                    ],
+                  ),
                 ),
               ),
             ],
-            const SizedBox(height: Tokens.space2),
-            Row(
-              spacing: Tokens.space2,
-              children: [
-                AppButton.outline(
-                  onPressed: _exporting ? null : _save,
-                  child: const Icon(LucideIcons.share, size: Tokens.iconMd),
-                ),
-                Expanded(
-                  child: AppButton(
-                    onPressed: _exporting ? null : _save,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(LucideIcons.download, size: Tokens.iconSm),
-                        const SizedBox(width: Tokens.space2),
-                        Text('Save ${_selected.name.toUpperCase()}'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -249,7 +245,7 @@ class _ExportPreview extends StatelessWidget {
                 calendar: calendar,
                 palette: palette,
                 shape: cellShape,
-                cellSize: CellSize.compact,
+                cellSize: cellSize,
               ),
             ),
             Positioned(
@@ -312,40 +308,31 @@ class _CheckerPainter extends CustomPainter {
 class _FormatTile extends StatelessWidget {
   const _FormatTile({
     required this.fmt,
+    required this.cellSize,
     required this.isSelected,
     required this.colors,
     required this.onTap,
   });
 
-  final _Fmt fmt;
+  final ExportFormat fmt;
+  final CellSize cellSize;
   final bool isSelected;
   final AppColors colors;
   final VoidCallback onTap;
 
-  static const _meta = {
-    _Fmt.png: (
-      ext: '.png',
-      label: 'PNG',
-      detail: '2880×720 · transparent',
-      size: '~186 KB',
-    ),
-    _Fmt.svg: (
-      ext: '.svg',
-      label: 'SVG',
-      detail: 'Vector · scalable',
-      size: '~24 KB',
-    ),
-    _Fmt.md: (
-      ext: '.md',
-      label: 'MD',
-      detail: 'README embed snippet',
-      size: '~1 KB',
-    ),
+  String get _detail => switch (fmt) {
+    ExportFormat.png => _pngDetail,
+    ExportFormat.svg => 'Vector · scales to any size',
+    ExportFormat.markdown => 'README embed snippet',
   };
+
+  String get _pngDetail {
+    final pixels = ExportGeometryService.pngPixelSizeFor(cellSize: cellSize);
+    return '${pixels.width}×${pixels.height} · transparent';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final m = _meta[fmt]!;
     final accent = colors.accent;
 
     return GestureDetector(
@@ -361,7 +348,9 @@ class _FormatTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
           border: Border.all(
             color: isSelected ? accent.withValues(alpha: 0.5) : colors.border,
-            width: isSelected ? 1.5 : 1,
+            width: isSelected
+                ? Tokens.tileBorderEmphasis
+                : Tokens.tileBorderDefault,
           ),
         ),
         child: Row(
@@ -381,7 +370,7 @@ class _FormatTile extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        m.ext,
+                        '.${fmt.suffix}',
                         style: AppTextStyles.mono(
                           fontSize: Tokens.textSm,
                           fontWeight: FontWeight.w600,
@@ -390,7 +379,7 @@ class _FormatTile extends StatelessWidget {
                       ),
                       const SizedBox(width: Tokens.space2),
                       Text(
-                        m.label,
+                        fmt.label,
                         style: TextStyle(
                           fontSize: Tokens.textBase,
                           fontWeight: FontWeight.w600,
@@ -401,20 +390,13 @@ class _FormatTile extends StatelessWidget {
                   ),
                   const SizedBox(height: Tokens.hairlineGap),
                   Text(
-                    m.detail,
+                    _detail,
                     style: TextStyle(
                       fontSize: Tokens.textXs,
                       color: colors.mutedForeground,
                     ),
                   ),
                 ],
-              ),
-            ),
-            Text(
-              m.size,
-              style: AppTextStyles.mono(
-                fontSize: Tokens.textXs,
-                color: colors.mutedForeground,
               ),
             ),
           ],
@@ -432,7 +414,7 @@ class _FmtIcon extends StatelessWidget {
     required this.colors,
   });
 
-  final _Fmt fmt;
+  final ExportFormat fmt;
   final bool isSelected;
   final Color accent;
   final AppColors colors;
@@ -455,17 +437,17 @@ class _FmtIcon extends StatelessWidget {
       ),
       child: Center(
         child: switch (fmt) {
-          _Fmt.png => Icon(
+          ExportFormat.png => Icon(
             LucideIcons.image,
             size: Tokens.iconLg,
             color: iconColor,
           ),
-          _Fmt.svg => Icon(
+          ExportFormat.svg => Icon(
             LucideIcons.penLine,
             size: Tokens.iconLg,
             color: iconColor,
           ),
-          _Fmt.md => Text(
+          ExportFormat.markdown => Text(
             'M↓',
             style: AppTextStyles.mono(
               fontSize: Tokens.textSm,

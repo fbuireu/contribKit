@@ -6,6 +6,7 @@ import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
@@ -16,7 +17,6 @@ import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
-import 'package:contribkit/ui/theme/background_presets.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:contribkit/ui/widgets/app_card.dart';
@@ -34,6 +34,7 @@ class ViewerScreen extends ConsumerStatefulWidget {
 
 class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   late final TextEditingController _usernameController;
+  bool _seededUsername = false;
   late final FocusNode _usernameFocusNode;
   String _inputError = '';
 
@@ -73,11 +74,13 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     final state = ref.watch(viewerProvider);
     final colors = AppColors.of(context);
 
-    if (!state.isLoadingSettings &&
-        state.username != null &&
-        _usernameController.text.isEmpty) {
-      _usernameController.text = state.username!.value;
-    }
+    ref.listen(viewerProvider, (_, next) {
+      if (_seededUsername || next.isLoadingSettings) return;
+      final restored = next.username;
+      if (restored == null) return;
+      _seededUsername = true;
+      _usernameController.text = restored.value;
+    });
 
     return ColoredBox(
       color: colors.background,
@@ -100,8 +103,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                       focusNode: _usernameFocusNode,
                       error: _inputError,
                       onSubmit: _onSubmit,
-                      isLoading:
-                          state.isLoadingSettings || state.isLoadingCalendar,
+                      isLoading: state.isBusy,
                     ),
                     const _YearPills(),
                     _Body(state: state),
@@ -412,24 +414,24 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (state.isLoadingSettings || state.isLoadingCalendar) {
+    if (state.isBusy) {
       return const _Loader();
     }
-    if (state.error != null) {
-      return _ErrorState(failure: state.error!);
+    if (state.blockingFailure case final failure?) {
+      return _ErrorState(
+        failure: failure,
+        onRetry: ref.read(viewerProvider.notifier).retry,
+      );
     }
-    if (state.username == null ||
-        state.calendar == null ||
-        state.palette == null) {
+    if (state.username == null || state.calendar == null) {
       return const _EmptyState();
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: Tokens.space4,
       children: [
         _CalendarCard(state: state),
-        StatsPanel(calendar: state.calendar!),
+        StatsPanel(calendar: state.calendar!, stats: state.stats!),
         _ActionRow(state: state),
       ],
     );
@@ -446,8 +448,7 @@ class _CalendarCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
-    final gridBg =
-        BackgroundPresets.colors[state.backgroundPreset] ?? colors.card;
+    final gridBg = state.backgroundPreset.colorOr(colors.card);
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -626,33 +627,29 @@ class _PulsingDots extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.failure});
+  const _ErrorState({required this.failure, required this.onRetry});
 
   final Failure failure;
-
-  String _message() => switch (failure) {
-    NotFoundFailure(:final username) => 'User "$username" not found.',
-    RateLimitedFailure() => 'GitHub rate limit exceeded. Try again later.',
-    ParseFailure() =>
-      'GitHub changed its contributions page. Please update the app.',
-    NetworkFailure(:final message) => 'Network error: $message',
-    CacheFailure() => 'Could not read saved data. Please try again.',
-    ExportFailure(:final message) => 'Export failed: $message',
-    PurchaseFailure(:final message) => 'Purchase failed: $message',
-    UnexpectedFailure() => 'Something went wrong. Please try again.',
-  };
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.all(Tokens.space8),
-      child: Text(
-        _message(),
-        style: TextStyle(
-          fontSize: Tokens.textBase,
-          color: AppColors.of(context).destructive,
-        ),
-        textAlign: TextAlign.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: Tokens.space4,
+        children: [
+          Text(
+            FailureMessage.of(failure),
+            style: TextStyle(
+              fontSize: Tokens.textBase,
+              color: AppColors.of(context).destructive,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          AppButton.ghost(onPressed: onRetry, child: const Text('Try again')),
+        ],
       ),
     ),
   );
@@ -681,7 +678,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: Tokens.space3),
           Text(
-            'Paste any GitHub username above to visualize, customize, and export their contribution calendar — no token required.',
+            'Paste any GitHub username above to visualize, customize, and export their contribution calendar. No token required.',
             style: TextStyle(
               fontSize: Tokens.textSm,
               color: AppColors.of(context).mutedForeground,

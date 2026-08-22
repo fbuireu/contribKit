@@ -177,4 +177,87 @@ version in the same commit, or do not change the order.''',
       },
     );
   });
+  group('the Cell Shape crosses as a name Kotlin matches literally', () {
+    test(
+      'every member sends its own name, so none falls through to rounded',
+      () {
+        final sent = <String>{};
+
+        for (final shape in CellShape.values) {
+          final payload = HomeScreenWidgetPayload.from(
+            calendar: _calendar(),
+            palette: _palette,
+            cellShape: shape,
+            today: DateTime(2024, 6, 15),
+          );
+
+          expect(payload.shape, shape.name, reason: shape.name);
+          sent.add(payload.shape);
+        }
+
+        expect(
+          sent,
+          hasLength(CellShape.values.length),
+          reason:
+              'drawCell ends in else -> rounded, so two shapes sharing a name '
+              'would draw identically with nothing failing',
+        );
+      },
+    );
+  });
+  group('the payload is fixed-width, which is what makes a torn write harmless', () {
+    test('always sends 53 weeks, whatever the calendar holds', () {
+      for (final year in [2019, 2020, 2023, 2024]) {
+        final calendar = ContributionCalendar(
+          username: Username('octocat'),
+          year: Year(year),
+          weeks: ContributionGridService.buildFor(days: const [], year: year),
+          totalContributions: null,
+        );
+
+        final payload = HomeScreenWidgetPayload.from(
+          calendar: calendar,
+          palette: _palette,
+          cellShape: CellShape.rounded,
+          today: DateTime(year, 6, 15),
+        );
+
+        expect(
+          payload.weeks,
+          ContributionGridService.weeksPerYear,
+          reason: '$year',
+        );
+      }
+    });
+
+    test('always sends 53 x 7 level digits, so an index can never run past the end', () {
+      final calendar = ContributionCalendar(
+        username: Username('octocat'),
+        year: Year(2024),
+        weeks: ContributionGridService.buildFor(days: const [], year: 2024),
+        totalContributions: null,
+      );
+
+      final payload = HomeScreenWidgetPayload.from(
+        calendar: calendar,
+        palette: _palette,
+        cellShape: CellShape.rounded,
+        today: DateTime(2024, 6, 15),
+      );
+
+      expect(
+        payload.levels.length,
+        ContributionGridService.weeksPerYear *
+            ContributionGridService.daysPerWeek,
+      );
+      expect(
+        payload.levels.length,
+        payload.weeks * ContributionGridService.daysPerWeek,
+        reason:
+            'CalendarWidgetService writes these two keys separately, so Kotlin '
+            'can read a new one beside a stale one. Both are invariant, so the '
+            'pair always agrees and the bounds check can never trip',
+      );
+    });
+  });
 }

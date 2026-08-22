@@ -10,7 +10,7 @@ Accepted.
 
 Two public endpoints sit on the same Worker: `/api/contributions`, called directly by clients, and `/user/:username.svg`, the embed. The SVG endpoint is by far the more exposed of the two, so rate-limiting it is the obvious move.
 
-It is also wrong. README embeds are not fetched by readers — GitHub proxies them through Camo, so nearly all SVG traffic arrives from a small set of shared proxy addresses. A limit keyed on the client IP would be consumed by Camo on behalf of every embed at once, and start failing calendars for everyone. The protection would cause the outage it exists to prevent.
+It is also wrong. README embeds are not fetched by readers: GitHub proxies them through Camo, so nearly all SVG traffic arrives from a small set of shared proxy addresses. A limit keyed on the client IP would be consumed by Camo on behalf of every embed at once, and start failing calendars for everyone. The protection would cause the outage it exists to prevent.
 
 The JSON API has no such problem: it is called from callers' own addresses, where a per-IP limit means what it says.
 
@@ -20,7 +20,7 @@ The `API_RATE_LIMITER` binding is applied in `middleware.ts` to `/api/*` only, a
 
 ## Consequences
 
-- **The SVG endpoint has no per-caller ceiling.** Its protection is downstream cache hit rate, so anything that defeats caching — a flood of distinct usernames, or cache-busting query strings — reaches the origin unthrottled and turns into a real GitHub fetch.
+- **The SVG endpoint has no per-caller ceiling.** Its protection is downstream cache hit rate, so anything that defeats caching (a flood of distinct usernames, or cache-busting query strings) reaches the origin unthrottled and turns into a real GitHub fetch.
 - No Cloudflare-side cache is configured for Worker responses either, so a miss in Camo is a real origin hit. Enabling one would narrow that gap without reintroducing the shared-IP problem.
-- This is why the mobile app cannot simply be pointed at `/api/*` as it stands: many users behind one carrier NAT would share a single bucket. See [8](0008-the-mobile-app-fetches-github-directly.md) and [11](0011-keep-the-apps-own-scraper-for-now.md).
+- This is why the mobile app cannot simply be pointed at `/api/*` as it stands: many users behind one carrier NAT would share a single bucket. See [11](0011-keep-the-apps-own-scraper-for-now.md), which holds that decision, and [8](0008-the-mobile-app-fetches-github-directly.md), which it supersedes.
 - Anyone tempted to "fix" the missing limit on the SVG route should read this first. Adding it is a regression, not a hardening.

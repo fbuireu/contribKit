@@ -1,16 +1,18 @@
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
-import { type Failure, network, notFound, parse } from "@domain/failures/failure";
+import { type Failure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
 import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/types";
 import { clampLevel } from "@domain/value-objects/contribution-level";
 import type { Year } from "@domain/value-objects/year";
 
 const USER_AGENT =
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+const FETCH_TIMEOUT_MS = 20_000;
+const TOO_MANY_REQUESTS = 429;
 const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
 const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
 const LEVEL_REGEX = /data-level="(\d)"/;
 const ID_REGEX = /\bid="([^"]+)"/;
-const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>(\d+)/g;
+const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>\s*(\d+)/g;
 
 interface BuildUrlParams {
 	username: string;
@@ -61,8 +63,31 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 		count: id === null ? null : (idToCount.get(id) ?? null),
 	}));
 
-	const total = idToCount.size > 0 ? enriched.reduce((sum, day) => sum + (day.count ?? 0), 0) : null;
-	return { days: enriched, total };
+	return { days: enriched, total: totalFor(enriched) };
+};
+
+const totalFor = (days: readonly ContributionDay[]): number | null => {
+	let total = 0;
+	for (const day of days) {
+		if (day.count === null) {
+			if (day.level > 0) return null;
+			continue;
+		}
+		total += day.count;
+	}
+	return total;
+};
+
+const RETRY_AFTER_SECONDS = /^\d+$/;
+const RETRY_AFTER_HTTP_DATE = /[a-zA-Z]/;
+
+const retryAfterFrom = (header: string | null): number | null => {
+	const value = header?.trim();
+	if (!value) return null;
+	if (RETRY_AFTER_SECONDS.test(value)) return Number(value);
+	if (!RETRY_AFTER_HTTP_DATE.test(value)) return null;
+	const at = Date.parse(value);
+	return Number.isNaN(at) ? null : Math.max(0, Math.round((at - Date.now()) / 1000));
 };
 
 export const githubHtmlContributionsRepository: ContributionsRepository = {
@@ -73,6 +98,7 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 		try {
 			response = await fetch(url, {
 				redirect: "follow",
+				signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
 				headers: {
 					"User-Agent": USER_AGENT,
 					Accept: "text/html, */*",
@@ -86,9 +112,20 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 		}
 
 		if (response.status === 404) return notFound(username.value);
+		if (response.status === TOO_MANY_REQUESTS)
+			return rateLimited({
+				message: "GitHub is rate-limiting this Worker",
+				retryAfterSeconds: retryAfterFrom(response.headers.get("retry-after")),
+			});
 		if (!response.ok) return network({ message: `GitHub returned ${response.status}`, status: response.status });
 
-		const html = await response.text();
+		let html: string;
+		try {
+			html = await response.text();
+		} catch (error) {
+			return network({ message: error instanceof Error ? error.message : String(error) });
+		}
+
 		const { days, total } = parseHtml(html);
 		if (days.length === 0) return parse("Could not parse contributions");
 

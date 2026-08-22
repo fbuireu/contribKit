@@ -6,14 +6,13 @@ ContribKit uses [lefthook](https://github.com/evilmartians/lefthook) to run form
 
 ## Installation
 
-lefthook must be installed once per clone so it can wire up the Git hooks:
+lefthook is a root devDependency and the root `prepare` script runs `lefthook install`, so `pnpm install` wires up the Git hooks on every fresh clone — there is nothing to install by hand. The build script is allow-listed in `pnpm-workspace.yaml` (`allowBuilds.lefthook`), which the binary download needs.
 
 ```bash
-brew install lefthook   # or: npm i -g lefthook
-lefthook install
+pnpm install   # hooks are wired as part of it
 ```
 
-Until you run `lefthook install`, none of the hooks below fire.
+If the hooks ever go missing (say, after re-cloning without installing), `pnpm exec lefthook install` re-wires them.
 
 ---
 
@@ -48,7 +47,6 @@ flowchart TD
     pc --> dartfmt["flutter-format: dart format"]
     pc --> analyze["flutter-analyze: flutter analyze --fatal-infos"]
     sync & webfmt & dartfmt & analyze --> cm["commit-msg"]
-    cm --> scope["auto-scope.mjs"]
     cm --> lint["commitlint --edit"]
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
@@ -79,18 +77,13 @@ Validates the commit message. Runs sequentially (`parallel: false`) and is **ski
 
 | Command | Runs | Purpose |
 |---------|------|---------|
-| `auto-scope` | `node scripts/auto-scope.mjs` | Blocks commits that touch more than one package |
 | `commitlint` | `commitlint --edit` | Enforces Conventional Commits |
 
-### `auto-scope.mjs`
+### Nothing here blocks a cross-package commit
 
-semantic-release-monorepo lists a commit in **every** package changelog whose files it touched. A commit that changes both `web/` and `app/` would therefore leak web changes into the app changelog and vice versa. `auto-scope.mjs` prevents this: it inspects the staged files and, if both `app/` and `web/` are touched, aborts with:
+semantic-release-monorepo lists a commit in **every** package changelog whose files it touched, so a change spanning `web/` and `app/` appears in both. An `auto-scope` hook used to abort such a commit here. It was removed: `main` takes squash merges, so splitting locally produces one squashed commit touching both anyway, and ten commits on `main` touch both packages despite the hook having run on every one of them.
 
-```
-Commit touches app and web: split into separate commits.
-```
-
-Keep each commit scoped to a single package.
+The check lives in CI now, on the pull request's combined diff, where the squash is actually visible. It comments and does not block, because a change that genuinely spans both clients is legitimate and releasing both is then correct. See **[CI/CD](CI-CD)** and [ADR 0001](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0001-monorepo-with-independently-released-components.md).
 
 ### commitlint
 
@@ -108,7 +101,7 @@ module.exports = {
 ```
 
 - **[Conventional Commits](https://www.conventionalcommits.org):** `type(scope): subject` (e.g. `feat(contribkit-web): add hex shape`).
-- **pnpm scopes:** valid scopes are derived from the workspace package **names**, so they are `contribkit-web` and `contribkit-app` — not `web` and `app`, which commitlint rejects. The scope is optional.
+- **pnpm scopes:** valid scopes are derived from the workspace package **names**, so they are `contribkit-web` and `contribkit-app` (not `web` and `app`, which commitlint rejects) plus `global`, for a change that belongs to neither client. The scope is optional.
 - **scope-case:** scopes may be `lower-case`, `PascalCase`, or `camelCase`.
 - **header-max-length:** the header may be up to **130** characters.
 

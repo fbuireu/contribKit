@@ -1,13 +1,15 @@
 import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/application/use_cases/fetch_contributions.dart';
 import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
-import 'package:contribkit/application/use_cases/purchase_tip.dart';
+import 'package:contribkit/application/use_cases/invalidate_contribution_cache.dart';
+import 'package:contribkit/application/use_cases/give_tip.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/repositories/palette_repository.dart';
-import 'package:contribkit/domain/repositories/purchase_repository.dart';
+import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/repositories/suggested_username_repository.dart';
+import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/assets/asset_suggested_username_repository.dart';
@@ -16,7 +18,7 @@ import 'package:contribkit/infrastructure/export/png_export_repository_impl.dart
 import 'package:contribkit/infrastructure/export/svg_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
-import 'package:contribkit/infrastructure/purchase/revenuecat_purchase_repository.dart';
+import 'package:contribkit/infrastructure/tip/revenuecat_tip_repository.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -42,16 +44,15 @@ ContributionRepository contributionRepository(Ref ref) =>
     GitHubContributionRepository();
 
 @riverpod
-PurchaseRepository purchaseRepository(Ref ref) =>
-    RevenueCatPurchaseRepository();
+TipRepository tipRepository(Ref ref) => RevenueCatTipRepository();
 
 @riverpod
 FetchTipProducts fetchTipProducts(Ref ref) =>
-    FetchTipProducts(repository: ref.watch(purchaseRepositoryProvider));
+    FetchTipProducts(repository: ref.watch(tipRepositoryProvider));
 
 @riverpod
-PurchaseTip purchaseTip(Ref ref) =>
-    PurchaseTip(repository: ref.watch(purchaseRepositoryProvider));
+GiveTip giveTip(Ref ref) =>
+    GiveTip(repository: ref.watch(tipRepositoryProvider));
 
 @riverpod
 SettingsRepository settingsRepository(Ref ref) => HiveSettingsRepository();
@@ -63,28 +64,32 @@ ExportRepository svgExportRepository(Ref ref) => SvgExportRepository();
 ExportRepository pngExportRepository(Ref ref) => PngExportRepository();
 
 @riverpod
-ExportRepository markdownExportRepository(Ref ref) => MarkdownExportRepository(
-  svgRepository: ref.watch(svgExportRepositoryProvider),
-);
+ExportRepository markdownExportRepository(Ref ref) =>
+    const MarkdownExportRepository();
 
 @riverpod
 FetchContributions fetchContributions(Ref ref) =>
     FetchContributions(repository: ref.watch(contributionRepositoryProvider));
 
 @riverpod
-ExportCalendar svgExportCalendar(Ref ref) =>
-    ExportCalendar(repository: ref.watch(svgExportRepositoryProvider));
+InvalidateContributionCache invalidateContributionCache(Ref ref) =>
+    InvalidateContributionCache(
+      repository: ref.watch(contributionRepositoryProvider),
+    );
 
 @riverpod
-ExportCalendar pngExportCalendar(Ref ref) =>
-    ExportCalendar(repository: ref.watch(pngExportRepositoryProvider));
-
-@riverpod
-ExportCalendar markdownExportCalendar(Ref ref) =>
-    ExportCalendar(repository: ref.watch(markdownExportRepositoryProvider));
+ExportCalendar exportCalendar(Ref ref, ExportFormat format) => ExportCalendar(
+  repository: switch (format) {
+    ExportFormat.svg => ref.watch(svgExportRepositoryProvider),
+    ExportFormat.png => ref.watch(pngExportRepositoryProvider),
+    ExportFormat.markdown => ref.watch(markdownExportRepositoryProvider),
+  },
+);
 
 @riverpod
 class ThemeModeNotifier extends _$ThemeModeNotifier {
+  bool _chosen = false;
+
   @override
   ThemeMode build() {
     _loadSaved();
@@ -92,12 +97,14 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   }
 
   Future<void> _loadSaved() async {
-    final saved = await ref.read(settingsRepositoryProvider).getThemeMode();
-    if (saved != null) state = _toFlutter(saved);
+    final settings = await ref.read(settingsRepositoryProvider).load();
+    if (_chosen || !ref.mounted) return;
+    state = _toFlutter(settings.themeMode);
   }
 
   Future<void> cycle() async {
     final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    _chosen = true;
     state = next;
     await ref.read(settingsRepositoryProvider).saveThemeMode(_toDomain(next));
   }

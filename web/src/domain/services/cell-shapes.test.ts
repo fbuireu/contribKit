@@ -23,7 +23,9 @@ describe("renderCellShape", () => {
 	});
 
 	it("sizes the dot radius by contribution level", () => {
-		expect(renderCellShape({ ...base, shape: CellShape.Dot })).toContain(`r="${dotRadius(base.level)}"`);
+		expect(renderCellShape({ ...base, shape: CellShape.Dot })).toContain(
+			`r="${dotRadius({ level: base.level, size: base.size })}"`,
+		);
 	});
 
 	it("renders a polygon for hex", () => {

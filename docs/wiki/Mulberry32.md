@@ -20,18 +20,16 @@ Some UI surfaces need a contribution grid that *looks* plausible before real dat
 export const mulberry32 = (seed: number): (() => number) => {
   let state = seed;
   return () => {
-    state += 0x6d2b79f5;            // Weyl increment
+    state += WEYL_INCREMENT;
     let hash = state;
-    hash = Math.imul(hash ^ (hash >>> 15), hash | 1);
-    hash ^= hash + Math.imul(hash ^ (hash >>> 7), hash | 61);
-    return ((hash ^ (hash >>> 14)) >>> 0) / 0x1_00_00_00_00;
+    hash = Math.imul(hash ^ (hash >>> FIRST_MIX_SHIFT), hash | FIRST_ODD_MASK);
+    hash ^= hash + Math.imul(hash ^ (hash >>> SECOND_MIX_SHIFT), hash | SECOND_ODD_MASK);
+    return ((hash ^ (hash >>> FINAL_MIX_SHIFT)) >>> 0) / UINT32_RANGE;
   };
 };
 ```
 
-It advances an internal state by a fixed odd increment, runs it through two `Math.imul` mixing steps, and normalizes the final `uint32` to a float in `[0, 1)`.
-
-In the source the magic numbers are named constants:
+It advances an internal state by a fixed odd increment, runs it through two `Math.imul` mixing steps, and normalizes the final `uint32` to a float in `[0, 1)`. Every magic number is a named constant, because the repository allows no code comments to explain one:
 
 | Constant | Value | Role |
 |----------|-------|------|

@@ -11,17 +11,9 @@ pnpm install
 cd web
 ```
 
-| Command | Action |
-|---------|--------|
-| `pnpm dev` | Local dev server (generates wrangler types) |
-| `pnpm wrangler:dev` | Build + run under the Workers runtime |
-| `pnpm build` | Production build |
-| `pnpm test` | Vitest unit tests |
-| `pnpm test:e2e` | Playwright e2e tests |
-| `pnpm lint:all` | Biome lint |
-| `pnpm lint:astro` | `astro check` (Astro diagnostics) |
-| `pnpm lint:ts:typecheck` | `tsc --noEmit` |
-| `pnpm format:all` | Biome format (write) |
+The command table lives in [`web/README.md`](https://github.com/fbuireu/ContribKit/blob/main/web/README.md#development)
+and is not repeated here: the copy that used to sit in this page had already lost `pnpm format:check`, which is
+the one command CI actually runs.
 
 ---
 
@@ -81,10 +73,10 @@ Cross-Origin-Embedder-Policy: unsafe-none
 
 Both deploys run from `ci-web.yml`, only after `web-check` (lint + test) and `web-build` (build + typecheck) pass:
 
-- **Production:** every push to `main` matching the workflow's path filter builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`. That filter covers `shared/**`, `docs/**` and `*.md` as well as `web/**`, so a documentation-only push redeploys too — see **[CI/CD](CI-CD)** for why.
+- **Production:** every push to `main` matching the workflow's path filter builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`. That filter covers `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files and the workflow's own wiring as well as `web/**`, so a documentation-only push redeploys too; see **[CI/CD](CI-CD)** for why.
 - **Development:** every PR matching the same filter builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
 
-> **`@astrojs/cloudflare` gotcha:** the adapter flattens the `wrangler.toml` `[env.NAME]` block at build time into `dist/server/wrangler.json`. Select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (use `--name` for previews). Do not pass `wrangler deploy --env <env>` on top of it. The generated config carries a `targetEnvironment`, and wrangler checks the flag against it: matching is a byte-for-byte no-op — `--dry-run` with and without `--env production` prints identical output, same Worker name, same bindings — and mismatching is a hard error (`This does not match the target environment "production"`). So the flag can only be redundant or fatal, never quietly wrong. `_deploy-web.yml` carried it until this was executed rather than assumed; it is gone.
+> **`@astrojs/cloudflare` gotcha:** the adapter flattens the `wrangler.toml` `[env.NAME]` block at build time into `dist/server/wrangler.json`. Select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (use `--name` for previews). Do not pass `wrangler deploy --env <env>` on top of it. The generated config carries a `targetEnvironment`, and wrangler checks the flag against it: matching is a byte-for-byte no-op (`--dry-run` with and without `--env production` prints identical output, same Worker name, same bindings), and mismatching is a hard error (`This does not match the target environment "production"`). So the flag can only be redundant or fatal, never quietly wrong. `_deploy-web.yml` carried it until this was executed rather than assumed; it is gone.
 
 See **[CI/CD](CI-CD)** for the full pipeline.
 

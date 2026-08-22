@@ -4,7 +4,7 @@
 
 # ContribKit · App
 
-**The iOS & Android app — render your contribution calendar, customize it, and, on Android, pin it to your home screen as a widget.**
+**The iOS & Android app: render your contribution calendar, customize it, and, on Android, pin it to your home screen as a widget.**
 
 [![CI App](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-app.yml?style=flat-square&logo=github&label=CI%20App)](https://github.com/fbuireu/contribkit/actions/workflows/ci-app.yml)
 [![Codecov](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?style=flat-square&logo=codecov)](https://codecov.io/gh/fbuireu/contribkit)
@@ -34,7 +34,7 @@
 - 🧿 **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
 - 🔋 **Daily background refresh:** fetches once a day, easy on the battery
 - 📤 **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
-- 🔓 **No login:** just a username — only public contribution data
+- 🔓 **No login:** just a username, and only public contribution data
 
 ---
 
@@ -62,7 +62,7 @@ Same DDD-ish layering as the web; each layer documents its rules in a colocated 
 | **[application](lib/application/CLAUDE.md)**             | One class per use case, dependencies via constructor                  |
 | **[infrastructure](lib/infrastructure/CLAUDE.md)**       | GitHub client, Hive persistence, export implementations               |
 | **[infrastructure/github/dtos](lib/infrastructure/github/dtos/CLAUDE.md)** | JSON DTOs, converted to entities at the boundary    |
-| **[ui](lib/ui/CLAUDE.md)**                               | Widgets + Riverpod providers — the only Flutter-aware layer           |
+| **[ui](lib/ui/CLAUDE.md)**                               | Widgets + Riverpod providers: the only Flutter-aware layer             |
 | **[ui/di](lib/ui/di/CLAUDE.md)**                         | All dependency wiring                                                 |
 | **[ui/theme](lib/ui/theme/CLAUDE.md)**                   | Design tokens and semantic colors                                     |
 
@@ -76,20 +76,20 @@ flutter pub get
 
 | Command                                                      | Action                              |
 | ------------------------------------------------------------ | ----------------------------------- |
-| `flutter run --dart-define=REVENUECAT_KEY=<key>`             | Run locally                         |
+| `flutter run --dart-define-from-file=dart-defines.json`      | Run locally                         |
 | `dart run build_runner watch`                                | Watch codegen (riverpod, freezed)   |
 | `flutter test --coverage`                                    | Run tests                           |
 | `flutter analyze`                                            | Static analysis                     |
 
 `REVENUECAT_KEY` is only needed to exercise the tip jar; the rest of the app runs without it.
 
-Git hooks are repo-wide — see **[Monorepo Development](../README.md#monorepo-development)**.
+Git hooks are repo-wide. See **[Monorepo Development](../README.md#monorepo-development)**.
 
 ---
 
 ## Home-Screen Widgets
 
-**Android only.** `app/ios` carries the `Runner` and `RunnerTests` targets and nothing else — there is no WidgetKit extension, so an iOS install has no home-screen widget. Two sizes ship:
+**Android only.** `app/ios` carries the `Runner` and `RunnerTests` targets and nothing else. There is no WidgetKit extension, so an iOS install has no home-screen widget. Two sizes ship:
 
 | Size            | Provider                        | Shows                                                     |
 | --------------- | ------------------------------- | --------------------------------------------------------- |

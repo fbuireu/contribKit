@@ -7,7 +7,11 @@ on:
       - "web/**"
       - "shared/**"
       - "docs/**"
+      - "scripts/**"
       - "*.md"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "lefthook.yml"
       - ".github/workflows/ci-web.yml"
       - ".github/actions/prepare-web-env/**"
   pull_request:
@@ -16,7 +20,11 @@ on:
       - "web/**"
       - "shared/**"
       - "docs/**"
+      - "scripts/**"
       - "*.md"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "lefthook.yml"
       - ".github/workflows/ci-web.yml"
       - ".github/actions/prepare-web-env/**"
   workflow_dispatch:
@@ -137,7 +145,6 @@ jobs:
     uses: ./.github/workflows/_deploy-web.yml
     with:
       environment: web-production
-      wrangler_env: production
       url: https://contribkit.app
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -150,7 +157,6 @@ jobs:
     uses: ./.github/workflows/_deploy-web.yml
     with:
       environment: web-development
-      wrangler_env: development
       worker_name: pr-${{ github.event.pull_request.number }}-contribkit-development
       url: https://pr-${{ github.event.pull_request.number }}-contribkit-development.fbuireu.workers.dev
     secrets:

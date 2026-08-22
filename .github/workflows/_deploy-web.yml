@@ -6,9 +6,11 @@ on:
       environment:
         required: true
         type: string
-      wrangler_env:
-        required: true
-        type: string
+        description: >-
+          The GitHub Environment, namespaced <component>-<stage> per ADR 0001.
+          The wrangler env is the stage half, derived here rather than passed,
+          it used to be a second input, and nothing stopped a caller pairing
+          web-production with development.
       url:
         required: false
         type: string
@@ -46,10 +48,16 @@ jobs:
 
       - uses: ./.github/actions/prepare-web-env
 
+      - name: Resolve the wrangler environment from the GitHub Environment
+        id: stage
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: echo "wrangler_env=${ENVIRONMENT#web-}" >> "$GITHUB_OUTPUT"
+
       - name: Build
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
-          CLOUDFLARE_ENV: ${{ inputs.wrangler_env }}
+          CLOUDFLARE_ENV: ${{ steps.stage.outputs.wrangler_env }}
           PUBLIC_GOOGLE_ANALYTICS_ID: ${{ vars.PUBLIC_GOOGLE_ANALYTICS_ID }}
           PUBLIC_BETTER_STACK_SOURCE_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_SOURCE_TOKEN }}
           PUBLIC_BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}

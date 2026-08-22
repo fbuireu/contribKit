@@ -10,7 +10,7 @@ Accepted.
 
 The glossary defines **Cell Size** as "how large each Cell is drawn, and the gap left between neighbours. Chosen from a small set of named sizes rather than typed as a number." The app implements exactly that: `CellSize` is an enum of `compact` / `normal` / `large`, each mapping to a pixel size and a gap, persisted by name so the stored value survives a change to the pixels behind it.
 
-The web does not have the concept at all. `SvgRenderOptions` in `web/src/domain/services/types.ts` carries `cellSize?: number` and `cellGap?: number`, defaulting to `SVG_DEFAULT_CELL_SIZE` and `SVG_DEFAULT_CELL_GAP`. Those numbers are not a user choice: they come from three fixed presets in `web/src/ui/components/grid/grid-presets.ts` — hero, customize and export — each tuned to the space its surface has. The SVG endpoint's query schema accepts `palette`, `shape` and `background`, and nothing else.
+The web does not have the concept at all. `SvgRenderOptions` in `web/src/domain/services/types.ts` carries `cellSize?: number` and `cellGap?: number`, defaulting to `SVG_DEFAULT_CELL_SIZE` and `SVG_DEFAULT_CELL_GAP`. Those numbers are not a user choice: they come from three fixed presets in `web/src/ui/components/grid/grid-presets.ts` (hero, customize and export), each tuned to the space its surface has. The SVG endpoint's query schema accepts `palette`, `shape` and `background`, and nothing else.
 
 So a domain word that the glossary states is never a number is, in one client's domain layer, a number. That reads like drift, and every reviewer who notices it will reach for the same two fixes.
 
@@ -18,7 +18,7 @@ So a domain word that the glossary states is never a number is, in one client's 
 
 Cell Size is a **user-facing choice in the app only**. The web renderer takes pixel geometry, because that is what it is: a layout parameter chosen by the surface doing the rendering, not a preference expressed by a person.
 
-Both obvious fixes were rejected. Adding a `size` query parameter to the SVG endpoint would make the embed's geometry a public contract — a README embed is sized by the markup around it, and the parameter would exist to be got wrong. Replacing the three presets with named sizes would force one vocabulary onto three surfaces whose constraints have nothing in common; "normal" in a hero banner and "normal" in an export are not the same number, and pretending otherwise is how a token stops meaning anything.
+Both obvious fixes were rejected. Adding a `size` query parameter to the SVG endpoint would make the embed's geometry a public contract. A README embed is sized by the markup around it, and the parameter would exist to be got wrong. Replacing the three presets with named sizes would force one vocabulary onto three surfaces whose constraints have nothing in common; "normal" in a hero banner and "normal" in an export are not the same number, and pretending otherwise is how a token stops meaning anything.
 
 ## Consequences
 

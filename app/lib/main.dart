@@ -1,12 +1,9 @@
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
-import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
-import 'package:contribkit/domain/value_objects/cell_shape.dart';
-import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
-import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
+import 'package:contribkit/ui/features/widget/home_screen_widget_refresh.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material, ThemeMode;
@@ -32,26 +29,14 @@ void callbackDispatcher() {
     try {
       await Hive.initFlutter();
 
-      final settings = HiveSettingsRepository();
-      final username = await settings.getLastUsername();
-      if (username == null) return true;
-
-      final year = await settings.getLastYear() ?? Year.current;
-      final palette = PaletteService.resolve(
-        palettes: await AssetPaletteRepository().loadAll(),
-        storedKey: await settings.getSavedPaletteKey(),
-      );
-      if (palette == null) return true;
-
-      final (:calendar, fromCache: _) = await GitHubContributionRepository()
-          .fetchCalendar(username: username, year: year);
-
-      await CalendarWidgetService.update(
-        calendar: calendar,
-        palette: palette,
-        cellShape: await settings.getSavedCellShape() ?? CellShape.fallback,
-      );
-    } catch (_) {}
+      await HomeScreenWidgetRefresh(
+        settings: HiveSettingsRepository(),
+        palettes: AssetPaletteRepository(),
+        contributions: GitHubContributionRepository(),
+      )();
+    } catch (_) {
+      return false;
+    }
 
     return true;
   });
@@ -62,10 +47,27 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await Hive.initFlutter();
+
+  await _bestEffort(_dropLegacyCaches);
+  await _bestEffort(_scheduleWidgetRefresh);
+  await _bestEffort(_initRevenueCat);
+
+  runApp(const ProviderScope(child: ContribKitApp()));
+}
+
+Future<void> _bestEffort(Future<void> Function() step) async {
+  try {
+    await step();
+  } catch (_) {}
+}
+
+Future<void> _dropLegacyCaches() async {
   for (final box in legacyContributionCacheBoxNames) {
     await Hive.deleteBoxFromDisk(box);
   }
+}
 
+Future<void> _scheduleWidgetRefresh() async {
   await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(
     _widgetRefreshTask,
@@ -73,9 +75,6 @@ Future<void> main() async {
     frequency: const Duration(hours: 24),
     existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
   );
-
-  await _initRevenueCat();
-  runApp(const ProviderScope(child: ContribKitApp()));
 }
 
 Future<void> _initRevenueCat() async {

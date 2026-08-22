@@ -3,7 +3,7 @@ import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
 
-const TITLE = "Privacy Policy — ContribKit";
+const TITLE = "Privacy Policy: ContribKit";
 const EFFECTIVE_DATE = "2026-06-04";
 
 const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
@@ -20,14 +20,14 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
       <div class="legal-body">
 
         <h2>Overview</h2>
-        <p>ContribKit is a tool for visualising public GitHub contribution calendars. This policy explains what data we collect, why, and how you can control it — both in the mobile app and on this website.</p>
+        <p>ContribKit is a tool for visualising public GitHub contribution calendars. This policy explains what data we collect, why, and how you can control it, both in the mobile app and on this website.</p>
 
         <h2>The mobile app</h2>
         <p>The ContribKit app (iOS &amp; Android) requires no account, login, or authentication token, and we do not operate any server that receives or stores your personal data. Your username, selected year, palette, and visual preferences are stored locally on your device and are never sent to us. Uninstalling the app, or clearing its data, removes them.</p>
         <p>To function, the app connects to two third parties directly from your device:</p>
         <ul>
-          <li><strong>GitHub</strong> — the app requests the public contribution page at <code>github.com/users/&#123;username&#125;/contributions</code> using only the username you enter. As with any web request, GitHub receives your device's IP address and standard request metadata. No GitHub login or token is involved.</li>
-          <li><strong>Google Fonts</strong> — on first launch the app downloads its typefaces (Inter, JetBrains Mono) from Google's servers, which receive your IP address; the fonts are then cached on your device. This is subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.</li>
+          <li><strong>GitHub</strong>: the app requests the public contribution page at <code>github.com/users/&#123;username&#125;/contributions</code> using only the username you enter. As with any web request, GitHub receives your device's IP address and standard request metadata. No GitHub login or token is involved.</li>
+          <li><strong>Google Fonts</strong>: on first launch the app downloads its typefaces (Inter, JetBrains Mono) from Google's servers, which receive your IP address; the fonts are then cached on your device. This is subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.</li>
         </ul>
         <p>The app contains no advertising and bundles no analytics or crash-reporting SDKs. We do not track you across other apps or websites, and we do not use advertising identifiers (such as Apple's IDFA or the Android Advertising ID).</p>
 
@@ -48,14 +48,14 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
 
         <h2>In-app purchases</h2>
         <p>Tips are optional. Payments are processed entirely by Apple (App Store) or Google (Play Store); we never receive or store your payment details.</p>
-        <p>To deliver and restore purchases, the app uses RevenueCat (RevenueCat, Inc.) as its purchase-infrastructure provider. RevenueCat assigns an anonymous, randomly generated app user ID and receives device and transaction information — device model, OS version, IP address, and purchase history — solely to provide this functionality. It is not used for advertising or cross-app tracking. See <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat's Privacy Policy</a>. You can request deletion of your RevenueCat data by contacting us.</p>
+        <p>To deliver and restore purchases, the app uses RevenueCat (RevenueCat, Inc.) as its purchase-infrastructure provider. RevenueCat assigns an anonymous, randomly generated app user ID and receives device and transaction information (device model, OS version, IP address, and purchase history) solely to provide this functionality. It is not used for advertising or cross-app tracking. See <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat's Privacy Policy</a>. You can request deletion of your RevenueCat data by contacting us.</p>
 
         <h2>Data retention</h2>
         <p>App preferences remain on your device until you clear the app's data or uninstall it. Google Analytics data is retained for 14 months, after which it is automatically deleted. Better Stack telemetry is retained for 30 days. RevenueCat retains purchase records for as long as needed to provide and restore purchases. We retain no other personal data.</p>
 
         <h2>Your rights</h2>
         <p>If you are in the European Economic Area or the United Kingdom, you have the right to access, rectify, erase, restrict, or object to the processing of your personal data, and to data portability. Because the app keeps your preferences only on your device, you can exercise most of these directly by clearing the app's data or uninstalling it. For website analytics or RevenueCat data, email <a href="mailto:contact@contribkit.app">contact@contribkit.app</a>.</p>
-        <p>The data controller is the owner identified in the <a href="/legal-notice">Legal Notice</a>. You also have the right to lodge a complaint with your supervisory authority — in Spain, the Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">AEPD</a>).</p>
+        <p>The data controller is the owner identified in the <a href="/legal-notice">Legal Notice</a>. You also have the right to lodge a complaint with your supervisory authority. In Spain, the Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">AEPD</a>).</p>
 
         <h2>Children</h2>
         <p>ContribKit is not directed at children under 13. We do not knowingly collect data from children.</p>

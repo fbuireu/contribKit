@@ -48,13 +48,14 @@ The repository never throws. Network and HTTP outcomes are converted to a domain
 
 | Condition | Result |
 |-----------|--------|
-| `fetch` throws (network error) | `network({ message })` |
+| `fetch` throws, including the 20-second `AbortSignal.timeout` | `network({ message })`, with no status |
 | `404` | `notFound(username)` |
-| other non-OK status | `network({ message: "GitHub returned <status>", status })` |
+| `429` | `rateLimited({ message, retryAfterSeconds })`: the wait GitHub named, in either RFC form, or `null` |
+| any other non-OK status | `network({ message: "GitHub returned <status>", status })` |
 | OK but no Contribution Days parsed | `parse("Could not parse contributions")` |
 | OK with Contribution Days | `ContributionCalendar` |
 
-A successful result is `{ username, days, total }`, where `days` are the parsed `ContributionDay`s and `total` is the summed yearly count (or `null`).
+A successful result is `{ username, days, total }`, where `days` are the parsed `ContributionDay`s and `total` is the summed yearly count, or `null` the moment an active day's Count could not be read.
 
 ---
 

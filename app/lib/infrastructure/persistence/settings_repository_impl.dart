@@ -20,14 +20,6 @@ const _keyThemeMode = 'themeMode';
 final class HiveSettingsRepository implements SettingsRepository {
   Future<Box<dynamic>> get _box => Hive.openBox<dynamic>(_settingsBoxName);
 
-  Future<T?> _read<T>(T? Function(Box<dynamic> box) read) async {
-    try {
-      return read(await _box);
-    } catch (_) {
-      return null;
-    }
-  }
-
   Future<void> _write(Future<void> Function(Box<dynamic> box) write) async {
     try {
       await write(await _box);
@@ -36,79 +28,115 @@ final class HiveSettingsRepository implements SettingsRepository {
     }
   }
 
+  static T? _enumByName<T extends Enum>(
+    Box<dynamic> box,
+    String key,
+    List<T> values,
+  ) {
+    final raw = box.get(key) as String?;
+    if (raw == null) return null;
+    return values.where((value) => value.name == raw).firstOrNull;
+  }
+
+  static String? _readWithLegacy(
+    Box<dynamic> box,
+    String key,
+    String legacyKey,
+  ) => (box.get(key) ?? box.get(legacyKey)) as String?;
+
+  static Future<void> _writeReplacingLegacy(
+    Box<dynamic> box,
+    String key,
+    String legacyKey,
+    String value,
+  ) async {
+    await box.put(key, value);
+    await box.delete(legacyKey);
+  }
+
   @override
-  Future<Username?> getLastUsername() => _read((box) {
-    final raw = box.get(_keyLastUsername) as String?;
-    return raw == null ? null : Username(raw);
-  });
+  Future<AppSettings> load() async {
+    try {
+      return _settingsIn(await _box);
+    } catch (_) {
+      return const AppSettings();
+    }
+  }
+
+  static T? _tolerating<T>(T? Function() read) {
+    try {
+      return read();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static AppSettings _settingsIn(Box<dynamic> box) {
+    final username = _tolerating(() => box.get(_keyLastUsername) as String?);
+    final year = _tolerating(() => box.get(_keyLastYear) as int?);
+
+    return AppSettings(
+      lastUsername: _tolerating(
+        () => username == null ? null : Username(username),
+      ),
+      lastYear: _tolerating(() => year == null ? null : Year(year)),
+      paletteKey: _tolerating(
+        () => _readWithLegacy(box, _keyPaletteKey, _keyLegacyPaletteName),
+      ),
+      cellShape:
+          _tolerating(
+            () => _enumByName(box, _keyCellShape, CellShape.values),
+          ) ??
+          CellShape.fallback,
+      cellSize:
+          _tolerating(() => _enumByName(box, _keyCellSize, CellSize.values)) ??
+          CellSize.fallback,
+      backgroundPresetName: _tolerating(
+        () => _readWithLegacy(
+          box,
+          _keyBackgroundPreset,
+          _keyLegacyCardBackground,
+        ),
+      ),
+      themeMode:
+          _tolerating(
+            () => _enumByName(box, _keyThemeMode, AppThemeMode.values),
+          ) ??
+          AppThemeMode.system,
+    );
+  }
 
   @override
   Future<void> saveLastUsername(Username username) =>
       _write((box) => box.put(_keyLastUsername, username.value));
 
   @override
-  Future<Year?> getLastYear() => _read((box) {
-    final raw = box.get(_keyLastYear) as int?;
-    return raw == null ? null : Year(raw);
-  });
-
-  @override
   Future<void> saveLastYear(Year year) =>
       _write((box) => box.put(_keyLastYear, year.value));
 
   @override
-  Future<String?> getSavedPaletteKey() => _read(
+  Future<void> savePaletteKey(String key) => _write(
     (box) =>
-        (box.get(_keyPaletteKey) ?? box.get(_keyLegacyPaletteName)) as String?,
+        _writeReplacingLegacy(box, _keyPaletteKey, _keyLegacyPaletteName, key),
   );
-
-  @override
-  Future<void> savePaletteKey(String key) => _write((box) async {
-    await box.put(_keyPaletteKey, key);
-    await box.delete(_keyLegacyPaletteName);
-  });
-
-  @override
-  Future<CellShape?> getSavedCellShape() => _read((box) {
-    final raw = box.get(_keyCellShape) as String?;
-    if (raw == null) return null;
-    return CellShape.values.where((s) => s.name == raw).firstOrNull;
-  });
 
   @override
   Future<void> saveCellShape(CellShape shape) =>
       _write((box) => box.put(_keyCellShape, shape.name));
 
   @override
-  Future<CellSize?> getSavedCellSize() => _read((box) {
-    final raw = box.get(_keyCellSize) as String?;
-    if (raw == null) return null;
-    return CellSize.values.where((s) => s.name == raw).firstOrNull;
-  });
-
-  @override
   Future<void> saveCellSize(CellSize size) =>
       _write((box) => box.put(_keyCellSize, size.name));
 
   @override
-  Future<String?> getSavedBackgroundPreset() => _read(
-    (box) =>
-        (box.get(_keyBackgroundPreset) ?? box.get(_keyLegacyCardBackground))
-            as String?,
+  Future<void> saveBackgroundPreset(String presetName) => _write(
+    (box) => _writeReplacingLegacy(
+      box,
+      _keyBackgroundPreset,
+      _keyLegacyCardBackground,
+      presetName,
+    ),
   );
-
-  @override
-  Future<void> saveBackgroundPreset(String presetName) => _write((box) async {
-    await box.put(_keyBackgroundPreset, presetName);
-    await box.delete(_keyLegacyCardBackground);
-  });
-
-  @override
-  Future<AppThemeMode?> getThemeMode() => _read((box) {
-    final raw = box.get(_keyThemeMode) as String?;
-    if (raw == null) return null;
-    return AppThemeMode.values.where((m) => m.name == raw).firstOrNull;
-  });
 
   @override
   Future<void> saveThemeMode(AppThemeMode mode) =>

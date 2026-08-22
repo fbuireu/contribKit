@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
@@ -182,11 +183,21 @@ void main() {
         ).fetchCalendar(username: username, year: year);
 
         final days = _allDays(result.calendar);
-        final padded = days.where((day) => day.count == 0);
+        final padded = days
+            .where((day) => day.date != DateTime(2023, 3, 6))
+            .toList();
+
+        expect(padded, isNotEmpty);
+        expect(
+          padded.every((day) => day.count == null),
+          isTrue,
+          reason: 'a padding day has no Count, and null is not zero',
+        );
         expect(
           padded.every((day) => day.level == ContributionLevel.none),
           isTrue,
         );
+        expect(padded.any((day) => day.count == 0), isFalse);
         expect(result.calendar.totalContributions, 4);
       },
     );
@@ -236,6 +247,32 @@ void main() {
       expect(
         _dayOn(cached.calendar, '2023-03-07').level,
         ContributionLevel.veryHigh,
+      );
+    });
+
+    test('writes every field the read side declares, and no other', () async {
+      final html =
+          _day(id: 'a', date: '2023-03-06', level: '3') +
+          _tip(id: 'a', count: 7);
+
+      await GitHubContributionRepository(httpClient: _clientReturning(html))
+          .fetchCalendar(username: username, year: year);
+
+      final box = await Hive.openBox<dynamic>('contribution_cache_v3');
+      final entry = box.get('${username.value}:${year.value}') as Map;
+      final stored =
+          jsonDecode(entry['json'] as String) as Map<String, dynamic>;
+
+      expect(stored.keys, unorderedEquals(['totalContributions', 'weeks']));
+      final day =
+          ((stored['weeks'] as List).first as Map)['contributionDays'] as List;
+      expect(
+        (day.first as Map).keys,
+        unorderedEquals(['date', 'contributionCount', 'level']),
+        reason:
+            'the write side is generated from the DTO now, so a field '
+            'added to one and not the other is a codegen change rather than '
+            'a silent drift',
       );
     });
   });
@@ -405,6 +442,151 @@ void main() {
       );
 
       expect(calendar.totalContributions, 10);
+    });
+  });
+  group('the cache freezes a Year only once that Year has ended', () {
+    final closedYear = Year(2023);
+    final html =
+        _day(id: 'a', date: '2023-06-01', level: '2') + _tip(id: 'a', count: 7);
+
+    test(
+      'a snapshot written before the Year ended still expires afterwards',
+      () async {
+        var served = 0;
+        final client = MockClient((_) async {
+          served++;
+          return http.Response(html, 200);
+        });
+        final onNewYearsEve = GitHubContributionRepository(
+          httpClient: client,
+          now: () => DateTime(2023, 12, 31, 23, 30),
+        );
+        await onNewYearsEve.fetchCalendar(username: username, year: closedYear);
+
+        final twoDaysLater = GitHubContributionRepository(
+          httpClient: client,
+          now: () => DateTime(2024, 1, 2),
+        );
+        final second = await twoDaysLater.fetchCalendar(
+          username: username,
+          year: closedYear,
+        );
+
+        expect(second.fromCache, isFalse);
+        expect(served, 2);
+      },
+    );
+
+    test('a snapshot written after the Year ended never expires', () async {
+      var served = 0;
+      final client = MockClient((_) async {
+        served++;
+        return http.Response(html, 200);
+      });
+      final justAfter = GitHubContributionRepository(
+        httpClient: client,
+        now: () => DateTime(2024, 1, 2),
+      );
+      await justAfter.fetchCalendar(username: username, year: closedYear);
+
+      final muchLater = GitHubContributionRepository(
+        httpClient: client,
+        now: () => DateTime(2026, 8, 21),
+      );
+      final second = await muchLater.fetchCalendar(
+        username: username,
+        year: closedYear,
+      );
+
+      expect(second.fromCache, isTrue);
+      expect(served, 1);
+    });
+  });
+
+  group('the cache key ignores case, because GitHub handles do', () {
+    final html =
+        _day(id: 'a', date: '2023-06-01', level: '2') + _tip(id: 'a', count: 7);
+
+    test('two spellings of one account share an entry', () async {
+      var served = 0;
+      final client = MockClient((_) async {
+        served++;
+        return http.Response(html, 200);
+      });
+      final repository = GitHubContributionRepository(httpClient: client);
+
+      await repository.fetchCalendar(username: Username('OctoCat'), year: year);
+      final second = await repository.fetchCalendar(
+        username: Username('octocat'),
+        year: year,
+      );
+
+      expect(second.fromCache, isTrue);
+      expect(served, 1);
+    });
+
+    test('invalidating one spelling clears the other', () async {
+      var served = 0;
+      final client = MockClient((_) async {
+        served++;
+        return http.Response(html, 200);
+      });
+      final repository = GitHubContributionRepository(httpClient: client);
+
+      await repository.fetchCalendar(username: Username('OctoCat'), year: year);
+      await repository.invalidateCache(Username('octocat'));
+      final second = await repository.fetchCalendar(
+        username: Username('OctoCat'),
+        year: year,
+      );
+
+      expect(second.fromCache, isFalse);
+      expect(served, 2);
+    });
+  });
+
+  group('a Contribution Day GitHub coloured but did not identify', () {
+    test('survives with an unknown Count, as ADR 0019 requires', () async {
+      const orphanMarkup =
+          '<td class="ContributionCalendar-day" data-date="2023-06-01" '
+          'data-level="3"></td>';
+      final html =
+          orphanMarkup +
+          _day(id: 'b', date: '2023-06-02', level: '1') +
+          _tip(id: 'b', count: 4);
+
+      final repository = GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      );
+      final result = await repository.fetchCalendar(
+        username: username,
+        year: year,
+      );
+
+      final orphan = _dayOn(result.calendar, '2023-06-01');
+      expect(orphan.level, ContributionLevel.high);
+      expect(orphan.count, isNull);
+      expect(orphan.isActive, isTrue);
+    });
+
+    test('voids the Total rather than understating it', () async {
+      const orphanMarkup =
+          '<td class="ContributionCalendar-day" data-date="2023-06-01" '
+          'data-level="3"></td>';
+      final html =
+          orphanMarkup +
+          _day(id: 'b', date: '2023-06-02', level: '1') +
+          _tip(id: 'b', count: 4);
+
+      final repository = GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      );
+      final result = await repository.fetchCalendar(
+        username: username,
+        year: year,
+      );
+
+      expect(result.calendar.totalContributions, isNull);
     });
   });
 }

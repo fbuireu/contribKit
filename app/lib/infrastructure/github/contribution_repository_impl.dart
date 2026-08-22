@@ -21,10 +21,14 @@ const legacyContributionCacheBoxNames = <String>[
 ];
 
 final class GitHubContributionRepository implements ContributionRepository {
-  GitHubContributionRepository({http.Client? httpClient})
-    : _httpClient = httpClient ?? http.Client();
+  GitHubContributionRepository({
+    http.Client? httpClient,
+    DateTime Function()? now,
+  }) : _httpClient = httpClient ?? http.Client(),
+       _now = now ?? DateTime.now;
 
   final http.Client _httpClient;
+  final DateTime Function() _now;
 
   static const _currentYearTtl = Duration(hours: 1);
 
@@ -42,14 +46,17 @@ final class GitHubContributionRepository implements ContributionRepository {
     required Username username,
     required Year year,
   }) async {
-    final cacheKey = '${username.value}:${year.value}';
-    final cached = await _readCache(cacheKey, year);
+    final cacheKey = _cacheKeyFor(username, year);
+    final cached = await _readCache(cacheKey, username, year);
     if (cached != null) return (calendar: cached, fromCache: true);
 
     final data = await _fetch(username, year);
-    await _writeCache(cacheKey, data, year);
+    await _writeCache(cacheKey, data);
     return (calendar: data, fromCache: false);
   }
+
+  static String _cacheKeyFor(Username username, Year year) =>
+      '${username.value.toLowerCase()}:${year.value}';
 
   @override
   Future<void> invalidateCache(Username username) async {
@@ -57,7 +64,7 @@ final class GitHubContributionRepository implements ContributionRepository {
       final box = await _openBox();
       final keys = box.keys
           .whereType<String>()
-          .where((k) => k.startsWith('${username.value}:'))
+          .where((k) => k.startsWith('${username.value.toLowerCase()}:'))
           .toList();
       await box.deleteAll(keys);
     } catch (e) {
@@ -120,24 +127,24 @@ final class GitHubContributionRepository implements ContributionRepository {
   }
 
   ContributionCalendar _parseHtml(String html, Username username, Year year) {
-    final idToDay = <String, ({DateTime date, int? level})>{};
+    final parsed = <({DateTime date, int? level, String? id})>[];
     for (final tdMatch in _tdRegex.allMatches(html)) {
       final td = tdMatch.group(0)!;
-      final idMatch = _idAttr.firstMatch(td);
       final dateMatch = _dateAttr.firstMatch(td);
-      if (idMatch == null || dateMatch == null) continue;
+      if (dateMatch == null) continue;
 
       final date = DateTime.tryParse(dateMatch.group(1)!);
       if (date == null || date.year != year.value) continue;
 
       final levelMatch = _levelAttr.firstMatch(td);
-      idToDay[idMatch.group(1)!] = (
+      parsed.add((
         date: date,
         level: levelMatch == null ? null : int.tryParse(levelMatch.group(1)!),
-      );
+        id: _idAttr.firstMatch(td)?.group(1),
+      ));
     }
 
-    if (idToDay.isEmpty) {
+    if (parsed.isEmpty) {
       throw const ParseFailure(message: 'Could not parse contributions');
     }
 
@@ -146,17 +153,17 @@ final class GitHubContributionRepository implements ContributionRepository {
       final forId = tooltipMatch.group(1)!;
       final text = tooltipMatch.group(2)!.trim();
       final numMatch = _countPrefix.firstMatch(text);
-      final parsed = numMatch == null ? null : int.tryParse(numMatch.group(1)!);
-      if (parsed != null) idToCount[forId] = parsed;
+      final count = numMatch == null ? null : int.tryParse(numMatch.group(1)!);
+      if (count != null) idToCount[forId] = count;
     }
 
     final rawDays =
-        idToDay.entries
+        parsed
             .map(
-              (e) => (
-                date: e.value.date,
-                level: e.value.level,
-                count: idToCount[e.key],
+              (d) => (
+                date: d.date,
+                level: d.level,
+                count: d.id == null ? null : idToCount[d.id],
               ),
             )
             .toList()
@@ -208,41 +215,39 @@ final class GitHubContributionRepository implements ContributionRepository {
       ? ContributionLevel.values[index]
       : null;
 
-  Future<ContributionCalendar?> _readCache(String key, Year year) async {
+  Future<ContributionCalendar?> _readCache(
+    String key,
+    Username username,
+    Year year,
+  ) async {
     try {
       final box = await _openBox();
       final raw = box.get(key) as Map<dynamic, dynamic>?;
       if (raw == null) return null;
 
       final cachedAt = DateTime.parse(raw['cachedAt'] as String);
-      final isPastYear = year.value < DateTime.now().year;
+      final writtenAfterYearEnded = cachedAt.isAfter(DateTime(year.value + 1));
 
-      if (!isPastYear) {
-        final age = DateTime.now().difference(cachedAt);
+      if (!writtenAfterYearEnded) {
+        final age = _now().difference(cachedAt);
         if (age > _currentYearTtl) return null;
       }
 
       final dto = ContributionCalendarDto.fromJson(
         jsonDecode(raw['json'] as String) as Map<String, dynamic>,
       );
-      final parts = key.split(':');
-      final username = Username(parts[0]);
       return _toDomain(dto, username, year);
     } catch (_) {
       return null;
     }
   }
 
-  Future<void> _writeCache(
-    String key,
-    ContributionCalendar calendar,
-    Year year,
-  ) async {
+  Future<void> _writeCache(String key, ContributionCalendar calendar) async {
     try {
       final box = await _openBox();
       final dto = _toDto(calendar);
       await box.put(key, {
-        'cachedAt': DateTime.now().toIso8601String(),
+        'cachedAt': _now().toIso8601String(),
         'json': jsonEncode(dto),
       });
     } catch (_) {}
@@ -253,14 +258,14 @@ final class GitHubContributionRepository implements ContributionRepository {
     Username username,
     Year year,
   ) {
-    final allCounts = dto.weeks
-        .expand((w) => w.contributionDays)
-        .map((d) => d.contributionCount)
-        .whereType<int>()
-        .toList();
-    final yearMax = allCounts.isEmpty
-        ? 0
-        : allCounts.reduce((a, b) => a > b ? a : b);
+    int? yearMax;
+    int derivedYearMax() {
+      return yearMax ??= dto.weeks
+          .expand((week) => week.contributionDays)
+          .map((day) => day.contributionCount)
+          .whereType<int>()
+          .fold<int>(0, (highest, count) => count > highest ? count : highest);
+    }
 
     final days = dto.weeks.expand((weekDto) => weekDto.contributionDays).map((
       dayDto,
@@ -273,7 +278,7 @@ final class GitHubContributionRepository implements ContributionRepository {
             _levelFromIndex(dayDto.level) ??
             ContributionLevelService.levelFor(
               count: count ?? 0,
-              yearMax: yearMax,
+              yearMax: derivedYearMax(),
             ),
       );
     }).toList();
@@ -290,24 +295,25 @@ final class GitHubContributionRepository implements ContributionRepository {
     );
   }
 
-  Map<String, dynamic> _toDto(ContributionCalendar calendar) => {
-    'totalContributions': calendar.totalContributions,
-    'weeks': calendar.weeks
-        .map(
-          (w) => {
-            'contributionDays': w.days
-                .map(
-                  (d) => {
-                    'date': d.date.toIso8601String().substring(0, 10),
-                    'contributionCount': d.count,
-                    'level': d.level.index,
-                  },
-                )
-                .toList(),
-          },
-        )
-        .toList(),
-  };
+  ContributionCalendarDto _toDto(ContributionCalendar calendar) =>
+      ContributionCalendarDto(
+        totalContributions: calendar.totalContributions,
+        weeks: calendar.weeks
+            .map(
+              (week) => ContributionWeekDto(
+                contributionDays: week.days
+                    .map(
+                      (day) => ContributionDayDto(
+                        date: day.date.toIso8601String().substring(0, 10),
+                        contributionCount: day.count,
+                        level: day.level.index,
+                      ),
+                    )
+                    .toList(),
+              ),
+            )
+            .toList(),
+      );
 
   Future<Box<dynamic>> _openBox() => Hive.openBox<dynamic>(_cacheBoxName);
 }

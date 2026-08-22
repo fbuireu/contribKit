@@ -1,8 +1,12 @@
+import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
+import 'package:contribkit/ui/features/tip/tip_jar_state.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_sheet.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/failure_message.dart';
+import 'package:contribkit/ui/features/tip/tip_product_presentation.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
@@ -22,25 +26,7 @@ class TipJarSheet extends ConsumerStatefulWidget {
 }
 
 class _TipJarSheetState extends ConsumerState<TipJarSheet> {
-  List<TipProduct>? _products;
-  bool _hasError = false;
-  String? _purchasingId;
-  String? _successId;
-  String? _errorId;
-
-  static const _meta = {
-    'coffee': (emoji: '☕', label: 'Coffee'),
-    'croissant': (emoji: '🥐', label: 'Croissant'),
-    'lunch': (emoji: '🍱', label: 'Lunch'),
-  };
-
-  static ({String emoji, String label}) _metaFor(String id) {
-    final key = id.toLowerCase();
-    for (final entry in _meta.entries) {
-      if (key.contains(entry.key)) return entry.value;
-    }
-    return (emoji: '🎁', label: 'Tip');
-  }
+  TipJarState _state = const TipJarLoading();
 
   @override
   void initState() {
@@ -48,37 +34,41 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
     _load();
   }
 
+  void _to(TipJarState next) {
+    if (mounted) setState(() => _state = next);
+  }
+
   Future<void> _load() async {
+    _to(const TipJarLoading());
     try {
-      final products = await ref.read(fetchTipProductsProvider).call();
-      if (mounted) setState(() => _products = products);
-    } catch (_) {
-      if (mounted) setState(() => _hasError = true);
+      _to(TipJarReady.of(await ref.read(fetchTipProductsProvider).call()));
+    } catch (e) {
+      _to(TipJarUnavailable(message: FailureMessage.ofAny(e)));
     }
   }
 
-  Future<void> _purchase(TipProduct product) async {
-    if (_purchasingId != null) return;
-    setState(() {
-      _purchasingId = product.id;
-      _successId = null;
-      _errorId = null;
-    });
+  Future<void> _give(TipProduct product) async {
+    final ready = _state;
+    if (ready is! TipJarReady) return;
+    final started = ready.beginning(product);
+    if (started == null) return;
+    _to(started);
+
     try {
-      await ref.read(purchaseTipProvider).call(product);
-      if (mounted) {
-        setState(() {
-          _purchasingId = null;
-          _successId = product.id;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _purchasingId = null;
-          _errorId = product.id;
-        });
-      }
+      final outcome = await ref.read(giveTipProvider).call(product);
+      _to(
+        started.settling(
+          outcome == TipOutcome.completed
+              ? TipCompleted(product)
+              : TipCancelled(product),
+        ),
+      );
+    } catch (e) {
+      _to(
+        started.settling(
+          TipFailed(product: product, message: FailureMessage.ofAny(e)),
+        ),
+      );
     }
   }
 
@@ -89,96 +79,97 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
       description: const Text(
         'ContribKit is free and open-source. A small tip helps keep it alive.',
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          Tokens.space6,
-          Tokens.space2,
-          Tokens.space6,
-          Tokens.space8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: Tokens.space3,
-          children: _content(context),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: Tokens.space3,
+        children: _content(context),
       ),
     );
   }
 
   List<Widget> _content(BuildContext context) {
-    if (_hasError) {
-      return [
+    final colors = AppColors.of(context);
+
+    return switch (_state) {
+      TipJarLoading() => List.generate(3, (_) => const _SkeletonTile()),
+      TipJarUnavailable(:final message) => [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: Tokens.space6),
           child: Text(
-            'Could not load products. Check your connection.',
+            message ?? 'No tips are available on this device right now.',
             style: TextStyle(
               fontSize: Tokens.textSm,
-              color: AppColors.of(context).destructive,
+              color: message == null
+                  ? colors.mutedForeground
+                  : colors.destructive,
             ),
             textAlign: TextAlign.center,
           ),
         ),
+        AppButton.ghost(onPressed: _load, child: const Text('Retry')),
         AppButton.ghost(
-          onPressed: () {
-            setState(() => _hasError = false);
-            _load();
-          },
-          child: const Text('Retry'),
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text(
+            'Maybe later',
+            style: TextStyle(fontSize: Tokens.textSm),
+          ),
         ),
-      ];
-    }
-
-    if (_products == null) {
-      return List.generate(3, (_) => const _SkeletonTile());
-    }
-
-    final colors = AppColors.of(context);
-    return [
-      for (final p in _products!)
-        _TierCard(
-          product: p,
-          emoji: _metaFor(p.id).emoji,
-          label: _metaFor(p.id).label,
-          isPurchasing: _purchasingId == p.id,
-          isSuccess: _successId == p.id,
-          isError: _errorId == p.id,
-          disabled: _purchasingId != null,
-          colors: colors,
-          onTap: () => _purchase(p),
+      ],
+      final TipJarReady ready => [
+        for (final p in ready.products)
+          _TierCard(
+            product: p,
+            look: TipProductPresentation.of(p),
+            isGiving: ready.isInFlight(p),
+            isGiven: ready.isCompleted(p),
+            hasFailed: ready.hasFailed(p),
+            disabled: ready.isBusy,
+            colors: colors,
+            onTap: () => _give(p),
+          ),
+        if (ready.failureMessage case final failure?)
+          Padding(
+            padding: const EdgeInsets.only(top: Tokens.space2),
+            child: Text(
+              failure,
+              style: TextStyle(
+                fontSize: Tokens.textSm,
+                color: colors.destructive,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        const SizedBox(height: Tokens.space1),
+        AppButton.ghost(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            ready.isThanking ? 'Thanks! ❤️' : 'Maybe later',
+            style: const TextStyle(fontSize: Tokens.textSm),
+          ),
         ),
-      const SizedBox(height: Tokens.space1),
-      AppButton.ghost(
-        onPressed: () => Navigator.of(context).pop(),
-        child: Text(
-          _successId != null ? 'Thanks! ❤️' : 'Maybe later',
-          style: const TextStyle(fontSize: Tokens.textSm),
-        ),
-      ),
-    ];
+      ],
+    };
   }
 }
 
 class _TierCard extends StatelessWidget {
   const _TierCard({
     required this.product,
-    required this.emoji,
-    required this.label,
-    required this.isPurchasing,
-    required this.isSuccess,
-    required this.isError,
+    required this.look,
+    required this.isGiving,
+    required this.isGiven,
+    required this.hasFailed,
     required this.disabled,
     required this.colors,
     required this.onTap,
   });
 
   final TipProduct product;
-  final String emoji;
-  final String label;
-  final bool isPurchasing;
-  final bool isSuccess;
-  final bool isError;
+  final TipProductLook look;
+  final bool isGiving;
+  final bool isGiven;
+  final bool hasFailed;
   final bool disabled;
   final AppColors colors;
   final VoidCallback onTap;
@@ -194,21 +185,23 @@ class _TierCard extends StatelessWidget {
           vertical: Tokens.space4,
         ),
         decoration: BoxDecoration(
-          color: isSuccess ? colors.muted : colors.card,
+          color: isGiven ? colors.muted : colors.card,
           border: Border.all(
-            color: isError
+            color: hasFailed
                 ? colors.destructive
-                : isSuccess
+                : isGiven
                 ? colors.ring
                 : colors.border,
-            width: (isSuccess || isError) ? 1.5 : 1,
+            width: (isGiven || hasFailed)
+                ? Tokens.tileBorderEmphasis
+                : Tokens.tileBorderDefault,
           ),
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
         ),
         child: Row(
           children: [
             Text(
-              emoji,
+              look.emoji,
               style: const TextStyle(fontSize: Tokens.emojiSize, height: 1),
             ),
             const SizedBox(width: Tokens.space2),
@@ -218,7 +211,7 @@ class _TierCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    label,
+                    look.label,
                     style: TextStyle(
                       fontSize: Tokens.textBase,
                       fontWeight: FontWeight.w500,
@@ -235,7 +228,7 @@ class _TierCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (isPurchasing)
+            if (isGiving)
               Icon(
                     LucideIcons.loader2,
                     size: Tokens.iconMd,
@@ -243,13 +236,13 @@ class _TierCard extends StatelessWidget {
                   )
                   .animate(onPlay: (c) => c.repeat())
                   .rotate(duration: Tokens.durationSpin, curve: Curves.linear)
-            else if (isSuccess)
+            else if (isGiven)
               Icon(
                 LucideIcons.check,
                 size: Tokens.iconMd,
                 color: colors.foreground,
               )
-            else if (isError)
+            else if (hasFailed)
               Icon(
                 LucideIcons.alertCircle,
                 size: Tokens.iconMd,

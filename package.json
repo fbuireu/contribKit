@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "author": "Ferran Buireu <contact@contribkit.app>",
-  "description": "Visualize and export your GitHub contribution calendar — web app & Android & iOS app",
+  "description": "Visualize and export your GitHub contribution calendar: web app, Android and iOS app",
   "keywords": [
     "github",
     "contributions",
@@ -22,12 +22,14 @@
     "node": "26.7.0"
   },
   "scripts": {
+    "prepare": "lefthook install",
     "sync:assets": "node scripts/sync-shared-assets.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.1",
     "@commitlint/config-conventional": "21.2.0",
     "@commitlint/config-pnpm-scopes": "21.2.0",
-    "@commitlint/format": "21.2.0"
+    "@commitlint/format": "21.2.0",
+    "lefthook": "2.1.10"
   }
 }

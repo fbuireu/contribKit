@@ -29,12 +29,12 @@ domain/
   services/        calendar-grid, svg-geometry, cell-shapes, dates, contribution-stats, SvgRenderer type
   failures/        Failure union + constructors + isFailure
 application/
-  use-cases/       fetchContributions, loadInitialContributions, resolveViewerIdentity
-  http/            failure-http (statusFor, messageFor)
+  use-cases/       loadInitialContributions (the one use case); resolve-initial-view.ts, which is request policy rather than a use case
+  http/            failure-http (statusFor, messageFor, retryAfterHeader); failure-log (logContributionsFailure, logServerError, SERVER_ERROR_STATUS)
 infrastructure/
   github/          githubHtmlContributionsRepository (HTML scraping)
   rendering/       svgStringRenderer
-  logging/         better-stack-logger, logServerError
+  logging/         better-stack-logger (the client and nothing else)
 ui/
   components/      Astro components (core/, grid/, error/, icons/, features…)
   utils/           page-init, render/state, roving, url/cookie, mulberry, …
@@ -49,7 +49,7 @@ pages/             every non-underscore file here is a public URL, .md included
 middleware.ts      rate limiting + security headers
 ```
 
-Unit tests sit next to what they cover. The one exception is `docs/docs-consistency.test.ts`: its subject is the documentation, not a module, so it lives beside the documents at the repo root. It still runs from the web package — `web/vitest.config.ts` adds `../docs/**/*.test.ts`, `web/tsconfig.json` includes it, and the biome scripts pass `../docs`.
+Unit tests sit next to what they cover. The one exception is `docs/docs-consistency.test.ts`: its subject is the documentation, not a module, so it lives beside the documents at the repo root. It still runs from the web package: `web/vitest.config.ts` adds `../docs/**/*.test.ts`, `web/tsconfig.json` includes it, and the biome scripts pass `../docs`.
 
 Every layer carries a colocated `CLAUDE.md` documenting its rules, and the docs-consistency test fails if one is missing. See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
 
@@ -60,7 +60,7 @@ Every layer carries a colocated `CLAUDE.md` documenting its rules, and the docs-
 ```
 domain/          Entities, value objects, repository interfaces, services, failures
 application/     Use cases (fetch, export, tips)
-infrastructure/  GitHub repo, asset repos, export (png/svg/markdown), persistence, purchases
+infrastructure/  GitHub repo, asset repos, export (png/svg/markdown), persistence, tip
 ui/              Features (viewer, customizer, export, tip), widgets, theme, DI
 ```
 
@@ -85,7 +85,7 @@ The single source of truth for data used by both apps:
   - automatically on commit (lefthook `pre-commit` runs `scripts/sync-shared-assets.mjs --stage` when a `shared/*.json` is staged),
   - manually with `pnpm sync:assets`.
 
-  **`ci-app.yml` does not regenerate them**, so the only thing standing between a stale mirror and a green CI run is that pre-commit hook — and the docs-consistency test, which compares the two directories and fails when they drift. The release workflow is the exception: `release-app.yml` copies `shared/*.json` into `assets/` in its `Sync shared assets` step, immediately before building the AAB, so a shipped build is never stale even when the commit is.
+  **`ci-app.yml` does not regenerate them**, so the only thing standing between a stale mirror and a green CI run is that pre-commit hook (and the docs-consistency test, which compares the two directories and fails when they drift). The release workflow is the exception: `release-app.yml` copies `shared/*.json` into `assets/` in its `Sync shared assets` step, immediately before building the AAB, so a shipped build is never stale even when the commit is.
 
 ---
 
@@ -96,7 +96,6 @@ Repo-wide Node scripts, invoked by Git hooks and CI:
 | Script | Purpose |
 |--------|---------|
 | `sync-shared-assets.mjs` | Copies `shared/*.json` → `app/assets/*.json` (`--stage` re-stages them). Exposed as `pnpm sync:assets`. |
-| `auto-scope.mjs` | Blocks a commit that touches both `app/` and `web/`, keeping per-package changelogs clean. |
 
 See **[Git Hooks](Git-Hooks)** for how these run.
 
@@ -107,5 +106,5 @@ See **[Git Hooks](Git-Hooks)** for how these run.
 - **Package manager:** pnpm workspaces (`pnpm-workspace.yaml`)
 - **Commits:** Conventional Commits, enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows — `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**` and `*.md`; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
-- **Git hooks:** lefthook (`lefthook install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)
+- **CI:** path-filtered workflows: `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files and its own wiring; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
+- **Git hooks:** lefthook (installed by the root `prepare` script on `pnpm install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)

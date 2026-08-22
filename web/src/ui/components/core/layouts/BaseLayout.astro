@@ -5,6 +5,7 @@ import Analytics from "../analytics/Analytics.astro";
 import CookieConsent from "../cookie-consent/CookieConsent.astro";
 import Footer from "../footer/Footer.astro";
 import Header from "../header/Header.astro";
+import { COLOR_SCHEME_KEY, COLOR_SCHEME_META_SELECTOR, ThemeClass } from "../header/theme-toggle";
 import SEO from "../seo/SEO.astro";
 import type { Metadata } from "../seo/types";
 
@@ -21,16 +22,14 @@ const { metadata } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="text-scale" content="scale" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name={COLOR_SCHEME_KEY} content="light dark" />
     <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
-    <script is:inline>
-      {
-        const colorScheme = localStorage.getItem('color-scheme');
-        if (colorScheme === 'light' || colorScheme === 'dark') {
-          document.documentElement.classList.add(`theme-${colorScheme}`);
-          document.querySelector('meta[name="color-scheme"]').content = colorScheme;
-        }
+    <script is:inline define:vars={{ COLOR_SCHEME_KEY, COLOR_SCHEME_META_SELECTOR, ThemeClass }}>
+      const pinnedScheme = localStorage.getItem(COLOR_SCHEME_KEY);
+      if (pinnedScheme === 'light' || pinnedScheme === 'dark') {
+        document.documentElement.classList.add(pinnedScheme === 'light' ? ThemeClass.Light : ThemeClass.Dark);
+        document.querySelector(COLOR_SCHEME_META_SELECTOR).content = pinnedScheme;
       }
     </script>
     <SEO metadata={metadata} />

@@ -232,53 +232,46 @@ final class ContributionRepositoryProvider
 String _$contributionRepositoryHash() =>
     r'7bb8b16906957922dcc2e88d824e87b06f96cafd';
 
-@ProviderFor(purchaseRepository)
-final purchaseRepositoryProvider = PurchaseRepositoryProvider._();
+@ProviderFor(tipRepository)
+final tipRepositoryProvider = TipRepositoryProvider._();
 
-final class PurchaseRepositoryProvider
-    extends
-        $FunctionalProvider<
-          PurchaseRepository,
-          PurchaseRepository,
-          PurchaseRepository
-        >
-    with $Provider<PurchaseRepository> {
-  PurchaseRepositoryProvider._()
+final class TipRepositoryProvider
+    extends $FunctionalProvider<TipRepository, TipRepository, TipRepository>
+    with $Provider<TipRepository> {
+  TipRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'purchaseRepositoryProvider',
+        name: r'tipRepositoryProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$purchaseRepositoryHash();
+  String debugGetCreateSourceHash() => _$tipRepositoryHash();
 
   @$internal
   @override
-  $ProviderElement<PurchaseRepository> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+  $ProviderElement<TipRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
-  PurchaseRepository create(Ref ref) {
-    return purchaseRepository(ref);
+  TipRepository create(Ref ref) {
+    return tipRepository(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(PurchaseRepository value) {
+  Override overrideWithValue(TipRepository value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<PurchaseRepository>(value),
+      providerOverride: $SyncValueProvider<TipRepository>(value),
     );
   }
 }
 
-String _$purchaseRepositoryHash() =>
-    r'be34ccfee76a727e3271ee6b0a8973f5ca5f4e8a';
+String _$tipRepositoryHash() => r'9395e450f5769b7c837515cfed0016b32cca711c';
 
 @ProviderFor(fetchTipProducts)
 final fetchTipProductsProvider = FetchTipProductsProvider._();
@@ -324,48 +317,48 @@ final class FetchTipProductsProvider
   }
 }
 
-String _$fetchTipProductsHash() => r'48d2b5547b380b425712d1966eec595cc46605a7';
+String _$fetchTipProductsHash() => r'0dab6cbc4190a630dc761845c998bf069fa173c2';
 
-@ProviderFor(purchaseTip)
-final purchaseTipProvider = PurchaseTipProvider._();
+@ProviderFor(giveTip)
+final giveTipProvider = GiveTipProvider._();
 
-final class PurchaseTipProvider
-    extends $FunctionalProvider<PurchaseTip, PurchaseTip, PurchaseTip>
-    with $Provider<PurchaseTip> {
-  PurchaseTipProvider._()
+final class GiveTipProvider
+    extends $FunctionalProvider<GiveTip, GiveTip, GiveTip>
+    with $Provider<GiveTip> {
+  GiveTipProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'purchaseTipProvider',
+        name: r'giveTipProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$purchaseTipHash();
+  String debugGetCreateSourceHash() => _$giveTipHash();
 
   @$internal
   @override
-  $ProviderElement<PurchaseTip> $createElement($ProviderPointer pointer) =>
+  $ProviderElement<GiveTip> $createElement($ProviderPointer pointer) =>
       $ProviderElement(pointer);
 
   @override
-  PurchaseTip create(Ref ref) {
-    return purchaseTip(ref);
+  GiveTip create(Ref ref) {
+    return giveTip(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(PurchaseTip value) {
+  Override overrideWithValue(GiveTip value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<PurchaseTip>(value),
+      providerOverride: $SyncValueProvider<GiveTip>(value),
     );
   }
 }
 
-String _$purchaseTipHash() => r'd336b78f2db08c2fb24f59e35f55db51cba794d2';
+String _$giveTipHash() => r'0b18483dec8ceb777ed1850be2d241b8e4a537c9';
 
 @ProviderFor(settingsRepository)
 final settingsRepositoryProvider = SettingsRepositoryProvider._();
@@ -554,7 +547,7 @@ final class MarkdownExportRepositoryProvider
 }
 
 String _$markdownExportRepositoryHash() =>
-    r'843f61d3ab4c05e8b0efd9ebea7979a3b4f2a364';
+    r'4b88fd3b84b80a1d1ecd5b4abc2eeb8eb61778d6';
 
 @ProviderFor(fetchContributions)
 final fetchContributionsProvider = FetchContributionsProvider._();
@@ -604,25 +597,81 @@ final class FetchContributionsProvider
 String _$fetchContributionsHash() =>
     r'f2e68a69f79da1b8720ab3cb2b243422e1988349';
 
-@ProviderFor(svgExportCalendar)
-final svgExportCalendarProvider = SvgExportCalendarProvider._();
+@ProviderFor(invalidateContributionCache)
+final invalidateContributionCacheProvider =
+    InvalidateContributionCacheProvider._();
 
-final class SvgExportCalendarProvider
-    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
-    with $Provider<ExportCalendar> {
-  SvgExportCalendarProvider._()
+final class InvalidateContributionCacheProvider
+    extends
+        $FunctionalProvider<
+          InvalidateContributionCache,
+          InvalidateContributionCache,
+          InvalidateContributionCache
+        >
+    with $Provider<InvalidateContributionCache> {
+  InvalidateContributionCacheProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'svgExportCalendarProvider',
+        name: r'invalidateContributionCacheProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$svgExportCalendarHash();
+  String debugGetCreateSourceHash() => _$invalidateContributionCacheHash();
+
+  @$internal
+  @override
+  $ProviderElement<InvalidateContributionCache> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  InvalidateContributionCache create(Ref ref) {
+    return invalidateContributionCache(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(InvalidateContributionCache value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<InvalidateContributionCache>(value),
+    );
+  }
+}
+
+String _$invalidateContributionCacheHash() =>
+    r'fefa1cbfa88046ad7883441da57380b87c920327';
+
+@ProviderFor(exportCalendar)
+final exportCalendarProvider = ExportCalendarFamily._();
+
+final class ExportCalendarProvider
+    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
+    with $Provider<ExportCalendar> {
+  ExportCalendarProvider._({
+    required ExportCalendarFamily super.from,
+    required ExportFormat super.argument,
+  }) : super(
+         retry: null,
+         name: r'exportCalendarProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$exportCalendarHash();
+
+  @override
+  String toString() {
+    return r'exportCalendarProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -631,7 +680,8 @@ final class SvgExportCalendarProvider
 
   @override
   ExportCalendar create(Ref ref) {
-    return svgExportCalendar(ref);
+    final argument = this.argument as ExportFormat;
+    return exportCalendar(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -641,92 +691,37 @@ final class SvgExportCalendarProvider
       providerOverride: $SyncValueProvider<ExportCalendar>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExportCalendarProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$svgExportCalendarHash() => r'6210199ebfb3cd2e19f20d7de32999718a2c5dee';
+String _$exportCalendarHash() => r'25753cf1a660e48c83c48b9913507399e3e18c20';
 
-@ProviderFor(pngExportCalendar)
-final pngExportCalendarProvider = PngExportCalendarProvider._();
-
-final class PngExportCalendarProvider
-    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
-    with $Provider<ExportCalendar> {
-  PngExportCalendarProvider._()
+final class ExportCalendarFamily extends $Family
+    with $FunctionalFamilyOverride<ExportCalendar, ExportFormat> {
+  ExportCalendarFamily._()
     : super(
-        from: null,
-        argument: null,
         retry: null,
-        name: r'pngExportCalendarProvider',
-        isAutoDispose: true,
+        name: r'exportCalendarProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$pngExportCalendarHash();
-
-  @$internal
-  @override
-  $ProviderElement<ExportCalendar> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  ExportCalendar create(Ref ref) {
-    return pngExportCalendar(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ExportCalendar value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ExportCalendar>(value),
-    );
-  }
-}
-
-String _$pngExportCalendarHash() => r'7e33e13b6dfa30d6c9a50b608424ca918d4f5b8a';
-
-@ProviderFor(markdownExportCalendar)
-final markdownExportCalendarProvider = MarkdownExportCalendarProvider._();
-
-final class MarkdownExportCalendarProvider
-    extends $FunctionalProvider<ExportCalendar, ExportCalendar, ExportCalendar>
-    with $Provider<ExportCalendar> {
-  MarkdownExportCalendarProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'markdownExportCalendarProvider',
         isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
       );
 
-  @override
-  String debugGetCreateSourceHash() => _$markdownExportCalendarHash();
-
-  @$internal
-  @override
-  $ProviderElement<ExportCalendar> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  ExportCalendarProvider call(ExportFormat format) =>
+      ExportCalendarProvider._(argument: format, from: this);
 
   @override
-  ExportCalendar create(Ref ref) {
-    return markdownExportCalendar(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ExportCalendar value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ExportCalendar>(value),
-    );
-  }
+  String toString() => r'exportCalendarProvider';
 }
-
-String _$markdownExportCalendarHash() =>
-    r'22c91609ab2e9462b33b96852dc16dc28929d671';
 
 @ProviderFor(ThemeModeNotifier)
 final themeModeProvider = ThemeModeNotifierProvider._();
@@ -760,7 +755,7 @@ final class ThemeModeNotifierProvider
   }
 }
 
-String _$themeModeNotifierHash() => r'62e68a3cf625f24b2313f05c3049b4d4b8430b78';
+String _$themeModeNotifierHash() => r'f94a842fd67667a48bab65cd60430b3c64e2071e';
 
 abstract class _$ThemeModeNotifier extends $Notifier<ThemeMode> {
   ThemeMode build();

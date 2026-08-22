@@ -1,9 +1,9 @@
 ---
 import { ElementId } from "@ui/utils/dom-contract";
 import "./how-it-works.css";
+import { CELL_SHAPES } from "@domain/value-objects/cell-shape";
+import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import palettes from "@shared/palettes.json" with { type: "json" };
-import shapes from "@shared/shapes.json" with { type: "json" };
 import Copy from "@ui/components/icons/Copy.astro";
 import Download from "@ui/components/icons/Download.astro";
 
@@ -48,7 +48,7 @@ const WIDGET_DEMO_LEVELS = [
           </div>
         </div>
         <h3 class="step-title">Customize</h3>
-        <p class="step-body">{palettes.length} palettes. {shapes.length} shapes. Background, gradient, intensity, density.</p>
+        <p class="step-body">{Object.keys(PALETTES).length} palettes. {CELL_SHAPES.length} shapes. Background, gradient, intensity, density.</p>
       </div>
 
       <div class="step">

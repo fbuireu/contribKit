@@ -17,8 +17,6 @@ commit-msg:
     - rebase
     - merge
   commands:
-    auto-scope:
-      run: node scripts/auto-scope.mjs {1}
     commitlint:
       run: pnpm exec commitlint --edit {1}
 

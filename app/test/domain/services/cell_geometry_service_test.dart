@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
+import 'package:contribkit/domain/value_objects/cell_figure.dart';
+import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -95,5 +97,89 @@ void main() {
             '${size.pixels * 0.2}px in an Export',
       );
     }
+  });
+
+  group('figureFor', () {
+    test('gives every Cell Shape exactly one primitive', () {
+      final figures = {
+        for (final shape in CellShape.values)
+          shape: CellGeometryService.figureFor(
+            shape: shape,
+            levelIndex: 0,
+            cellSize: 10,
+          ),
+      };
+
+      expect(figures[CellShape.square], isA<SquareFigure>());
+      expect(figures[CellShape.rounded], isA<RoundedFigure>());
+      expect(figures[CellShape.circle], isA<CircleFigure>());
+      expect(figures[CellShape.dot], isA<CircleFigure>());
+      expect(figures[CellShape.hex], isA<PolygonFigure>());
+    });
+
+    test(
+      'a circle fills the cell; a dot is level-sized and may overflow it',
+      () {
+        CircleFigure circleFor(CellShape shape, int level) =>
+            CellGeometryService.figureFor(
+              shape: shape,
+              levelIndex: level,
+              cellSize: 10,
+            ) as CircleFigure;
+
+        expect(circleFor(CellShape.circle, 4).radius, 5);
+        expect(circleFor(CellShape.dot, 0).radius, lessThan(5));
+        expect(
+          circleFor(CellShape.dot, 4).radius,
+          greaterThan(5),
+          reason: 'the brightest dot overflows its own cell on purpose',
+        );
+      },
+    );
+
+    test('a dot grows with the Contribution Level, a circle does not', () {
+      double dotRadius(int level) => (CellGeometryService.figureFor(
+        shape: CellShape.dot,
+        levelIndex: level,
+        cellSize: 10,
+      ) as CircleFigure).radius;
+
+      expect(dotRadius(4), greaterThan(dotRadius(1)));
+      expect(
+        CellGeometryService.figureFor(
+          shape: CellShape.circle,
+          levelIndex: 0,
+          cellSize: 10,
+        ),
+        isA<CircleFigure>().having((f) => f.radius, 'radius', 5),
+      );
+    });
+
+    test('every Cell Shape has a label, and no two share one', () {
+      final labels = CellShape.values.map((shape) => shape.label).toList();
+
+      expect(labels.every((label) => label.isNotEmpty), isTrue);
+      expect(labels.toSet(), hasLength(CellShape.values.length));
+    });
+
+    test('a rounded corner is the ratio, and the hex is cell-local', () {
+      final rounded = CellGeometryService.figureFor(
+        shape: CellShape.rounded,
+        levelIndex: 0,
+        cellSize: 10,
+      ) as RoundedFigure;
+      final hex = CellGeometryService.figureFor(
+        shape: CellShape.hex,
+        levelIndex: 0,
+        cellSize: 10,
+      ) as PolygonFigure;
+
+      expect(rounded.radius, CellGeometryService.cornerRadiusFor(10));
+      expect(hex.vertices, hasLength(CellGeometryService.hexVertexCount));
+      for (final vertex in hex.vertices) {
+        expect(vertex.x, inInclusiveRange(0, 10));
+        expect(vertex.y, inInclusiveRange(0, 10));
+      }
+    });
   });
 }

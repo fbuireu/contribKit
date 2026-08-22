@@ -39,10 +39,10 @@ Examples of unacceptable behavior include:
 
 ## Scope
 
-This Code of Conduct applies within all community spaces of this project —
-[Issues](https://github.com/fbuireu/contribKit/issues),
+This Code of Conduct applies within all community spaces of this project
+([Issues](https://github.com/fbuireu/contribKit/issues),
 [Pull Requests](https://github.com/fbuireu/contribKit/pulls), and the
-[Wiki](https://github.com/fbuireu/contribKit/wiki) — and also applies when an
+[Wiki](https://github.com/fbuireu/contribKit/wiki)), and also applies when an
 individual is officially representing the project in public spaces.
 
 ## Enforcement
@@ -57,11 +57,11 @@ reviewed and investigated promptly and fairly.
 
 The maintainer is responsible for clarifying and enforcing these standards, and
 will take appropriate and fair corrective action in response to any behavior
-deemed inappropriate, threatening, offensive, or harmful — from a private
+deemed inappropriate, threatening, offensive, or harmful: from a private
 warning, through temporary restrictions on interaction, up to a permanent ban
 from the project's community spaces for repeated or egregious violations.
 
-Security vulnerabilities are not conduct reports — those follow the
+Security vulnerabilities are not conduct reports. Those follow the
 [Security Policy](./.github/SECURITY.md) instead.
 
 ## Attribution

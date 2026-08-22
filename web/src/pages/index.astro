@@ -1,5 +1,5 @@
 ---
-import { ContributionsEndpoint, logContributionsFailure } from "@application/http/log-contributions-failure";
+import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
 import { DaySource, daySourceFor, resolveViewerIdentity } from "@application/use-cases/resolve-initial-view";
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
@@ -24,10 +24,10 @@ import { loadInitial } from "./_contributions";
 
 const SITE_URL = (Astro.site ?? Astro.url).origin;
 const OG_IMAGE = `${SITE_URL}/og.png`;
-const OG_IMAGE_ALT = "ContribKit — GitHub contribution calendar with custom palette";
-const TITLE = "ContribKit — Your GitHub activity, your aesthetic.";
-const DESCRIPTION = "Visualize, customize, and export your GitHub contribution calendar — no token required.";
-const CLASSIC = [...PALETTES.github.colors];
+const OG_IMAGE_ALT = "ContribKit: GitHub contribution calendar with custom palette";
+const TITLE = "ContribKit: Your GitHub activity, your aesthetic.";
+const DESCRIPTION = "Visualize, customize, and export your GitHub contribution calendar. No token required.";
+const CLASSIC = PALETTES.github.colors;
 
 const metadata: Metadata = {
 	title: TITLE,
@@ -88,7 +88,7 @@ switch (daySourceFor({ loaded: initial.ok, isExplicit })) {
 		break;
 	case DaySource.Empty:
 		days = buildGridFromApi({ days: [], year: currentYear });
-		heroError = initial.ok ? null : contributionError(initial.status);
+		heroError = initial.ok ? null : contributionError({ status: initial.status });
 		break;
 	default:
 		days = generateData();

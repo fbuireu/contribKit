@@ -1,8 +1,10 @@
 # SVG Rendering
 
-The calendar is rendered to an SVG **string** (no DOM, no canvas), so it works inside a Cloudflare Worker. The renderer is `infrastructure/rendering/svg-string-renderer.ts`, implementing the domain `SvgRenderer` function type. All layout constants and helpers live in `domain/services/svg-geometry.ts`, and per-shape cell markup in `domain/services/cell-shapes.ts`.
+The calendar is rendered to an SVG **string** (no DOM, no canvas), so it works inside a Cloudflare Worker. The renderer is `infrastructure/rendering/svg-string-renderer.ts`, implementing the domain `SvgRenderer` function type. Per-shape cell markup is `domain/services/cell-shapes.ts`.
 
-A second, near-identical renderer (`ui/components/grid/render-svg.ts`) runs in the browser for the live preview; see [Client-side rendering](#client-side-rendering-live-preview) below. Both share the same geometry and `renderCellShape`.
+**The whole layout is one call.** `calendarLayout` in `domain/services/svg-geometry.ts` chunks the days into weeks, sizes the document, clamps every Contribution Level and returns finished placements: `monthLabels`, `weekdayLabels` and `cells`, each already carrying its `x` and `y`. The pad, gutter and baseline constants and the per-shape radius rule are **private to that file**; `dotRadius`, `cornerRadiusFor` and `hexPoints` stay exported, because `cell-shapes.ts` and the client renderer draw with them. They used to be nine exported primitives, so both renderers imported a dozen symbols each and wrote the same thirty-line walk; only the geometry was shared, and the composition was not.
+
+A second renderer (`ui/components/grid/render-svg.ts`) runs in the browser for the live preview; see [Client-side rendering](#client-side-rendering-live-preview). Both take one `calendarLayout` call and `renderCellShape`, and keep only their own string templates.
 
 ---
 
@@ -19,9 +21,11 @@ svgStringRenderer({ calendar, options })
 | `palette` | `github` | 5-color ramp (none → veryHigh) |
 | `shape` | `rounded` | `rounded`, `square`, `circle`, `dot`, `hex` |
 | `background` | `transparent` | skipped entirely when transparent |
-| `cellSize` | `10` | `SVG_DEFAULT_CELL_SIZE` |
-| `cellGap` | `2` | `SVG_DEFAULT_CELL_GAP` |
-| `showLabels` | `true` | month + day-of-week labels |
+| `cellSize` | `10` | `SVG_DEFAULT_CELL_SIZE`. **No caller ever sets it** |
+| `cellGap` | `2` | `SVG_DEFAULT_CELL_GAP`. Same |
+| `showLabels` | `true` | month + day-of-week labels. Same |
+
+The last three are declared, forwarded to `calendarLayout`, and assigned by nobody. Cell Size as a person's choice is app-only ([ADR 0016](../adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)); this is pixel geometry, and the endpoint exposes no size knob.
 
 ---
 
@@ -37,24 +41,26 @@ with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The gr
 
 ### Labels
 
-- **Month labels** come from `MONTH_LABELS` in `calendar-labels.ts` (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `monthLabelPositions` emits a label at the first week of each new month, but only when that week's first day falls on/before day 7, which prevents a stray label when a month barely peeks into a column.
+- **Month labels** come from `MONTH_LABELS` in `calendar-labels.ts` (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `calendarLayout` emits a label at the first week of each new month, but only when that week's first day falls on or before day 7, which prevents a stray label when a month barely peeks into a column. That yields exactly twelve distinct labels for every year from 2005 to 2030: the December spill at both ends never earns a thirteenth.
 - **Day-of-week labels** are `WEEKDAY_LABELS = ["Mon", "Wed", "Fri"]`, drawn on alternating rows (rows 1, 3, 5) so they don't overlap.
-- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one — a known defect recorded in [`web/src/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/CLAUDE.md).
+- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one: a known defect recorded in [`web/src/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/CLAUDE.md).
 
 ---
 
 ## Shapes
 
-`radiusFor({ shape, size })` decides corner rounding:
+Corner rounding is decided inside `calendarLayout` and reaches the renderers as each cell's `radius`:
 
 | Shape | Radius |
 |-------|--------|
-| `rounded` | `2.5` |
+| `rounded` | `size × CORNER_RADIUS_RATIO`: **`2.0`** at the default size of 10 |
 | `square` | `0` |
-| circle / dot / others | `size / 2` |
+| circle / dot / hex | `size / 2` |
 
-- **dot** uses a level-scaled radius: `dotRadius(level) = level === 0 ? 1.4 : 1.4 + level`.
+- **dot** uses a level-scaled radius: `dotRadius({ level, size })` is `1.4` at level 0 and `1.4 + level` above it, multiplied by `size / 10`. At level 4 that is 5.4 against a half-cell of 5: it overflows its own cell deliberately, and still fits the 12 px pitch.
 - **hex** is drawn as a polygon via `hexPoints({ cx, cy, radius })`, computing six vertices offset by `π/6`.
+
+The rounded corner was a fixed `2.5` here and `size × 0.2` in the app, at *every* size. The web adopted the app's ratio, so a published Embed's corner moved from 2.5 to 2.0: one rule across five renderers, at a visible cost taken on purpose ([ADR 0020](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md)).
 
 `renderCellShape` emits the right markup per shape, shared between the server renderer and the client.
 
@@ -63,16 +69,15 @@ with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The gr
 ## Rendering flow
 
 0. The route builds the lattice first, with `buildRollingGrid`. This is not optional: GitHub emits its
-   table **weekday-major** — one `<tr>` per weekday, one `<td>` per week — so the scraped days arrive as all the
+   table **weekday-major** (one `<tr>` per weekday, one `<td>` per week), so the scraped days arrive as all the
    Sundays, then all the Mondays, seven days apart. Slicing that in sevens renders the transpose of the calendar,
    with every cell after the first showing the wrong date. `buildRollingGrid` keys the days by date and walks 371
    of them from the Sunday that starts the window, so what reaches the renderer really is a grid.
-1. Compute dimensions and radius from options.
-2. `chunkWeeks(calendar.days)` slices the 371-cell grid back into 53 weeks of 7.
-3. Open the `<svg>` with a `viewBox`, `width`/`height`, and `role="img"` + `aria-label`.
-4. Paint the background rect (only if not transparent).
-5. Emit month and day-of-week `<text>` labels (when `showLabels`).
-6. For each week/day, emit the cell shape filled with the palette color for its level.
+1. One `calendarLayout` call returns the document size and every placement. **Neither renderer chunks weeks, computes a dimension, positions a label or derives a radius.**
+2. Open the `<svg>` with a `viewBox`, `width`/`height`, and `role="img"` + `aria-label`.
+3. Paint the background rect (only if not transparent).
+4. Emit `layout.monthLabels` and `layout.weekdayLabels` as `<text>`.
+5. Emit `layout.cells`, each filled with the palette color for its level.
 
 The output is a single SVG string, returned with image and cache headers by the route. See **[API Reference](API-Reference)**.
 
@@ -96,13 +101,17 @@ A palette is a 5-color ramp indexed by contribution level:
 
 ## Client-side rendering (live preview)
 
-The server renderer above powers the `/user/:username.svg` endpoint. The **landing page** renders its own previews in the browser with a twin renderer, `ui/components/grid/render-svg.ts` (`renderCalendarString`). It shares the same geometry (`calendarDimensions`, `radiusFor`) and the same `renderCellShape`, so a preview is pixel-faithful to the exported SVG. It differs from the server renderer in three ways:
+The server renderer above powers the `/user/:username.svg` endpoint. The **landing page** renders its own previews in the browser with a twin renderer, `ui/components/grid/render-svg.ts` (`renderCalendarString`). It takes the same one `calendarLayout` call and the same `renderCellShape`, so a preview is pixel-faithful to the exported SVG. It differs from the server renderer only in its string templates:
 
 | | Server (`svgStringRenderer`) | Client (`renderCalendarString`) |
 |---|---|---|
-| Colors | palette literals + `rgba(...)` label fills | same palette colors, but label text via CSS vars (`var(--text-dim)`, `var(--font-mono)`) so it tracks the theme |
+| Label colour | hardcoded `rgba(255,255,255,…)` | `var(--text-dim)` / `var(--text-dimmer)`, so it tracks the page theme |
+| Label font | a `font-family="ui-monospace,monospace"` **attribute** | `font-family:var(--font-mono)` inside a `style`, for the same reason |
+| Month label opacity | none | an extra `opacity:.85` |
 | Sizing | fixed `width`/`height` | `width="100%"` + `style="display:block;overflow:visible"` for responsive layout |
-| Per-cell | fill only | also emits `data-date`, plus `data-count` only when the count is known — cells with an unknown count omit it and the tooltip says so |
+| Background | a `<rect>` when the Background is not transparent | never: the card behind it is the background |
+| Consumed as | an `<img>` in someone else's document | live DOM on this page |
+| Per-cell | fill only | also emits `data-date`, plus `data-count` only when the count is known: cells with an unknown count omit it and the tooltip says so |
 
 `render-svg.ts` also exports `shapePreviewSVG(kind)`, the tiny 20×20 swatch drawn inside each shape-picker button, using `SHAPE_PREVIEWS` and the `--contrib-peak` CSS var.
 
@@ -115,13 +124,17 @@ The landing page has **no reactive framework**. The DOM itself is the source of 
 **1. State.** Two singletons in `ui/utils/state.ts` hold the fetched data: `getDays()` / `setDays()` and the username. The active **shape** and **palette** are read straight from the DOM, from whichever control carries the `.active` class (`ui/utils/render.ts`):
 
 ```ts
-getActivePalette = () => paletteByKey($("#palette-list .palette-row.active")?.dataset.key ?? DEFAULT_PALETTE_KEY);
-getActiveShape   = () => $("#shape-list  .shape-btn.active")?.dataset.key   ?? DEFAULT_CELL_SHAPE;
+getActivePalette = () => paletteByKey($(Selector.ActivePaletteRow)?.dataset.key ?? DEFAULT_PALETTE_KEY);
+getActiveShape   = () => { const k = $(Selector.ActiveShapeButton)?.dataset.key;
+                           return k !== undefined && isCellShape(k) ? k : DEFAULT_CELL_SHAPE; };
 ```
 
-`getActivePalette` returns a `Palette`, not a key, and it goes through `paletteByKey` — the same guarded lookup the
-SVG endpoint uses. A `data-key` is markup, so it can name a palette `shared/palettes.json` does not define; the
-three callers indexed `PALETTES` directly and would have thrown a `TypeError` reading `.colors` of `undefined`. It
+**Both getters guard, and for the same reason.** A `data-key` is markup, so it can name a palette
+`shared/palettes.json` does not define or a shape the `CellShape` union does not: `paletteByKey` defaults and
+`isCellShape` rejects, and neither hands a bare string on. `getActivePalette` returns a `Palette` rather than a key,
+through the same guarded lookup the SVG endpoint uses; the three callers indexed `PALETTES` directly and would have
+thrown a `TypeError` reading `.colors` of `undefined`. `getActiveShape` returns a `CellShape` rather than a
+`string`, and used to hand that string to three callers, each of which re-guarded or did not. It
 also means the key it reports is the key it used, so the label under the picker cannot disagree with the colours on
 screen.
 

@@ -9,8 +9,6 @@ class AppTextField extends StatelessWidget {
     this.focusNode,
     this.placeholder,
     this.onSubmitted,
-    this.onChanged,
-    this.autofocus = false,
     this.enabled = true,
   });
 
@@ -18,8 +16,6 @@ class AppTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final String? placeholder;
   final ValueChanged<String>? onSubmitted;
-  final ValueChanged<String>? onChanged;
-  final bool autofocus;
   final bool enabled;
 
   @override
@@ -32,8 +28,6 @@ class AppTextField extends StatelessWidget {
           ? Text(placeholder!, style: TextStyle(color: mutedColor))
           : null,
       onSubmitted: onSubmitted,
-      onChanged: onChanged,
-      autofocus: autofocus,
       enabled: enabled,
     );
   }

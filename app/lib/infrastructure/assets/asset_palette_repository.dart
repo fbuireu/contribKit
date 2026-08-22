@@ -16,7 +16,7 @@ final class AssetPaletteRepository implements PaletteRepository {
       final data = jsonDecode(raw) as List<dynamic>;
       return data.map(_fromJson).toList(growable: false);
     } catch (e) {
-      throw ParseFailure(message: 'Could not read $_assetKey: $e');
+      throw const AssetFailure(asset: _assetKey);
     }
   }
 
@@ -25,15 +25,12 @@ final class AssetPaletteRepository implements PaletteRepository {
     return Palette(
       key: m['key'] as String,
       name: m['name'] as String,
-      none: Color(_hex(m['none'] as String)),
-      noneLight: Color(_hex(m['noneLight'] as String)),
-      low: Color(_hex(m['low'] as String)),
-      medium: Color(_hex(m['medium'] as String)),
-      high: Color(_hex(m['high'] as String)),
-      veryHigh: Color(_hex(m['veryHigh'] as String)),
+      none: Color.fromHex(m['none'] as String),
+      noneLight: Color.fromHex(m['noneLight'] as String),
+      low: Color.fromHex(m['low'] as String),
+      medium: Color.fromHex(m['medium'] as String),
+      high: Color.fromHex(m['high'] as String),
+      veryHigh: Color.fromHex(m['veryHigh'] as String),
     );
   }
-
-  static int _hex(String hex) =>
-      0xFF000000 | int.parse(hex.substring(1), radix: 16);
 }

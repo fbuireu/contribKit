@@ -1,11 +1,11 @@
-import 'package:contribkit/domain/services/cell_geometry_service.dart';
-
 import 'dart:convert';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
-import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/services/cell_geometry_service.dart';
+import 'package:contribkit/domain/value_objects/cell_figure.dart';
+import 'package:contribkit/domain/services/export_geometry_service.dart';
 
 final class SvgExportRepository implements ExportRepository {
   @override
@@ -27,8 +27,12 @@ final class SvgExportRepository implements ExportRepository {
     final step = cell + gap;
 
     final weeks = calendar.weeks;
-    final width = weeks.length * step - gap;
-    final height = 7 * step - gap;
+    final size = ExportGeometryService.logicalSizeFor(
+      cellSize: options.namedSize,
+      weeks: weeks.length,
+    );
+    final width = size.width;
+    final height = size.height;
 
     final buffer = StringBuffer()
       ..writeln('<?xml version="1.0" encoding="UTF-8"?>')
@@ -53,43 +57,42 @@ final class SvgExportRepository implements ExportRepository {
         final title =
             '${day.date.toIso8601String().substring(0, 10)}: ${day.count ?? 'unknown'}';
 
-        switch (options.shape) {
-          case CellShape.square:
+        final figure = CellGeometryService.figureFor(
+          shape: options.shape,
+          levelIndex: day.level.index,
+          cellSize: cell,
+        );
+        final box =
+            'x="${x.toStringAsFixed(1)}" y="${y.toStringAsFixed(1)}" '
+            'width="${cell.toStringAsFixed(1)}" height="${cell.toStringAsFixed(1)}"';
+        final centre =
+            'cx="${(x + cell / 2).toStringAsFixed(1)}" '
+            'cy="${(y + cell / 2).toStringAsFixed(1)}"';
+
+        switch (figure) {
+          case SquareFigure():
             buffer.writeln(
-              '<rect x="${x.toStringAsFixed(1)}" y="${y.toStringAsFixed(1)}" '
-              'width="${cell.toStringAsFixed(1)}" height="${cell.toStringAsFixed(1)}" '
-              'fill="$fill"><title>$title</title></rect>',
+              '<rect $box fill="$fill"><title>$title</title></rect>',
             );
-          case CellShape.rounded:
-            final r = CellGeometryService.cornerRadiusFor(cell)
-                .toStringAsFixed(1);
+          case RoundedFigure(:final radius):
+            final r = radius.toStringAsFixed(1);
             buffer.writeln(
-              '<rect x="${x.toStringAsFixed(1)}" y="${y.toStringAsFixed(1)}" '
-              'width="${cell.toStringAsFixed(1)}" height="${cell.toStringAsFixed(1)}" '
-              'rx="$r" ry="$r" fill="$fill"><title>$title</title></rect>',
+              '<rect $box rx="$r" ry="$r" fill="$fill">'
+              '<title>$title</title></rect>',
             );
-          case CellShape.circle:
-            final cx = (x + cell / 2).toStringAsFixed(1);
-            final cy = (y + cell / 2).toStringAsFixed(1);
-            final r = (cell / 2).toStringAsFixed(1);
+          case CircleFigure(:final radius):
             buffer.writeln(
-              '<circle cx="$cx" cy="$cy" r="$r" fill="$fill">'
+              '<circle $centre r="${radius.toStringAsFixed(2)}" fill="$fill">'
               '<title>$title</title></circle>',
             );
-          case CellShape.dot:
-            final li = day.level.index;
-            final r = CellGeometryService.dotRadiusFor(
-              levelIndex: li,
-              cellSize: cell,
-            ).toStringAsFixed(2);
-            final cx = (x + cell / 2).toStringAsFixed(1);
-            final cy = (y + cell / 2).toStringAsFixed(1);
-            buffer.writeln(
-              '<circle cx="$cx" cy="$cy" r="$r" fill="$fill">'
-              '<title>$title</title></circle>',
-            );
-          case CellShape.hex:
-            final pts = _hexPoints(x + cell / 2, y + cell / 2, cell / 2);
+          case PolygonFigure(:final vertices):
+            final pts = vertices
+                .map(
+                  (v) =>
+                      '${(v.x + x).toStringAsFixed(2)},'
+                      '${(v.y + y).toStringAsFixed(2)}',
+                )
+                .join(' ');
             buffer.writeln(
               '<polygon points="$pts" fill="$fill">'
               '<title>$title</title></polygon>',
@@ -101,18 +104,4 @@ final class SvgExportRepository implements ExportRepository {
     buffer.writeln('</svg>');
     return buffer.toString();
   }
-}
-
-String _hexPoints(double cx, double cy, double r) {
-  final vertices = CellGeometryService.hexVerticesFor(
-    centerX: cx,
-    centerY: cy,
-    radius: r,
-  );
-  return vertices
-      .map(
-        (vertex) =>
-            '${vertex.x.toStringAsFixed(2)},${vertex.y.toStringAsFixed(2)}',
-      )
-      .join(' ');
 }

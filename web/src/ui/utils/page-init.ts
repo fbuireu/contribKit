@@ -1,10 +1,11 @@
+import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { generateData } from "@ui/components/grid/calendar";
-import { CONTRIBUTION_ERRORS, FALLBACK_CONTRIBUTION_ERROR } from "@ui/utils/contribution-errors";
-import { ElementId, Selector } from "@ui/utils/dom-contract";
+import { contributionError } from "@ui/utils/contribution-errors";
+import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
 import {
@@ -25,13 +26,14 @@ interface ContributionsResponse {
 	error?: string;
 }
 
-const INITIAL_DAYS =
-	Array.isArray(window.__INITIAL_DAYS__) && window.__INITIAL_DAYS__.length ? window.__INITIAL_DAYS__ : generateData();
-
 const CURRENT_YEAR = new Date().getFullYear();
 
-setDays(INITIAL_DAYS);
-setUsername(readUsernameFromUrl(DEFAULT_USERNAME));
+const initialDays = (): ContributionDay[] =>
+	Array.isArray(window.__INITIAL_DAYS__) && window.__INITIAL_DAYS__.length ? window.__INITIAL_DAYS__ : generateData();
+
+export type ContributionsRequest = (url: string) => Promise<Response>;
+
+const sendRequest: ContributionsRequest = (url) => fetch(url);
 
 interface ShowErrorStateParams {
 	message: string;
@@ -45,12 +47,17 @@ function showErrorState({ message, year }: ShowErrorStateParams): void {
 	updateHeroStats({ totalContributions: null, currentStreak: 0, longestStreak: 0 });
 }
 
-interface RenderFromGitHubParams {
+export interface RenderFromGitHubParams {
 	username: string;
 	updateHistory?: boolean;
+	request?: ContributionsRequest;
 }
 
-async function renderFromGitHub({ username, updateHistory = true }: RenderFromGitHubParams) {
+export async function renderFromGitHub({
+	username,
+	updateHistory = true,
+	request = sendRequest,
+}: RenderFromGitHubParams) {
 	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
 	const renderLabel = document.getElementById(ElementId.HeroRenderLabel);
 	const gridContainer = document.getElementById(ElementId.HeroGrid);
@@ -62,7 +69,6 @@ async function renderFromGitHub({ username, updateHistory = true }: RenderFromGi
 	const year = selectedYear && selectedYear <= CURRENT_YEAR ? selectedYear : CURRENT_YEAR;
 
 	if (updateHistory) syncUrl({ username, year: selectedYear, currentYear: CURRENT_YEAR });
-	void writeUsernameCookie(username);
 	syncSuggestionSelection(username);
 	setUsername(username);
 
@@ -71,15 +77,16 @@ async function renderFromGitHub({ username, updateHistory = true }: RenderFromGi
 	if (renderLabel) renderLabel.textContent = "loading…";
 
 	try {
-		const response = await fetch(`/api/contributions?user=${encodeURIComponent(username)}&year=${year}`);
+		const response = await request(`/api/contributions?user=${encodeURIComponent(username)}&year=${year}`);
 		const data: ContributionsResponse = await response.json();
 
 		if (!response.ok) {
 			showErrorState({
-				message: CONTRIBUTION_ERRORS[response.status] ?? data.error ?? FALLBACK_CONTRIBUTION_ERROR,
+				message: contributionError({ status: response.status, serverMessage: data.error }),
 				year,
 			});
 		} else {
+			void writeUsernameCookie(username);
 			setDays(buildGridFromApi({ days: data.days, year }));
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
@@ -122,7 +129,7 @@ function syncSuggestionSelection(username?: string) {
 	const normalized = (username ?? input?.value ?? "").trim().toLowerCase();
 	document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons).forEach((button) => {
 		const isMatch = !!normalized && button.dataset.username === normalized;
-		button.classList.toggle("selected", isMatch);
+		button.classList.toggle(ClassName.Selected, isMatch);
 		button.setAttribute("aria-pressed", String(isMatch));
 	});
 }
@@ -203,15 +210,19 @@ function initUsernameState() {
 }
 
 export function initPage() {
+	const days = initialDays();
+	setDays(days);
+	setUsername(readUsernameFromUrl(DEFAULT_USERNAME));
+
 	initUsernameState();
 	renderCustomize();
 	renderWidget();
 	renderExportPreview();
-	initRadioList("#palette-list .palette-row");
-	initRadioList("#shape-list .shape-btn");
+	initRadioList(Selector.PaletteRows);
+	initRadioList(Selector.ShapeButtons);
 	initExportTabs();
 	initUsernameStrip();
 	initHistoryNav();
-	updateYearRange(INITIAL_DAYS);
+	updateYearRange(days);
 	initCellTooltip();
 }

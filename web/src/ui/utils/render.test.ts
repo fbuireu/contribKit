@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
-import { beforeEach, describe, expect, it } from "vitest";
+import { Selector } from "@ui/utils/dom-contract";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	getActiveExportTab,
 	getActivePalette,
@@ -68,7 +69,7 @@ describe("renderExportPreview", () => {
 	it("renders a png card by default", () => {
 		document.body.innerHTML = `<div id="export-preview"></div>`;
 		renderExportPreview();
-		expect(document.querySelector("#export-preview .png-preview")).not.toBeNull();
+		expect(document.querySelector(Selector.ExportPngPreview)).not.toBeNull();
 	});
 
 	it("renders a code preview when the svg tab is active", () => {
@@ -110,5 +111,70 @@ describe("getActivePalette", () => {
 		const palette = getActivePalette();
 
 		expect(palette.colors).toEqual(PALETTES[palette.key].colors);
+	});
+});
+
+describe("the copy button", () => {
+	const clickCopy = async (writeText: () => Promise<void>) => {
+		vi.stubGlobal("navigator", { clipboard: { writeText } });
+		document.body.innerHTML = `<div id="export-tabs"><button data-key="svg" aria-selected="true"></button></div><div id="export-preview"></div>`;
+		renderExportPreview();
+		const button = document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton);
+		button?.click();
+		await vi.advanceTimersByTimeAsync(0);
+		return button;
+	};
+
+	beforeEach(() => {
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		vi.unstubAllGlobals();
+	});
+
+	it("says it copied, then goes back to offering to", async () => {
+		const button = await clickCopy(async () => {});
+
+		expect(button?.textContent).toBe("copied!");
+		await vi.advanceTimersByTimeAsync(1500);
+		expect(button?.textContent).toBe("copy");
+	});
+
+	it("says it failed rather than staying silent when the clipboard refuses", async () => {
+		const button = await clickCopy(() => Promise.reject(new Error("denied")));
+
+		expect(button?.textContent).toBe("copy failed");
+	});
+
+	it("settles back on copy after a second click, never on a stale label", async () => {
+		const button = await clickCopy(async () => {});
+		expect(button?.textContent).toBe("copied!");
+
+		await vi.advanceTimersByTimeAsync(500);
+		button?.click();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(button?.textContent).toBe("copied!");
+
+		await vi.advanceTimersByTimeAsync(1500);
+		expect(button?.textContent).toBe("copy");
+	});
+
+	it("does not claim success when the second click is the one that failed", async () => {
+		let refuse = false;
+		const button = await clickCopy(async () => {
+			if (refuse) throw new Error("denied");
+		});
+		expect(button?.textContent).toBe("copied!");
+
+		refuse = true;
+		await vi.advanceTimersByTimeAsync(500);
+		button?.click();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(button?.textContent).toBe("copy failed");
+
+		await vi.advanceTimersByTimeAsync(1500);
+		expect(button?.textContent).toBe("copy");
 	});
 });

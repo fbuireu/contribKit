@@ -9,10 +9,10 @@ const STEP = CELL_SIZE + GAP;
 const SEED = 99;
 
 const LEVEL_THRESHOLDS = [
-	{ min: 0.92, level: 4 },
-	{ min: 0.78, level: 3 },
-	{ min: 0.62, level: 2 },
-	{ min: 0.42, level: 1 },
+	{ minScore: 0.92, level: 4 },
+	{ minScore: 0.78, level: 3 },
+	{ minScore: 0.62, level: 2 },
+	{ minScore: 0.42, level: 1 },
 ] as const;
 
 export interface GenerateMiniGridParams {
@@ -38,7 +38,7 @@ export function generateMiniGrid({ palette, liveDays }: GenerateMiniGridParams):
 			const randomValue = rand();
 			const progress = Math.floor(index / DAYS_PER_WEEK) / cols;
 			const boosted = randomValue + progress * 0.3 + Math.sin(index / 8) * 0.15;
-			return LEVEL_THRESHOLDS.find(({ min }) => boosted > min)?.level ?? 0;
+			return LEVEL_THRESHOLDS.find(({ minScore }) => boosted > minScore)?.level ?? 0;
 		});
 	}
 

@@ -14,11 +14,11 @@ The web renderer runs inside a Cloudflare Worker. There is no DOM, so "just use 
 
 ## Decision
 
-Both clients extract the data with a handful of focused regular expressions over the response text — the contribution-day `<td>` and its attributes, and the `<tool-tip>` that carries the exact count.
+Both clients extract the data with a handful of focused regular expressions over the response text: the contribution-day `<td>` and its attributes, and the `<tool-tip>` that carries the exact count.
 
 A DOM or HTML-parser dependency is the rejected alternative: it buys generality this parser does not need, at a cost the runtime does charge.
 
 ## Consequences
 
-- The regexes are the coupling point named in [5](0005-scrape-githubs-public-contributions-html.md). They must stay tolerant of attribute order and of extra classes on the element — a pattern that demanded `class="ContributionCalendar-day"` exactly would break the moment GitHub adds a second class, which is a difference the two clients once had.
+- The regexes are the coupling point named in [5](0005-scrape-githubs-public-contributions-html.md). They must stay tolerant of attribute order and of extra classes on the element. A pattern that demanded `class="ContributionCalendar-day"` exactly would break the moment GitHub adds a second class, which is a difference the two clients once had.
 - This is not a licence to parse HTML with regexes generally. It holds because the target is two known shapes in an environment where the usual tool is not free.

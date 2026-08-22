@@ -1,5 +1,6 @@
 import type { Failure } from "@domain/failures/failure";
-import { SERVER_ERROR_STATUS } from "./failure-http";
+
+export const SERVER_ERROR_STATUS = 500;
 
 export interface FailureLogger {
 	error(params: { message: string; context?: Record<string, unknown> }): void;
@@ -35,5 +36,33 @@ export const logContributionsFailure = ({
 	logger.error({
 		message: "GitHub contributions fetch failed",
 		context: { username, kind, reason, status, endpoint },
+	});
+};
+
+export interface LogServerErrorParams {
+	logger: FailureLogger;
+	error: unknown;
+	path: string;
+}
+
+const describeError = (error: unknown): string => {
+	if (error instanceof Error) return error.message;
+	if (!error) return "unknown";
+	if (typeof error === "object") {
+		try {
+			return JSON.stringify(error);
+		} catch {
+			return String(error);
+		}
+	}
+	return String(error);
+};
+
+export const logServerError = ({ logger, error, path }: LogServerErrorParams): void => {
+	if (error === undefined) return;
+
+	logger.error({
+		message: "Unhandled server error (500)",
+		context: { path, reason: describeError(error) },
 	});
 };

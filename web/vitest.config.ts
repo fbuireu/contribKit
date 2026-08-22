@@ -11,7 +11,6 @@ export default defineConfig({
 			"@application": resolvePath("./src/application"),
 			"@infrastructure": resolvePath("./src/infrastructure"),
 			"@ui": resolvePath("./src/ui"),
-			"@assets": resolvePath("./src/assets"),
 		},
 	},
 	test: {

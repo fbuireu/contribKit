@@ -49,7 +49,7 @@ Fixes #<!-- issue number -->
 
 - [ ] I ran `dart format` before committing
 - [ ] No new lint warnings (`flutter analyze`)
-- [ ] No magic numbers — spacing and colors go through `Tokens` / `AppColors`
+- [ ] No magic numbers: spacing and colors go through `Tokens` / `AppColors`
 - [ ] No `dynamic` types outside of JSON boundary code
 - [ ] Domain layer has zero external dependencies
 - [ ] Generated files (`*.freezed.dart`, `*.g.dart`) are up to date

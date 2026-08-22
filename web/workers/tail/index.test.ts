@@ -18,9 +18,9 @@ const makeEvent = (over: { logs?: Log[]; exceptions?: Exception[] } = {}) => ({
 	scriptName: "contribkit",
 });
 
-const stubFetch = () => {
+const stubFetch = (response: () => Response = () => new Response()) => {
 	const fetchMock = vi.fn((_url: string, _init: { headers: Record<string, string>; body: string }) =>
-		Promise.resolve(new Response()),
+		Promise.resolve(response()),
 	);
 	vi.stubGlobal("fetch", fetchMock);
 	return fetchMock;
@@ -58,5 +58,13 @@ describe("tail worker", () => {
 		const fetchMock = stubFetch();
 		await worker.tail([makeEvent({ logs: [{ message: ["x"], level: "info", timestamp: 0 }] })], env);
 		expect(bodyOf(fetchMock)[0]).toMatchObject({ url: "https://x/api", method: "GET", status: 200, outcome: "ok" });
+	});
+
+	it("fails loudly when Better Stack rejects the batch, because it cannot log its own silence", async () => {
+		stubFetch(() => new Response("unauthorized", { status: 401 }));
+
+		await expect(
+			worker.tail([makeEvent({ logs: [{ message: ["x"], level: "info", timestamp: 0 }] })], env),
+		).rejects.toThrow(/401/);
 	});
 });

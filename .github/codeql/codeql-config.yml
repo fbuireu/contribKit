@@ -1,0 +1,5 @@
+name: CodeQL config
+paths-ignore:
+  - web/dist
+  - app/build
+  - app/.dart_tool

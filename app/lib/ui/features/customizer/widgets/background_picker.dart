@@ -1,7 +1,8 @@
+import 'package:contribkit/ui/features/customizer/widgets/setting_picker.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
-import 'package:contribkit/ui/widgets/app_tooltip.dart';
 import 'package:contribkit/ui/theme/background_presets.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
+import 'package:contribkit/ui/widgets/app_tooltip.dart';
 import 'package:flutter/widgets.dart';
 
 class BackgroundPicker extends StatelessWidget {
@@ -16,75 +17,21 @@ class BackgroundPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Background',
-          style: TextStyle(
-            fontSize: Tokens.textSm,
-            color: AppColors.of(context).mutedForeground,
-          ),
-        ),
-        const SizedBox(height: Tokens.space2),
-        Row(
-          children: [
-            for (final preset in BackgroundPreset.values) ...[
-              if (preset != BackgroundPreset.values.first)
-                const SizedBox(width: Tokens.space2),
-              _BackgroundSwatch(
-                preset: preset,
-                isSelected: preset == selected,
-                systemColor: colors.card,
-                onTap: () => onSelected(preset),
-              ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-}
+    final systemColor = AppColors.of(context).card;
 
-class _BackgroundSwatch extends StatelessWidget {
-  const _BackgroundSwatch({
-    required this.preset,
-    required this.isSelected,
-    required this.systemColor,
-    required this.onTap,
-  });
-
-  final BackgroundPreset preset;
-  final bool isSelected;
-  final Color systemColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final swatchColor = BackgroundPresets.colors[preset] ?? systemColor;
-    final label = BackgroundPresets.labels[preset]!;
-
-    return AppTooltip(
-      message: Text(label),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: Tokens.durationFast,
-          width: Tokens.swatchSize * 2,
-          height: Tokens.swatchSize * 2,
-          decoration: BoxDecoration(
-            color: swatchColor,
-            borderRadius: BorderRadius.circular(Tokens.radiusSm),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.of(context).accent
-                  : AppColors.of(context).border,
-              width: isSelected
-                  ? Tokens.swatchBorderSelected
-                  : Tokens.swatchBorderDefault,
-            ),
-          ),
+    return SettingPicker<BackgroundPreset>(
+      label: 'Background',
+      options: BackgroundPreset.values,
+      selected: selected,
+      onSelected: onSelected,
+      optionBuilder: (preset, isSelected, onTap) => AppTooltip(
+        message: Text(preset.label),
+        child: SettingSwatch(
+          isSelected: isSelected,
+          onTap: onTap,
+          color: preset.colorOr(systemColor),
+          size: Tokens.swatchSize * 2,
+          borderRadius: Tokens.radiusSm,
         ),
       ),
     );

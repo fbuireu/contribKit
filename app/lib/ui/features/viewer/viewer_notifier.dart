@@ -1,3 +1,4 @@
+import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
@@ -15,6 +16,9 @@ part 'viewer_notifier.g.dart';
 
 @riverpod
 class ViewerNotifier extends _$ViewerNotifier {
+  int _generation = 0;
+  Future<List<Palette>>? _paletteLoad;
+
   @override
   ViewerState build() {
     Future.microtask(_loadSettings);
@@ -22,53 +26,46 @@ class ViewerNotifier extends _$ViewerNotifier {
   }
 
   Future<void> _loadSettings() async {
+    if (!ref.mounted) return;
     state = state.copyWith(isLoadingSettings: true);
 
-    List<Palette> allPalettes = [];
-    try {
-      allPalettes = await ref.read(palettesProvider.future);
-      if (allPalettes.isNotEmpty) {
-        state = state.copyWith(palette: allPalettes.first);
-      }
-    } catch (_) {}
+    final allPalettes = await _loadPalettes();
+    if (!ref.mounted) return;
 
     try {
       final repo = ref.read(settingsRepositoryProvider);
 
-      final username = await repo.getLastUsername();
-      final year = await repo.getLastYear();
-      final paletteKey = await repo.getSavedPaletteKey();
-      final shape = await repo.getSavedCellShape();
-      final cellSizeSaved = await repo.getSavedCellSize();
-      final backgroundName = await repo.getSavedBackgroundPreset();
+      final settings = await repo.load();
+      if (!ref.mounted) return;
+      final backgroundName = settings.backgroundPresetName;
 
       final resolvedPalette =
           PaletteService.resolve(
             palettes: allPalettes,
-            storedKey: paletteKey,
+            storedKey: settings.paletteKey,
           ) ??
           state.palette;
 
       state = state.copyWith(
-        username: username,
-        year: year,
+        username: settings.lastUsername,
+        year: settings.lastYear,
         palette: resolvedPalette,
-        cellShape: shape ?? CellShape.fallback,
-        cellSize: cellSizeSaved ?? CellSize.fallback,
-        backgroundPreset: backgroundName != null
-            ? BackgroundPresets.byName(backgroundName)
-            : BackgroundPreset.system,
+        cellShape: settings.cellShape,
+        cellSize: settings.cellSize,
+        backgroundPreset:
+            (backgroundName == null
+                ? null
+                : BackgroundPreset.byName(backgroundName)) ??
+            BackgroundPreset.fallback,
       );
 
+      final username = settings.lastUsername;
       if (username != null) {
-        await fetchContributions(
-          username: username,
-          year: year ?? Year.current,
-        );
+        await fetchContributions(username: username, year: settings.year);
       }
     } catch (_) {
     } finally {
-      state = state.copyWith(isLoadingSettings: false);
+      if (ref.mounted) state = state.copyWith(isLoadingSettings: false);
     }
   }
 
@@ -76,10 +73,13 @@ class ViewerNotifier extends _$ViewerNotifier {
     required Username username,
     required Year year,
   }) async {
+    if (!ref.mounted) return;
+    final generation = ++_generation;
     state = state.copyWith(
       username: username,
       year: year,
       calendar: null,
+      stats: null,
       error: null,
       isLoadingCalendar: true,
     );
@@ -90,26 +90,55 @@ class ViewerNotifier extends _$ViewerNotifier {
         username: username,
         year: year,
       );
-      state = state.copyWith(calendar: calendar, fromCache: fromCache);
-      await ref.read(settingsRepositoryProvider).saveLastUsername(username);
-      await ref.read(settingsRepositoryProvider).saveLastYear(year);
+      if (generation != _generation || !ref.mounted) return;
+      state = state.copyWith(
+        calendar: calendar,
+        stats: ContributionStatsService.compute(calendar),
+        fromCache: fromCache,
+      );
+      await _remember(username: username, year: year);
 
-      final palette = state.palette;
-      if (palette != null) {
-        CalendarWidgetService.update(
-          calendar: calendar,
-          palette: palette,
-          cellShape: state.cellShape,
-        );
-      }
+      _updateWidget();
     } on Failure catch (f) {
-      state = state.copyWith(error: f);
+      if (_stillOurs(generation)) state = state.copyWith(error: f);
     } catch (e) {
-      state = state.copyWith(error: UnexpectedFailure(message: e.toString()));
+      if (_stillOurs(generation)) {
+        state = state.copyWith(error: UnexpectedFailure(message: e.toString()));
+      }
     } finally {
-      state = state.copyWith(isLoadingCalendar: false);
+      if (_stillOurs(generation)) {
+        state = state.copyWith(isLoadingCalendar: false);
+      }
     }
   }
+
+  bool _stillOurs(int generation) => generation == _generation && ref.mounted;
+
+  Future<List<Palette>> _loadPalettes() =>
+      _paletteLoad ??= _loadPalettesOnce().whenComplete(() {
+        _paletteLoad = null;
+      });
+
+  Future<List<Palette>> _loadPalettesOnce() async {
+    try {
+      final palettes = await ref.read(paletteRepositoryProvider).loadAll();
+      if (!ref.mounted) return palettes;
+      ref.invalidate(palettesProvider);
+      state = state.copyWith(
+        palette: palettes.isEmpty ? null : palettes.first,
+        paletteFailure: palettes.isEmpty ? _noPalettes : null,
+      );
+      return palettes;
+    } catch (e) {
+      if (ref.mounted) state = state.copyWith(paletteFailure: _asFailure(e));
+      return const [];
+    }
+  }
+
+  static const _noPalettes = AssetFailure(asset: 'assets/palettes.json');
+
+  static Failure _asFailure(Object error) =>
+      error is Failure ? error : UnexpectedFailure(message: error.toString());
 
   void setPalette(Palette palette) {
     state = state.copyWith(palette: palette);
@@ -126,7 +155,6 @@ class ViewerNotifier extends _$ViewerNotifier {
   void setCellSize(CellSize size) {
     state = state.copyWith(cellSize: size);
     ref.read(settingsRepositoryProvider).saveCellSize(size);
-    _updateWidget();
   }
 
   void setBackgroundPreset(BackgroundPreset bg) {
@@ -143,10 +171,34 @@ class ViewerNotifier extends _$ViewerNotifier {
     }
   }
 
+  Future<void> _remember({
+    required Username username,
+    required Year year,
+  }) async {
+    try {
+      final settings = ref.read(settingsRepositoryProvider);
+      await settings.saveLastUsername(username);
+      if (!ref.mounted) return;
+      await settings.saveLastYear(year);
+    } on Failure {
+      return;
+    }
+  }
+
   Future<void> refreshContributions() async {
     final username = state.username;
     if (username == null) return;
-    await ref.read(contributionRepositoryProvider).invalidateCache(username);
+    final year = state.effectiveYear;
+    await ref.read(invalidateContributionCacheProvider)(username);
+    if (!ref.mounted) return;
+    await fetchContributions(username: username, year: year);
+  }
+
+  Future<void> retry() async {
+    if (state.palette == null) await _loadPalettes();
+    if (!ref.mounted) return;
+    final username = state.username;
+    if (username == null) return;
     await fetchContributions(username: username, year: state.effectiveYear);
   }
 

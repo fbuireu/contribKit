@@ -9,11 +9,11 @@ abstract final class StreakService {
     final days = _daysInYear(calendar);
     if (days.isEmpty) return 0;
 
-    final anchor = _anchorFor(days: days, today: dateOnly(today));
+    final anchor = _anchorFor(days: days, today: _dateOnly(today));
     if (anchor == null) return 0;
 
     var index = anchor;
-    if (dateOnly(days[index].date) == dateOnly(today) &&
+    if (_dateOnly(days[index].date) == _dateOnly(today) &&
         !days[index].isActive) {
       index--;
     }
@@ -38,12 +38,12 @@ abstract final class StreakService {
     required DateTime today,
   }) {
     var index = days.length - 1;
-    while (index >= 0 && dateOnly(days[index].date).isAfter(today)) {
+    while (index >= 0 && _dateOnly(days[index].date).isAfter(today)) {
       index--;
     }
     return index < 0 ? null : index;
   }
 
-  static DateTime dateOnly(DateTime date) =>
+  static DateTime _dateOnly(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 }

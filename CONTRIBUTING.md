@@ -1,8 +1,8 @@
 # Contributing to ContribKit
 
-Thanks for considering it. ContribKit is a monorepo with two clients over one domain — an Astro web app on
-Cloudflare Workers and a Flutter mobile app — and most of what is unusual about contributing here comes from that
-one fact. Read this before your first pull request; it will save you a rejected commit.
+Thanks for considering it. ContribKit is a monorepo with two clients over one domain (an Astro web app on
+Cloudflare Workers and a Flutter mobile app), and most of what is unusual about contributing here comes from
+that one fact. Read this before your first pull request; it will save you a rejected commit.
 
 If you want the shape of the codebase rather than the process, that is [ARCHITECTURE.md](./ARCHITECTURE.md). If you
 want the vocabulary, that is [CONTEXT.md](./CONTEXT.md).
@@ -23,38 +23,39 @@ By participating you are expected to uphold the
 
 Check the existing issues first, then use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.yml). Include:
 
-- **Which client** — web, app, or both. They are separate implementations and a bug in one is usually not in the other.
+- **Which client**: web, app, or both. They are separate implementations and a bug in one is usually not in the other.
 - **What you did**, what you expected, and what actually happened.
 - **The username and year** you were looking at, if the bug involves real contribution data.
-- **Environment** — browser and OS for the web; device, OS version and app version for the app.
+- **Environment**: browser and OS for the web; device, OS version and app version for the app.
 
 Security issues go through the [security report template](.github/ISSUE_TEMPLATE/security_report.yml), not a public
 bug report.
 
 ### Suggesting features
 
-Use the [feature request template](.github/ISSUE_TEMPLATE/feature_request.yml). Say which client it is for, and why —
-a feature that only makes sense on one client is fine and common. Two are already closed by decision rather than
+Use the [feature request template](.github/ISSUE_TEMPLATE/feature_request.yml). Say which client it is for, and why: a
+feature that only makes sense on one client is fine and common. Two are already closed by decision rather than
 effort: tips will never unlock anything ([ADR 0009](./docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)),
 and the SVG endpoint will not be rate-limited
 ([ADR 0010](./docs/adr/0010-rate-limit-only-the-json-api.md)).
 
 ### Improving documentation
 
-Always welcome, and here it is real work rather than a consolation prize — the source carries **no explanatory
-comments** by design, so the documents are where the explanation lives. Use the
+Always welcome, and here it is real work rather than a consolation prize. The source carries **no comments at
+all** by design, doc comments included, so the documents are where the explanation lives
+([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)). Use the
 [documentation template](.github/ISSUE_TEMPLATE/documentation.yml). Fair game: the READMEs, the
 [wiki](./docs/wiki/), the per-layer `CLAUDE.md` files, and the glossary.
 
 ## Getting set up
 
-**Pinned versions — match them exactly.** A mismatch is not a warning here, it is a failed `pub get` or a lockfile
+**Pinned versions: match them exactly.** A mismatch is not a warning here, it is a failed `pub get` or a lockfile
 conflict.
 
 | Tool | Version | Pinned in |
 | --- | --- | --- |
-| pnpm | 11.21.0 | root `packageManager`, and nowhere else — always pnpm, never npm or yarn |
-| Node | 26.7.0 | root `engines`, `web/engines` and `web/.nvmrc` — the same version in all three |
+| pnpm | 11.21.0 | root `packageManager`, and nowhere else: always pnpm, never npm or yarn |
+| Node | 26.7.0 | root `engines`, `web/engines` and `web/.nvmrc`: the same version in all three |
 | Flutter | 3.47.0 | `app/pubspec.yaml` |
 | Dart | 3.13.0 | `app/pubspec.yaml` |
 
@@ -64,8 +65,7 @@ Do not "fix" a version mismatch by editing the pin.
 git clone https://github.com/YOUR_USERNAME/contribKit.git
 cd contribKit
 
-pnpm install                         # root tooling + the web workspace
-brew install lefthook && lefthook install   # git hooks; do this once
+pnpm install                         # root tooling, git hooks and the web workspace
 
 cd app && flutter pub get            # only if you are touching the app
 ```
@@ -81,7 +81,7 @@ pnpm test:docs            # the docs contract alone
 pnpm test:e2e             # playwright
 pnpm lint:all             # biome lint
 pnpm format:all           # biome check --write
-pnpm format:check         # biome check, read-only — what CI runs
+pnpm format:check         # biome check, read-only: what CI runs
 pnpm lint:ts:typecheck    # wrangler types + tsc --noEmit
 ```
 
@@ -95,11 +95,13 @@ dart run build_runner build   # after touching any @freezed, @riverpod or DTO cl
 ```
 
 There are **no build flavors**. The stage comes from which dart-defines file you pass
-(`dart-defines.json` or `dart-defines.prod.json`); `--flavor` will fail.
+(`dart-defines.json` or `dart-defines.prod.json`); `--flavor` will fail
+([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)). Forgetting the
+flag is not an error either: `REVENUECAT_KEY` comes back empty and the Tip Jar renders as unavailable.
 
 ### Working on the shared tokens
 
-Edit `shared/*.json` — never `app/assets/*.json`, which is a generated copy
+Edit `shared/*.json`, and never `app/assets/*.json`, which is a generated copy
 ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)). Run `pnpm sync:assets` from
 the root, or just commit: a pre-commit hook syncs and stages them for you. Anything you add also has to be
 advertised in the README's feature list, and the docs test will tell you if you forget.
@@ -119,22 +121,37 @@ choose is the version bump you get.
 Breaking changes take a `!` after the type or a `BREAKING CHANGE:` footer, and bump the major.
 
 **A scope, if you use one, must be a workspace package name.** `@commitlint/config-pnpm-scopes` derives the allowed
-set from `pnpm-workspace.yaml`, so the scopes are `contribkit-web` and `contribkit-app` — **`feat(web):` and
-`fix(app):` are rejected.** The scope is optional; `docs:` with none is always fine.
+set from `pnpm-workspace.yaml`, so the scopes are `contribkit-web`, `contribkit-app` and `global`. **`feat(web):`
+and `fix(app):` are rejected.** The scope is optional; `docs:` with none is always fine. Use `global` for a change
+that belongs to neither client: CI, the root manifests, the docs contract.
 
-### One commit may not touch both clients
+**The hook is not the only place this runs, because the hook is not where most commits are written.** `commit-msg`
+lints what you type locally; a squash-merge through GitHub commits the **pull request title**, which never passes
+through any local hook. That is how `ci(web):` reached `main` twice while this document said it was rejected.
+`commit-message.yml` lints the PR title on every open and edit, so the message that actually lands is the one that
+was checked. It matters because semantic-release parses these to decide the version and which component's
+changelog the entry goes in.
 
-`scripts/auto-scope.mjs` runs on `commit-msg` and **rejects any commit that stages files under both `app/` and
-`web/`**. This is not style policing: `semantic-release-monorepo` files a commit in the changelog of every package
-whose files it touched, so a mixed commit puts web changes in the app's changelog and vice versa. Split it:
+### One pull request, one client, usually
+
+`semantic-release-monorepo` files a commit in the changelog of every package whose files it touched, and `main`
+takes squash merges, so a pull request spanning `app/` and `web/` lands as one commit in both changelogs and can
+cut both releases. Keep a pull request to one client where you can:
 
 ```bash
 git add web/ && git commit -m "feat(contribkit-web): ..."
 git add app/ && git commit -m "feat(contribkit-app): ..."
 ```
 
-Changes to `shared/`, `docs/` or the root touch neither package and commit freely — but if a token change forces a
-change in both clients, that is still three commits, not one.
+**This is a notice, not a gate.** The `cross-package-notice` job in `commit-message.yml` comments on the pull
+request and does not block the merge, because a change that genuinely spans both clients is legitimate and
+releasing both is then the right outcome. It ignores `app/assets/`, so the pre-commit sync's own mirrors cannot
+make a `shared/` edit look like a cross-package one.
+
+A local `commit-msg` hook used to reject the mixed commit outright. It was removed because splitting locally does
+not survive the squash: ten commits on `main` touch both packages despite it.
+
+Changes to `shared/`, `docs/` or the root touch neither package, so they release nothing.
 
 Do **not** add a `Co-Authored-By` trailer for an AI assistant to a commit or a pull request.
 
@@ -145,7 +162,7 @@ update the docs in the same commit.** A follow-up commit is a promise, not a fix
 
 | Document | Answers | Update it when |
 | --- | --- | --- |
-| [`CONTEXT.md`](./CONTEXT.md) | *What does this word mean?* A glossary and nothing else — no filenames, no libraries | A domain term changes meaning, or a new one appears |
+| [`CONTEXT.md`](./CONTEXT.md) | *What does this word mean?* A glossary and nothing else: no filenames, no libraries | A domain term changes meaning, or a new one appears |
 | [`CLAUDE.md`](./CLAUDE.md) | *How do I work in this repo?* Commands, conventions, the full update table | You change a script, a convention, or a repo-wide invariant |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | *How does it fit together?* Layer map, a request end to end, build and release, the ADR index | You change the layering, a flow, or the pipeline |
 | `web/src/<layer>/CLAUDE.md`, `app/lib/<layer>/CLAUDE.md` | *What does this layer guarantee?* | You change a rule the guide states |
@@ -153,22 +170,22 @@ update the docs in the same commit.** A follow-up commit is a promise, not a fix
 | [`docs/wiki/`](./docs/wiki/) | The published user-facing wiki | You change behaviour a reader would notice |
 
 The glossary is **prescriptive**. If the code says something a `CONTEXT.md` `_Avoid_` list names, the code is what
-is wrong — do not edit the glossary to match a stale identifier.
+is wrong. Do not edit the glossary to match a stale identifier.
 
-`docs/docs-consistency.test.ts` enforces the mechanical half. Both `ci-web.yml` and `ci-app.yml` run it, so it fires on any change under `web/`, `app/`, `shared/`, `docs/` or a root `*.md` — but both workflows are path-filtered, so a pull request that touches only `scripts/`, `lefthook.yml` or the root manifests starts neither and the contract does not run. When it fails,
+`docs/docs-consistency.test.ts` enforces the mechanical half. Both `ci-web.yml` and `ci-app.yml` run it, so it fires on any change under `web/`, `app/`, `shared/`, `docs/`, `scripts/`, a root `*.md`, or the root `package.json` / `pnpm-workspace.yaml` / `lefthook.yml`. The last four were added late: a change to the very version pins the contract asserts used to start no workflow at all. Whenever you add an assertion, ask which filter carries the files it reads. When it fails,
 the docs and the code disagree; fix whichever is wrong. **Never delete an assertion to get green.** It cannot check
 prose or rationale, so a green run is not a correct document.
 
 Writing an ADR: copy [`0000-adr-template.md`](./docs/adr/0000-adr-template.md) to `NNNN-kebab-title.md` numbered one
 above the highest existing file, fill in every section, add a row to the index in
-[`ARCHITECTURE.md`](./ARCHITECTURE.md), and link it from wherever it actually bites. Both are asserted — an ADR only
+[`ARCHITECTURE.md`](./ARCHITECTURE.md), and link it from wherever it actually bites. Both are asserted: an ADR only
 the index points at will not be read.
 
 ## Pull requests
 
 Before you open one:
 
-1. The relevant checks pass — `pnpm lint:all && pnpm format:check && pnpm lint:ts:typecheck && pnpm test` for the web,
+1. The relevant checks pass: `pnpm lint:all && pnpm format:check && pnpm lint:ts:typecheck && pnpm test` for the web,
    `flutter analyze && flutter test` for the app.
 2. `pnpm test:docs` passes, whichever client you touched.
 3. Commits follow the rules above, including the one-client rule.
@@ -182,8 +199,8 @@ Worker for web changes and comment the URL on the pull request, and run Playwrig
 Nothing needs doing by hand. The two components release independently
 ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)):
 
-- **Web** — merging to `main` runs semantic-release (`web-vX.Y.Z`) and deploys to Cloudflare Workers.
-- **App** — releases are a manual `release-app.yml` dispatch with a Google Play track, so an app change sits on
+- **Web**: merging to `main` runs semantic-release (`web-vX.Y.Z`) and deploys to Cloudflare Workers.
+- **App**: releases are a manual `release-app.yml` dispatch with a Google Play track, so an app change sits on
   `main` until the maintainer ships it.
 
 A docs-only push to `main` also redeploys the web Worker. That is expected: `ci-web.yml`'s path filter has to

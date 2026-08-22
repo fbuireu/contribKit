@@ -1,0 +1,1 @@
+enum TipOutcome { completed, cancelled }

@@ -1,20 +1,22 @@
 ---
+import { ANALYTICS_CATEGORY, CONSENT_COOKIE_NAME } from "../cookie-consent/config";
+
 const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 ---
 
-<script is:inline define:vars={{ GA_ID }}>
+<script is:inline define:vars={{ GA_ID, CONSENT_COOKIE_NAME, ANALYTICS_CATEGORY }}>
   window.dataLayer = window.dataLayer || [];
   function gtag() { dataLayer.push(arguments); }
   window.gtag = gtag;
 
-  const CONSENT_COOKIE_PATTERN = /(^| )cc_cookie=([^;]+)/;
+  const consentPattern = new RegExp('(^| )' + CONSENT_COOKIE_NAME + '=([^;]+)');
 
   const analyticsConsent = (() => {
     try {
-      const match = document.cookie.match(CONSENT_COOKIE_PATTERN);
+      const match = document.cookie.match(consentPattern);
       if (match) {
         const data = JSON.parse(decodeURIComponent(match[2]));
-        return Array.isArray(data.categories) && data.categories.includes('analytics') ? 'granted' : 'denied';
+        return Array.isArray(data.categories) && data.categories.includes(ANALYTICS_CATEGORY) ? 'granted' : 'denied';
       }
     } catch {}
     return 'denied';

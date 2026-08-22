@@ -27,13 +27,13 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 | **[Architecture](Architecture)** | DDD-ish layers, value objects, typed failures |
 | **[Project Structure](Project-Structure)** | Monorepo layout: web, app, shared tokens |
 | **[Web Application](Web-Application)** | Astro on Cloudflare Workers: dev, deploy, env |
-| **[Mobile App](Mobile-App)** | Flutter app, widgets, in-app purchases |
+| **[Mobile App](Mobile-App)** | Flutter app, home-screen widgets, the Tip Jar |
 | **[Fetching Contributions](Fetching-Contributions)** | The GitHub HTML scraping repository |
 | **[HTML Parsing](HTML-Parsing)** | Regex extraction of Contribution Days and tooltips |
 | **[Calendar Grid](Calendar-Grid)** | Building the deterministic 53×7 grid |
 | **[SVG Rendering](SVG-Rendering)** | Geometry, shapes, and the string renderer |
 | **[Deterministic Randomness](Mulberry32)** | The Mulberry32 PRNG used for placeholder grids |
-| **[Git Hooks](Git-Hooks)** | lefthook, commitlint, auto-scope, asset sync |
+| **[Git Hooks](Git-Hooks)** | lefthook, commitlint, asset sync |
 | **[CI/CD](CI-CD)** | Path-filtered workflows, environments, releases |
 | **[Troubleshooting](Troubleshooting)** | Common issues and fixes |
 

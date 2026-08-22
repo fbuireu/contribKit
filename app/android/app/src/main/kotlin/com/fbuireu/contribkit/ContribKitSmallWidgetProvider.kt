@@ -7,6 +7,7 @@ import android.content.Intent
 import android.app.PendingIntent
 import android.util.Log
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetPlugin
 
 class ContribKitSmallWidgetProvider : AppWidgetProvider() {
 
@@ -35,7 +36,7 @@ class ContribKitSmallWidgetProvider : AppWidgetProvider() {
         try {
             val views = RemoteViews(context.packageName, R.layout.contribkit_widget_small)
 
-            val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
+            val prefs = HomeWidgetPlugin.getData(context)
             val streakRaw = prefs.getAll()["widget_streak"]
 
             val streak = when (streakRaw) {
