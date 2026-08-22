@@ -51,7 +51,7 @@ flowchart TD
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
     pp --> webcheck["web-verify: pnpm verify + astro check"]
-    pp --> dartcheck["flutter-analyze --fatal-infos"]
+    pp --> dartcheck["flutter-analyze --fatal-infos (only if Dart changed)"]
 ```
 
 ---
@@ -113,10 +113,17 @@ Conventional Commit types drive semantic-release versioning; see **[CI/CD](CI-CD
 
 Runs heavier checks before pushing, so a broken branch never reaches the remote.
 
-| Command | Root | Runs |
-|---------|------|------|
-| `web-verify` | `web/` | `pnpm verify` (format check, typecheck, coverage) then `pnpm lint:astro` (`astro check`) |
-| `flutter-analyze` | `app/` | `flutter analyze --fatal-infos` |
+| Command | Runs on | Runs |
+|---------|---------|------|
+| `web-verify` | every push | `pnpm verify` (format check, typecheck, coverage) then `pnpm lint:astro` (`astro check`) |
+| `flutter-analyze` | a pushed `*.dart`, `pubspec.yaml` or `analysis_options.yaml` | `flutter analyze --fatal-infos` |
+
+**`flutter-analyze` carries a `glob` and `web-verify` deliberately does not.** Without one it ran on every
+push, so a change to a workflow file or a markdown page paid for a full Flutter analysis that could not
+possibly be affected by it. `web-verify` has no equivalent filter because `pnpm verify` runs the
+docs-consistency contract, which asserts things about the whole repository and must not be gated on which
+client changed. Filtering it would need a copy of `ci.yml`'s `WEB_PATHS`, and a second copy of that filter is
+the mistake this repository has already made three times.
 
 ---
 
