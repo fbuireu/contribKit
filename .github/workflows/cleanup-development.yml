@@ -3,22 +3,11 @@ name: Cleanup Web - Development
 on:
   pull_request:
     types: [closed]
-    paths:
-      - "web/**"
-      - "shared/**"
-      - "docs/**"
-      - "scripts/**"
-      - "*.md"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "lefthook.yml"
-      - ".github/workflows/ci-web.yml"
-      - ".github/actions/prepare-web-env/**"
 
 permissions:
   contents: read
 
-# Queues behind ci-web.yml, whose `E2E (preview)` job drives this same preview
+# Queues behind ci.yml, whose `E2E (preview)` job drives this same preview
 # Worker. The group is its `${{ github.workflow }}-${{ github.ref }}`; renaming
 # that workflow silently stops the wait.
 concurrency:

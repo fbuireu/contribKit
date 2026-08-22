@@ -172,7 +172,7 @@ update the docs in the same commit.** A follow-up commit is a promise, not a fix
 The glossary is **prescriptive**. If the code says something a `CONTEXT.md` `_Avoid_` list names, the code is what
 is wrong. Do not edit the glossary to match a stale identifier.
 
-`docs/docs-consistency.test.ts` enforces the mechanical half. Both `ci-web.yml` and `ci-app.yml` run it, so it fires on any change under `web/`, `app/`, `shared/`, `docs/`, `scripts/`, a root `*.md`, or the root `package.json` / `pnpm-workspace.yaml` / `lefthook.yml`. The last four were added late: a change to the very version pins the contract asserts used to start no workflow at all. Whenever you add an assertion, ask which filter carries the files it reads. When it fails,
+`docs/docs-consistency.test.ts` enforces the mechanical half. `ci.yml` runs it in a `Docs Contract` job that is **not** gated on which client changed, and `ci.yml` itself has no path filter, so it fires on every push and pull request. It used to be two path-filtered workflows with a copy of the job in each, and three times a change landed that the contract asserts about while starting no workflow at all. When it fails,
 the docs and the code disagree; fix whichever is wrong. **Never delete an assertion to get green.** It cannot check
 prose or rationale, so a green run is not a correct document.
 
@@ -203,8 +203,9 @@ Nothing needs doing by hand. The two components release independently
 - **App**: releases are a manual `release-app.yml` dispatch with a Google Play track, so an app change sits on
   `main` until the maintainer ships it.
 
-A docs-only push to `main` also redeploys the web Worker. That is expected: `ci-web.yml`'s path filter has to
-include `docs/**` and `*.md` for the docs contract to run at all, and the deploy is idempotent.
+A docs-only push to `main` also redeploys the web Worker. That is expected: `ci.yml`'s `changes` job counts
+`docs/**` and `*.md` as web changes, because the shared tokens and the docs contract both live outside `web/`,
+and the deploy is idempotent.
 
 ## Use of AI
 

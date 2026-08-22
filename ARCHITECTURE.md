@@ -200,8 +200,8 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   is linter and formatter; Vitest covers unit and docs tests; Playwright runs end-to-end against the deployed
   preview. The build reaches the network: Astro's font provider downloads Inter and JetBrains Mono from Google at
   build time, and Google intermittently serves a `fonts.gstatic.com` URL that then 404s, failing the build with
-  `CannotFetchFontFile`. Both `astro build` steps (in `ci-web.yml` and `_deploy-web.yml`) are therefore wrapped
-  in the same retry-with-backoff the Cloudflare deploy and the Play upload use, and each attempt deletes
+  `CannotFetchFontFile`. Both `astro build` steps (in `ci.yml` and `_deploy.yml`) are therefore wrapped
+  in a three-attempt retry with a fixed fifteen-second wait, and each attempt deletes
   `node_modules/.astro/fonts` first. Astro caches the resolved URLs there, so a retry without that clears
   nothing and fails three times on the same dead URL. That is why they are `uses:` steps that `cd web` rather than plain
   `run:` steps under the job's `working-directory`.
@@ -228,12 +228,11 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `ci-web.yml` | push/PR to `main` under `web/**`, `shared/**`, `docs/**`, `scripts/**`, `*.md`, the root `package.json`, `pnpm-workspace.yaml`, `lefthook.yml`, its own config or the `prepare-web-env` action | Lint, test + coverage, build, typecheck; then release and deploy |
-| `_deploy-web.yml` | called by `ci-web.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed: `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching |
-| `ci-app.yml` | push/PR to `main` under `app/**`, its own config, or `prepare-web-env` | `pnpm test:docs`, `dart format --set-exit-if-changed`, `flutter analyze --fatal-infos`, `flutter test` with coverage, debug APK build |
+| `ci.yml` | push/PR to `main`, and manual dispatch. **No path filter** | A `changes` job diffs the range and exposes `app`, `web` and `cross_package`; every other job is gated on those. It calls the two per-client workflows, then runs release, deploy, the preview comment and the e2e |
+| `_ci-app.yml` · `_ci-web.yml` | called by `ci.yml` | The per-client halves, so neither stack's detail crowds the other. **Their jobs appear as `App / Analyze`, `App / Test`, `App / Build`, `Web / Check` and `Web / Build`**, because a called workflow's jobs are prefixed with the calling job's name. That is what the ruleset has to name |
+| `_deploy.yml` | called by `ci.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed: `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching |
 | `release-app.yml` | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
-| `ci-web-noop.yml` | PR to `main` under **anything `ci-web.yml` ignores** | Reports a passing `E2E (preview)` so that check can be required in the ruleset without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly: the two are one filter written twice |
-| `cleanup-web-development.yml` | PR closed, under the same paths as `ci-web.yml` | Deletes the per-PR preview Worker. Its filter must mirror the one that creates the preview, or a PR leaves a Worker behind: **the docs contract asserts all three copies are identical**, because this one had silently drifted four entries behind |
+| `cleanup-development.yml` | PR closed | Deletes the per-PR preview Worker. It carries no path filter either, because deleting a Worker that was never created is a no-op and a filter here is one more thing to keep in step |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | Publishes `docs/wiki/` to the GitHub Wiki |
 | `commit-message.yml` | PR opened, edited, reopened or synchronised | Runs commitlint on the **pull request title**, which is what a squash-merge commits. The `commit-msg` hook only sees what is typed locally, so this is the copy that guards `main` |
 | `codeql.yml` | push/PR to `main`, plus Mondays at 06:00 | CodeQL over `javascript-typescript` and `actions`. **Dart is not a language CodeQL supports**, so the app's own code is out of its reach; `.github/codeql/codeql-config.yml` also drops `web/dist`, `app/build` and `app/.dart_tool` |
@@ -241,17 +240,16 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | `zizmor.yml` | - | Static analysis of the workflow files themselves |
 | `dependabot-auto-merge.yml` · `renovate-auto-approve.yml` | dependency PRs | Auto-approve and merge low-risk updates |
 
-**`ci-web.yml`'s path filter is load-bearing in two directions.** `docs/**`, `shared/**`, `scripts/**`, `*.md` and
-the three root config files are in the trigger list so the docs-consistency contract actually runs on the changes
-most likely to break it. Removing them disables the guard silently ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)). The
-cost is that `deploy-production` sits behind the same filter, so a docs-only push to `main` redeploys the Worker.
-That is accepted: the deploy is idempotent and the alternative is a guard that does not guard.
-`scripts/**` and the root `package.json` were added late, and their absence was the third instance of this
-project's own trap: the contract polices comments in `scripts/` and asserts the pnpm and Node pins that live in
-that manifest, and a change to either triggered no workflow at all. Nothing under
-`app/**` triggers that workflow, though, so `ci-app.yml` runs `pnpm test:docs` in a job of its own; otherwise the
-assertions about `app/assets/`, the nested guides under `app/lib/` and the Dart comment ban would never fire on an
-app-only change.
+**`ci.yml` carries no path filter, and that is the point.** The docs-consistency contract asserts things about
+both clients and about the repository root, so under the old two-workflow split it needed an entry point in each,
+and which filter carried which file was a question the project answered wrong three times: the app side, the
+preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose comments and version pins the
+contract asserts while no workflow watched them ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)).
+The `Docs Contract` job is ungated inside `ci.yml` now, so it runs on every push and pull request.
+
+The `changes` job still counts `docs/**`, `shared/**`, `scripts/**`, `*.md` and the root config files as web
+changes, because the shared tokens and the contract both live outside `web/`. So a docs-only push to `main` still
+redeploys the Worker. That is accepted: the deploy is idempotent.
 
 GitHub Environments are namespaced `<component>-<stage>` because they are repo-global and hold component-specific
 secrets; the full mapping is in the [README](./README.md#monorepo-development).

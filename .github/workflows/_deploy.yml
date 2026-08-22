@@ -1,4 +1,4 @@
-name: Deploy Web (reusable)
+name: Deploy (reusable)
 
 on:
   workflow_call:

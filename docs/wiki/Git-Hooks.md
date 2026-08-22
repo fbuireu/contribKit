@@ -6,7 +6,7 @@ ContribKit uses [lefthook](https://github.com/evilmartians/lefthook) to run form
 
 ## Installation
 
-lefthook is a root devDependency and the root `prepare` script runs `lefthook install`, so `pnpm install` wires up the Git hooks on every fresh clone — there is nothing to install by hand. The build script is allow-listed in `pnpm-workspace.yaml` (`allowBuilds.lefthook`), which the binary download needs.
+lefthook is a root devDependency and the root `prepare` script runs `lefthook install`, so `pnpm install` wires up the Git hooks on every fresh clone: there is nothing to install by hand. The build script is allow-listed in `pnpm-workspace.yaml` (`allowBuilds.lefthook`), which the binary download needs.
 
 ```bash
 pnpm install   # hooks are wired as part of it

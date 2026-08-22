@@ -2,23 +2,24 @@
 
 CI is split per component with **path filters**, so an app change never triggers a web build and vice versa.
 
-> **Path filters are where guards die here.** `ci-web.yml` carries `docs/**`, `shared/**`, `scripts/**` and the root
-> manifests specifically so the docs-consistency contract runs on the changes most likely to break it, and
-> `ci-app.yml` runs that contract in a job of its own because nothing under `app/**` triggers the web workflow.
-> Narrowing either filter disables a guard silently, which has now happened three times: the app side, the
-> preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose comments and version pins the
-> contract asserts while no workflow watched them. The web filter exists in three copies (`ci-web.yml`'s `paths`,
-> `ci-web-noop.yml`'s `paths-ignore`, `cleanup-web-development.yml`'s `paths`) and **the docs contract asserts
-> they are identical**: prose in three documents said they mirror each other while one had drifted. Each component is linted, tested, built, versioned with semantic-release, and shipped automatically: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
+> **Path filters used to be where guards died here.** The CI was two workflows filtered by `paths:`, so every
+> guard had to be paired with the question of which filter carried the files it read, and that was answered wrong
+> three times: the app side, the preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose
+> comments and version pins the contract asserts while no workflow watched them. A fourth copy of the filter had
+> drifted and left preview Workers alive. There is one `ci.yml` now with **no path filter**, and a `changes` job
+> that gates jobs with `if:` instead. Each component is linted, tested, built, versioned with semantic-release,
+> and shipped: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
-| `ci-web.yml` | `web/**`, `shared/**`, `docs/**`, `scripts/**`, `*.md`, the root `package.json`, `pnpm-workspace.yaml`, `lefthook.yml`, its own config, `prepare-web-env` | lint, test, build, typecheck, deploy, release |
-| `ci-web-noop.yml` | PRs touching **none** of the above | reports a passing `E2E (preview)` so that check can be required without deadlocking app-only PRs. Its `paths-ignore` must mirror `ci-web.yml`'s `paths` exactly |
-| `ci-app.yml` | `app/**`, its own config, `prepare-web-env` | docs-consistency contract, Flutter format check, analyze, test (+coverage), build |
+| `ci.yml` | every push and PR to `main`, plus manual dispatch | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then release, deploy, preview comment and e2e |
+| `_ci-app.yml` | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build` |
+| `_ci-web.yml` | reusable, called by `ci.yml` | lint, format check, test with coverage, build, typecheck. Its jobs show as `Web / Check`, `Web / Build` |
+| `_deploy.yml` | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
 | `release-app.yml` | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
-| `_deploy-web.yml` | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
-| `cleanup-web-development.yml` | PR close | deletes the per-PR preview worker |
+| `cleanup-development.yml` | PR close | deletes the per-PR preview worker |
+| `codeql.yml` | push / PR, and weekly | CodeQL over `javascript-typescript` and `actions`. Dart has no CodeQL support, so the app is outside it |
+| `dependency-review.yml` | every PR | fails a PR that introduces a dependency with a known vulnerability |
 | `dependabot-auto-merge.yml`, `renovate-auto-approve.yml` | dependency PRs | automated dependency updates |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |
 | `commit-message.yml` | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
@@ -28,7 +29,7 @@ CI is split per component with **path filters**, so an app change never triggers
 
 ---
 
-## Web pipeline (`ci-web.yml`)
+## Web pipeline (`_ci-web.yml`, plus the deploy and release jobs in `ci.yml`)
 
 ```mermaid
 ---
@@ -47,7 +48,7 @@ flowchart LR
 - **web-check:** Biome lint, Vitest tests, upload coverage to Codecov.
 - **web-build:** production build + `pnpm lint:astro` (`astro check` over the Astro diagnostics). No workflow runs `tsc`; `pnpm lint:ts:typecheck` is a local command only.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`.
-- **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-web-development.yml`, whose path filter matches this workflow's so no preview outlives its pull request.
+- **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-development.yml`, which carries no path filter at all, so no preview can outlive its pull request.
 - **release:** semantic-release versions the web component (decoupled from deploy).
 
 Both deploys pass an explicit `--message` (`<sha> - <event>`) to `wrangler deploy`. Without it, wrangler
@@ -60,15 +61,15 @@ Concurrency cancels in-progress runs for pull requests only.
 
 ---
 
-**Both `astro build` steps are retried, three attempts with a 15-second wait**: the one in `ci-web.yml` and the one
-in `_deploy-web.yml`. Astro's font provider downloads Inter and JetBrains Mono from Google at build time, and Google
+**Both `astro build` steps are retried, three attempts with a 15-second wait**: the one in `_ci-web.yml` and the one
+in `_deploy.yml`. Astro's font provider downloads Inter and JetBrains Mono from Google at build time, and Google
 intermittently hands out a `fonts.gstatic.com` URL that then 404s, which fails the build with `CannotFetchFontFile`.
 **Each attempt deletes `node_modules/.astro/fonts` first, and that is the part that makes the retry work at all.**
 Astro caches the resolved URLs there, so a plain retry re-reads the dead one. A run on `338e6e3` failed three
 times on the identical URL before the cache was cleared between attempts. They are `uses:` steps that `cd web`,
 because a step running an action does not inherit the job's `working-directory`.
 
-## App pipeline (`ci-app.yml`)
+## App pipeline (`_ci-app.yml`)
 
 Runs on every `app/**` change:
 
@@ -84,7 +85,7 @@ flowchart LR
   test["flutter-test (+ coverage → Codecov)"] --> build
 ```
 
-- **docs-contract:** installs Node and the web dependencies and runs `pnpm test:docs`. It touches no Dart, and it is here because `ci-web.yml` is never triggered by `app/**` while a large share of the contract's assertions are about the Flutter side: the mirrored tokens in `app/assets/`, the nested guides under `app/lib/`, the ban on `//` comments in hand-written Dart. Adding `app/**` to the web filter instead would redeploy the site on every app commit.
+- **docs-contract:** installs Node and the web dependencies and runs `pnpm test:docs`. It touches no Dart, and it lives in `ci.yml` ungated rather than in either per-client workflow, because a large share of its assertions are about the Flutter side and the rest are about the repository root.
 - **flutter-analyze:** `dart format` verification + `flutter analyze --fatal-infos`.
 - **flutter-test:** unit/widget tests with coverage uploaded to Codecov.
 - **flutter-build:** builds a debug APK to catch build breakages early.
@@ -133,8 +134,8 @@ Environments are repo-global, so they're namespaced by component (`<component>-<
 
 | Environment | Component | Stage | Deployed by |
 |-------------|-----------|-------|-------------|
-| `web-production` | Astro web | production | `ci-web.yml` (push to `main`) |
-| `web-development` | Astro web | development | `ci-web.yml` (per-PR preview) |
+| `web-production` | Astro web | production | `ci.yml` (push to `main`) |
+| `web-development` | Astro web | development | `ci.yml` (per-PR preview) |
 | `app-production` | Flutter app | production | `release-app.yml` (track = production) |
 | `app-development` | Flutter app | development | `release-app.yml` (track ≠ production) |
 

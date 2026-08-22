@@ -1,32 +1,10 @@
-name: CI Web
+name: CI
 
 on:
   push:
     branches: [main]
-    paths:
-      - "web/**"
-      - "shared/**"
-      - "docs/**"
-      - "scripts/**"
-      - "*.md"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "lefthook.yml"
-      - ".github/workflows/ci-web.yml"
-      - ".github/actions/prepare-web-env/**"
   pull_request:
     branches: [main]
-    paths:
-      - "web/**"
-      - "shared/**"
-      - "docs/**"
-      - "scripts/**"
-      - "*.md"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "lefthook.yml"
-      - ".github/workflows/ci-web.yml"
-      - ".github/actions/prepare-web-env/**"
   workflow_dispatch:
 
 permissions:
@@ -37,67 +15,89 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  web-check:
-    name: Check (Web)
+  changes:
+    name: Detect changed packages
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+      web: ${{ steps.filter.outputs.web }}
+      cross_package: ${{ steps.filter.outputs.cross_package }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Filter changed paths
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          APP_PATHS: '^app/'
+          WEB_PATHS: '^(web/|shared/|scripts/|docs/|[^/]+[.]md$|package[.]json$|pnpm-workspace[.]yaml$|pnpm-lock[.]yaml$|lefthook[.]yml$|[.]github/)'
+        run: |
+          if [ -z "$BASE_SHA" ] || ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            echo 'app=true' >> "$GITHUB_OUTPUT"
+            echo 'web=true' >> "$GITHUB_OUTPUT"
+            echo 'cross_package=false' >> "$GITHUB_OUTPUT"
+            echo "::notice::No usable base commit, running everything."
+            exit 0
+          fi
+          changed=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          echo "$changed"
+          if printf '%s' "$changed" | grep -qE "$APP_PATHS"; then
+            echo 'app=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'app=false' >> "$GITHUB_OUTPUT"
+          fi
+          if printf '%s' "$changed" | grep -qE "$WEB_PATHS"; then
+            echo 'web=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'web=false' >> "$GITHUB_OUTPUT"
+          fi
+          mixed=$(printf '%s' "$changed" | grep -v '^app/assets/' || true)
+          if printf '%s' "$mixed" | grep -qE '^app/' && printf '%s' "$mixed" | grep -qE '^web/'; then
+            echo 'cross_package=true' >> "$GITHUB_OUTPUT"
+            echo "::warning::This range touches both app and web. Releases are attributed by path, so a squash merge of this will appear in both changelogs. See docs/adr/0001."
+          else
+            echo 'cross_package=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  docs-contract:
+    name: Docs Contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/prepare-web-env
 
-      - name: Lint
-        run: pnpm lint:all
+      - name: Prepare web environment
+        uses: ./.github/actions/prepare-web-env
 
-      - name: Format
-        run: pnpm format:check
-
-      - name: Test
-        run: pnpm test --coverage
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        with:
-          token: ${{ secrets.CODECOV_SECRET }}
-          files: ./web/coverage/lcov.info
-          fail_ci_if_error: false
-
-  web-build:
-    name: Build (Web)
-    runs-on: ubuntu-latest
-    needs: [web-check]
-    defaults:
-      run:
+      - name: Docs consistency
+        run: pnpm test:docs
         working-directory: web
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/prepare-web-env
 
-      - name: Build
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 15
-          shell: bash
-          command: |
-            cd web
-            rm -rf node_modules/.astro/fonts
-            pnpm exec astro build
+  app-ci:
+    name: App
+    needs: [changes]
+    if: ${{ needs.changes.outputs.app == 'true' }}
+    uses: ./.github/workflows/_ci-app.yml
+    secrets: inherit
 
-      - name: Typecheck
-        run: pnpm lint:astro
+  web-ci:
+    name: Web
+    needs: [changes]
+    if: ${{ needs.changes.outputs.web == 'true' }}
+    uses: ./.github/workflows/_ci-web.yml
+    secrets: inherit
 
   release:
     name: Semantic Release (Web)
     runs-on: ubuntu-latest
-    needs: [web-check, web-build]
-    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    needs: [changes, web-ci]
+    if: ${{ needs.changes.outputs.web == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     permissions:
       contents: write
       issues: write
@@ -140,9 +140,9 @@ jobs:
 
   deploy-production:
     name: Deploy (Production)
-    needs: [web-check, web-build]
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    uses: ./.github/workflows/_deploy-web.yml
+    needs: [changes, web-ci]
+    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/_deploy.yml
     with:
       environment: web-production
       url: https://contribkit.app
@@ -152,9 +152,9 @@ jobs:
 
   deploy-development:
     name: Deploy (Development)
-    needs: [web-check, web-build]
-    if: ${{ github.event_name == 'pull_request' }}
-    uses: ./.github/workflows/_deploy-web.yml
+    needs: [changes, web-ci]
+    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/_deploy.yml
     with:
       environment: web-development
       worker_name: pr-${{ github.event.pull_request.number }}-contribkit-development
@@ -165,8 +165,8 @@ jobs:
 
   comment:
     name: Post preview URL
-    needs: [deploy-development]
-    if: ${{ github.event_name == 'pull_request' }}
+    needs: [changes, deploy-development]
+    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -200,8 +200,8 @@ jobs:
 
   e2e:
     name: E2E (preview)
-    needs: [deploy-development]
-    if: ${{ github.event_name == 'pull_request' }}
+    needs: [changes, deploy-development]
+    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     environment: web-development
     defaults:
@@ -213,7 +213,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/prepare-web-env
+      - name: Prepare web environment
+        uses: ./.github/actions/prepare-web-env
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -244,3 +245,39 @@ jobs:
           name: playwright-report
           path: web/playwright-report/
           retention-days: 7
+
+  cross-package-notice:
+    name: Cross-package pull request
+    needs: [changes]
+    if: ${{ github.event_name == 'pull_request' && needs.changes.outputs.cross_package == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    env:
+      MARKER: '<!-- cross-package -->'
+    steps:
+      - name: Find existing comment
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: ${{ env.MARKER }}
+      - name: Upsert cross-package comment
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            ${{ env.MARKER }}
+            ### This pull request touches both packages
+
+            Releases are attributed by the paths a commit touches, and `main` takes squash
+            merges, so this will be listed in **both** the `app` and the `web` changelog,
+            under whatever type the PR title carries.
+
+            That is sometimes what you want (a change that genuinely spans both clients). If
+            it is not, split it. See [ADR 0001](../blob/main/docs/adr/0001-monorepo-with-independently-released-components.md).
+
+            This is advisory. It does not block the merge.

@@ -507,58 +507,6 @@ describe("the dark palette is written twice and must agree", () => {
 	});
 });
 
-describe("the web path filter is written three times and must agree", () => {
-	const WORKFLOWS = join(REPO, ".github/workflows");
-
-	const pathListAfter = (body: string, heading: string): string[] => {
-		const start = body.indexOf(heading);
-		if (start === -1) return [];
-		const lines = body
-			.slice(start + heading.length)
-			.split("\n")
-			.slice(1);
-		const paths: string[] = [];
-		for (const line of lines) {
-			const entry = /^\s+- "([^"]+)"\s*$/.exec(line);
-			if (!entry) break;
-			paths.push(entry[1]);
-		}
-		return paths;
-	};
-
-	const triggers = (): { label: string; paths: string[] }[] => [
-		{
-			label: "ci-web.yml pull_request paths",
-			paths: pathListAfter(read(join(WORKFLOWS, "ci-web.yml")).split("pull_request:")[1] ?? "", "paths:"),
-		},
-		{
-			label: "ci-web-noop.yml paths-ignore",
-			paths: pathListAfter(read(join(WORKFLOWS, "ci-web-noop.yml")), "paths-ignore:"),
-		},
-		{
-			label: "cleanup-web-development.yml paths",
-			paths: pathListAfter(read(join(WORKFLOWS, "cleanup-web-development.yml")), "paths:"),
-		},
-	];
-
-	it("finds a list in each of the three workflows", () => {
-		expect(
-			triggers()
-				.filter(({ paths }) => paths.length === 0)
-				.map(({ label }) => label),
-		).toEqual([]);
-	});
-
-	it("keeps all three identical, or a preview Worker outlives its pull request", () => {
-		const [first, ...rest] = triggers();
-		const disagreeing = rest
-			.filter(({ paths }) => paths.join("|") !== first.paths.join("|"))
-			.map(({ label, paths }) => `${label} has ${paths.join(", ")}`);
-
-		expect(disagreeing).toEqual([]);
-	});
-});
-
 describe("the tail consumer names a Worker that declares that name", () => {
 	const SITE = join(REPO, "web/wrangler.toml");
 	const TAIL = join(REPO, "web/workers/tail/wrangler.toml");
