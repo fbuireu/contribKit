@@ -33,7 +33,7 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 | **[Calendar Grid](Calendar-Grid)** | Building the deterministic 53×7 grid |
 | **[SVG Rendering](SVG-Rendering)** | Geometry, shapes, and the string renderer |
 | **[Deterministic Randomness](Mulberry32)** | The Mulberry32 PRNG used for placeholder grids |
-| **[Git Hooks](Git-Hooks)** | lefthook, commitlint, auto-scope, asset sync |
+| **[Git Hooks](Git-Hooks)** | lefthook, commitlint, asset sync |
 | **[CI/CD](CI-CD)** | Path-filtered workflows, environments, releases |
 | **[Troubleshooting](Troubleshooting)** | Common issues and fixes |
 

@@ -56,8 +56,10 @@ cost and the revisit trigger; the exit plan is written out in
 [docs/plans/0001](./docs/plans/0001-app-consumes-contribkit-api.md).
 
 The two components are released independently ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)),
-which is why a single commit may not touch both: `scripts/auto-scope.mjs` rejects one that does, because
-`semantic-release-monorepo` would file it in both changelogs.
+and `semantic-release-monorepo` attributes a commit by the paths it
+touches, so a commit spanning both is filed in both changelogs and can cut both releases. That is the right answer
+for a change which genuinely spans the two clients, so it is advisory rather than blocked: `commit-message.yml`
+carries a `cross-package-notice` job that comments on the pull request.
 
 ## 2. Layer map
 
@@ -213,11 +215,12 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   would need a keep rule, so a plugin added later can break in release while debug stays green.
 - **Hooks.** lefthook, composed from `lefthook.yml` plus `app/lefthook.yml` and `web/lefthook.yml`. `pre-commit`
   formats staged Dart and web files and re-stages them, runs `flutter analyze --fatal-infos`, and syncs
-  `shared/*.json`; `commit-msg` runs `scripts/auto-scope.mjs` then commitlint; `pre-push` runs
+  `shared/*.json`; `commit-msg` runs commitlint; `pre-push` runs
   `flutter analyze --fatal-infos` and `pnpm lint:astro`.
-  **`auto-scope.mjs` ignores `app/assets/`**, because the pre-commit sync stages those mirrors before it runs. So
-  editing `shared/palettes.json` alongside `web/src/domain/value-objects/palette.ts`, the most natural shared
-  change there is, was rejected as touching both packages.
+  **The `cross-package-notice` job ignores `app/assets/`**, because the pre-commit sync stages those mirrors
+  whenever `shared/*.json` changes. Without that, editing `shared/palettes.json` alongside
+  `web/src/domain/value-objects/palette.ts`, the most natural shared change there is, would read as touching both
+  packages.
 - **Releases.** semantic-release per component, own tag series (`web-vX.Y.Z`, `app-vX.Y.Z`), configured in
   `web/.releaserc.json` and `app/.releaserc.json`.
 

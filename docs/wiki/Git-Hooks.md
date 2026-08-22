@@ -47,7 +47,6 @@ flowchart TD
     pc --> dartfmt["flutter-format: dart format"]
     pc --> analyze["flutter-analyze: flutter analyze --fatal-infos"]
     sync & webfmt & dartfmt & analyze --> cm["commit-msg"]
-    cm --> scope["auto-scope.mjs"]
     cm --> lint["commitlint --edit"]
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
@@ -78,20 +77,13 @@ Validates the commit message. Runs sequentially (`parallel: false`) and is **ski
 
 | Command | Runs | Purpose |
 |---------|------|---------|
-| `auto-scope` | `node scripts/auto-scope.mjs` | Blocks commits that touch more than one package |
 | `commitlint` | `commitlint --edit` | Enforces Conventional Commits |
 
-### `auto-scope.mjs`
+### Nothing here blocks a cross-package commit
 
-semantic-release-monorepo lists a commit in **every** package changelog whose files it touched. A commit that changes both `web/` and `app/` would therefore leak web changes into the app changelog and vice versa. `auto-scope.mjs` prevents this: it inspects the staged files and, if both `app/` and `web/` are touched, aborts with:
+semantic-release-monorepo lists a commit in **every** package changelog whose files it touched, so a change spanning `web/` and `app/` appears in both. An `auto-scope` hook used to abort such a commit here. It was removed: `main` takes squash merges, so splitting locally produces one squashed commit touching both anyway, and ten commits on `main` touch both packages despite the hook having run on every one of them.
 
-```
-Commit touches app and web: split into separate commits.
-```
-
-**`app/assets/` is exempt.** The pre-commit sync stages those mirrors whenever `shared/*.json` changes, so editing `shared/palettes.json` alongside `web/src/domain/value-objects/palette.ts` (the most natural shared change there is) was being rejected as touching both packages. `GENERATED_MIRRORS` in the script is what carves it out.
-
-Keep each commit scoped to a single package.
+The check lives in CI now, on the pull request's combined diff, where the squash is actually visible. It comments and does not block, because a change that genuinely spans both clients is legitimate and releasing both is then correct. See **[CI/CD](CI-CD)** and [ADR 0001](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0001-monorepo-with-independently-released-components.md).
 
 ### commitlint
 

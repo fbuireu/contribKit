@@ -132,19 +132,26 @@ through any local hook. That is how `ci(web):` reached `main` twice while this d
 was checked. It matters because semantic-release parses these to decide the version and which component's
 changelog the entry goes in.
 
-### One commit may not touch both clients
+### One pull request, one client, usually
 
-`scripts/auto-scope.mjs` runs on `commit-msg` and **rejects any commit that stages files under both `app/` and
-`web/`**. This is not style policing: `semantic-release-monorepo` files a commit in the changelog of every package
-whose files it touched, so a mixed commit puts web changes in the app's changelog and vice versa. Split it:
+`semantic-release-monorepo` files a commit in the changelog of every package whose files it touched, and `main`
+takes squash merges, so a pull request spanning `app/` and `web/` lands as one commit in both changelogs and can
+cut both releases. Keep a pull request to one client where you can:
 
 ```bash
 git add web/ && git commit -m "feat(contribkit-web): ..."
 git add app/ && git commit -m "feat(contribkit-app): ..."
 ```
 
-Changes to `shared/`, `docs/` or the root touch neither package and commit freely, and `app/assets/` is exempt from the check so the pre-commit sync's own mirrors cannot make a `shared/` + `web/` edit look like a cross-package one. But if a token change forces a
-change in both clients, that is still three commits, not one.
+**This is a notice, not a gate.** The `cross-package-notice` job in `commit-message.yml` comments on the pull
+request and does not block the merge, because a change that genuinely spans both clients is legitimate and
+releasing both is then the right outcome. It ignores `app/assets/`, so the pre-commit sync's own mirrors cannot
+make a `shared/` edit look like a cross-package one.
+
+A local `commit-msg` hook used to reject the mixed commit outright. It was removed because splitting locally does
+not survive the squash: ten commits on `main` touch both packages despite it.
+
+Changes to `shared/`, `docs/` or the root touch neither package, so they release nothing.
 
 Do **not** add a `Co-Authored-By` trailer for an AI assistant to a commit or a pull request.
 

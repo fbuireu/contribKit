@@ -96,7 +96,6 @@ Repo-wide Node scripts, invoked by Git hooks and CI:
 | Script | Purpose |
 |--------|---------|
 | `sync-shared-assets.mjs` | Copies `shared/*.json` → `app/assets/*.json` (`--stage` re-stages them). Exposed as `pnpm sync:assets`. |
-| `auto-scope.mjs` | Blocks a commit that touches both `app/` and `web/`, keeping per-package changelogs clean. |
 
 See **[Git Hooks](Git-Hooks)** for how these run.
 
