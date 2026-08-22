@@ -236,6 +236,8 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | `cleanup-web-development.yml` | PR closed, under the same paths as `ci-web.yml` | Deletes the per-PR preview Worker. Its filter must mirror the one that creates the preview, or a PR leaves a Worker behind: **the docs contract asserts all three copies are identical**, because this one had silently drifted four entries behind |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | Publishes `docs/wiki/` to the GitHub Wiki |
 | `commit-message.yml` | PR opened, edited, reopened or synchronised | Runs commitlint on the **pull request title**, which is what a squash-merge commits. The `commit-msg` hook only sees what is typed locally, so this is the copy that guards `main` |
+| `codeql.yml` | push/PR to `main`, plus Mondays at 06:00 | CodeQL over `javascript-typescript` and `actions`. **Dart is not a language CodeQL supports**, so the app's own code is out of its reach; `.github/codeql/codeql-config.yml` also drops `web/dist`, `app/build` and `app/.dart_tool` |
+| `dependency-review.yml` | every PR | Fails a pull request that introduces a dependency with a known vulnerability |
 | `zizmor.yml` | - | Static analysis of the workflow files themselves |
 | `dependabot-auto-merge.yml` · `renovate-auto-approve.yml` | dependency PRs | Auto-approve and merge low-risk updates |
 
