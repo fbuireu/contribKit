@@ -12,8 +12,8 @@ CI is split per component with **path filters**, so an app change never triggers
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
-| `ci.yml` | every push and PR to `main`, plus manual dispatch | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then release, deploy, preview comment and e2e |
-| `_ci-app.yml` | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build` |
+| `ci.yml` | every push and PR to `main`, plus manual dispatch | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then release, deploy, preview comment and e2e. A final `Check` job aggregates them all |
+| `_ci-app.yml` | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build`, and none of them can be a required check: see `Check` below |
 | `_ci-web.yml` | reusable, called by `ci.yml` | lint, format check, test with coverage, build, typecheck. Its jobs show as `Web / Check`, `Web / Build` |
 | `_deploy.yml` | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
 | `release-app.yml` | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
@@ -23,7 +23,6 @@ CI is split per component with **path filters**, so an app change never triggers
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |
 | `commit-message.yml` | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
 | `zizmor.yml` | push / PR | GitHub Actions security linting |
-| `dependency-review.yml` | PRs | fails a PR that introduces dependencies with known vulnerabilities |
 
 ---
 

@@ -228,8 +228,8 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `ci.yml` | push/PR to `main`, and manual dispatch. **No path filter** | A `changes` job diffs the range and exposes `app`, `web` and `cross_package`; every other job is gated on those. It calls the two per-client workflows, then runs release, deploy, the preview comment and the e2e |
-| `_ci-app.yml` · `_ci-web.yml` | called by `ci.yml` | The per-client halves, so neither stack's detail crowds the other. **Their jobs appear as `App / Analyze`, `App / Test`, `App / Build`, `Web / Check` and `Web / Build`**, because a called workflow's jobs are prefixed with the calling job's name. That is what the ruleset has to name |
+| `ci.yml` | push/PR to `main`, and manual dispatch. **No path filter** | A `changes` job diffs the range and exposes `app`, `web` and `cross_package`; every other job is gated on those. It calls the two per-client workflows, then runs release, deploy, the preview comment and the e2e. A final `Check` job aggregates every one of them, and is the only context the ruleset names |
+| `_ci-app.yml` · `_ci-web.yml` | called by `ci.yml` | The per-client halves, so neither stack's detail crowds the other. **Their jobs appear as `App / Analyze`, `App / Test`, `App / Build`, `Web / Check` and `Web / Build`**, because a called workflow's jobs are prefixed with the calling job's name. **None of those five can be a required check**, for the reason given under the table |
 | `_deploy.yml` | called by `ci.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed: `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching |
 | `release-app.yml` | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
 | `cleanup-development.yml` | PR closed | Deletes the per-PR preview Worker. It carries no path filter either, because deleting a Worker that was never created is a no-op and a filter here is one more thing to keep in step |
@@ -245,6 +245,14 @@ and which filter carried which file was a question the project answered wrong th
 preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose comments and version pins the
 contract asserts while no workflow watched them ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)).
 The `Docs Contract` job is ungated inside `ci.yml` now, so it runs on every push and pull request.
+
+**`Check` is the only job the ruleset names, and it exists because none of the gated ones can be.** A job
+skipped by its own `if:` still reports, as skipped, which a required check counts as a success. A skipped
+*call* to a reusable workflow does not report its children at all: it publishes a single context under the
+calling job's name, `App`, and the five prefixed contexts never appear. When the call runs, the reverse holds,
+and there is no bare `App` or `Web` context. So which name reports depends on whether the job ran, and neither
+spelling can be required without leaving half the pull requests waiting on a context nobody will publish.
+`Check` needs every gated job, runs under `always()`, and fails if any of them failed or was cancelled.
 
 The `changes` job still counts `docs/**`, `shared/**`, `scripts/**`, `*.md` and the root config files as web
 changes, because the shared tokens and the contract both live outside `web/`. So a docs-only push to `main` still

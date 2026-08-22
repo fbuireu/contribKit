@@ -281,3 +281,13 @@ jobs:
             it is not, split it. See [ADR 0001](../blob/main/docs/adr/0001-monorepo-with-independently-released-components.md).
 
             This is advisory. It does not block the merge.
+
+  check:
+    name: Check
+    needs: [changes, docs-contract, app-ci, web-ci, deploy-development, e2e]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job above did not succeed
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
