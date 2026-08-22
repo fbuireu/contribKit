@@ -46,7 +46,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/prepare-web-env
+      - uses: ./.github/actions/prepare-env
 
       - name: Resolve the wrangler environment from the GitHub Environment
         id: stage

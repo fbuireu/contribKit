@@ -73,7 +73,7 @@ jobs:
           persist-credentials: false
 
       - name: Prepare web environment
-        uses: ./.github/actions/prepare-web-env
+        uses: ./.github/actions/prepare-env
 
       - name: Docs consistency
         run: pnpm test:docs
@@ -214,7 +214,7 @@ jobs:
           persist-credentials: false
 
       - name: Prepare web environment
-        uses: ./.github/actions/prepare-web-env
+        uses: ./.github/actions/prepare-env
 
       - name: Cache Playwright browsers
         id: playwright-cache

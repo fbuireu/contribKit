@@ -22,16 +22,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Prepare web environment
-        uses: ./.github/actions/prepare-web-env
+        uses: ./.github/actions/prepare-env
 
-      - name: Lint
-        run: pnpm lint:all
-
-      - name: Format
-        run: pnpm format:check
-
-      - name: Test
-        run: pnpm test --coverage
+      - name: Verify
+        run: pnpm verify
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -53,7 +47,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Prepare web environment
-        uses: ./.github/actions/prepare-web-env
+        uses: ./.github/actions/prepare-env
 
       - name: Build
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
@@ -68,4 +62,4 @@ jobs:
             pnpm exec astro build
 
       - name: Typecheck
-        run: pnpm lint:astro
+        run: pnpm typecheck && pnpm lint:astro

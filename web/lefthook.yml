@@ -8,6 +8,6 @@ pre-commit:
 
 pre-push:
   commands:
-    web-check:
+    web-verify:
       root: "web/"
-      run: pnpm lint:astro
+      run: pnpm verify && pnpm lint:astro

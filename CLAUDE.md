@@ -17,7 +17,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 
 - pnpm **11.21.0**: always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
   `pnpm/action-setup` resolves everywhere it runs, because `ci.yml` and `release-app.yml` pass
-  `package_json_file: package.json` explicitly, and the `prepare-web-env` composite action passes nothing, which
+  `package_json_file: package.json` explicitly, and the `prepare-env` composite action passes nothing, which
   defaults to the same root manifest. `app/package.json` deliberately declares none, which a docs guard asserts.
   It used to carry the second pin, and because Renovate's `includePaths` did not list the root manifest, that copy
   was the one it kept current. Consolidating onto the root pin silently rolled the package manager back three
@@ -35,12 +35,13 @@ pnpm sync:assets                 # copy shared/*.json into app/assets (also runs
 pnpm dev                         # astro dev --open
 pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
-pnpm lint:ts:typecheck           # wrangler types + tsc --noEmit
+pnpm typecheck           # wrangler types + tsc --noEmit
+pnpm verify              # format:check + typecheck + coverage — what CI and pre-push run
 pnpm lint:all                    # biome lint
 pnpm format:all                  # biome check --write
 pnpm format:check                # biome check, read-only: what CI runs
-pnpm test                        # vitest
-pnpm test:docs                   # the maintenance contract alone (also runs inside pnpm test)
+pnpm test:ut                        # vitest
+pnpm test:docs                   # the maintenance contract alone (also runs inside pnpm test:ut)
 pnpm test:e2e                    # playwright
 
 # app/: run from app/
@@ -94,7 +95,7 @@ Both clients use the same layered architecture with a strict inward dependency d
 
 These documents are not generated. A change that does not update them leaves the tree describing code that no longer exists, so when you change code, update the docs **in the same commit**. A follow-up commit is a promise, not a fix.
 
-`docs/docs-consistency.test.ts` makes the mechanical half executable: it reads every document as data and asserts the checkable claims against the repo. It runs with `pnpm test`, and on its own with `pnpm test:docs`.
+`docs/docs-consistency.test.ts` makes the mechanical half executable: it reads every document as data and asserts the checkable claims against the repo. It runs with `pnpm test:ut`, and on its own with `pnpm test:docs`.
 
 | It asserts | Worth knowing |
 | --- | --- |

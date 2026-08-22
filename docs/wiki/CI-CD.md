@@ -18,13 +18,11 @@ CI is split per component with **path filters**, so an app change never triggers
 | `_deploy.yml` | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
 | `release-app.yml` | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
 | `cleanup-development.yml` | PR close | deletes the per-PR preview worker |
-| `codeql.yml` | push / PR, and weekly | CodeQL over `javascript-typescript` and `actions`. Dart has no CodeQL support, so the app is outside it |
 | `dependency-review.yml` | every PR | fails a PR that introduces a dependency with a known vulnerability |
 | `dependabot-auto-merge.yml`, `renovate-auto-approve.yml` | dependency PRs | automated dependency updates |
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |
 | `commit-message.yml` | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
 | `zizmor.yml` | push / PR | GitHub Actions security linting |
-| `codeql.yml` | push / PR to `main`, weekly cron | CodeQL scan of the TS sources and the workflows (`.github/codeql/codeql-config.yml`) |
 | `dependency-review.yml` | PRs | fails a PR that introduces dependencies with known vulnerabilities |
 
 ---
@@ -38,14 +36,14 @@ config:
   theme: neutral
 ---
 flowchart LR
-  check["web-check (lint + test + coverage)"] --> build["web-build (build + typecheck)"]
+  check["web-check (pnpm verify)"] --> build["web-build (build + typecheck)"]
   build --> prod["deploy-production"]
   build --> dev["deploy-development"]
   build --> rel["release (semantic-release)"]
   dev --> comment["comment preview URL"]
 ```
 
-- **web-check:** Biome lint, Vitest tests, upload coverage to Codecov.
+- **web-check:** one `pnpm verify` — `format:check` (Biome, no writes), `typecheck` and the Vitest coverage run — then upload coverage to Codecov. The same command runs on `pre-push`, so a green push is a green check.
 - **web-build:** production build + `pnpm lint:astro` (`astro check` over the Astro diagnostics). No workflow runs `tsc`; `pnpm lint:ts:typecheck` is a local command only.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`.
 - **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-development.yml`, which carries no path filter at all, so no preview can outlive its pull request.

@@ -76,13 +76,14 @@ cd app && flutter pub get            # only if you are touching the app
 cd web
 pnpm dev                  # astro dev --open
 pnpm wrangler:dev         # build + wrangler dev, against the real Workers runtime
-pnpm test                 # vitest, including the docs contract
+pnpm test:ut                 # vitest, including the docs contract
 pnpm test:docs            # the docs contract alone
 pnpm test:e2e             # playwright
 pnpm lint:all             # biome lint
 pnpm format:all           # biome check --write
 pnpm format:check         # biome check, read-only: what CI runs
-pnpm lint:ts:typecheck    # wrangler types + tsc --noEmit
+pnpm typecheck    # wrangler types + tsc --noEmit
+pnpm verify       # format:check + typecheck + coverage — what CI and pre-push run
 ```
 
 ### Working on the app
@@ -185,7 +186,7 @@ the index points at will not be read.
 
 Before you open one:
 
-1. The relevant checks pass: `pnpm lint:all && pnpm format:check && pnpm lint:ts:typecheck && pnpm test` for the web,
+1. The relevant checks pass: `pnpm verify` for the web,
    `flutter analyze && flutter test` for the app.
 2. `pnpm test:docs` passes, whichever client you touched.
 3. Commits follow the rules above, including the one-client rule.

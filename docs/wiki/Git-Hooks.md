@@ -50,7 +50,7 @@ flowchart TD
     cm --> lint["commitlint --edit"]
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
-    pp --> webcheck["web-check: astro check"]
+    pp --> webcheck["web-verify: pnpm verify + astro check"]
     pp --> dartcheck["flutter-analyze --fatal-infos"]
 ```
 
@@ -115,7 +115,7 @@ Runs heavier checks before pushing, so a broken branch never reaches the remote.
 
 | Command | Root | Runs |
 |---------|------|------|
-| `web-check` | `web/` | `pnpm lint:astro` (`astro check`) |
+| `web-verify` | `web/` | `pnpm verify` (format check, typecheck, coverage) then `pnpm lint:astro` (`astro check`) |
 | `flutter-analyze` | `app/` | `flutter analyze --fatal-infos` |
 
 ---
