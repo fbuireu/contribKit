@@ -6,7 +6,7 @@
 
 **The [contribkit.app](https://contribkit.app) site and public API: Astro + TypeScript on Cloudflare Workers.**
 
-[![CI Web](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-web.yml?style=flat-square&logo=github&label=CI%20Web)](https://github.com/fbuireu/contribkit/actions/workflows/ci-web.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci.yml?style=flat-square&logo=github&label=CI)](https://github.com/fbuireu/contribkit/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?style=flat-square&logo=codecov)](https://codecov.io/gh/fbuireu/contribkit)
 
 **[Project overview](../README.md)** · **[Website](https://contribkit.app)** · **[App docs](../app/README.md)**
@@ -148,7 +148,7 @@ pnpm install
 
 ## Environments & Deploys
 
-Both deploys run from [`ci-web.yml`](../.github/workflows/ci-web.yml) and only after `web-check` (lint + test) and `web-build` (build + typecheck) pass:
+Both deploys run from [`ci.yml`](../.github/workflows/ci.yml) and only after `web-check` (lint + test) and `web-build` (build + typecheck) pass:
 
 - **Production**: every push to `main` matching the workflow's path filter builds with `CLOUDFLARE_ENV=production` then `wrangler deploy` → worker `contribkit` on `contribkit.app`. Decoupled from semantic-release (which only versions).
 - **Development**: every PR matching the same filter builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` (`wrangler deploy --name …`) on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.

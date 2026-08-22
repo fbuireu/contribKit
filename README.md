@@ -6,8 +6,7 @@
 
 **Visualize, customize, and export your GitHub contribution calendar: custom palettes, shapes, and backgrounds. No token required. Available on the web and as an iOS & Android app, with home-screen widgets on Android.**
 
-[![CI Web](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-web.yml?style=flat-square&logo=github&label=CI%20Web)](https://github.com/fbuireu/contribkit/actions/workflows/ci-web.yml)
-[![CI App](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci-app.yml?style=flat-square&logo=github&label=CI%20App)](https://github.com/fbuireu/contribkit/actions/workflows/ci-app.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci.yml?style=flat-square&logo=github&label=CI)](https://github.com/fbuireu/contribkit/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?style=flat-square&logo=codecov)](https://codecov.io/gh/fbuireu/contribkit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
@@ -105,7 +104,7 @@ Tooling that applies to the whole repo:
 - **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)). Install once with `brew install lefthook && lefthook install`
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows. [`ci-app.yml`](.github/workflows/ci-app.yml) runs on `app/**`; [`ci-web.yml`](.github/workflows/ci-web.yml) runs on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files, its own workflow file and the `prepare-web-env` action. The documentation-consistency contract lives in the web test suite but asserts things about both clients, so each workflow runs it
+- **CI:** one [`ci.yml`](.github/workflows/ci.yml) on every push and pull request, with no path filter. A `changes` job decides which client was touched and every other job is gated on its output, so an app-only pull request skips the web jobs rather than never starting them. The documentation-consistency contract runs ungated, because it asserts things about both clients and the root
 
 GitHub Environments are namespaced by component (`<component>-<stage>`) because they are repo-global and hold component-specific secrets:
 
@@ -113,8 +112,8 @@ GitHub Environments are namespaced by component (`<component>-<stage>`) because 
 | ------------------ | ----------- | ----------- | ------------------------------------------------- |
 | `app-production`   | Flutter app | production  | `release-app.yml` (track = production)            |
 | `app-development`  | Flutter app | development | `release-app.yml` (track ≠ production)            |
-| `web-production`   | Astro web   | production  | `ci-web.yml` (deploy-production, push to `main`)  |
-| `web-development`  | Astro web   | development | `ci-web.yml` (deploy-development, per-PR preview) |
+| `web-production`   | Astro web   | production  | `ci.yml` (deploy-production, push to `main`)      |
+| `web-development`  | Astro web   | development | `ci.yml` (deploy-development, per-PR preview)     |
 
 App `development` and web `development` map to different things: app `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker on `*.workers.dev`. The component-scoped configs do **not** repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter has no build flavors: locally the stage is whichever dart-defines file you pass (`dart-defines.prod.json` vs `dart-defines.json`), and in CI it is the `track` input to `release-app.yml`, which picks the GitHub Environment whose `REVENUECAT_KEY` is written into `dart-defines.json` at build time.
 

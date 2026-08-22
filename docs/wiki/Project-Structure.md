@@ -85,7 +85,7 @@ The single source of truth for data used by both apps:
   - automatically on commit (lefthook `pre-commit` runs `scripts/sync-shared-assets.mjs --stage` when a `shared/*.json` is staged),
   - manually with `pnpm sync:assets`.
 
-  **`ci-app.yml` does not regenerate them**, so the only thing standing between a stale mirror and a green CI run is that pre-commit hook (and the docs-consistency test, which compares the two directories and fails when they drift). The release workflow is the exception: `release-app.yml` copies `shared/*.json` into `assets/` in its `Sync shared assets` step, immediately before building the AAB, so a shipped build is never stale even when the commit is.
+  **CI does not regenerate them**, so the only thing standing between a stale mirror and a green CI run is that pre-commit hook (and the docs-consistency test, which compares the two directories and fails when they drift). The release workflow is the exception: `release-app.yml` copies `shared/*.json` into `assets/` in its `Sync shared assets` step, immediately before building the AAB, so a shipped build is never stale even when the commit is.
 
 ---
 
@@ -106,5 +106,5 @@ See **[Git Hooks](Git-Hooks)** for how these run.
 - **Package manager:** pnpm workspaces (`pnpm-workspace.yaml`)
 - **Commits:** Conventional Commits, enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** path-filtered workflows: `ci-app.yml` runs on `app/**`, `ci-web.yml` on `web/**` plus `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files and its own wiring; both run the docs contract, because neither filter alone covers everything it asserts (see **[CI/CD](CI-CD)**)
+- **CI:** one `ci.yml` with no path filter. A `changes` job decides which client was touched and gates every other job on it, so nothing depends on a filter being kept in step.
 - **Git hooks:** lefthook (installed by the root `prepare` script on `pnpm install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)

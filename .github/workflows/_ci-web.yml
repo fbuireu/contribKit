@@ -1,0 +1,71 @@
+name: CI Web (reusable)
+
+on:
+  workflow_call:
+    secrets:
+      CODECOV_SECRET:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare web environment
+        uses: ./.github/actions/prepare-web-env
+
+      - name: Lint
+        run: pnpm lint:all
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Test
+        run: pnpm test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_SECRET }}
+          files: ./web/coverage/lcov.info
+          fail_ci_if_error: false
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [check]
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare web environment
+        uses: ./.github/actions/prepare-web-env
+
+      - name: Build
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 15
+          shell: bash
+          command: |
+            cd web
+            rm -rf node_modules/.astro/fonts
+            pnpm exec astro build
+
+      - name: Typecheck
+        run: pnpm lint:astro
