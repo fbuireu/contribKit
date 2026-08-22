@@ -255,8 +255,8 @@ ran, and neither spelling can be required without leaving half the pull requests
 will publish. `Check` needs every gated job, runs under `always()`, and fails if any of them failed or was
 cancelled.
 
-The ruleset requires `Check`, `Docs Contract`, `Lint the title that becomes the commit`,
-`Dependency Review` and `zizmor`. `Docs Contract` is named directly as well as reached through `Check`,
+The ruleset requires `Check`, `Docs Contract`, `Lint the pull request title`,
+`Dependency Review` and `Run zizmor`. `Docs Contract` is named directly as well as reached through `Check`,
 because it is ungated and therefore always reports; the other three come from workflows of their own and
 `Check` cannot see them.
 
