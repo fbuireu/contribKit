@@ -144,7 +144,7 @@ git add web/ && git commit -m "feat(contribkit-web): ..."
 git add app/ && git commit -m "feat(contribkit-app): ..."
 ```
 
-**This is a notice, not a gate.** The `cross-package-notice` job in `commit-message.yml` comments on the pull
+**This is a notice, not a gate.** The `cross-package-notice` job in `ci.yml` comments on the pull
 request and does not block the merge, because a change that genuinely spans both clients is legitimate and
 releasing both is then the right outcome. It ignores `app/assets/`, so the pre-commit sync's own mirrors cannot
 make a `shared/` edit look like a cross-package one.
