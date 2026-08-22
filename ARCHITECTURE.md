@@ -246,13 +246,19 @@ preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose com
 contract asserts while no workflow watched them ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)).
 The `Docs Contract` job is ungated inside `ci.yml` now, so it runs on every push and pull request.
 
-**`Check` is the only job the ruleset names, and it exists because none of the gated ones can be.** A job
-skipped by its own `if:` still reports, as skipped, which a required check counts as a success. A skipped
-*call* to a reusable workflow does not report its children at all: it publishes a single context under the
-calling job's name, `App`, and the five prefixed contexts never appear. When the call runs, the reverse holds,
-and there is no bare `App` or `Web` context. So which name reports depends on whether the job ran, and neither
-spelling can be required without leaving half the pull requests waiting on a context nobody will publish.
-`Check` needs every gated job, runs under `always()`, and fails if any of them failed or was cancelled.
+**`Check` is how the ruleset names everything gated, because none of the gated jobs can be named directly.**
+A job skipped by its own `if:` still reports, as skipped, which a required check counts as a success. A
+skipped *call* to a reusable workflow does not report its children at all: it publishes a single context
+under the calling job's name, `App`, and the five prefixed contexts never appear. When the call runs the
+reverse holds, and there is no bare `App` or `Web` context. So which name reports depends on whether the job
+ran, and neither spelling can be required without leaving half the pull requests waiting on a context nobody
+will publish. `Check` needs every gated job, runs under `always()`, and fails if any of them failed or was
+cancelled.
+
+The ruleset requires `Check`, `Docs Contract`, `Lint the title that becomes the commit`,
+`Dependency Review` and `zizmor`. `Docs Contract` is named directly as well as reached through `Check`,
+because it is ungated and therefore always reports; the other three come from workflows of their own and
+`Check` cannot see them.
 
 The `changes` job still counts `docs/**`, `shared/**`, `scripts/**`, `*.md` and the root config files as web
 changes, because the shared tokens and the contract both live outside `web/`. So a docs-only push to `main` still
