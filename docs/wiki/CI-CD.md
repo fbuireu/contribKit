@@ -23,6 +23,8 @@ CI is split per component with **path filters**, so an app change never triggers
 | `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |
 | `commit-message.yml` | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
 | `zizmor.yml` | push / PR | GitHub Actions security linting |
+| `codeql.yml` | push / PR to `main`, weekly cron | CodeQL scan of the TS sources and the workflows (`.github/codeql/codeql-config.yml`) |
+| `dependency-review.yml` | PRs | fails a PR that introduces dependencies with known vulnerabilities |
 
 ---
 
