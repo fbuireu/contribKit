@@ -107,6 +107,16 @@ Edit `shared/*.json`, and never `app/assets/*.json`, which is a generated copy
 the root, or just commit: a pre-commit hook syncs and stages them for you. Anything you add also has to be
 advertised in the README's feature list, and the docs test will tell you if you forget.
 
+## Code conventions
+
+- **Two or more arguments means one named object.** Declare it as an interface called
+  `<FunctionName>Params` and destructure it: `const render = ({ shape, overrides }: RenderParams) => …`.
+  A single argument stays positional. Adjacent arguments of the same type are what a caller transposes
+  with nothing to catch it; named arguments make the swap a type error. The exception is a function a
+  runtime calls back — a `sort` comparator, a class handed to `vi.stubGlobal` — which is invoked
+  positionally and must stay so.
+- **No code comments**, doc comments included. The `CLAUDE.md` guides carry the explanation.
+
 ## Commit rules
 
 Conventional Commits, enforced by commitlint on `commit-msg`. semantic-release owns versioning, so the type you

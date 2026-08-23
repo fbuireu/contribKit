@@ -17,7 +17,10 @@ const calendar: ContributionCalendar = {
 
 const palette = paletteByKey(DEFAULT_PALETTE_KEY);
 
-type RenderParams = { shape: CellShape; overrides?: Record<string, unknown> };
+interface RenderParams {
+	shape: CellShape;
+	overrides?: Record<string, unknown>;
+}
 
 const render = ({ shape, overrides = {} }: RenderParams): string =>
 	svgStringRenderer({ calendar, options: { palette, shape, background: "transparent", ...overrides } });

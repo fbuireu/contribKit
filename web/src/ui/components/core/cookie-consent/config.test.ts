@@ -40,7 +40,10 @@ describe("config.onChange", () => {
 
 	afterEach(() => vi.unstubAllGlobals());
 
-	type FireParams = { changedCategories: string[]; changedServices?: Record<string, unknown> };
+	interface FireParams {
+		changedCategories: string[];
+		changedServices?: Record<string, unknown>;
+	}
 
 	const fire = ({ changedCategories, changedServices = {} }: FireParams) =>
 		config.onChange?.({ changedCategories, changedServices, cookie: {} } as never);

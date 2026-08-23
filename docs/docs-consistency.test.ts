@@ -18,7 +18,10 @@ const SKIP_DIRECTORIES = new Set([
 	".github",
 ]);
 
-type WalkParams = { dir: string; match: (path: string) => boolean };
+interface WalkParams {
+	dir: string;
+	match: (path: string) => boolean;
+}
 
 const walk = ({ dir, match }: WalkParams): string[] => {
 	const out: string[] = [];
@@ -476,7 +479,10 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 describe("the dark palette is written twice and must agree", () => {
 	const VARIABLES = join(REPO, "web/src/ui/styles/global/variables.css");
 
-	type DeclarationsAfterParams = { body: string; selector: string };
+	interface DeclarationsAfterParams {
+		body: string;
+		selector: string;
+	}
 
 	const declarationsAfter = ({ body, selector }: DeclarationsAfterParams): string[] => {
 		const start = body.indexOf(selector);

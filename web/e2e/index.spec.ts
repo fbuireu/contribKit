@@ -178,7 +178,10 @@ test.describe("the DOM contract", () => {
 	const CODE_TAB_ONLY = ["ExportCodePreview", "ExportCopyButton"];
 	const PNG_TAB_ONLY = ["ExportPngPreview"];
 
-	type UnmatchedParams = { page: Page; names: string[] };
+	interface UnmatchedParams {
+		page: Page;
+		names: string[];
+	}
 
 	const unmatched = async ({ page, names }: UnmatchedParams): Promise<string[]> => {
 		const missing: string[] = [];

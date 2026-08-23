@@ -18,7 +18,10 @@ const HERO = `
 	<select id="hero-year"><option value="${CURRENT_YEAR}" selected>${CURRENT_YEAR}</option></select>
 `;
 
-type JsonResponseParams = { body: unknown; status?: number };
+interface JsonResponseParams {
+	body: unknown;
+	status?: number;
+}
 
 const jsonResponse = ({ body, status = 200 }: JsonResponseParams): Response =>
 	new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });

@@ -17,7 +17,10 @@ describe("computeContributionStats", () => {
 
 	it("skips trailing future days and a pending empty today when counting the streak", () => {
 		const iso = toIsoDate;
-		type DayBeforeParams = { date: Date; days: number };
+		interface DayBeforeParams {
+			date: Date;
+			days: number;
+		}
 		const dayBefore = ({ date, days }: DayBeforeParams) => new Date(date.getTime() - days * 86_400_000);
 		const today = new Date();
 		const stats = computeContributionStats([

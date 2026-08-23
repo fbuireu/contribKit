@@ -15,7 +15,10 @@ import { GET } from "../user/[username].svg";
 
 const HTML = `<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="c1"></td><tool-tip for="c1">5 contributions</tool-tip>`;
 
-type CallParams = { username: string; query?: string };
+interface CallParams {
+	username: string;
+	query?: string;
+}
 
 const call = ({ username, query = "" }: CallParams): Promise<Response> =>
 	GET({

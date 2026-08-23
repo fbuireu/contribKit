@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readUsernameFromUrl, readYearFromUrl, syncUrl } from "./url";
 
-type StubLocationParams = { search: string; pushState?: ReturnType<typeof vi.fn> };
+interface StubLocationParams {
+	search: string;
+	pushState?: ReturnType<typeof vi.fn>;
+}
 
 const stubLocation = ({ search, pushState = vi.fn() }: StubLocationParams) => {
 	vi.stubGlobal("location", { search, href: "https://x.test/" });
