@@ -161,7 +161,7 @@ For *why* it is built this way (one decision per file), see the [architecture de
 
 - **[Report bugs](../../issues/new?template=bug_report.yml)**
 - **[Request features](../../issues/new?template=feature_request.yml)**
-- **[Report security issues](../../issues/new?template=security_report.yml)**
+- **[Report a vulnerability](https://github.com/fbuireu/contribKit/security/advisories/new)** privately, never as an issue
 - **[Improve documentation](../../issues/new?template=documentation.yml)**
 
 If you find this project useful, consider supporting its development:

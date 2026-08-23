@@ -28,8 +28,8 @@ Check the existing issues first, then use the [bug report template](.github/ISSU
 - **The username and year** you were looking at, if the bug involves real contribution data.
 - **Environment**: browser and OS for the web; device, OS version and app version for the app.
 
-Security issues go through the [security report template](.github/ISSUE_TEMPLATE/security_report.yml), not a public
-bug report.
+Security issues go through [private vulnerability reporting](https://github.com/fbuireu/contribKit/security/advisories/new) and
+[SECURITY.md](./.github/SECURITY.md), never a public issue of any kind.
 
 ### Suggesting features
 
