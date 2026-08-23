@@ -1,6 +1,6 @@
 # web/src/pages
 
-Astro pages and API routes, plus `web/src/middleware.ts`, which sits in front of all of them. This is the
+Astro pages and API routes, plus [`web/src/middleware.ts`](../middleware.ts), which sits in front of all of them. This is the
 composition root: the only layer that instantiates infrastructure, calls use cases and hands results to components.
 It is also the only entry point for HTTP traffic.
 
@@ -22,7 +22,7 @@ It is also the only entry point for HTTP traffic.
   through `failure-http`.
 - **Compose at module scope, not per request**. In an `.astro` file there is no module scope, because the
   frontmatter runs on every request. That is why the repository and the curried use cases live in
-  `_contributions.ts` and are imported. The leading underscore keeps Astro from routing it. The landing page built
+  [`_contributions.ts`](./_contributions.ts) and are imported. The leading underscore keeps Astro from routing it. The landing page built
   its own repository inline until this file existed, quietly rebuilding infrastructure per visit.
 - **No business logic here.** If a route grows a rule, it belongs in `application/` or `domain/`.
 - **Every page uses `BaseLayout`.** Never hand-write `<!doctype html>` or a `<head>` in a page file.
@@ -31,12 +31,12 @@ It is also the only entry point for HTTP traffic.
 
 | File | Route | Notes |
 | --- | --- | --- |
-| `index.astro` | `/` | SSR landing page plus client interactivity |
+| [`index.astro`](./index.astro) | `/` | SSR landing page plus client interactivity |
 | `user/[username].svg.ts` | `GET /user/:username.svg` | The embed endpoint |
-| `api/contributions.ts` | `GET /api/contributions?user=&year=` | JSON |
-| `api/health.ts` | `GET /api/health` | Configuration presence check |
-| `404.astro`, `500.astro` | `/404`, `/500` | Both render the shared `ErrorView`, **and both are reachable by hand** |
-| `legal-notice.astro`, `privacy.astro`, `terms.astro` | - | Static legal pages |
+| [`api/contributions.ts`](./api/contributions.ts) | `GET /api/contributions?user=&year=` | JSON |
+| [`api/health.ts`](./api/health.ts) | `GET /api/health` | Configuration presence check |
+| [`404.astro`](./404.astro), [`500.astro`](./500.astro) | `/404`, `/500` | Both render the shared `ErrorView`, **and both are reachable by hand** |
+| [`legal-notice.astro`](./legal-notice.astro), [`privacy.astro`](./privacy.astro), [`terms.astro`](./terms.astro) | - | Static legal pages |
 | `_contributions.ts` | - | Not a route: the shared composition all three data consumers import |
 | `_tests/` | - | Not routes: the three route tests, kept out of the namespace by the underscore |
 | `CLAUDE.md` | `/CLAUDE`, 404'd | This file. Astro routes markdown too: see below |
@@ -62,8 +62,8 @@ decision the shape it is ([ADR 0010](../../../docs/adr/0010-rate-limit-only-the-
 pattern's reject arm. Changing the cache policy is therefore a failing test rather than a silent loosening of the
 only throttle that route has. **Nothing end to end covers a 429 on either route**, because reproducing one means
 GitHub rate-limiting the Worker; the `Retry-After` passthrough is pinned at the unit level instead: both
-arms on both routes, in `_tests/contributions.test.ts` and `_tests/username-svg.test.ts`, over the mapping in
-`failure-http.test.ts`.
+arms on both routes, in [`_tests/contributions.test.ts`](./_tests/contributions.test.ts) and [`_tests/username-svg.test.ts`](./_tests/username-svg.test.ts), over the mapping in
+[`failure-http.test.ts`](../application/http/failure-http.test.ts).
 
 ## The two data endpoints diverge on purpose
 
@@ -89,7 +89,7 @@ quietly go stale forever.
 scraped days straight to the renderer until that was fixed, and the renderer's `chunkWeeks` slices whatever it is
 given into sevens. GitHub emits its table weekday-major, so those days arrive as fifty-three Sundays, then
 fifty-three Mondays: the Embed rendered the transpose of the calendar, every cell after the first carrying the
-wrong date's Contribution Level. The landing page never showed it because `index.astro` and `page-init.ts` both go
+wrong date's Contribution Level. The landing page never showed it because `index.astro` and [`page-init.ts`](../ui/utils/page-init.ts) both go
 through `buildGridFromApi`, which keys by date. Anything that reaches a renderer goes through a grid builder
 first: the rolling one here, the Year-anchored one everywhere else.
 
@@ -124,7 +124,7 @@ three headers that mean something on a non-document response and deliberately no
 a PNG, and `Cross-Origin-Resource-Policy: same-origin` on `og.png` would break the social-card preview the file
 exists for.
 
-**Neither half is visible to `middleware.test.ts`**, which calls `onRequest` directly and therefore tests the
+**Neither half is visible to [`middleware.test.ts`](../middleware.test.ts)**, which calls `onRequest` directly and therefore tests the
 function rather than the request path. The e2e suite asserts both: `/` through the Worker, and three asset paths
 around it. This was found with `curl` against `wrangler dev`, not by reading the config.
 

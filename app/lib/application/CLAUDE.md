@@ -59,7 +59,7 @@ options were a fifth use case or an admission that `invalidateCache` was exempt;
   That split is what
   [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) actually prescribes. The other
   three are called straight from `ConsumerState` widgets and never reach that switch, so each handles its own:
-  `tip_jar_sheet.dart` and `ExportSheet` both catch and render a message through `FailureMessage.ofAny`. `ExportSheet`
+  [`tip_jar_sheet.dart`](../ui/features/tip/tip_jar_sheet.dart) and `ExportSheet` both catch and render a message through `FailureMessage.ofAny`. `ExportSheet`
   used `try`/`finally` with **no catch at all** until this was found, so a failed export stopped the spinner and said
   nothing, and the Tip Jar discarded the reason with `catch (_)` until later still. None of these may switch over
   `Failure`: the exhaustive match is `FailureMessage.of`'s alone, so anything caring about one kind tests it with

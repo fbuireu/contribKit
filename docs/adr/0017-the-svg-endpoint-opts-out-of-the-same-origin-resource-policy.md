@@ -8,7 +8,7 @@ Accepted.
 
 ## Context
 
-`web/src/middleware.ts` stamps one set of security headers onto every response, and one of them is `Cross-Origin-Resource-Policy: same-origin`. That header is the right default for a page: it tells the browser to refuse to hand this resource to any other origin as a subresource, which is exactly what you want for HTML, scripts and JSON.
+[`web/src/middleware.ts`](../../web/src/middleware.ts) stamps one set of security headers onto every response, and one of them is `Cross-Origin-Resource-Policy: same-origin`. That header is the right default for a page: it tells the browser to refuse to hand this resource to any other origin as a subresource, which is exactly what you want for HTML, scripts and JSON.
 
 `/user/:username.svg` is not a page. It is the product's headline feature: a calendar you embed. The header was never chosen for it; it arrived because the middleware applies the same map to everything, and the endpoint kept working, so nothing pointed at it.
 
@@ -20,7 +20,7 @@ The alternative was to leave it and document the limitation: embedding is suppor
 
 ## Decision
 
-The middleware keeps `Cross-Origin-Resource-Policy: same-origin` as the default for every response, and overrides it to `cross-origin` for the SVG route alone. `EMBED_ROUTE`, declared in `web/src/domain/value-objects/embed.ts` beside the builder that produces those URLs, matches exactly `/user/<segment>.svg`, and `withSecurityHeaders` applies the override after the shared map, so the exemption cannot widen by accident: `/user/x.png`, `/user/x.svg/anything` and every `/api/*` path stay `same-origin`.
+The middleware keeps `Cross-Origin-Resource-Policy: same-origin` as the default for every response, and overrides it to `cross-origin` for the SVG route alone. `EMBED_ROUTE`, declared in [`web/src/domain/value-objects/embed.ts`](../../web/src/domain/value-objects/embed.ts) beside the builder that produces those URLs, matches exactly `/user/<segment>.svg`, and `withSecurityHeaders` applies the override after the shared map, so the exemption cannot widen by accident: `/user/x.png`, `/user/x.svg/anything` and every `/api/*` path stay `same-origin`.
 
 Dropping the header repository-wide was rejected. The pages and the JSON API have no embedding story and gain nothing from being includable.
 
@@ -28,7 +28,7 @@ This is what a public badge endpoint does: shields.io serves `cross-origin` for 
 
 ## Consequences
 
-- **The narrowness of `EMBED_ROUTE` is load-bearing.** Loosening it to a `/user/` prefix would opt the whole namespace out of a policy the rest of the site relies on. `web/src/middleware.test.ts` asserts both directions, and both assertions were verified by breaking the regex each way and watching the matching one fail.
+- **The narrowness of `EMBED_ROUTE` is load-bearing.** Loosening it to a `/user/` prefix would opt the whole namespace out of a policy the rest of the site relies on. [`web/src/middleware.test.ts`](../../web/src/middleware.test.ts) asserts both directions, and both assertions were verified by breaking the regex each way and watching the matching one fail.
 - The SVG is now includable by anyone, from anywhere. That was already true in practice for anything willing to proxy it, and the endpoint is deliberately not rate-limited ([ADR 0010](./0010-rate-limit-only-the-json-api.md)), so the exposure it adds is bandwidth on a response cached for an hour.
 - The header set is no longer uniform. Anyone reading `SECURITY_HEADERS` alone now has an incomplete picture of what a given response carries. The override is a few lines below it, and the [API reference](../wiki/API-Reference.md) documents both values.
 - [`docs/wiki/Troubleshooting.md`](../wiki/Troubleshooting.md) no longer has to explain why an embed works on GitHub and nowhere else.

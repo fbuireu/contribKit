@@ -37,7 +37,7 @@ GitHub doesn't always emit a `<tool-tip>` for every cell. ContribKit reports the
 This usually means GitHub is unreachable or changed the structure of its contributions page.
 
 - `Network` failure → GitHub returned a non-OK status or the fetch failed; usually transient, retry.
-- `Parse` failure → zero Contribution Days were extracted, which points at a GitHub markup change. The fix lives in one place: the regexes in `infrastructure/github/github-html-contributions-repository.ts`. See **[HTML Parsing](HTML-Parsing)**.
+- `Parse` failure → zero Contribution Days were extracted, which points at a GitHub markup change. The fix lives in one place: the regexes in [`infrastructure/github/github-html-contributions-repository.ts`](../../web/src/infrastructure/github/github-html-contributions-repository.ts). See **[HTML Parsing](HTML-Parsing)**.
 
 5xx failures are logged to Better Stack with the username, failure kind, and endpoint.
 

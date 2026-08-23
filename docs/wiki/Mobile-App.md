@@ -10,7 +10,7 @@ The mobile component (`app/`) is a single Flutter codebase shipping native iOS &
 ## Features
 
 - **Native iOS & Android** from one Flutter codebase; home-screen widgets are Android-only, as `app/ios` carries no WidgetKit extension
-- **All 11 palettes & 5 shapes:** the palettes are the web's own design tokens, mirrored from `shared/palettes.json`. **The shapes are not**: `CellShape` is a hardcoded Dart enum, and `shapes.json` is bundled but has no Dart reader ([ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
+- **All 11 palettes & 5 shapes:** the palettes are the web's own design tokens, mirrored from [`shared/palettes.json`](../../shared/palettes.json). **The shapes are not**: `CellShape` is a hardcoded Dart enum, and [`shapes.json`](../../shared/shapes.json) is bundled but has no Dart reader ([ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
 - **Daily background refresh:** fetches once a day, easy on the battery
 - **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
@@ -65,7 +65,7 @@ Three repositories implement the `ExportRepository` interface, each producing a 
 
 [Riverpod](https://riverpod.dev) is the app's **DI container and reactive state layer**, living entirely inside `ui/`: it's the only layer that knows Flutter or Riverpod exist. It does not replace the DDD layering; it's the mechanism that wires that layering together and exposes it to widgets.
 
-**Composition root.** `ui/di/providers.dart` (code-generated `providers.g.dart`) is the single place allowed to import `infrastructure/` and `application/` at the same time. It instantiates the concrete repositories (GitHub, assets, settings, tip, export), passes them into the curried use cases, and exposes each as an `@riverpod` provider:
+**Composition root.** [`ui/di/providers.dart`](../../app/lib/ui/di/providers.dart) (code-generated [`providers.g.dart`](../../app/lib/ui/di/providers.g.dart)) is the single place allowed to import `infrastructure/` and `application/` at the same time. It instantiates the concrete repositories (GitHub, assets, settings, tip, export), passes them into the curried use cases, and exposes each as an `@riverpod` provider:
 
 ```dart
 @riverpod
@@ -103,7 +103,7 @@ Android only: there is no iOS widget.
 | Small (80×40dp) | `ContribKitSmallWidgetProvider` | Streak counter |
 | Medium (250×110dp) | `ContribKitWidgetProvider` | Username, streak badge, grid image and year total |
 
-Widgets are driven by `calendar_widget_service.dart` and refreshed by a daily background task.
+Widgets are driven by [`calendar_widget_service.dart`](../../app/lib/ui/features/widget/calendar_widget_service.dart) and refreshed by a daily background task.
 
 ---
 
@@ -113,7 +113,7 @@ Widgets are driven by `calendar_widget_service.dart` and refreshed by a daily ba
 
 ## Tips
 
-ContribKit offers an optional **Tip Jar** via RevenueCat (`revenuecat_tip_repository.dart`), surfaced in `ui/features/tip/tip_jar_sheet.dart`. The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `give_tip`, which returns a `TipOutcome` so backing out of the store sheet is not reported as a failure. A Tip unlocks nothing and no code may check whether one was given ([ADR 0009](../adr/0009-tips-are-unconditional-and-unlock-nothing.md)). The glossary reserves **Tip** for this and lists "purchase" under `_Avoid_`, which is why none of these names says it. The default `dart-defines.json` carries the RevenueCat sandbox key; `dart-defines.prod.json` carries the production one.
+ContribKit offers an optional **Tip Jar** via RevenueCat ([`revenuecat_tip_repository.dart`](../../app/lib/infrastructure/tip/revenuecat_tip_repository.dart)), surfaced in [`ui/features/tip/tip_jar_sheet.dart`](../../app/lib/ui/features/tip/tip_jar_sheet.dart). The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `give_tip`, which returns a `TipOutcome` so backing out of the store sheet is not reported as a failure. A Tip unlocks nothing and no code may check whether one was given ([ADR 0009](../adr/0009-tips-are-unconditional-and-unlock-nothing.md)). The glossary reserves **Tip** for this and lists "purchase" under `_Avoid_`, which is why none of these names says it. The default `dart-defines.json` carries the RevenueCat sandbox key; `dart-defines.prod.json` carries the production one.
 
 ## Development
 
@@ -131,7 +131,7 @@ Build-time config is supplied via `dart-defines.json` (dev) and `dart-defines.pr
 
 ## Shared design tokens
 
-The app uses generated copies in `app/assets/*.json`. See **[shared/](../../shared/README.md)** and [ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) for why. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit `app/assets/` by hand. Note that this moves **palettes and suggested usernames only**: nothing in Dart reads `shapes.json`, so adding a shape there changes the web and does nothing here. `release-app.yml` re-copies them before building the AAB, but `ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
+The app uses generated copies in `app/assets/*.json`. See **[shared/](../../shared/README.md)** and [ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) for why. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit `app/assets/` by hand. Note that this moves **palettes and suggested usernames only**: nothing in Dart reads `shapes.json`, so adding a shape there changes the web and does nothing here. [`release-app.yml`](../../.github/workflows/release-app.yml) re-copies them before building the AAB, but `ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
 
 ---
 

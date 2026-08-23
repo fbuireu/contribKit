@@ -1,6 +1,6 @@
 # Deterministic Randomness (Mulberry32)
 
-Some UI surfaces need a contribution grid that *looks* plausible before real data has loaded: skeleton/placeholder grids, the mini-grid, and the error page's decorative calendar. Rather than `Math.random()` (which would flicker on every render and can't be tested), ContribKit uses a **seeded** PRNG: Mulberry32. It lives in `web/src/ui/utils/mulberry.ts`.
+Some UI surfaces need a contribution grid that *looks* plausible before real data has loaded: skeleton/placeholder grids, the mini-grid, and the error page's decorative calendar. Rather than `Math.random()` (which would flicker on every render and can't be tested), ContribKit uses a **seeded** PRNG: Mulberry32. It lives in [`web/src/ui/utils/mulberry.ts`](../../web/src/ui/utils/mulberry.ts).
 
 ---
 
@@ -47,9 +47,9 @@ Mulberry32 holds a single 32-bit state, giving a period of 2³². That's far mor
 
 | Caller | Purpose |
 |--------|---------|
-| `ui/components/grid/calendar.ts` | seeded placeholder levels for the loading grid |
-| `ui/components/grid/mini-grid.ts` | the small decorative grid |
-| `ui/components/error/ContributionCode.astro` | the calendar art on error pages |
+| [`ui/components/grid/calendar.ts`](../../web/src/ui/components/grid/calendar.ts) | seeded placeholder levels for the loading grid |
+| [`ui/components/grid/mini-grid.ts`](../../web/src/ui/components/grid/mini-grid.ts) | the small decorative grid |
+| [`ui/components/error/ContributionCode.astro`](../../web/src/ui/components/error/ContributionCode.astro) | the calendar art on error pages |
 
 Each caller picks a seed, calls `mulberry32(seed)`, then draws from the returned function to assign placeholder levels.
 

@@ -77,12 +77,12 @@ boundary moves the wall clock: a walk that starts at local midnight in December 
 forward, and `byDate[date]` (whose keys are `DateTime(y, m, d)`, exact midnights) then misses **every day from the
 spring transition onward**. In Europe that silently blanked roughly seven months of every calendar. `DateTime(start.year,
 start.month, start.day + offset)` normalises the overflow itself and always yields midnight. The same rule applies to
-the streak walk in `ui/features/widget/calendar_widget_service.dart`, which had the same defect walking backwards.
+the streak walk in [`ui/features/widget/calendar_widget_service.dart`](../ui/features/widget/calendar_widget_service.dart), which had the same defect walking backwards.
 
 ### The cache
 
 - **Box `contribution_cache_v3`, keyed `<username>:<year>`.** Changing what a cached calendar *means* requires
-  bumping that name; `legacyContributionCacheBoxNames` lists every previous one, and `app/lib/main.dart` deletes them at
+  bumping that name; `legacyContributionCacheBoxNames` lists every previous one, and [`app/lib/main.dart`](../main.dart) deletes them at
   startup ([ADR 0014](../../../docs/adr/0014-cached-calendars-are-versioned.md)).
 - **The current year expires after 1 hour. An entry written after its Year ended never expires**, because a
   finished year cannot change, **but a snapshot taken while that year was still running can**. The check was
@@ -116,7 +116,7 @@ stale snapshot.
 `_tolerating` wraps each read, so a `cellShape` written as an `int` by an older build costs you the Cell Shape and
 nothing else. It was seven separate getters each wrapped in a `_read` helper, which had the same per-field
 tolerance, and the collapse to one call is where that property was nearly lost; `loses only the corrupt value` in
-`settings_repository_impl_test.dart` is the only test that proves it; the other two in that group pass whether the
+[`settings_repository_impl_test.dart`](../../test/infrastructure/persistence/settings_repository_impl_test.dart) is the only test that proves it; the other two in that group pass whether the
 tolerance is per-field or wholesale.
 
 **The outer `try` is a backstop, not the mechanism.** It wraps `_settingsIn` as well as the box open, so a field
@@ -165,7 +165,7 @@ Shapes, and that the corner radius and dot radius come from `CellGeometryService
 asked the service. Two Exports of the same Contribution Calendar therefore derived their document size from two
 different pieces of code, which is the shape of the defect that had the tile advertising `2880x720` against a
 renderer that emits `2061x267`. The test asserts the two **agree**; the formula itself is pinned separately in
-`export_geometry_service_test.dart`, because a test that reads the same function it is checking can only catch a
+[`export_geometry_service_test.dart`](../../test/domain/services/export_geometry_service_test.dart), because a test that reads the same function it is checking can only catch a
 divergence, not a wrong number.
 
 `MarkdownExportRepository` no longer composes anything. It builds an **Embed URL** and needs no renderer at all. `PngExportRepository` paints on a `dart:ui` canvas: reachable under `flutter test` via the Skia software
@@ -192,7 +192,7 @@ given ([ADR 0009](../../../docs/adr/0009-tips-are-unconditional-and-unlock-nothi
 `purchase/RevenueCatPurchaseRepository` implementing `PurchaseRepository` until the glossary guard learned to see
 the word `purchase`, which Tip's `_Avoid_` list has always named.
 
-**The cancellation check lives in `store_error.dart`, and it exists because the SDK helper throws.**
+**The cancellation check lives in [`store_error.dart`](./tip/store_error.dart), and it exists because the SDK helper throws.**
 `PurchasesErrorHelper.getErrorCode` is `num.parse(e.code).round()`: it throws `FormatException` on any
 non-numeric code, and Flutter raises `PlatformException(code: 'channel-error')` on a channel fault. Called from
 inside `on PlatformException catch`, that `FormatException` does **not** fall into the sibling `catch (e)`; it

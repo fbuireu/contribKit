@@ -110,9 +110,9 @@ GitHub Environments are namespaced by component (`<component>-<stage>`) because 
 
 | GitHub Environment | Component   | Stage       | Deployed by                                       |
 | ------------------ | ----------- | ----------- | ------------------------------------------------- |
-| `app-production`   | Flutter app | production  | `release-app.yml` (track = production)            |
+| `app-production`   | Flutter app | production  | [`release-app.yml`](./.github/workflows/release-app.yml) (track = production)            |
 | `app-development`  | Flutter app | development | `release-app.yml` (track ≠ production)            |
-| `web-production`   | Astro web   | production  | `ci.yml` (deploy-production, push to `main`)      |
+| `web-production`   | Astro web   | production  | [`ci.yml`](./.github/workflows/ci.yml) (deploy-production, push to `main`)      |
 | `web-development`  | Astro web   | development | `ci.yml` (deploy-development, per-PR preview)     |
 
 App `development` and web `development` map to different things: app `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker on `*.workers.dev`. The component-scoped configs do **not** repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter has no build flavors: locally the stage is whichever dart-defines file you pass (`dart-defines.prod.json` vs `dart-defines.json`), and in CI it is the `track` input to `release-app.yml`, which picks the GitHub Environment whose `REVENUECAT_KEY` is written into `dart-defines.json` at build time.

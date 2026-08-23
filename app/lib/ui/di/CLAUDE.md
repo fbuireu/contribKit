@@ -2,7 +2,7 @@
 
 Dependency wiring: the one place that knows how to construct the full object graph.
 
-`providers.dart` is **the only file allowed to import from `infrastructure/` and `application/` at the same time.**
+[`providers.dart`](./providers.dart) is **the only file allowed to import from `infrastructure/` and `application/` at the same time.**
 It instantiates concrete repositories, passes them into use cases, and exposes the results as `@riverpod` providers
 for widgets and notifiers to watch. Everything else in `ui/` sees a provider, never a constructor.
 
@@ -31,8 +31,8 @@ Three tiers, in dependency order, plus one notifier that does not fit them:
    an `AsyncValue`.
 
 **`ThemeModeNotifier` also lives here, and it is the one thing in this file that holds state.** It belongs beside a
-feature by the rule below; it is here because the theme is app-wide chrome that `main.dart` watches before any
-feature exists, and because moving it means regenerating `providers.g.dart`. Treat it as the documented exception,
+feature by the rule below; it is here because the theme is app-wide chrome that [`main.dart`](../../main.dart) watches before any
+feature exists, and because moving it means regenerating [`providers.g.dart`](./providers.g.dart). Treat it as the documented exception,
 not as a precedent: the next stateful thing goes in its feature.
 
 ## Gotchas

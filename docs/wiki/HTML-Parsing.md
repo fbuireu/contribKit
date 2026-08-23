@@ -1,8 +1,8 @@
 # HTML Parsing
 
-Once the contributions HTML is fetched (see **[Fetching Contributions](Fetching-Contributions)**), ContribKit extracts the data with a handful of regexes over the rendered page. The parser lives in `infrastructure/github/github-html-contributions-repository.ts`.
+Once the contributions HTML is fetched (see **[Fetching Contributions](Fetching-Contributions)**), ContribKit extracts the data with a handful of regexes over the rendered page. The parser lives in [`infrastructure/github/github-html-contributions-repository.ts`](../../web/src/infrastructure/github/github-html-contributions-repository.ts).
 
-This is the only place on the **web** that knows GitHub's HTML structure. The app carries its own independent regex set in `contribution_repository_impl.dart`, duplicated on purpose ([ADR 0011](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0011-keep-the-apps-own-scraper-for-now.md)), so a GitHub markup change has to be fixed in both clients: a fix in one is a bug left in the other.
+This is the only place on the **web** that knows GitHub's HTML structure. The app carries its own independent regex set in [`contribution_repository_impl.dart`](../../app/lib/infrastructure/github/contribution_repository_impl.dart), duplicated on purpose ([ADR 0011](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0011-keep-the-apps-own-scraper-for-now.md)), so a GitHub markup change has to be fixed in both clients: a fix in one is a bug left in the other.
 
 > **Why regex and not a DOM parser?** The renderer runs inside a Cloudflare Worker, where there's no DOM and bundle size/cold-start matter. A handful of focused regexes over the response text is faster, dependency-free, and easy to pin to exactly the two element shapes GitHub emits.
 

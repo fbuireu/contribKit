@@ -24,5 +24,5 @@ Duplicated parsing is the smaller problem. It costs maintainer time; the alterna
 
 - **A change to GitHub's markup must be fixed twice, and the app's fix reaches users through store review rather than a deploy.** That is the standing cost, and it is the whole reason the trigger below is worth watching for.
 - **The trigger is specific:** this is revisited when the API can key its rate limit on something other than the caller's raw IP. Not before.
-- At that point the migration is mechanical and already written down in `docs/plans/0001-app-consumes-contribkit-api.md`, including the response-shape mismatch and the offline-cache requirement.
+- At that point the migration is mechanical and already written down in [`docs/plans/0001-app-consumes-contribkit-api.md`](../plans/0001-app-consumes-contribkit-api.md), including the response-shape mismatch and the offline-cache requirement.
 - Until then, proposals to point the app at the API should be closed with a link to this record rather than re-argued.

@@ -4,25 +4,25 @@ CI is split per component with **path filters**, so an app change never triggers
 
 > **Path filters used to be where guards died here.** The CI was two workflows filtered by `paths:`, so every
 > guard had to be paired with the question of which filter carried the files it read, and that was answered wrong
-> three times: the app side, the preview-Worker cleanup, and `scripts/**` plus the root `package.json`, whose
+> three times: the app side, the preview-Worker cleanup, and `scripts/**` plus the root [`package.json`](../../package.json), whose
 > comments and version pins the contract asserts while no workflow watched them. A fourth copy of the filter had
-> drifted and left preview Workers alive. There is one `ci.yml` now with **no path filter**, and a `changes` job
+> drifted and left preview Workers alive. There is one [`ci.yml`](../../.github/workflows/ci.yml) now with **no path filter**, and a `changes` job
 > that gates jobs with `if:` instead. Each component is linted, tested, built, versioned with semantic-release,
 > and shipped: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
 | `ci.yml` | every push and PR to `main`, plus manual dispatch | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then release, deploy, preview comment and e2e. A final `Check` job aggregates them all |
-| `_ci-app.yml` | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build`, and none of them can be a required check: see `Check` below |
-| `_ci-web.yml` | reusable, called by `ci.yml` | lint, format check, test with coverage, build, typecheck. Its jobs show as `Web / Check`, `Web / Build` |
-| `_deploy.yml` | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
-| `release-app.yml` | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
-| `cleanup-development.yml` | PR close | deletes the per-PR preview worker |
-| `dependency-review.yml` | every PR | fails a PR that introduces a dependency with a known vulnerability |
-| `dependabot-auto-merge.yml`, `renovate-auto-approve.yml` | dependency PRs | automated dependency updates |
-| `sync-wiki.yml` | push to `main` under `docs/wiki/**` | publishes this wiki |
-| `commit-message.yml` | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
-| `zizmor.yml` | push / PR | GitHub Actions security linting |
+| [`_ci-app.yml`](../../.github/workflows/_ci-app.yml) | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build`, and none of them can be a required check: see `Check` below |
+| [`_ci-web.yml`](../../.github/workflows/_ci-web.yml) | reusable, called by `ci.yml` | lint, format check, test with coverage, build, typecheck. Its jobs show as `Web / Check`, `Web / Build` |
+| [`_deploy.yml`](../../.github/workflows/_deploy.yml) | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
+| [`release-app.yml`](../../.github/workflows/release-app.yml) | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
+| [`cleanup-development.yml`](../../.github/workflows/cleanup-development.yml) | PR close | deletes the per-PR preview worker |
+| [`dependency-review.yml`](../../.github/workflows/dependency-review.yml) | every PR | fails a PR that introduces a dependency with a known vulnerability |
+| [`dependabot-auto-merge.yml`](../../.github/workflows/dependabot-auto-merge.yml), [`renovate-auto-approve.yml`](../../.github/workflows/renovate-auto-approve.yml) | dependency PRs | automated dependency updates |
+| [`sync-wiki.yml`](../../.github/workflows/sync-wiki.yml) | push to `main` under `docs/wiki/**` | publishes this wiki |
+| [`commit-message.yml`](../../.github/workflows/commit-message.yml) | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
+| [`zizmor.yml`](../../.github/workflows/zizmor.yml) | push / PR | GitHub Actions security linting |
 
 ---
 

@@ -3,7 +3,7 @@
 The single source of truth for every visual constant. Never hardcode a hex value, an `EdgeInsets` or a `Duration`
 anywhere in the widget tree; reference these files.
 
-That claim is only true because `main.dart` was made to obey it. The `ShadThemeData` colour schemes there (which is
+That claim is only true because [`main.dart`](../../main.dart) was made to obey it. The `ShadThemeData` colour schemes there (which is
 what every `shadcn_ui` primitive actually paints from) held raw hex of their own, so `AppColors.dark.accent` and the
 theme's `primary` were two literals nobody kept in step. Both schemes now feed all twelve `AppColors` fields into
 thirteen scheme keys: `border` feeds `border` and `input`, `accent`/`accentForeground` feed `primary`/
@@ -23,12 +23,12 @@ source of truth. Every field is wired now, and every widget reads `AppColors.of(
 
 | File | Contents |
 |---|---|
-| `tokens.dart` | `Tokens`: spacing on a 4 px scale (`space1`…`space12`), radii (`radiusSm`…`radiusFull`), font sizes (`textXs`…`text3Xl`), icon sizes (`iconXs`…`iconLg`), animation durations (`durationFast`…`durationSlow` for interaction, plus `durationEntrance`, `durationBreathe`, `durationSpin`, `durationCopiedFeedback`, `cellStaggerStep` and `pulseDotDelays` for the longer set pieces), the customizer's `swatch*` sizes and `swatchGap`, the named one-off dimensions (`dragHandle*`, `formatTileSize`, `tipTileHeight`, `logoSize`, `emojiSize`, `hairlineGap`), `animScaleBegin`, `gridPadding`, `badgePadding`, `filenamePadding` and `pillPadding` |
-| `app_colors.dart` | Semantic colours (`background`, `foreground`, `muted`, `accent`, `border`, …) with `light` and `dark` variants, plus the two that do not vary by theme (`AppColors.scrim` for a modal barrier and `AppColors.transparent`), and `AppColors.isDark(context)`, the only brightness read outside `main.dart` |
-| `app_text_styles.dart` | `AppTextStyles`: one builder, `mono`, over JetBrains Mono with the zero-slash and `ss01` features enabled |
-| `background_presets.dart` | The `BackgroundPreset` enum and the colours behind it: the glossary's Background Preset |
+| [`tokens.dart`](./tokens.dart) | `Tokens`: spacing on a 4 px scale (`space1`…`space12`), radii (`radiusSm`…`radiusFull`), font sizes (`textXs`…`text3Xl`), icon sizes (`iconXs`…`iconLg`), animation durations (`durationFast`…`durationSlow` for interaction, plus `durationEntrance`, `durationBreathe`, `durationSpin`, `durationCopiedFeedback`, `cellStaggerStep` and `pulseDotDelays` for the longer set pieces), the customizer's `swatch*` sizes and `swatchGap`, the named one-off dimensions (`dragHandle*`, `formatTileSize`, `tipTileHeight`, `logoSize`, `emojiSize`, `hairlineGap`), `animScaleBegin`, `gridPadding`, `badgePadding`, `filenamePadding` and `pillPadding` |
+| [`app_colors.dart`](./app_colors.dart) | Semantic colours (`background`, `foreground`, `muted`, `accent`, `border`, …) with `light` and `dark` variants, plus the two that do not vary by theme (`AppColors.scrim` for a modal barrier and `AppColors.transparent`), and `AppColors.isDark(context)`, the only brightness read outside `main.dart` |
+| [`app_text_styles.dart`](./app_text_styles.dart) | `AppTextStyles`: one builder, `mono`, over JetBrains Mono with the zero-slash and `ss01` features enabled |
+| [`background_presets.dart`](./background_presets.dart) | The `BackgroundPreset` enum and the colours behind it: the glossary's Background Preset |
 
-**Palettes are not here.** They are loaded at runtime from `shared/palettes.json` through the bundled asset copy, by
+**Palettes are not here.** They are loaded at runtime from [`shared/palettes.json`](../../../../shared/palettes.json) through the bundled asset copy, by
 `AssetPaletteRepository`, and reached via `palettesProvider`. There is no compile-time palette table to edit: a new
 palette is an edit to `shared/palettes.json` plus `pnpm sync:assets`
 ([ADR 0002](../../../../docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)).

@@ -11,7 +11,7 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 ## Invariants & rules
 
 - **No package imports.** Only TypeScript stdlib types, plus the design-token JSON through `@shared` as *data*
-  (`palettes.json` in `palette.ts`, `shapes.json` in `cell-shape.ts`, `usernames.json` in `username.ts`). `vitest` in the
+  (`palettes.json` in [`palette.ts`](./value-objects/palette.ts), `shapes.json` in [`cell-shape.ts`](./value-objects/cell-shape.ts), `usernames.json` in [`username.ts`](./value-objects/username.ts)). `vitest` in the
   co-located `*.test.ts` files is the only other import in the folder, and it is the test's, not the layer's.
 - **Functional style.** Factory functions returning readonly objects. No classes.
 - **Two arguments means one destructured object**, the repo-wide convention the
@@ -55,7 +55,7 @@ catch the odder coercions (`"2e3"` resolves to 2000, so it fails the floor rathe
 
 ## The Embed contract lives in `embed.ts`
 
-`value-objects/embed.ts` is the one spelling of what an Embed URL is: `EMBED_ROUTE` (the path the middleware
+[`value-objects/embed.ts`](./value-objects/embed.ts) is the one spelling of what an Embed URL is: `EMBED_ROUTE` (the path the middleware
 exempts from `Cross-Origin-Resource-Policy`), `EmbedParam` (the three query names), `DEFAULT_EMBED_QUERY`,
 `EMBED_BACKGROUND_PATTERN`, and `buildEmbedUrl`, which omits any option equal to its default and joins the rest
 with a single `&`.
@@ -67,12 +67,12 @@ and the copy button copied a different string again: the bare URL, with the visi
 dropped. Build an Embed URL through `buildEmbedUrl` or the same class of bug comes back; it is not a place to
 interpolate by hand.
 
-**This file has a Dart twin, and the docs contract diffs them.** `app/lib/domain/value_objects/embed.dart` holds
+**This file has a Dart twin, and the docs contract diffs them.** [`app/lib/domain/value_objects/embed.dart`](../../../app/lib/domain/value_objects/embed.dart) holds
 the same origin, segment and extension, because the app's Markdown Export writes an Embed URL the web has to serve.
 The test reads the Dart with a regex and looks for the literal `const EMBED_ORIGIN = "…"` here, so **the shape of
 these three declarations is load-bearing**: split one across two lines, or move it onto an object, and the contract
 fails against code that is perfectly correct. It also asserts that both clients omit the *same* defaults: the
-Palette `github`, and the Cell Shape that is **first in `shared/shapes.json`**, which is the second thing reordering
+Palette `github`, and the Cell Shape that is **first in [`shared/shapes.json`](../../../shared/shapes.json)**, which is the second thing reordering
 that file silently changes. The two deliberately diverge on one point: `buildEmbedUrl` takes a `background` and
 `Embed.urlFor` does not, because the app has no Background to put in an Embed.
 
@@ -95,7 +95,7 @@ test helper reintroduces the same bug in the test rather than the code.
 
 ## Gotchas
 
-- **`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7)`**, all three declared in `services/dates.ts`.
+- **`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7)`**, all three declared in [`services/dates.ts`](./services/dates.ts).
   `buildGridFromApi` walks those 371 days from the Sunday on or before January 1st, so the grid always starts
   between December 26th of the previous year and January 1st, and always ends between December 30th and January
   6th of the next. Days outside the requested year are simply absent from the map and emerge as
@@ -113,12 +113,12 @@ test helper reintroduces the same bug in the test rather than the code.
   from, not for what it measures; the guide claimed it was a measurement beating an estimate, and that was never
   true of either side. It returns a **new** `ContributionStats` rather than assigning to
   the one it was handed; the fields are `readonly`, and this was the only mutation of a value in the layer. Both
-  call sites (the server render in `pages/index.astro` and the client refresh in `ui/utils/page-init.ts`) go
+  call sites (the server render in [`pages/index.astro`](../pages/index.astro) and the client refresh in [`ui/utils/page-init.ts`](../ui/utils/page-init.ts)) go
   through it rather than reassigning the field themselves, which is what they each used to do. `ui/` renders the `null` as the word `unknown` rather than a figure. It summed `count ?? 0` and printed the result as exact until that changed; do not put the
   `??` back.
-- **`clampLevel` lives in `value-objects/contribution-level.ts`, not in `services/`.** It is a value-object
+- **`clampLevel` lives in [`value-objects/contribution-level.ts`](./value-objects/contribution-level.ts), not in `services/`.** It is a value-object
   constructor that happens to be total.
-- **A `Palette` here is five colours, not six.** `shared/palettes.json` defines a sixth, `noneLight`, and this
+- **A `Palette` here is five colours, not six.** [`shared/palettes.json`](../../../shared/palettes.json) defines a sixth, `noneLight`, and this
   layer deliberately drops it when building `PaletteColors`, because an embedded SVG cannot know the viewer's
   theme ([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)). The app reads all six.
 - **A shape needs two edits, not one.** `CELL_SHAPES` is built from `shared/shapes.json` *filtered through the
@@ -127,7 +127,7 @@ test helper reintroduces the same bug in the test rather than the code.
   the endpoint accepted it, and `renderCellShape` looked up a renderer that was not there and threw inside an
   `<img>`. Add the member and its `SHAPE_MARKUP_RENDERERS` entry in the same change as the JSON; the order of the
   JSON still decides `DEFAULT_CELL_SHAPE`, so reordering it silently changes the default shape of every embed.
-- **The domain emits SVG substrings.** `renderCellShape` returns markup and `svg-geometry.ts` computes the
+- **The domain emits SVG substrings.** `renderCellShape` returns markup and [`svg-geometry.ts`](./services/svg-geometry.ts) computes the
   geometry around it; the two renderers only compose the document. `attributes` is interpolated into
   the tag verbatim: nothing here escapes it, so a caller that passes attacker-controlled text owns that.
 - **`calendarLayout` is the whole geometry, in one call, and it is the module's interface.** It chunks the days
@@ -140,7 +140,7 @@ test helper reintroduces the same bug in the test rather than the code.
   templates, which is the part that genuinely differs.
 - **The Cell maths is the app's, in TypeScript**
   ([ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md))**.** `CORNER_RADIUS_RATIO` (0.2), `DOT_BASE_RADIUS` (1.4) and
-  `DOT_REFERENCE_CELL_SIZE` (10) are the same three constants `app/lib/domain/services/cell_geometry_service.dart`
+  `DOT_REFERENCE_CELL_SIZE` (10) are the same three constants [`app/lib/domain/services/cell_geometry_service.dart`](../../../app/lib/domain/services/cell_geometry_service.dart)
   holds, and `ContribKitWidgetProvider.kt` mirrors as literals. `rounded` gets `cornerRadiusFor(size)`, `square`
   gets 0, and `circle` / `dot` / `hex` get `size / 2`. That is what makes a rect look like a circle if it is ever
   routed through the rect renderer. Read through `calendarLayout().radius`. This file held a fixed `2.5` and an
@@ -150,9 +150,9 @@ test helper reintroduces the same bug in the test rather than the code.
   `1.4 + level`, so level 4 is 5.4 against a default cell half-width of 5. It still fits the 12 px pitch that
   `SVG_DEFAULT_CELL_SIZE` (10) plus `SVG_DEFAULT_CELL_GAP` (2) gives, so dots never collide. Shrink the gap and
   they will.
-- **`cellSize` in `services/types.ts` is pixel geometry, not the glossary's Cell Size.** Nothing ever assigns it:
+- **`cellSize` in [`services/types.ts`](./services/types.ts) is pixel geometry, not the glossary's Cell Size.** Nothing ever assigns it:
   the field exists so `svgStringRenderer` can fall back to `SVG_DEFAULT_CELL_SIZE`, and the SVG endpoint exposes no
-  size parameter. The three presets in `ui/components/grid/grid-presets.ts` carry their own `size`/`gap` and feed the
+  size parameter. The three presets in [`ui/components/grid/grid-presets.ts`](../ui/components/grid/grid-presets.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
 - **`computeContributionStats` returns three fields, not the glossary's five.** `totalContributions`,
