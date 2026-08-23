@@ -19,7 +19,7 @@ vulnerabilities.
 
 Report privately through GitHub's
 [private vulnerability reporting](https://github.com/fbuireu/contribKit/security/advisories/new).
-If that is unavailable, email **fbuireu@gmail.com** with the details.
+If that is unavailable, write to **contact@contribkit.app** with the details.
 
 When reporting, include where possible:
 
