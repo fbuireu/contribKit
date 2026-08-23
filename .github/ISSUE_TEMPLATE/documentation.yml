@@ -2,8 +2,7 @@ name: Documentation Request
 description: Suggest improvements or additions to the documentation
 title: '[Docs]: '
 labels: ['documentation', 'triage']
-assignees:
-  - fbuireu
+assignees: ['fbuireu']
 body:
   - type: markdown
     attributes:
@@ -18,9 +17,10 @@ body:
       options:
         - README
         - ARCHITECTURE.md
-        - DESIGN.md
-        - Code comments
-        - FAQ
+        - Wiki pages
+        - CLAUDE.md guides
+        - CONTEXT.md glossary
+        - An ADR
         - Other
     validations:
       required: true
