@@ -9,7 +9,7 @@ The mobile component (`app/`) is a single Flutter codebase shipping native iOS &
 
 ## Features
 
-- **Native iOS & Android** from one Flutter codebase; home-screen widgets are Android-only, as `app/ios` carries no WidgetKit extension
+- **Native iOS & Android** from one Flutter codebase; home-screen widgets are Android-only, as [`app/ios`](../../app/ios) carries no WidgetKit extension
 - **All 11 palettes & 5 shapes:** the palettes are the web's own design tokens, mirrored from [`shared/palettes.json`](../../shared/palettes.json). **The shapes are not**: `CellShape` is a hardcoded Dart enum, and [`shapes.json`](../../shared/shapes.json) is bundled but has no Dart reader ([ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
 - **Daily background refresh:** fetches once a day, easy on the battery
@@ -131,7 +131,7 @@ Build-time config is supplied via `dart-defines.json` (dev) and `dart-defines.pr
 
 ## Shared design tokens
 
-The app uses generated copies in `app/assets/*.json`. See **[shared/](../../shared/README.md)** and [ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) for why. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit `app/assets/` by hand. Note that this moves **palettes and suggested usernames only**: nothing in Dart reads `shapes.json`, so adding a shape there changes the web and does nothing here. [`release-app.yml`](../../.github/workflows/release-app.yml) re-copies them before building the AAB, but `ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
+The app uses generated copies in `app/assets/*.json`. See **[shared/](../../shared/README.md)** and [ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) for why. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit [`app/assets/`](../../app/assets) by hand. Note that this moves **palettes and suggested usernames only**: nothing in Dart reads `shapes.json`, so adding a shape there changes the web and does nothing here. [`release-app.yml`](../../.github/workflows/release-app.yml) re-copies them before building the AAB, but `ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
 
 ---
 
@@ -139,7 +139,7 @@ The app uses generated copies in `app/assets/*.json`. See **[shared/](../../shar
 
 Built and **shipped to Google Play automatically** via `release-app.yml`. A manual dispatch picks a track (`internal` / `alpha` / `beta` / `production`); semantic-release then versions the app and, if there's something to publish, the pipeline signs and uploads a release App Bundle with `fastlane`, and even generates the Play Store release notes from `CHANGELOG.md`.
 
-The `track` input picks the GitHub Environment, and the workflow writes that environment's `REVENUECAT_KEY` into `dart-defines.json` before building. Neither dart-defines file is read in CI, and neither is committed: `app/.gitignore` lists `dart-defines*.json` under its secrets heading, so they exist only as local, untracked files.
+The `track` input picks the GitHub Environment, and the workflow writes that environment's `REVENUECAT_KEY` into `dart-defines.json` before building. Neither dart-defines file is read in CI, and neither is committed: [`app/.gitignore`](../../app/.gitignore) lists `dart-defines*.json` under its secrets heading, so they exist only as local, untracked files.
 
 | `track` input | GitHub Environment | Target |
 |---------------|--------------------|--------|

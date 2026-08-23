@@ -10,7 +10,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 
 - **web**: Astro 7.2 (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Biome, Vitest, Playwright
 - **app**: Flutter 3.47.0 / Dart 3.13.0, Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
-- **shared**: plain JSON, imported by web at build time and mirrored into `app/assets/` ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
+- **shared**: plain JSON, imported by web at build time and mirrored into [`app/assets/`](./app/assets) ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **repo**: pnpm workspaces, lefthook, commitlint, semantic-release per component
 
 ## Versions (pinned: match exactly)
@@ -22,7 +22,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
   It used to carry the second pin, and because Renovate's `includePaths` did not list the root manifest, that copy
   was the one it kept current. Consolidating onto the root pin silently rolled the package manager back three
   minors, until this was caught and the root was bumped to match
-- Node **26.7.0**, stated three times and always the same: the root `engines`, `web/engines` and `web/.nvmrc`, which
+- Node **26.7.0**, stated three times and always the same: the root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc), which
   is the one CI installs. They used to differ (v26.3.0 at the root against 26.5.1 in web) for no recorded reason.
 - Flutter **3.47.0**, Dart **3.13.0** ([`app/pubspec.yaml`](./app/pubspec.yaml)). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
 
@@ -113,13 +113,13 @@ These documents are not generated. A change that does not update them leaves the
 | Every pinned version matches the manifest that pins it, and exactly one manifest pins pnpm | |
 | Every documented `pnpm` script is declared in a [`package.json`](./package.json) | read from code spans, so prose saying "the pnpm and Node pins" is not mistaken for a command |
 | Every source layer carries a nested `CLAUDE.md`, listed in both maps, with no stray `CONTEXT.md` outside the root | |
-| Nothing under `web/src/pages` becomes a public URL by accident | [ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) |
-| Every bare filename a guide cites still exists | searched across `app/lib`, `app/test`, `web/src`, `web/e2e` and `web/workers`: a guide pointing at the test that pins a rule is citing the most useful file it could |
+| Nothing under [`web/src/pages`](./web/src/pages) becomes a public URL by accident | [ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) |
+| Every bare filename a guide cites still exists | searched across [`app/lib`](./app/lib), [`app/test`](./app/test), [`web/src`](./web/src), [`web/e2e`](./web/e2e) and [`web/workers`](./web/workers): a guide pointing at the test that pins a rule is citing the most useful file it could |
 | Every glossary term is used somewhere outside the glossary | |
 | No identifier is named after a word a glossary `_Avoid_` list rejects | narrower than it sounds: see below |
 | No `//` **or `/* */`** comment in any hand-written source | `app/lib`, `app/test`, `web/src`, `web/e2e`, `web/workers`, `docs/`, `scripts/` and the three `web/*.config.ts`. The exception list is exactly `// @vitest-environment` and `/// <reference>`, the two the runner reads, so a `///` Dart doc comment or a `// @TODO` is caught like any other. The block form was invisible for a year |
 | The web layers import only inwards | over `.astro` as well as `.ts`, and over every import form rather than `from "…"` alone: that hole is how a marketing component reached around the domain and counted the raw token JSON instead of the filtered `CELL_SHAPES` |
-| `shadcn_ui` stays inside `app/lib/ui/widgets/`, the theme and the composition root | |
+| `shadcn_ui` stays inside [`app/lib/ui/widgets/`](./app/lib/ui/widgets), the theme and the composition root | |
 | **Two things written more than once stay identical** | the Embed contract in Dart and TypeScript, and the dark palette in its two CSS blocks. A third used to be here, the web path filter written across three workflows, and it is gone because the filters are gone: one unfiltered `ci.yml` replaced them |
 | Every `tail_consumers` entry names the Worker [`web/workers/tail/wrangler.toml`](./web/workers/tail/wrangler.toml) declares | nothing deploys that Worker from CI, so a rename in either file stops log forwarding with no error anywhere |
 

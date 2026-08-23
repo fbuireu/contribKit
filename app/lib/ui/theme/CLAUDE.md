@@ -58,7 +58,7 @@ to the enum and not to the map took down the Customizer the first time it render
 - **`AppTextStyles` builds through `google_fonts`,** so a style is a function call rather than a `const`. It cannot
   be used where a `const` is required, which is why callers take the builder rather than a stored constant.
 - **It covers only the monospace face, and the widget tree does not honour the "no inline `TextStyle`" rule.**
-  `mono` is the sole builder, and two dozen call sites under `app/lib/ui` still construct a `TextStyle` directly:
+  `mono` is the sole builder, and two dozen call sites under [`app/lib/ui`](..) still construct a `TextStyle` directly:
   the proportional text mostly rides on `ShadTheme`'s own text theme instead. Treat the rule as the target, not as a
   description of the code, and do not cite this file as proof that no widget does it. (Count it with
   `grep -rn "TextStyle(" app/lib/ui` rather than trusting a number written here.)

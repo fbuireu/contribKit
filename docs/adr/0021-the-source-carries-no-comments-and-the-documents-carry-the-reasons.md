@@ -18,7 +18,7 @@ Doc comments complicate this. `///` in Dart and JSDoc in TypeScript are normally
 
 **No `//` and no `/* */` in hand-written source, of any kind, including doc comments.** The reason a piece of code is the way it is goes in the folder's `CLAUDE.md`, in an ADR, or in the commit message. Naming is the only in-file explanation: a constant named `WEYL_INCREMENT` replaces the comment that would have said "Weyl increment".
 
-The ban covers `app/lib`, `app/test`, `web/src`, `web/e2e`, `web/workers`, `docs/`, `scripts/` and the three `web/*.config.ts`. Generated Dart is excluded because it is generated. The exception list is exactly two directives the tooling reads and would break without: `// @vitest-environment` and `/// <reference>`.
+The ban covers [`app/lib`](../../app/lib), [`app/test`](../../app/test), [`web/src`](../../web/src), [`web/e2e`](../../web/e2e), [`web/workers`](../../web/workers), `docs/`, `scripts/` and the three `web/*.config.ts`. Generated Dart is excluded because it is generated. The exception list is exactly two directives the tooling reads and would break without: `// @vitest-environment` and `/// <reference>`.
 
 **Kotlin, XML and the root config files are outside it, deliberately.** `ContribKitWidgetProvider.kt` carries comments, `AndroidManifest.xml` carries XML comments, and [`commitlint.config.cjs`](../../commitlint.config.cjs) opens with a JSDoc block. The rule earns its keep where the reasoning has a document to live in; the Android sources have no colocated guide of their own, and [`app/lib/ui/CLAUDE.md`](../../app/lib/ui/CLAUDE.md) documents them from the Dart side instead. Extending the ban there means giving them a guide first.
 
@@ -30,5 +30,5 @@ The rejected alternative is the ordinary one: allow doc comments, ban the rest. 
 - **The documents are load-bearing, so they cannot be optional.** This is what makes the maintenance contract in [15](0015-the-maintenance-contract-is-enforced-by-a-test.md) necessary rather than nice: deleting it would leave the reasoning in files nothing checks.
 - **No published API documentation can be generated from this source.** `dart doc` and TypeDoc produce nothing useful. Neither is published, and adopting either means reopening this decision rather than adding comments quietly.
 - **Commented-out code has nowhere to live.** Deleting it is the only option, which is the intent: git holds it.
-- **A `// @TODO` is a build failure, not a note.** Deferred work goes in `docs/plans/` with the reason it was deferred, or it goes nowhere.
+- **A `// @TODO` is a build failure, not a note.** Deferred work goes in [`docs/plans/`](../plans) with the reason it was deferred, or it goes nowhere.
 - Where it bites: the **Conventions** list in [`CLAUDE.md`](../../CLAUDE.md), the maintenance-contract table beneath it, and [`CONTRIBUTING.md`](../../CONTRIBUTING.md) under "Improving documentation".

@@ -137,7 +137,7 @@ The Flutter app can only bundle assets inside its own package, so the shared des
 | In CI | before the release build |
 | Manually | `pnpm sync:assets` |
 
-> Always edit the source files in `shared/`, never the generated copies in `app/assets/`. See **[Project Structure](Project-Structure)**.
+> Always edit the source files in `shared/`, never the generated copies in [`app/assets/`](../../app/assets). See **[Project Structure](Project-Structure)**.
 
 ---
 

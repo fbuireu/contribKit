@@ -89,7 +89,7 @@ Git hooks are repo-wide. See **[Monorepo Development](../README.md#monorepo-deve
 
 ## Home-Screen Widgets
 
-**Android only.** `app/ios` carries the `Runner` and `RunnerTests` targets and nothing else. There is no WidgetKit extension, so an iOS install has no home-screen widget. Two sizes ship:
+**Android only.** [`app/ios`](./ios) carries the `Runner` and `RunnerTests` targets and nothing else. There is no WidgetKit extension, so an iOS install has no home-screen widget. Two sizes ship:
 
 | Size            | Provider                        | Shows                                                     |
 | --------------- | ------------------------------- | --------------------------------------------------------- |

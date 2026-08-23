@@ -57,7 +57,7 @@ Two rules are worth stating here because they hold in both clients and in every 
 
 ## Shared design tokens
 
-Palettes, shapes, and suggested usernames are defined once in `shared/*.json` and consumed by both apps. The web imports them via the `@shared` alias at build time; the Flutter app bundles generated copies under `app/assets/`. See **[Project Structure](Project-Structure)**.
+Palettes, shapes, and suggested usernames are defined once in `shared/*.json` and consumed by both apps. The web imports them via the `@shared` alias at build time; the Flutter app bundles generated copies under [`app/assets/`](../../app/assets). See **[Project Structure](Project-Structure)**.
 
 ---
 

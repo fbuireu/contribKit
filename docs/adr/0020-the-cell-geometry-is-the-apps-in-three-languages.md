@@ -20,7 +20,7 @@ The second option is not really available. The first one is a visible change to 
 
 **The formulas live in one module per language, and the app's ratio is the one that is right.**
 
-`CellGeometryService` in `app/lib/domain/services/` owns `cornerRadiusFor`, `dotRadiusFor` and `hexVerticesFor`, over `cornerRadiusRatio` (0.2), `dotBaseRadius` (1.4), `dotReferenceCellSize` (10.0) and `hexVertexCount` (6). [`svg-geometry.ts`](../../web/src/domain/services/svg-geometry.ts) in `web/src/domain/services/` is the same three formulas over the same first three constants, and `calendarLayout` is the single call the two **calendar** renderers, `svgStringRenderer` and `renderCalendarString`, take their whole geometry from.
+`CellGeometryService` in [`app/lib/domain/services/`](../../app/lib/domain/services) owns `cornerRadiusFor`, `dotRadiusFor` and `hexVerticesFor`, over `cornerRadiusRatio` (0.2), `dotBaseRadius` (1.4), `dotReferenceCellSize` (10.0) and `hexVertexCount` (6). [`svg-geometry.ts`](../../web/src/domain/services/svg-geometry.ts) in [`web/src/domain/services/`](../../web/src/domain/services) is the same three formulas over the same first three constants, and `calendarLayout` is the single call the two **calendar** renderers, `svgStringRenderer` and `renderCalendarString`, take their whole geometry from.
 
 **The published Embed's rounded corner moved from 2.5 to 2.0**, because `SVG_DEFAULT_CELL_SIZE` is 10 and 10 times 0.2 is 2. That was accepted rather than worked around. A per-client constant would have kept the old pixel and re-created the divergence it was there to remove.
 

@@ -38,11 +38,11 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 | `di/` | All dependency wiring: the only place that constructs infrastructure objects |
 | `theme/` | [`tokens.dart`](./theme/tokens.dart), `app_colors.dart`, [`app_text_styles.dart`](./theme/app_text_styles.dart), [`background_presets.dart`](./theme/background_presets.dart). And no palette table, see [`theme/`](./theme/CLAUDE.md) |
 | `widgets/` | Shared `AppXxx` wrappers over `shadcn_ui` primitives: button, card, text field, tooltip, sheet. **`AppSheet` is not a pass-through**: it decides what a sheet in this app *is*; see below. `AppButton` takes an `AppButtonSize`, not shadcn's, so the type does not leak either. [`app_icons.dart`](./widgets/app_icons.dart) re-exports `LucideIcons`, which arrives through `shadcn_ui` and is not a declared dependency of this package |
-| `features/viewer/` | The Viewer screen and `ViewerNotifier`, which owns nearly all app state |
-| `features/customizer/` | Choosing a Palette, a Cell Shape, a Cell Size and a Background Preset: all four through `SettingPicker` |
-| `features/export/` | Choosing an `ExportFormat` and the share flow. The format itself is a domain value object, not a private enum per surface |
-| `features/tip/` | The Tip Jar, its sealed `TipJarState`, and `TipProductPresentation`: the emoji and label each Tip Product is shown with |
-| `features/widget/` | Home-screen widget data sync and configuration |
+| [`features/viewer/`](./features/viewer) | The Viewer screen and `ViewerNotifier`, which owns nearly all app state |
+| [`features/customizer/`](./features/customizer) | Choosing a Palette, a Cell Shape, a Cell Size and a Background Preset: all four through `SettingPicker` |
+| [`features/export/`](./features/export) | Choosing an `ExportFormat` and the share flow. The format itself is a domain value object, not a private enum per surface |
+| [`features/tip/`](./features/tip) | The Tip Jar, its sealed `TipJarState`, and `TipProductPresentation`: the emoji and label each Tip Product is shown with |
+| [`features/widget/`](./features/widget) | Home-screen widget data sync and configuration |
 
 ## `ViewerNotifier` owns the state
 

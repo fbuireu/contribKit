@@ -8,7 +8,7 @@ CI is split per component with **path filters**, so an app change never triggers
 > comments and version pins the contract asserts while no workflow watched them. A fourth copy of the filter had
 > drifted and left preview Workers alive. There is one [`ci.yml`](../../.github/workflows/ci.yml) now with **no path filter**, and a `changes` job
 > that gates jobs with `if:` instead. Each component is linted, tested, built, versioned with semantic-release,
-> and shipped: the web to Cloudflare, the app to Google Play. Workflows live in `.github/workflows/`.
+> and shipped: the web to Cloudflare, the app to Google Play. Workflows live in [`.github/workflows/`](../../.github/workflows).
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|

@@ -55,7 +55,7 @@ conflict.
 | Tool | Version | Pinned in |
 | --- | --- | --- |
 | pnpm | 11.21.0 | root `packageManager`, and nowhere else: always pnpm, never npm or yarn |
-| Node | 26.7.0 | root `engines`, `web/engines` and `web/.nvmrc`: the same version in all three |
+| Node | 26.7.0 | root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc): the same version in all three |
 | Flutter | 3.47.0 | [`app/pubspec.yaml`](./app/pubspec.yaml) |
 | Dart | 3.13.0 | `app/pubspec.yaml` |
 
@@ -153,7 +153,7 @@ git add app/ && git commit -m "feat(contribkit-app): ..."
 
 **This is a notice, not a gate.** The `cross-package-notice` job in [`ci.yml`](./.github/workflows/ci.yml) comments on the pull
 request and does not block the merge, because a change that genuinely spans both clients is legitimate and
-releasing both is then the right outcome. It ignores `app/assets/`, so the pre-commit sync's own mirrors cannot
+releasing both is then the right outcome. It ignores [`app/assets/`](./app/assets), so the pre-commit sync's own mirrors cannot
 make a `shared/` edit look like a cross-package one.
 
 A local `commit-msg` hook used to reject the mixed commit outright. It was removed because splitting locally does

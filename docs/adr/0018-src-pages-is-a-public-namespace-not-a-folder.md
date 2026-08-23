@@ -22,9 +22,9 @@ Prefixing the guide itself was rejected: `_CLAUDE.md` is not auto-loaded by an a
 
 ## Decision
 
-`web/src/pages` is treated as a public URL namespace, not as a place to put files that happen to belong to the pages layer.
+[`web/src/pages`](../../web/src/pages) is treated as a public URL namespace, not as a place to put files that happen to belong to the pages layer.
 
-Route tests live in `web/src/pages/_tests/`, which Astro skips because the segment starts with `_`. They keep vitest's discovery and lose only same-directory imports.
+Route tests live in [`web/src/pages/_tests/`](../../web/src/pages/_tests), which Astro skips because the segment starts with `_`. They keep vitest's discovery and lose only same-directory imports.
 
 The pages guide stays at `web/src/pages/CLAUDE.md`, and `AGENT_GUIDE_ROUTE` in [`web/src/middleware.ts`](../../web/src/middleware.ts) answers `404` for `/CLAUDE` before the route runs. [`astro.config.ts`](../../web/astro.config.ts) also drops it from the sitemap. The page is still built (it is markdown, and small), but it is not reachable and not advertised.
 

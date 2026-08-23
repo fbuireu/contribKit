@@ -25,7 +25,7 @@ Flutter widgets, and must never import from `ui/`.
 | Directory | Contents |
 |---|---|
 | `github/` | `GitHubContributionRepository`: scraping plus the Hive calendar cache |
-| `github/dtos/` | JSON transfer objects for the cache, converted before leaving the layer |
+| [`github/dtos/`](./github/dtos) | JSON transfer objects for the cache, converted before leaving the layer |
 | `persistence/` | `HiveSettingsRepository`: every stored setting |
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown |
@@ -37,7 +37,7 @@ There are two scrapers on purpose, and whoever changes one changes the other
 ([ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md)). They are **not** line-for-line
 equivalent, and the differences are the whole reason this section exists:
 
-| | Web (`web/src/infrastructure/github/`) | App (here) |
+| | Web ([`web/src/infrastructure/github/`](../../../web/src/infrastructure/github)) | App (here) |
 | --- | --- | --- |
 | URL range | no query at all when no year is asked for (the live SVG-embed path); otherwise `from`, plus `to` only for a past year | **`from` and `to` always**, so the current year is closed at 31 December |
 | `User-Agent` | a desktop Chrome string | `ContribKit/1.0 (Flutter)` |

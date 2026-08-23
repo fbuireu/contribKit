@@ -78,7 +78,7 @@ The single source of truth for data used by both apps:
 | `shapes.json` | 5 cell shapes |
 | `usernames.json` | Suggested usernames |
 
-> **Edit the JSON here, never the copies under `app/assets/`.**
+> **Edit the JSON here, never the copies under [`app/assets/`](../../app/assets).**
 
 - **web** imports these directly via the `@shared` alias at build time.
 - **app** (Flutter) can only bundle assets inside its own package, so it uses generated copies in `app/assets/*.json`. They are regenerated:

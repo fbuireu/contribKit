@@ -63,7 +63,7 @@ The environment is chosen at **build** time: `CLOUDFLARE_ENV=<env> astro build` 
 
 ## Mobile: palettes look stale (and shapes never change)
 
-The app uses generated copies of the design tokens in `app/assets/`. If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `ci-app.yml` does not.
+The app uses generated copies of the design tokens in [`app/assets/`](../../app/assets). If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `ci-app.yml` does not.
 
 **Syncing will never change a Cell Shape**, however. `shapes.json` is mirrored and bundled but no Dart file reads it: the app's shapes are a hardcoded `CellShape` enum ([ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)). Adding a shape there changes the web only. See **[Project Structure](Project-Structure)**.
 

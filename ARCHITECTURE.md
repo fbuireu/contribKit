@@ -100,11 +100,11 @@ The diagram is its picture.
 
 | Layer | Web | App | May import | Must not import |
 | --- | --- | --- | --- | --- |
-| domain | `web/src/domain/` · `@domain/*` | `app/lib/domain/` | nothing but the language stdlib, plus `shared/*.json` as data on the web | Astro, Cloudflare, `fetch`, Flutter, Riverpod, `dart:ui` |
-| application | `web/src/application/` · `@application/*` | `app/lib/application/` | domain | infrastructure, ui, pages, any framework |
-| infrastructure | `web/src/infrastructure/` · `@infrastructure/*` | `app/lib/infrastructure/` | domain | ui, pages, application |
-| ui | `web/src/ui/` · `@ui/*` | `app/lib/ui/` | domain; the app also reaches application, and infrastructure **only** through `ui/di/` | web-side: infrastructure. `application` is permitted there and no file imports it: a web component reaching for `@application/*` is legal and a signal the page should be passing the result down instead |
-| pages | `web/src/pages/` | - (the app's composition root is `ui/di/providers.dart`) | everything | - |
+| domain | [`web/src/domain/`](./web/src/domain) · `@domain/*` | [`app/lib/domain/`](./app/lib/domain) | nothing but the language stdlib, plus `shared/*.json` as data on the web | Astro, Cloudflare, `fetch`, Flutter, Riverpod, `dart:ui` |
+| application | [`web/src/application/`](./web/src/application) · `@application/*` | [`app/lib/application/`](./app/lib/application) | domain | infrastructure, ui, pages, any framework |
+| infrastructure | [`web/src/infrastructure/`](./web/src/infrastructure) · `@infrastructure/*` | [`app/lib/infrastructure/`](./app/lib/infrastructure) | domain | ui, pages, application |
+| ui | [`web/src/ui/`](./web/src/ui) · `@ui/*` | [`app/lib/ui/`](./app/lib/ui) | domain; the app also reaches application, and infrastructure **only** through `ui/di/` | web-side: infrastructure. `application` is permitted there and no file imports it: a web component reaching for `@application/*` is legal and a signal the page should be passing the result down instead |
+| pages | [`web/src/pages/`](./web/src/pages) | - (the app's composition root is `ui/di/providers.dart`) | everything | - |
 
 Three rules govern the diagram in both languages:
 
@@ -140,7 +140,7 @@ which owns the threshold and the port it logs through, rather than a condition e
 through GitHub's shared image proxy, so a per-IP limit would throttle every reader at once
 ([ADR 0010](./docs/adr/0010-rate-limit-only-the-json-api.md)).
 
-**App: opening the Viewer** (`app/lib/ui/features/viewer/`):
+**App: opening the Viewer** ([`app/lib/ui/features/viewer/`](./app/lib/ui/features/viewer)):
 
 | # | Call | Layer | Notes |
 | --- | --- | --- | --- |
@@ -182,7 +182,7 @@ distinguished it since ADR 0004.
 
 `shared/*.json` is the single source of truth for palettes, cell shapes and suggested usernames. The web imports it
 at build time through the `@shared/*` alias. Flutter cannot import from outside its own package, so
-[`scripts/sync-shared-assets.mjs`](./scripts/sync-shared-assets.mjs) copies the files into `app/assets/` and the app loads them as bundled assets
+[`scripts/sync-shared-assets.mjs`](./scripts/sync-shared-assets.mjs) copies the files into [`app/assets/`](./app/assets) and the app loads them as bundled assets
 ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)).
 
 **Edit `shared/`, never `app/assets/`**: the copies are generated, a lefthook `pre-commit` command regenerates and
@@ -224,7 +224,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 - **Releases.** semantic-release per component, own tag series (`web-vX.Y.Z`, `app-vX.Y.Z`), configured in
   [`web/.releaserc.json`](./web/.releaserc.json) and [`app/.releaserc.json`](./app/.releaserc.json).
 
-`.github/workflows/`:
+[`.github/workflows/`](./.github/workflows):
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
@@ -233,7 +233,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | `_deploy.yml` | called by `ci.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed: `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching |
 | [`release-app.yml`](./.github/workflows/release-app.yml) | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
 | [`cleanup-development.yml`](./.github/workflows/cleanup-development.yml) | PR closed | Deletes the per-PR preview Worker. It carries no path filter either, because deleting a Worker that was never created is a no-op and a filter here is one more thing to keep in step |
-| [`sync-wiki.yml`](./.github/workflows/sync-wiki.yml) | push to `main` under `docs/wiki/**` | Publishes `docs/wiki/` to the GitHub Wiki |
+| [`sync-wiki.yml`](./.github/workflows/sync-wiki.yml) | push to `main` under `docs/wiki/**` | Publishes [`docs/wiki/`](./docs/wiki) to the GitHub Wiki |
 | `commit-message.yml` | PR opened, edited, reopened or synchronised | Runs commitlint on the **pull request title**, which is what a squash-merge commits. The `commit-msg` hook only sees what is typed locally, so this is the copy that guards `main` |
 | [`dependency-review.yml`](./.github/workflows/dependency-review.yml) | every PR | Fails a pull request that introduces a dependency with a known vulnerability |
 | [`zizmor.yml`](./.github/workflows/zizmor.yml) | - | Static analysis of the workflow files themselves |
