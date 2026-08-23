@@ -11,7 +11,7 @@
 ### Bug Fixes
 
 * **contribkit-web:** restore the layer direction, and guard it this time ([caf61c5](https://github.com/fbuireu/contribKit/commit/caf61c51ed86096525e23d1450757525e2f59466))
-* unbreak the web pipeline — dead imports, and a retry that retried nothing ([8d378cb](https://github.com/fbuireu/contribKit/commit/8d378cb99493a3443189948a34f72842909393cf))
+* unbreak the web pipeline: dead imports, and a retry that retried nothing ([8d378cb](https://github.com/fbuireu/contribKit/commit/8d378cb99493a3443189948a34f72842909393cf))
 
 # [contribkit-web-v1.12.3](https://github.com/fbuireu/contribKit/compare/web-v1.12.2...web-v1.12.3) (2026-08-14)
 
