@@ -8,7 +8,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before submitting, check [IDEAS.md](../../blob/main/IDEAS.md) to see if it's already on the backlog.
+        Before submitting, check [Discussions](../../discussions) to see whether it has been raised already.
 
   - type: textarea
     id: problem
