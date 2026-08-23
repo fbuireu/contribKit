@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Question or discussion
+  - name: Question, idea or discussion
     url: https://github.com/fbuireu/contribkit/discussions
-    about: Ask a question or start a discussion.
+    about: Ask a question, or propose something before opening a feature request.
   - name: Security Policy
     url: https://github.com/fbuireu/contribkit/security/policy
     about: Review our security policy and report vulnerabilities privately.

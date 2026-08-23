@@ -22,7 +22,7 @@ the widget and the tip jar.
 
 | You want to | Go to |
 | --- | --- |
-| Ask a question or start a discussion | [Discussions](https://github.com/fbuireu/contribKit/discussions) |
+| Ask a question, or propose something before requesting it | [Discussions](https://github.com/fbuireu/contribKit/discussions) |
 | Report something broken | [Bug report](https://github.com/fbuireu/contribKit/issues/new?template=bug_report.yml) |
 | Request a feature | [Feature request](https://github.com/fbuireu/contribKit/issues/new?template=feature_request.yml) |
 | Fix the docs | [Documentation issue](https://github.com/fbuireu/contribKit/issues/new?template=documentation.yml) |
