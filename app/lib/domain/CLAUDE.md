@@ -43,7 +43,7 @@ wildcard ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exc
 `ExportFailure` · `TipFailure` · `UnexpectedFailure`
 
 **`AssetFailure` exists because `ParseFailure` meant two different things.** The asset repositories threw
-`ParseFailure` when `assets/palettes.json` could not be read, and `FailureMessage` renders that kind as *"GitHub
+`ParseFailure` when [`assets/palettes.json`](../../assets/palettes.json) could not be read, and `FailureMessage` renders that kind as *"GitHub
 changed its contributions page. Please update the app."*: a sentence about the scrape, shown for a file the app
 ships with itself. It carries the asset key and says so.
 
@@ -79,7 +79,7 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 documents once justified the 2005 by calling it the launch year. Do not "correct" it.
 
 **`ExportFormat` is the one value object with no web counterpart.** The web offers the same three Export Formats
-from `ui/components/export/export-formats.ts`, because there the choice never leaves the browser; here it crosses
+from [`ui/components/export/export-formats.ts`](../../../web/src/ui/components/export/export-formats.ts), because there the choice never leaves the browser; here it crosses
 from a widget through a provider to a repository, and it used to cross as a private enum each surface declared for
 itself. The glossary named it long before any module did.
 
@@ -131,11 +131,11 @@ every frame and no test could reach the derivation through the notifier at all.
 ## `Embed` is half of a cross-language contract
 
 `Embed.origin`, `Embed.segment` and `Embed.extension` are the same three strings
-`web/src/domain/value-objects/embed.ts` exports as `EMBED_ORIGIN`, `EMBED_SEGMENT` and `EMBED_EXTENSION`, because
+[`web/src/domain/value-objects/embed.ts`](../../../web/src/domain/value-objects/embed.ts) exports as `EMBED_ORIGIN`, `EMBED_SEGMENT` and `EMBED_EXTENSION`, because
 the Markdown Export writes a URL the web has to serve. Nothing links the two languages, so the docs contract diffs
 them: it parses the `static const` values here with a regex and asserts the TypeScript contains each one verbatim.
 The defaults are checked too: `defaultPaletteKey` must be `github`, and `defaultShape` must be **the first key in
-`shared/shapes.json`**, which is what the web derives its own default from. Reordering that file therefore changes
+[`shared/shapes.json`](../../../shared/shapes.json)**, which is what the web derives its own default from. Reordering that file therefore changes
 the Dart default as well, and the test is the only thing that will say so.
 
 `Embed.urlFor` takes a Palette key and a Cell Shape and omits either when it equals the default. It does **not**
@@ -155,11 +155,11 @@ Background to embed and the app's Export does not.
 - **`ContributionGridService.buildFor`** turns a flat list of Contribution Days into the 53 × 7 lattice, padding
   every date outside the requested Year as a day with no Count
   ([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)). `weeksPerYear` and `daysPerWeek` are
-  declared here and are what makes the Home Screen Widget's seven separate writes safe. `app/lib/ui/CLAUDE.md`
+  declared here and are what makes the Home Screen Widget's seven separate writes safe. [`app/lib/ui/CLAUDE.md`](../ui/CLAUDE.md)
   carries that argument.
 - **`PaletteService.resolve({ palettes, storedKey })`** answers which Palette a stored setting names. It accepts a
   **key or a name**, which is the in-code half of the `paletteKey` / `paletteName` migration, and falls back to the
-  first Palette rather than throwing: a Palette removed from `shared/palettes.json` degrades to the default
+  first Palette rather than throwing: a Palette removed from [`shared/palettes.json`](../../../shared/palettes.json) degrades to the default
   instead of bricking the Viewer. It returns `null` only for an empty list, which is a broken asset rather than a
   missing setting, and is what `ViewerState.paletteFailure` exists to report. `ViewerNotifier` spelled this out
   inline before, so the background isolate could not reuse it.
@@ -227,11 +227,11 @@ constant here changes, that file changes in the same commit. And note the consta
 Kotlin spells `0.2f`, `1.4f`, `10f` and `6` as literals, so a change here produces no compile error and no failing
 test there. The pairing is prose and a code review.
 
-**There is a fifth renderer, and it agrees now.** `web/src/domain/services/svg-geometry.ts` draws the same Cell for
+**There is a fifth renderer, and it agrees now.** [`web/src/domain/services/svg-geometry.ts`](../../../web/src/domain/services/svg-geometry.ts) draws the same Cell for
 the Embed and the browser preview, and it used to hold its own numbers: a corner radius fixed at `2.5` where this
 service returns `cell * 0.2`, and a dot radius of `1.4 + level` unscaled where this one multiplies by
 `cellSize / 10`. There was **no** Cell Size at which the corners agreed, and the dots agreed only at exactly 10
-(which the web itself does not always use, since `grid-presets.ts` draws the hero at 13 and the customizer at 12).
+(which the web itself does not always use, since [`grid-presets.ts`](../../../web/src/ui/components/grid/grid-presets.ts) draws the hero at 13 and the customizer at 12).
 
 It carries `CORNER_RADIUS_RATIO = 0.2`, `DOT_BASE_RADIUS = 1.4` and `DOT_REFERENCE_CELL_SIZE = 10` now, and its
 `cornerRadiusFor` / `dotRadius` are this service's formulas in TypeScript. The published Embed's rounded corner

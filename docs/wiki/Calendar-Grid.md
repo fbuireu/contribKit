@@ -1,6 +1,6 @@
 # Calendar Grid
 
-GitHub's contribution calendar is always a fixed **53 weeks × 7 days** grid. ContribKit builds that grid deterministically so rendering is stable regardless of which days GitHub actually returned. The logic lives in `web/src/domain/services/calendar-grid.ts`.
+GitHub's contribution calendar is always a fixed **53 weeks × 7 days** grid. ContribKit builds that grid deterministically so rendering is stable regardless of which days GitHub actually returned. The logic lives in [`web/src/domain/services/calendar-grid.ts`](../../web/src/domain/services/calendar-grid.ts).
 
 ```mermaid
 ---
@@ -14,7 +14,7 @@ flowchart LR
     walk --> grid["53 weeks × 7 days<br/>= 371 cells"]
 ```
 
-`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7) = 371` cells. All three are declared in `web/src/domain/services/dates.ts`.
+`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7) = 371` cells. All three are declared in [`web/src/domain/services/dates.ts`](../../web/src/domain/services/dates.ts).
 
 ---
 

@@ -10,11 +10,11 @@ Accepted.
 
 Two conventions this repo applies everywhere collided with one Astro rule, and nobody noticed for months.
 
-The conventions: tests are colocated next to the code they cover, and every source layer carries a nested `CLAUDE.md`. The second is not a preference but an assertion in `docs/docs-consistency.test.ts`, so the file *must* exist at `web/src/pages/CLAUDE.md`.
+The conventions: tests are colocated next to the code they cover, and every source layer carries a nested `CLAUDE.md`. The second is not a preference but an assertion in [`docs/docs-consistency.test.ts`](../docs-consistency.test.ts), so the file *must* exist at [`web/src/pages/CLAUDE.md`](../../web/src/pages/CLAUDE.md).
 
 The Astro rule: every file under `src/pages` that is not prefixed with `_` becomes a public route, and `.md` is in the default `pageExtensions` alongside `.astro` and `.html`.
 
-The result was live on `contribkit.app`. The pages-layer agent guide was served as an HTML page at `/CONTEXT`: 200, no layout, and the only URL besides `/` in the published sitemap, because `@astrojs/sitemap` had no reason to exclude it. The three colocated route tests became endpoints: `/api/health.test` and `/api/contributions.test` each returned 500, which `500.astro` dutifully reported to Better Stack on every hit, and the vitest runtime rode into the deployed Worker as a 522 KB chunk. Renaming the nested guides from `CONTEXT.md` to `CLAUDE.md` had quietly re-pointed the leak at `/CLAUDE` for the next deploy.
+The result was live on `contribkit.app`. The pages-layer agent guide was served as an HTML page at `/CONTEXT`: 200, no layout, and the only URL besides `/` in the published sitemap, because `@astrojs/sitemap` had no reason to exclude it. The three colocated route tests became endpoints: `/api/health.test` and `/api/contributions.test` each returned 500, which [`500.astro`](../../web/src/pages/500.astro) dutifully reported to Better Stack on every hit, and the vitest runtime rode into the deployed Worker as a 522 KB chunk. Renaming the nested guides from [`CONTEXT.md`](../../CONTEXT.md) to [`CLAUDE.md`](../../CLAUDE.md) had quietly re-pointed the leak at `/CLAUDE` for the next deploy.
 
 None of the obvious escapes work. `astro:routes:resolved` hands integrations a mapped copy of the route list, so mutating it does nothing. `pageExtensions` is assembled in `settings.js` and integrations may only `push` onto it: `addPageExtension` has no inverse. Astro offers no `exclude` for the pages directory. The single mechanism the framework does provide is the underscore prefix, on a file or on any directory segment.
 
@@ -26,9 +26,9 @@ Prefixing the guide itself was rejected: `_CLAUDE.md` is not auto-loaded by an a
 
 Route tests live in `web/src/pages/_tests/`, which Astro skips because the segment starts with `_`. They keep vitest's discovery and lose only same-directory imports.
 
-The pages guide stays at `web/src/pages/CLAUDE.md`, and `AGENT_GUIDE_ROUTE` in `web/src/middleware.ts` answers `404` for `/CLAUDE` before the route runs. `astro.config.ts` also drops it from the sitemap. The page is still built (it is markdown, and small), but it is not reachable and not advertised.
+The pages guide stays at `web/src/pages/CLAUDE.md`, and `AGENT_GUIDE_ROUTE` in [`web/src/middleware.ts`](../../web/src/middleware.ts) answers `404` for `/CLAUDE` before the route runs. [`astro.config.ts`](../../web/astro.config.ts) also drops it from the sitemap. The page is still built (it is markdown, and small), but it is not reachable and not advertised.
 
-Two assertions in `docs/docs-consistency.test.ts` hold the line: no `*.test.ts` under `web/src/pages` outside an underscore segment, and no markdown route there other than the guide, together with the constant that blocks it. `web/src/middleware.test.ts` asserts the 404 itself, and that a path merely starting with the same characters still resolves.
+Two assertions in `docs/docs-consistency.test.ts` hold the line: no `*.test.ts` under `web/src/pages` outside an underscore segment, and no markdown route there other than the guide, together with the constant that blocks it. [`web/src/middleware.test.ts`](../../web/src/middleware.test.ts) asserts the 404 itself, and that a path merely starting with the same characters still resolves.
 
 ## Consequences
 

@@ -8,7 +8,7 @@ Accepted. A known gap, recorded rather than fixed.
 
 ## Context
 
-Every palette in `shared/palettes.json` defines six colours: one per contribution level, plus `noneLight`, a lighter variant of the empty-cell colour for use against a light background. The app reads it. The web does not: it types a palette as five colours and always paints empty cells with the dark `none`, so a light-theme visitor sees dark grey squares on a light page.
+Every palette in [`shared/palettes.json`](../../shared/palettes.json) defines six colours: one per contribution level, plus `noneLight`, a lighter variant of the empty-cell colour for use against a light background. The app reads it. The web does not: it types a palette as five colours and always paints empty cells with the dark `none`, so a light-theme visitor sees dark grey squares on a light page.
 
 The obvious fix does not generalise. The SVG endpoint cannot apply it at all: an embed is rendered once and displayed inside someone else's README, which may be light or dark, and the server has no way to know which. Picking either variant is wrong for half the audience.
 

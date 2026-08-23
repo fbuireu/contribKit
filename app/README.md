@@ -54,7 +54,7 @@
 
 ## Architecture
 
-Same DDD-ish layering as the web; each layer documents its rules in a colocated `CLAUDE.md`:
+Same DDD-ish layering as the web; each layer documents its rules in a colocated [`CLAUDE.md`](../CLAUDE.md):
 
 | Layer                                                    | Role                                                                  |
 | --------------------------------------------------------- | --------------------------------------------------------------------- |

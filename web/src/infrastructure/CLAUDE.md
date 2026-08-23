@@ -17,7 +17,7 @@ nothing.
 ## `github/`: scraping the contributions page
 
 `githubHtmlContributionsRepository` is a module-level singleton, imported directly by
-`pages/_contributions.ts`. A factory used to wrap it (a function returning a constant, with a test asserting that
+[`pages/_contributions.ts`](../pages/_contributions.ts). A factory used to wrap it (a function returning a constant, with a test asserting that
 its `fetch` was a function), and it was deleted: it constructed nothing, and a second adapter would be a new
 export here rather than a new branch inside a factory.
 
@@ -117,13 +117,13 @@ writes are still issued but are not tied to the request's lifetime, so a Worker 
 Callers reach it through **`loggerFor(locals)`**, which performs the `Astro.locals.cfContext` cast (where
 `@astrojs/cloudflare` puts the context) in the one place that should know about it. The old `locals.runtime.*`
 accessors are still defined, as getters that throw: `runtime.ctx` tells you to use `cfContext`, and `runtime.env`
-tells you to `import { env } from "cloudflare:workers"`. That is exactly what `middleware.ts` does for the rate
+tells you to `import { env } from "cloudflare:workers"`. That is exactly what [`middleware.ts`](../middleware.ts) does for the rate
 limiter binding. Both data routes, the landing page and the 500 page go through `loggerFor`; keep doing that
 rather than casting `locals` again. `/api/health` is the one route without a logger, because it has nothing to
 report.
 
 **This folder holds the client and nothing else.** Turning something that went wrong into a log line is
-`failure-log.ts` in [`application/http/`](../application/CLAUDE.md): it takes a logger as a parameter rather than
+[`failure-log.ts`](../application/http/failure-log.ts) in [`application/http/`](../application/CLAUDE.md): it takes a logger as a parameter rather than
 reaching for one, and it declares the port it takes. That port and the two helpers were three files in two layers
 before, two of them declaring **character-for-character identical** one-method interfaces (`ServerErrorLogger` here
 and `FailureLogger` there) so that two helpers doing the same job could each be tested with a fake. `Logger` here

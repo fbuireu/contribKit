@@ -16,15 +16,15 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 ## Versions (pinned: match exactly)
 
 - pnpm **11.21.0**: always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
-  `pnpm/action-setup` resolves everywhere it runs, because `ci.yml` and `release-app.yml` pass
+  `pnpm/action-setup` resolves everywhere it runs, because [`ci.yml`](./.github/workflows/ci.yml) and [`release-app.yml`](./.github/workflows/release-app.yml) pass
   `package_json_file: package.json` explicitly, and the `prepare-env` composite action passes nothing, which
-  defaults to the same root manifest. `app/package.json` deliberately declares none, which a docs guard asserts.
+  defaults to the same root manifest. [`app/package.json`](./app/package.json) deliberately declares none, which a docs guard asserts.
   It used to carry the second pin, and because Renovate's `includePaths` did not list the root manifest, that copy
   was the one it kept current. Consolidating onto the root pin silently rolled the package manager back three
   minors, until this was caught and the root was bumped to match
 - Node **26.7.0**, stated three times and always the same: the root `engines`, `web/engines` and `web/.nvmrc`, which
   is the one CI installs. They used to differ (v26.3.0 at the root against 26.5.1 in web) for no recorded reason.
-- Flutter **3.47.0**, Dart **3.13.0** (`app/pubspec.yaml`). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
+- Flutter **3.47.0**, Dart **3.13.0** ([`app/pubspec.yaml`](./app/pubspec.yaml)). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
 
 ## Commands
 
@@ -65,7 +65,7 @@ web/src/            domain → application → infrastructure / ui / pages
 app/lib/            domain → application → infrastructure / ui
 ```
 
-Both clients use the same layered architecture with a strict inward dependency direction ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). Web aliases (`web/tsconfig.json`): `@shared/* @domain/* @application/* @infrastructure/* @ui/*`. Prefer aliases over relative paths.
+Both clients use the same layered architecture with a strict inward dependency direction ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). Web aliases ([`web/tsconfig.json`](./web/tsconfig.json)): `@shared/* @domain/* @application/* @infrastructure/* @ui/*`. Prefer aliases over relative paths.
 
 **Nested guides**. Read the one for the folder you are touching:
 
@@ -101,7 +101,7 @@ Both clients use the same layered architecture with a strict inward dependency d
 
 These documents are not generated. A change that does not update them leaves the tree describing code that no longer exists, so when you change code, update the docs **in the same commit**. A follow-up commit is a promise, not a fix.
 
-`docs/docs-consistency.test.ts` makes the mechanical half executable: it reads every document as data and asserts the checkable claims against the repo. It runs with `pnpm test:ut`, and on its own with `pnpm test:docs`.
+[`docs/docs-consistency.test.ts`](./docs/docs-consistency.test.ts) makes the mechanical half executable: it reads every document as data and asserts the checkable claims against the repo. It runs with `pnpm test:ut`, and on its own with `pnpm test:docs`.
 
 | It asserts | Worth knowing |
 | --- | --- |
@@ -111,7 +111,7 @@ These documents are not generated. A change that does not update them leaves the
 | `shared/*.json` equals its mirror in `app/assets/` | normalised for trailing whitespace as well. **Every file the contract reads is normalised for line endings**, in `read` itself: a Windows clone with `core.autocrlf=true` used to fail two ADR assertions that compare a heading against a stored title, which is a guard failing for a non-reason |
 | The README's feature *line* names every palette and shape shipped | the line, not the file: `GitHub` and `square` occur elsewhere in the README and made the old whole-file check unfailable |
 | Every pinned version matches the manifest that pins it, and exactly one manifest pins pnpm | |
-| Every documented `pnpm` script is declared in a `package.json` | read from code spans, so prose saying "the pnpm and Node pins" is not mistaken for a command |
+| Every documented `pnpm` script is declared in a [`package.json`](./package.json) | read from code spans, so prose saying "the pnpm and Node pins" is not mistaken for a command |
 | Every source layer carries a nested `CLAUDE.md`, listed in both maps, with no stray `CONTEXT.md` outside the root | |
 | Nothing under `web/src/pages` becomes a public URL by accident | [ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) |
 | Every bare filename a guide cites still exists | searched across `app/lib`, `app/test`, `web/src`, `web/e2e` and `web/workers`: a guide pointing at the test that pins a rule is citing the most useful file it could |
@@ -121,7 +121,7 @@ These documents are not generated. A change that does not update them leaves the
 | The web layers import only inwards | over `.astro` as well as `.ts`, and over every import form rather than `from "…"` alone: that hole is how a marketing component reached around the domain and counted the raw token JSON instead of the filtered `CELL_SHAPES` |
 | `shadcn_ui` stays inside `app/lib/ui/widgets/`, the theme and the composition root | |
 | **Two things written more than once stay identical** | the Embed contract in Dart and TypeScript, and the dark palette in its two CSS blocks. A third used to be here, the web path filter written across three workflows, and it is gone because the filters are gone: one unfiltered `ci.yml` replaced them |
-| Every `tail_consumers` entry names the Worker `web/workers/tail/wrangler.toml` declares | nothing deploys that Worker from CI, so a rename in either file stops log forwarding with no error anywhere |
+| Every `tail_consumers` entry names the Worker [`web/workers/tail/wrangler.toml`](./web/workers/tail/wrangler.toml) declares | nothing deploys that Worker from CI, so a rename in either file stops log forwarding with no error anywhere |
 
 **The glossary guard polices far less than its name suggests, deliberately.** It covers the code-shaped terms (`ShapeKind`, `DOW`, `IAP`, `SKU`) anywhere, plus a curated set of plain words (`purchase`, `paywall`, `heatmap`, `donation`, …) in `.ts` and `.dart` with string literals stripped, so it reads identifiers rather than prose. A companion assertion proves every policed word is one `CONTEXT.md` actually rejects, so the list cannot invent a rule. It is not all 106 terms and cannot be: most are ordinary English (`value`, `range`, `save`) that any codebase uses honestly, and some name a platform API rather than our vocabulary: `showPopover` is the HTML Popover API, not a Cell Tooltip called the wrong thing. For the same reason `SDK_SEAMS` exempts the one file that speaks to the store SDK, whose job is to talk the vendor's language on one side and the glossary's on the other; a third assertion caps that list at two and checks each file still exists, so the exemption cannot quietly grow. The stripper removes Dart raw strings before escape sequences and works one line at a time, so a regex literal cannot break quote pairing for the rest of a file.
 
@@ -134,7 +134,7 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | A folder's layout or a rule its guide states | that folder's `CLAUDE.md` (table above) |
 | A palette, shape, or suggested username | `shared/*.json`, then `pnpm sync:assets`, then the README's feature list |
 | How contributions are fetched or parsed | **both** clients: the parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)) |
-| A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and `docs/wiki/API-Reference.md` |
+| A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |
 | A `Failure` kind | the exhaustive match that renders it, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
 | A stored Hive key | add a legacy fallback and a migration test, or users silently lose the setting |
 | A decision an ADR records | that ADR: amend it, or supersede it and say so in both `## Status` blocks |
@@ -145,7 +145,7 @@ Propose an ADR in [`docs/adr/`](./docs/adr/) when a decision is **hard to revers
 
 Three traps worth naming, because all three have already happened here:
 
-- **A rename is not done until the storage key, the background isolate, and the generated code agree.** `main.dart`'s WorkManager isolate used to read Hive directly, so it survived renames and drifted silently; it now goes through `HiveSettingsRepository` like everything else, which is what makes a renamed key a compile error there rather than a widget that quietly stops updating.
+- **A rename is not done until the storage key, the background isolate, and the generated code agree.** [`main.dart`](./app/lib/main.dart)'s WorkManager isolate used to read Hive directly, so it survived renames and drifted silently; it now goes through `HiveSettingsRepository` like everything else, which is what makes a renamed key a compile error there rather than a widget that quietly stops updating.
 - **A doc claim you did not verify is a doc claim that is wrong.** ADRs here have asserted exhaustive matching that a wildcard disabled, a shared token nothing reads, and a launch year off by three. Check literally, against the file.
 - **A guard that never runs is not a guard, and this repository stopped relying on filters to avoid it.** The CI
   used to be two path-filtered workflows, so every assertion had to be paired with the question "which filter
@@ -169,8 +169,8 @@ Three traps worth naming, because all three have already happened here:
 - **Tips unlock nothing.** No code may start checking purchase state ([ADR 0009](./docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)).
 - **`cellSize` on the web is geometry, not Cell Size.** It is a pixel number fed by three fixed presets, and the SVG endpoint has no size parameter. Cell Size as a person's choice exists only in the app ([ADR 0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
 - **The SVG endpoint is not rate-limited, deliberately.** README embeds arrive through GitHub's shared image proxy, so a per-IP limit would throttle everyone at once ([ADR 0010](./docs/adr/0010-rate-limit-only-the-json-api.md)).
-- **Anything you add under `web/src/pages` becomes a public URL.** Astro routes every non-`_` file there, `.md` included. That is how the pages-layer guide ended up served at `/CONTEXT` in production and the colocated route tests ended up as 500-ing endpoints with vitest bundled into the Worker. Route tests live in `_tests/`; the guide is 404'd by `AGENT_GUIDE_ROUTE` in `web/src/middleware.ts` ([ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
-- **The SVG endpoint is the one route exempt from `Cross-Origin-Resource-Policy: same-origin`.** `EMBED_ROUTE`, which the middleware imports from `web/src/domain/value-objects/embed.ts`, matches `/user/<segment>.svg` and nothing else; widening it opts the whole namespace out of a policy the rest of the site relies on ([ADR 0017](./docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md)).
+- **Anything you add under `web/src/pages` becomes a public URL.** Astro routes every non-`_` file there, `.md` included. That is how the pages-layer guide ended up served at `/CONTEXT` in production and the colocated route tests ended up as 500-ing endpoints with vitest bundled into the Worker. Route tests live in `_tests/`; the guide is 404'd by `AGENT_GUIDE_ROUTE` in [`web/src/middleware.ts`](./web/src/middleware.ts) ([ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
+- **The SVG endpoint is the one route exempt from `Cross-Origin-Resource-Policy: same-origin`.** `EMBED_ROUTE`, which the middleware imports from [`web/src/domain/value-objects/embed.ts`](./web/src/domain/value-objects/embed.ts), matches `/user/<segment>.svg` and nothing else; widening it opts the whole namespace out of a policy the rest of the site relies on ([ADR 0017](./docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md)).
 - **The app has no build flavors.** The stage is chosen by which `dart-defines` file is passed, and `--flavor`
   fails because there is nothing for it to name: the two files differ by one key
   ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)).

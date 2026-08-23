@@ -10,13 +10,13 @@ Cloudflare or `fetch`: everything reaches it through a closure. Stateless: state
   one call that takes both, and do not build the repository inside an `.astro` frontmatter: frontmatter is
   per-request code, so the landing page used to rebuild its infrastructure on every visit until that composition
   moved into a module. **The dependency is the repository's own method type**, not a use case wrapping it:
-  `_contributions.ts` wraps `githubHtmlContributionsRepository.fetch` in a one-line arrow typed
+  [`_contributions.ts`](../pages/_contributions.ts) wraps `githubHtmlContributionsRepository.fetch` in a one-line arrow typed
   `ContributionsRepository["fetch"]` and hands that to `loadInitialContributions`: the arrow keeps the reference
   attached to its object, and adds nothing else.
 - **Never throw.** Every use case returns `T | Failure`, or the `LoadContributionsResult` union described below.
 - **Two arguments means one destructured object.** `logContributionsFailure` and `loadInitialContributions` both
   take a single params object; that is the repo-wide convention, not a local one, and
-  `domain/failures/failure.ts` obeys it too.
+  [`domain/failures/failure.ts`](../domain/failures/failure.ts) obeys it too.
 
 ## The use cases
 
@@ -24,7 +24,7 @@ Cloudflare or `fetch`: everything reaches it through a closure. Stateless: state
 | --- | --- | --- |
 | `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | The one use case there is: it defaults, validates, loads and builds the 53×7 grid. |
 
-`resolve-initial-view.ts` sits alongside them and is not a use case in the curried sense: it takes no
+[`resolve-initial-view.ts`](./use-cases/resolve-initial-view.ts) sits alongside them and is not a use case in the curried sense: it takes no
 dependencies. It holds the landing page's request policy: `resolveViewerIdentity` (username precedence, whether the
 visitor asked for anyone, and the resulting `Cache-Control`) and `daySourceFor` (which of the three day sources a
 result and that flag imply). It returns decisions rather than markup, so it stays clear of `ui/` and stays testable.
@@ -71,14 +71,14 @@ importing a port from `infrastructure/`, which is the direction the layer map fo
 and `SERVER_ERROR_STATUS`, the threshold above which a failure is worth logging.
 
 That was three files in two layers, and answering "what happens to a log line" meant walking six modules. The
-threshold in particular lived in `failure-http.ts` (a *status* module) and was imported backwards by the logging
+threshold in particular lived in [`failure-http.ts`](./http/failure-http.ts) (a *status* module) and was imported backwards by the logging
 one; it now sits with the code that applies it.
 
 - **`logContributionsFailure`** turns a failed fetch into a log line and applies the threshold itself, so no route
   repeats the comparison.
 - **`logServerError`** is the narrow helper the 500 page uses, and it **returns early when `error` is
   `undefined`.** Astro populates `Astro.props.error` only when it invokes the page as an error handler, and
-  `500.astro` is also the public URL `/500`. Every hand-typed visit used to write a fabricated incident with
+  [`500.astro`](../pages/500.astro) is also the public URL `/500`. Every hand-typed visit used to write a fabricated incident with
   `reason: "unknown"`, unthrottled, and the e2e suite wrote six per run. "Was I invoked as an error handler?" is
   the helper's decision, the same way the threshold is.
   Its `describeError` handles `Error`, falsy, object and everything else, and **the object branch is wrapped in a

@@ -56,7 +56,7 @@ conflict.
 | --- | --- | --- |
 | pnpm | 11.21.0 | root `packageManager`, and nowhere else: always pnpm, never npm or yarn |
 | Node | 26.7.0 | root `engines`, `web/engines` and `web/.nvmrc`: the same version in all three |
-| Flutter | 3.47.0 | `app/pubspec.yaml` |
+| Flutter | 3.47.0 | [`app/pubspec.yaml`](./app/pubspec.yaml) |
 | Dart | 3.13.0 | `app/pubspec.yaml` |
 
 Do not "fix" a version mismatch by editing the pin.
@@ -129,14 +129,14 @@ choose is the version bump you get.
 Breaking changes take a `!` after the type or a `BREAKING CHANGE:` footer, and bump the major.
 
 **A scope, if you use one, must be a workspace package name.** `@commitlint/config-pnpm-scopes` derives the allowed
-set from `pnpm-workspace.yaml`, so the scopes are `contribkit-web`, `contribkit-app` and `global`. **`feat(web):`
+set from [`pnpm-workspace.yaml`](./pnpm-workspace.yaml), so the scopes are `contribkit-web`, `contribkit-app` and `global`. **`feat(web):`
 and `fix(app):` are rejected.** The scope is optional; `docs:` with none is always fine. Use `global` for a change
 that belongs to neither client: CI, the root manifests, the docs contract.
 
 **The hook is not the only place this runs, because the hook is not where most commits are written.** `commit-msg`
 lints what you type locally; a squash-merge through GitHub commits the **pull request title**, which never passes
 through any local hook. That is how `ci(web):` reached `main` twice while this document said it was rejected.
-`commit-message.yml` lints the PR title on every open and edit, so the message that actually lands is the one that
+[`commit-message.yml`](./.github/workflows/commit-message.yml) lints the PR title on every open and edit, so the message that actually lands is the one that
 was checked. It matters because semantic-release parses these to decide the version and which component's
 changelog the entry goes in.
 
@@ -151,7 +151,7 @@ git add web/ && git commit -m "feat(contribkit-web): ..."
 git add app/ && git commit -m "feat(contribkit-app): ..."
 ```
 
-**This is a notice, not a gate.** The `cross-package-notice` job in `ci.yml` comments on the pull
+**This is a notice, not a gate.** The `cross-package-notice` job in [`ci.yml`](./.github/workflows/ci.yml) comments on the pull
 request and does not block the merge, because a change that genuinely spans both clients is legitimate and
 releasing both is then the right outcome. It ignores `app/assets/`, so the pre-commit sync's own mirrors cannot
 make a `shared/` edit look like a cross-package one.
@@ -180,7 +180,7 @@ update the docs in the same commit.** A follow-up commit is a promise, not a fix
 The glossary is **prescriptive**. If the code says something a `CONTEXT.md` `_Avoid_` list names, the code is what
 is wrong. Do not edit the glossary to match a stale identifier.
 
-`docs/docs-consistency.test.ts` enforces the mechanical half. `ci.yml` runs it in a `Docs Contract` job that is **not** gated on which client changed, and `ci.yml` itself has no path filter, so it fires on every push and pull request. It used to be two path-filtered workflows with a copy of the job in each, and three times a change landed that the contract asserts about while starting no workflow at all. When it fails,
+[`docs/docs-consistency.test.ts`](./docs/docs-consistency.test.ts) enforces the mechanical half. `ci.yml` runs it in a `Docs Contract` job that is **not** gated on which client changed, and `ci.yml` itself has no path filter, so it fires on every push and pull request. It used to be two path-filtered workflows with a copy of the job in each, and three times a change landed that the contract asserts about while starting no workflow at all. When it fails,
 the docs and the code disagree; fix whichever is wrong. **Never delete an assertion to get green.** It cannot check
 prose or rationale, so a green run is not a correct document.
 
@@ -208,7 +208,7 @@ Nothing needs doing by hand. The two components release independently
 ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)):
 
 - **Web**: merging to `main` runs semantic-release (`web-vX.Y.Z`) and deploys to Cloudflare Workers.
-- **App**: releases are a manual `release-app.yml` dispatch with a Google Play track, so an app change sits on
+- **App**: releases are a manual [`release-app.yml`](./.github/workflows/release-app.yml) dispatch with a Google Play track, so an app change sits on
   `main` until the maintainer ships it.
 
 A docs-only push to `main` also redeploys the web Worker. That is expected: `ci.yml`'s `changes` job counts

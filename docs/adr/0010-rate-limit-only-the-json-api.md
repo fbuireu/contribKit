@@ -16,7 +16,7 @@ The JSON API has no such problem: it is called from callers' own addresses, wher
 
 ## Decision
 
-The `API_RATE_LIMITER` binding is applied in `middleware.ts` to `/api/*` only, at 100 requests per minute per `CF-Connecting-IP`. `/user/:username.svg` is deliberately not rate-limited; it relies on being cacheable, carrying a one-hour `max-age` and a day-long stale-while-revalidate window so the vast majority of embed views are answered by Camo's own cache rather than reaching us.
+The `API_RATE_LIMITER` binding is applied in [`middleware.ts`](../../web/src/middleware.ts) to `/api/*` only, at 100 requests per minute per `CF-Connecting-IP`. `/user/:username.svg` is deliberately not rate-limited; it relies on being cacheable, carrying a one-hour `max-age` and a day-long stale-while-revalidate window so the vast majority of embed views are answered by Camo's own cache rather than reaching us.
 
 ## Consequences
 
