@@ -83,7 +83,7 @@ pnpm lint:all             # biome lint
 pnpm format:all           # biome check --write
 pnpm format:check         # biome check, read-only: what CI runs
 pnpm typecheck    # wrangler types + tsc --noEmit
-pnpm verify       # format:check + typecheck + coverage — what CI and pre-push run
+pnpm verify       # format:check + typecheck + coverage: what CI and pre-push run
 ```
 
 ### Working on the app
@@ -109,7 +109,7 @@ advertised in the README's feature list, and the docs test will tell you if you 
 
 ## Code conventions
 
-- **One argument is positional and two or more are a single object typed `<FunctionName>Params`** —
+- **One argument is positional and two or more are a single object typed `<FunctionName>Params`**:
   `render({ shape, overrides }: RenderParams)`. The exception is a function a runtime calls back, such as
   a `sort` comparator, which is handed its arguments one at a time.
 - **No code comments**, doc comments included. The `CLAUDE.md` guides carry the explanation.

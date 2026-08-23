@@ -42,7 +42,7 @@ flowchart LR
   dev --> comment["comment preview URL"]
 ```
 
-- **web-check:** one `pnpm verify` — `format:check` (Biome, no writes), `typecheck` and the Vitest coverage run — then upload coverage to Codecov. The same command runs on `pre-push`, so a green push is a green check.
+- **web-check:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck` and the Vitest coverage run; then upload coverage to Codecov. The same command runs on `pre-push`, so a green push is a green check.
 - **web-build:** production build + `pnpm lint:astro` (`astro check` over the Astro diagnostics). No workflow runs `tsc`; `pnpm lint:ts:typecheck` is a local command only.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`.
 - **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-development.yml`, which carries no path filter at all, so no preview can outlive its pull request.

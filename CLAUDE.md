@@ -36,7 +36,7 @@ pnpm dev                         # astro dev --open
 pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
 pnpm typecheck           # wrangler types + tsc --noEmit
-pnpm verify              # format:check + typecheck + coverage — what CI and pre-push run
+pnpm verify              # format:check + typecheck + coverage: what CI and pre-push run
 pnpm lint:all                    # biome lint
 pnpm format:all                  # biome check --write
 pnpm format:check                # biome check, read-only: what CI runs
@@ -89,7 +89,7 @@ Both clients use the same layered architecture with a strict inward dependency d
   `walk({ dir, match }): WalkParams`. The interface is named after the function, not after the concept,
   so a reader landing on the type knows what takes it. Two adjacent arguments of the same type are what a
   caller transposes with nothing to catch it. A function a *runtime* calls back and hands its arguments
-  one at a time — a `sort` comparator, a class given to `vi.stubGlobal` — is the exception.
+  one at a time (a `sort` comparator, a class given to `vi.stubGlobal`) is the exception.
 - **No code comments**, of any kind, doc comments included. Rationale belongs in commit messages, ADRs, or a
   folder's guide, never inline ([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)).
 - **Errors are a sealed, typed set.** Returned as values on the web, thrown and matched without a wildcard in the app ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). Never widen a match with `_` to silence the compiler.
