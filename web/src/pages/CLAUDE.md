@@ -121,7 +121,7 @@ without `run_worker_first`, so Workers Assets answers `/og.png`, `/robots.txt` a
 existed. That file is the only mechanism that reaches them; `@astrojs/cloudflare` merges its own immutable
 `Cache-Control` rule for `/_astro/*` into it at build time rather than overwriting it, so both survive. It sets the
 three headers that mean something on a non-document response and deliberately not the rest: a CSP does nothing for
-a PNG, and `Cross-Origin-Resource-Policy: same-origin` on `og.png` would break the social-card preview the file
+a PNG, and `Cross-Origin-Resource-Policy: same-origin` on [`og.png`](../../public/og.png) would break the social-card preview the file
 exists for.
 
 **Neither half is visible to [`middleware.test.ts`](../middleware.test.ts)**, which calls `onRequest` directly and therefore tests the
