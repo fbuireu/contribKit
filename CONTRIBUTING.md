@@ -107,6 +107,13 @@ Edit `shared/*.json`, and never `app/assets/*.json`, which is a generated copy
 the root, or just commit: a pre-commit hook syncs and stages them for you. Anything you add also has to be
 advertised in the README's feature list, and the docs test will tell you if you forget.
 
+## Code conventions
+
+- **One argument is positional and two or more are a single object typed `<FunctionName>Params`** —
+  `render({ shape, overrides }: RenderParams)`. The exception is a function a runtime calls back, such as
+  a `sort` comparator, which is handed its arguments one at a time.
+- **No code comments**, doc comments included. The `CLAUDE.md` guides carry the explanation.
+
 ## Commit rules
 
 Conventional Commits, enforced by commitlint on `commit-msg`. semantic-release owns versioning, so the type you

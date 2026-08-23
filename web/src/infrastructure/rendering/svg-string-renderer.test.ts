@@ -17,37 +17,42 @@ const calendar: ContributionCalendar = {
 
 const palette = paletteByKey(DEFAULT_PALETTE_KEY);
 
-const render = (shape: CellShape, overrides = {}): string =>
+interface RenderParams {
+	shape: CellShape;
+	overrides?: Record<string, unknown>;
+}
+
+const render = ({ shape, overrides = {} }: RenderParams): string =>
 	svgStringRenderer({ calendar, options: { palette, shape, background: "transparent", ...overrides } });
 
 describe("svgStringRenderer", () => {
 	it("produces an <svg> root with a viewBox", () => {
-		const svg = render("square");
+		const svg = render({ shape: "square" });
 		expect(svg.startsWith("<svg")).toBe(true);
 		expect(svg.endsWith("</svg>")).toBe(true);
 		expect(svg).toContain('viewBox="0 0');
 	});
 
 	it("renders rects for square and rounded", () => {
-		expect(render("square")).toContain("<rect");
-		expect(render("rounded")).toContain("<rect");
+		expect(render({ shape: "square" })).toContain("<rect");
+		expect(render({ shape: "rounded" })).toContain("<rect");
 	});
 
 	it("renders circles for circle and dot", () => {
-		expect(render("circle")).toContain("<circle");
-		expect(render("dot")).toContain("<circle");
+		expect(render({ shape: "circle" })).toContain("<circle");
+		expect(render({ shape: "dot" })).toContain("<circle");
 	});
 
 	it("renders polygons for hex", () => {
-		expect(render("hex")).toContain("<polygon");
+		expect(render({ shape: "hex" })).toContain("<polygon");
 	});
 
 	it("paints a background rect when not transparent", () => {
-		expect(render("square", { background: "#101010" })).toContain('fill="#101010"');
+		expect(render({ shape: "square", overrides: { background: "#101010" } })).toContain('fill="#101010"');
 	});
 
 	it("includes labels by default and omits them when disabled", () => {
-		expect(render("square", { showLabels: true })).toContain("<text");
-		expect(render("square", { showLabels: false })).not.toContain("<text");
+		expect(render({ shape: "square", overrides: { showLabels: true } })).toContain("<text");
+		expect(render({ shape: "square", overrides: { showLabels: false } })).not.toContain("<text");
 	});
 });

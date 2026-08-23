@@ -178,7 +178,12 @@ test.describe("the DOM contract", () => {
 	const CODE_TAB_ONLY = ["ExportCodePreview", "ExportCopyButton"];
 	const PNG_TAB_ONLY = ["ExportPngPreview"];
 
-	const unmatched = async (page: Page, names: string[]): Promise<string[]> => {
+	interface UnmatchedParams {
+		page: Page;
+		names: string[];
+	}
+
+	const unmatched = async ({ page, names }: UnmatchedParams): Promise<string[]> => {
 		const missing: string[] = [];
 		for (const name of names) {
 			const selector = Selector[name as keyof typeof Selector];
@@ -194,16 +199,16 @@ test.describe("the DOM contract", () => {
 		const onLoad = all.filter((name) => !CODE_TAB_ONLY.includes(name));
 
 		expect(
-			await unmatched(page, onLoad),
+			await unmatched({ page, names: onLoad }),
 			"a Selector matching nothing is a renderer that has silently become a no-op",
 		).toEqual([]);
 
 		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="svg"]`).click();
 		await expect(page.locator(Selector.ExportCodePreview)).toBeVisible();
 
-		expect(await unmatched(page, CODE_TAB_ONLY)).toEqual([]);
+		expect(await unmatched({ page, names: CODE_TAB_ONLY })).toEqual([]);
 		expect(
-			await unmatched(page, PNG_TAB_ONLY),
+			await unmatched({ page, names: PNG_TAB_ONLY }),
 			"the PNG preview belongs to the PNG tab and must go when it is not selected",
 		).toEqual(PNG_TAB_ONLY.map((name) => `${name} -> ${Selector[name as keyof typeof Selector]}`));
 	});

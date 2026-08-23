@@ -17,13 +17,17 @@ describe("computeContributionStats", () => {
 
 	it("skips trailing future days and a pending empty today when counting the streak", () => {
 		const iso = toIsoDate;
-		const dayBefore = (date: Date, days: number) => new Date(date.getTime() - days * 86_400_000);
+		interface DayBeforeParams {
+			date: Date;
+			days: number;
+		}
+		const dayBefore = ({ date, days }: DayBeforeParams) => new Date(date.getTime() - days * 86_400_000);
 		const today = new Date();
 		const stats = computeContributionStats([
-			{ date: iso(dayBefore(today, 2)), level: 2, count: 3 },
-			{ date: iso(dayBefore(today, 1)), level: 1, count: 1 },
+			{ date: iso(dayBefore({ date: today, days: 2 })), level: 2, count: 3 },
+			{ date: iso(dayBefore({ date: today, days: 1 })), level: 1, count: 1 },
 			{ date: iso(today), level: 0, count: 0 },
-			{ date: iso(dayBefore(today, -1)), level: 0, count: 0 },
+			{ date: iso(dayBefore({ date: today, days: -1 })), level: 0, count: 0 },
 		]);
 		expect(stats.currentStreak).toBe(2);
 	});

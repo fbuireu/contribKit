@@ -18,7 +18,12 @@ const SKIP_DIRECTORIES = new Set([
 	".github",
 ]);
 
-const walk = (dir: string, match: (path: string) => boolean): string[] => {
+interface WalkParams {
+	dir: string;
+	match: (path: string) => boolean;
+}
+
+const walk = ({ dir, match }: WalkParams): string[] => {
 	const out: string[] = [];
 	const visit = (current: string): void => {
 		for (const entry of readdirSync(current, { withFileTypes: true })) {
@@ -86,7 +91,7 @@ const withoutCode = (text: string): string => text.replace(FENCED_CODE_BLOCK, ""
 
 const relative = (path: string): string => path.slice(REPO.length + 1).replaceAll("\\", "/");
 
-const markdownFiles = (): string[] => walk(REPO, (path) => path.endsWith(".md"));
+const markdownFiles = (): string[] => walk({ dir: REPO, match: (path) => path.endsWith(".md") });
 
 const isWiki = (path: string): boolean => relative(path).startsWith("docs/wiki/");
 
@@ -342,8 +347,8 @@ describe("shared design tokens", () => {
 describe("layer documentation", () => {
 	const layerGuides = (): string[] =>
 		[
-			...walk(join(REPO, "web/src"), (path) => path.endsWith("CLAUDE.md")),
-			...walk(join(REPO, "app/lib"), (path) => path.endsWith("CLAUDE.md")),
+			...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith("CLAUDE.md") }),
+			...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith("CLAUDE.md") }),
 		]
 			.map(relative)
 			.sort();
@@ -367,7 +372,9 @@ describe("layer documentation", () => {
 	});
 
 	it("no stray CONTEXT.md survives outside the repo root", () => {
-		const strays = walk(REPO, (path) => path.endsWith("CONTEXT.md")).filter((path) => relative(path) !== "CONTEXT.md");
+		const strays = walk({ dir: REPO, match: (path) => path.endsWith("CONTEXT.md") }).filter(
+			(path) => relative(path) !== "CONTEXT.md",
+		);
 		expect(strays.map(relative)).toEqual([]);
 	});
 });
@@ -472,7 +479,12 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 describe("the dark palette is written twice and must agree", () => {
 	const VARIABLES = join(REPO, "web/src/ui/styles/global/variables.css");
 
-	const declarationsAfter = (body: string, selector: string): string[] => {
+	interface DeclarationsAfterParams {
+		body: string;
+		selector: string;
+	}
+
+	const declarationsAfter = ({ body, selector }: DeclarationsAfterParams): string[] => {
 		const start = body.indexOf(selector);
 		if (start === -1) return [];
 		const open = body.indexOf("{", start);
@@ -487,8 +499,11 @@ describe("the dark palette is written twice and must agree", () => {
 	const blocks = (): { label: string; declarations: string[] }[] => {
 		const css = read(VARIABLES);
 		return [
-			{ label: ":root:not(.theme-light)", declarations: declarationsAfter(css, ":root:not(.theme-light)") },
-			{ label: ":root.theme-dark", declarations: declarationsAfter(css, ":root.theme-dark") },
+			{
+				label: ":root:not(.theme-light)",
+				declarations: declarationsAfter({ body: css, selector: ":root:not(.theme-light)" }),
+			},
+			{ label: ":root.theme-dark", declarations: declarationsAfter({ body: css, selector: ":root.theme-dark" }) },
 		];
 	};
 
@@ -538,8 +553,8 @@ describe("the glossary's forbidden names stay out of the code", () => {
 	];
 
 	const sourceFiles = (): string[] => [
-		...walk(join(REPO, "web/src"), (path) => WEB_SOURCE_FILE.test(path)),
-		...walk(join(REPO, "app/lib"), (path) => path.endsWith(".dart")),
+		...walk({ dir: join(REPO, "web/src"), match: (path) => WEB_SOURCE_FILE.test(path) }),
+		...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") }),
 	];
 
 	it("finds a term to police", () => {
@@ -574,8 +589,11 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 	const identifierFiles = (): string[] =>
 		[
-			...walk(join(REPO, "web/src"), (path) => path.endsWith(".ts")),
-			...walk(join(REPO, "app/lib"), (path) => path.endsWith(".dart") && !GENERATED_DART_FILE.test(path)),
+			...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".ts") }),
+			...walk({
+				dir: join(REPO, "app/lib"),
+				match: (path) => path.endsWith(".dart") && !GENERATED_DART_FILE.test(path),
+			}),
 		].filter((path) => !SDK_SEAMS.includes(relative(path)));
 
 	it("polices only words the glossary actually rejects, so the list cannot invent a rule", () => {
@@ -612,8 +630,8 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 describe("nested guides name real files", () => {
 	const nestedGuides = (): string[] => [
-		...walk(join(REPO, "web/src"), (path) => path.endsWith("CLAUDE.md")),
-		...walk(join(REPO, "app/lib"), (path) => path.endsWith("CLAUDE.md")),
+		...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith("CLAUDE.md") }),
+		...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith("CLAUDE.md") }),
 	];
 
 	const citedFilenames = (body: string): string[] => [
@@ -625,11 +643,11 @@ describe("nested guides name real files", () => {
 	const sourceFilenames = (): Set<string> =>
 		new Set(
 			[
-				...walk(join(REPO, "web/src"), () => true),
-				...walk(join(REPO, "web/e2e"), () => true),
-				...walk(join(REPO, "web/workers"), () => true),
-				...walk(join(REPO, "app/lib"), () => true),
-				...walk(join(REPO, "app/test"), () => true),
+				...walk({ dir: join(REPO, "web/src"), match: () => true }),
+				...walk({ dir: join(REPO, "web/e2e"), match: () => true }),
+				...walk({ dir: join(REPO, "web/workers"), match: () => true }),
+				...walk({ dir: join(REPO, "app/lib"), match: () => true }),
+				...walk({ dir: join(REPO, "app/test"), match: () => true }),
 			].map((path) => path.split(PATH_SEPARATOR).at(-1) ?? path),
 		);
 
@@ -660,8 +678,8 @@ describe("the source carries no code comments", () => {
 
 	it("has no // or /* comment in hand-written Dart", () => {
 		const offenders = [
-			...walk(join(REPO, "app/lib"), (path) => path.endsWith(".dart")),
-			...walk(join(REPO, "app/test"), (path) => path.endsWith(".dart")),
+			...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") }),
+			...walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith(".dart") }),
 		]
 			.filter((path) => !GENERATED_DART_FILE.test(path))
 			.flatMap(commentLines);
@@ -673,17 +691,19 @@ describe("the source carries no code comments", () => {
 			join(REPO, path),
 		);
 		const offenders = [
-			...walk(join(REPO, "web/src"), (path) => WEB_SOURCE_FILE.test(path)),
-			...walk(join(REPO, "web/e2e"), (path) => path.endsWith(".ts")),
-			...walk(join(REPO, "web/workers"), (path) => path.endsWith(".ts")),
-			...walk(join(REPO, "docs"), (path) => path.endsWith(".ts")),
+			...walk({ dir: join(REPO, "web/src"), match: (path) => WEB_SOURCE_FILE.test(path) }),
+			...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }),
+			...walk({ dir: join(REPO, "web/workers"), match: (path) => path.endsWith(".ts") }),
+			...walk({ dir: join(REPO, "docs"), match: (path) => path.endsWith(".ts") }),
 			...configs,
 		].flatMap(commentLines);
 		expect(offenders).toEqual([]);
 	});
 
 	it("has no // comment in the repository scripts either", () => {
-		const offenders = walk(join(REPO, "scripts"), (path) => path.endsWith(".mjs")).flatMap(commentLines);
+		const offenders = walk({ dir: join(REPO, "scripts"), match: (path) => path.endsWith(".mjs") }).flatMap(
+			commentLines,
+		);
 		expect(offenders).toEqual([]);
 	});
 });
@@ -695,14 +715,14 @@ describe("nothing under web/src/pages becomes a route by accident", () => {
 			.some((part) => part.startsWith("_"));
 
 	it("colocates no test file inside the route namespace", () => {
-		const offenders = walk(join(REPO, "web/src/pages"), (path) => COLOCATED_TEST_FILE.test(path))
+		const offenders = walk({ dir: join(REPO, "web/src/pages"), match: (path) => COLOCATED_TEST_FILE.test(path) })
 			.filter((path) => !IGNORED_BY_ASTRO(path))
 			.map(relative);
 		expect(offenders).toEqual([]);
 	});
 
 	it("carries no markdown route other than the agent guide the middleware blocks", () => {
-		const markdown = walk(join(REPO, "web/src/pages"), (path) => path.endsWith(".md"))
+		const markdown = walk({ dir: join(REPO, "web/src/pages"), match: (path) => path.endsWith(".md") })
 			.filter((path) => !IGNORED_BY_ASTRO(path))
 			.map(relative);
 		expect(markdown).toEqual(["web/src/pages/CLAUDE.md"]);
@@ -713,7 +733,7 @@ describe("nothing under web/src/pages becomes a route by accident", () => {
 describe("the app's feature widgets go through the wrappers", () => {
 	it("keeps every shadcn_ui import inside widgets/, theme/ and the composition root", () => {
 		const allowed = ["app/lib/main.dart", "app/lib/ui/theme/app_colors.dart"];
-		const offenders = walk(join(REPO, "app/lib"), (path) => path.endsWith(".dart"))
+		const offenders = walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") })
 			.filter((path) => !GENERATED_DART_FILE.test(path))
 			.filter((path) => read(path).includes("package:shadcn_ui/shadcn_ui.dart"))
 			.map(relative)
@@ -737,7 +757,7 @@ describe("the web layers only import inwards", () => {
 
 	for (const [layer, forbidden] of Object.entries(FORBIDDEN_BY_LAYER)) {
 		it(`keeps ${layer} clear of ${forbidden.join(", ")}`, () => {
-			const offenders = walk(join(REPO, "web/src", layer), (path) => WEB_SOURCE_FILE.test(path))
+			const offenders = walk({ dir: join(REPO, "web/src", layer), match: (path) => WEB_SOURCE_FILE.test(path) })
 				.flatMap((path) =>
 					importsOf(read(path))
 						.filter((specifier) => forbidden.some((prefix) => specifier.startsWith(prefix)))
@@ -747,4 +767,50 @@ describe("the web layers only import inwards", () => {
 			expect(offenders).toEqual([]);
 		});
 	}
+});
+
+describe("two or more arguments are one object typed after the function", () => {
+	const FUNCTION_SIGNATURE = /(?:export\s+)?(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*(?:<[^>]*>)?\s*\(([^)]*)\)/g;
+	const ARROW_SIGNATURE =
+		/(?:export\s+)?const\s+([A-Za-z0-9_]+)\s*(?::[^=]*)?=\s*(?:async\s*)?\(([^)]*)\)\s*(?::[^=]*)?=>/g;
+	const TRAILING_COMMA = /,\s*$/;
+
+	interface TopLevelArityParams {
+		parameters: string;
+	}
+
+	const topLevelArity = ({ parameters }: TopLevelArityParams): number => {
+		let depth = 0;
+		let arity = 1;
+
+		for (const character of parameters) {
+			if ("<([{".includes(character)) depth += 1;
+			else if (">)]}".includes(character)) depth -= 1;
+			else if (character === "," && depth === 0) arity += 1;
+		}
+
+		return arity;
+	};
+
+	const sources = [
+		...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".ts") }),
+		...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }),
+		...walk({ dir: join(REPO, "docs"), match: (path) => path.endsWith(".ts") }),
+	];
+
+	it("is the rule the guide states", () => {
+		expect(read(join(REPO, "CLAUDE.md"))).toContain("One argument is positional; two or more are one object");
+	});
+
+	it("holds everywhere, tests included", () => {
+		const positional = sources.flatMap((file) =>
+			[...read(file).matchAll(FUNCTION_SIGNATURE), ...read(file).matchAll(ARROW_SIGNATURE)]
+				.map(([, name, parameters]) => ({ name, parameters: (parameters ?? "").trim().replace(TRAILING_COMMA, "") }))
+				.filter(({ parameters }) => parameters.length > 0 && !parameters.startsWith("{"))
+				.filter(({ parameters }) => topLevelArity({ parameters }) > 1)
+				.map(({ name }) => `${file.replace(`${REPO}/`, "")}: ${name}`),
+		);
+
+		expect(positional).toEqual([]);
+	});
 });
