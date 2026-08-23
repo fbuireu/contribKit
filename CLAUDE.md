@@ -84,12 +84,12 @@ Both clients use the same layered architecture with a strict inward dependency d
 ## Conventions
 
 - **Speak the glossary.** [`CONTEXT.md`](./CONTEXT.md) is prescriptive: if the code says something its `_Avoid_` list names, the code is what is wrong. Do not "fix" the glossary to match a stale identifier.
-- **Named parameters for two or more arguments.** A function taking two or more arguments takes one
-  destructured object typed by an **interface** named `<FunctionName>Params`:
-  `const render = ({ shape, overrides }: RenderParams) => …`. One argument stays positional. Two adjacent
-  arguments of the same type are the shape a caller transposes with nothing to catch it. A function a
-  runtime calls back — a `sort` comparator, a class handed to `vi.stubGlobal` — is the exception, because
-  it is invoked positionally.
+- **One argument is positional; two or more are one object, typed `<FunctionName>Params`.**
+  `paletteByKey(key)`, `toIsoDate(date)`; `render({ shape, overrides }): RenderParams`,
+  `walk({ dir, match }): WalkParams`. The interface is named after the function, not after the concept,
+  so a reader landing on the type knows what takes it. Two adjacent arguments of the same type are what a
+  caller transposes with nothing to catch it. A function a *runtime* calls back and hands its arguments
+  one at a time — a `sort` comparator, a class given to `vi.stubGlobal` — is the exception.
 - **No code comments**, of any kind, doc comments included. Rationale belongs in commit messages, ADRs, or a
   folder's guide, never inline ([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)).
 - **Errors are a sealed, typed set.** Returned as values on the web, thrown and matched without a wildcard in the app ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). Never widen a match with `_` to silence the compiler.

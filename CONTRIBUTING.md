@@ -109,12 +109,9 @@ advertised in the README's feature list, and the docs test will tell you if you 
 
 ## Code conventions
 
-- **Two or more arguments means one named object.** Declare it as an interface called
-  `<FunctionName>Params` and destructure it: `const render = ({ shape, overrides }: RenderParams) => …`.
-  A single argument stays positional. Adjacent arguments of the same type are what a caller transposes
-  with nothing to catch it; named arguments make the swap a type error. The exception is a function a
-  runtime calls back — a `sort` comparator, a class handed to `vi.stubGlobal` — which is invoked
-  positionally and must stay so.
+- **One argument is positional and two or more are a single object typed `<FunctionName>Params`** —
+  `render({ shape, overrides }: RenderParams)`. The exception is a function a runtime calls back, such as
+  a `sort` comparator, which is handed its arguments one at a time.
 - **No code comments**, doc comments included. The `CLAUDE.md` guides carry the explanation.
 
 ## Commit rules

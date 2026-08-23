@@ -768,3 +768,49 @@ describe("the web layers only import inwards", () => {
 		});
 	}
 });
+
+describe("two or more arguments are one object typed after the function", () => {
+	const FUNCTION_SIGNATURE = /(?:export\s+)?(?:async\s+)?function\s+([A-Za-z0-9_]+)\s*(?:<[^>]*>)?\s*\(([^)]*)\)/g;
+	const ARROW_SIGNATURE =
+		/(?:export\s+)?const\s+([A-Za-z0-9_]+)\s*(?::[^=]*)?=\s*(?:async\s*)?\(([^)]*)\)\s*(?::[^=]*)?=>/g;
+	const TRAILING_COMMA = /,\s*$/;
+
+	interface TopLevelArityParams {
+		parameters: string;
+	}
+
+	const topLevelArity = ({ parameters }: TopLevelArityParams): number => {
+		let depth = 0;
+		let arity = 1;
+
+		for (const character of parameters) {
+			if ("<([{".includes(character)) depth += 1;
+			else if (">)]}".includes(character)) depth -= 1;
+			else if (character === "," && depth === 0) arity += 1;
+		}
+
+		return arity;
+	};
+
+	const sources = [
+		...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".ts") }),
+		...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }),
+		...walk({ dir: join(REPO, "docs"), match: (path) => path.endsWith(".ts") }),
+	];
+
+	it("is the rule the guide states", () => {
+		expect(read(join(REPO, "CLAUDE.md"))).toContain("One argument is positional; two or more are one object");
+	});
+
+	it("holds everywhere, tests included", () => {
+		const positional = sources.flatMap((file) =>
+			[...read(file).matchAll(FUNCTION_SIGNATURE), ...read(file).matchAll(ARROW_SIGNATURE)]
+				.map(([, name, parameters]) => ({ name, parameters: (parameters ?? "").trim().replace(TRAILING_COMMA, "") }))
+				.filter(({ parameters }) => parameters.length > 0 && !parameters.startsWith("{"))
+				.filter(({ parameters }) => topLevelArity({ parameters }) > 1)
+				.map(({ name }) => `${file.replace(`${REPO}/`, "")}: ${name}`),
+		);
+
+		expect(positional).toEqual([]);
+	});
+});
