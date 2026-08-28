@@ -54,6 +54,21 @@ void main() {
       expect((await repository.load()).paletteKey, 'dracula');
     });
 
+    test(
+      'falls back to the legacy name when the current key holds a wrong type',
+      () async {
+        final box = await settingsBox();
+        await box.put('paletteKey', 42);
+        await box.put('paletteName', 'Tokyo Night');
+
+        expect(
+          (await repository.load()).paletteKey,
+          'Tokyo Night',
+          reason: 'a corrupt current key must not destroy a good legacy one',
+        );
+      },
+    );
+
     test('returns null when nothing was ever stored', () async {
       expect((await repository.load()).paletteKey, isNull);
     });

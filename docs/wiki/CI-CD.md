@@ -93,6 +93,10 @@ flowchart LR
 - **flutter-test:** unit/widget tests with coverage uploaded to Codecov.
 - **flutter-build:** builds a debug APK to catch build breakages early.
 
+Both `flutter analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
+
+Coverage thresholds live in [`.github/codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/codecov.yml): the project status allows a 1% drop against the base, and a patch must reach 80%. That file used to declare `ignore` and nothing else, so enforcement rested on Codecov's undeclared defaults and the bar could be moved from a web UI without leaving a trace in the tree.
+
 ---
 
 Every network-bound step in the app pipeline is cached: the Flutter SDK by `flutter-action`, pub by `~/.pub-cache`

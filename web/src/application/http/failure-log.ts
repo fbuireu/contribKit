@@ -2,6 +2,8 @@ import type { Failure } from "@domain/failures/failure";
 
 export const SERVER_ERROR_STATUS = 500;
 
+export const SERVER_ERROR_MESSAGE = "Something went wrong. Please try again.";
+
 export interface FailureLogger {
 	error(params: { message: string; context?: Record<string, unknown> }): void;
 }

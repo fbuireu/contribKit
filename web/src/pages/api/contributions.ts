@@ -1,5 +1,11 @@
 import { messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
-import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
+import {
+	ContributionsEndpoint,
+	logContributionsFailure,
+	logServerError,
+	SERVER_ERROR_MESSAGE,
+	SERVER_ERROR_STATUS,
+} from "@application/http/failure-log";
 import { isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
@@ -15,7 +21,7 @@ const querySchema = z.object({
 	year: z.string().optional(),
 });
 
-export const GET: APIRoute = async ({ url, locals }) => {
+const handle: APIRoute = async ({ url, locals }) => {
 	const data = querySchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!data.success) {
 		return Response.json({ error: "Missing required parameter: user" }, { status: 400 });
@@ -60,4 +66,13 @@ export const GET: APIRoute = async ({ url, locals }) => {
 			},
 		},
 	);
+};
+
+export const GET: APIRoute = async (context) => {
+	try {
+		return await handle(context);
+	} catch (error) {
+		logServerError({ logger: loggerFor(context.locals), error, path: context.url.pathname });
+		return Response.json({ error: SERVER_ERROR_MESSAGE }, { status: SERVER_ERROR_STATUS });
+	}
 };

@@ -144,6 +144,14 @@ nothing else, so the calendar embeds outside GitHub
   the five context fields), which is twelve near-identical lines written three times, and nothing made them agree.
   The page could only start logging at all once `loadInitialContributions` carried the failure's `kind`; before that
   a GitHub outage on `/` produced no log line.
+- **That covers a mapped `Failure`. An unexpected *throw* is covered by a boundary on each endpoint route.** Both
+  `.ts` routes export a thin `GET` that wraps the real handler in `try`/`catch`, logs through `logServerError` and
+  answers `SERVER_ERROR_MESSAGE` in that route's own body shape: JSON for the API, `text/plain` for the SVG.
+  Without it, anything the `isFailure` guards do not cover reached the platform as a bare 500 with no body and
+  **no Better Stack line at all**, because `500.astro` only runs when Astro invokes a *page* as an error handler.
+  That was a live hole, not a hypothetical: the domain guide records `renderCellShape` throwing inside an `<img>`
+  for a shape with no renderer. The thrown message never reaches the body; a public endpoint is not a stack
+  trace.
 - **`loggerFor(Astro.locals)` is how a route gets a logger.** It is the only place that knows the execution context
   hides behind a cast on `locals`; four files performed that cast by hand before it existed.
 - **`500.astro` logs as a side effect of rendering, and `/500` is a public URL.** `logServerError` runs in the

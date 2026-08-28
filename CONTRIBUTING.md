@@ -195,6 +195,7 @@ Before you open one:
 
 1. The relevant checks pass: `pnpm verify` for the web,
    `flutter analyze && flutter test` for the app.
+   Both halves also run on `pre-push`, so this is a reminder rather than a manual step.
 2. `pnpm test:docs` passes, whichever client you touched.
 3. Commits follow the rules above, including the one-client rule.
 4. The documents the contract names are updated in the same commits.

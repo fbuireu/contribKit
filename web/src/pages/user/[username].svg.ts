@@ -1,5 +1,11 @@
 import { messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
-import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
+import {
+	ContributionsEndpoint,
+	logContributionsFailure,
+	logServerError,
+	SERVER_ERROR_MESSAGE,
+	SERVER_ERROR_STATUS,
+} from "@application/http/failure-log";
 import { isFailure } from "@domain/failures/failure";
 import { buildRollingGrid } from "@domain/services/calendar-grid";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
@@ -20,7 +26,7 @@ const querySchema = z.object({
 	[EmbedParam.Background]: z.string().regex(EMBED_BACKGROUND_PATTERN).catch(DEFAULT_EMBED_QUERY.background),
 });
 
-export const GET: APIRoute = async ({ params, url, locals }) => {
+const handle: APIRoute = async ({ params, url, locals }) => {
 	const username = parseUsername(params.username ?? "");
 	if (isFailure(username)) {
 		return new Response(messageFor(username), {
@@ -61,4 +67,16 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
 			"Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
 		},
 	});
+};
+
+export const GET: APIRoute = async (context) => {
+	try {
+		return await handle(context);
+	} catch (error) {
+		logServerError({ logger: loggerFor(context.locals), error, path: context.url.pathname });
+		return new Response(SERVER_ERROR_MESSAGE, {
+			status: SERVER_ERROR_STATUS,
+			headers: { "Content-Type": "text/plain" },
+		});
+	}
 };

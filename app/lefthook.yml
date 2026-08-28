@@ -21,6 +21,7 @@ commit-msg:
       run: pnpm exec commitlint --edit {1}
 
 pre-push:
+  parallel: false
   commands:
     flutter-analyze:
       root: "app/"
@@ -29,3 +30,10 @@ pre-push:
         - "pubspec.yaml"
         - "analysis_options.yaml"
       run: flutter analyze --fatal-infos
+    flutter-test:
+      root: "app/"
+      glob:
+        - "*.dart"
+        - "pubspec.yaml"
+        - "analysis_options.yaml"
+      run: flutter test

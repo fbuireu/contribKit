@@ -38,18 +38,20 @@ final class HiveSettingsRepository implements SettingsRepository {
     return values.where((value) => value.name == raw).firstOrNull;
   }
 
-  static String? _readWithLegacy(
-    Box<dynamic> box,
-    String key,
-    String legacyKey,
-  ) => (box.get(key) ?? box.get(legacyKey)) as String?;
+  static String? _readWithLegacy({
+    required Box<dynamic> box,
+    required String key,
+    required String legacyKey,
+  }) =>
+      _tolerating(() => box.get(key) as String?) ??
+      _tolerating(() => box.get(legacyKey) as String?);
 
-  static Future<void> _writeReplacingLegacy(
-    Box<dynamic> box,
-    String key,
-    String legacyKey,
-    String value,
-  ) async {
+  static Future<void> _writeReplacingLegacy({
+    required Box<dynamic> box,
+    required String key,
+    required String legacyKey,
+    required String value,
+  }) async {
     await box.put(key, value);
     await box.delete(legacyKey);
   }
@@ -81,7 +83,11 @@ final class HiveSettingsRepository implements SettingsRepository {
       ),
       lastYear: _tolerating(() => year == null ? null : Year(year)),
       paletteKey: _tolerating(
-        () => _readWithLegacy(box, _keyPaletteKey, _keyLegacyPaletteName),
+        () => _readWithLegacy(
+          box: box,
+          key: _keyPaletteKey,
+          legacyKey: _keyLegacyPaletteName,
+        ),
       ),
       cellShape:
           _tolerating(
@@ -93,9 +99,9 @@ final class HiveSettingsRepository implements SettingsRepository {
           CellSize.fallback,
       backgroundPresetName: _tolerating(
         () => _readWithLegacy(
-          box,
-          _keyBackgroundPreset,
-          _keyLegacyCardBackground,
+          box: box,
+          key: _keyBackgroundPreset,
+          legacyKey: _keyLegacyCardBackground,
         ),
       ),
       themeMode:
@@ -116,8 +122,12 @@ final class HiveSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> savePaletteKey(String key) => _write(
-    (box) =>
-        _writeReplacingLegacy(box, _keyPaletteKey, _keyLegacyPaletteName, key),
+    (box) => _writeReplacingLegacy(
+      box: box,
+      key: _keyPaletteKey,
+      legacyKey: _keyLegacyPaletteName,
+      value: key,
+    ),
   );
 
   @override
@@ -131,10 +141,10 @@ final class HiveSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveBackgroundPreset(String presetName) => _write(
     (box) => _writeReplacingLegacy(
-      box,
-      _keyBackgroundPreset,
-      _keyLegacyCardBackground,
-      presetName,
+      box: box,
+      key: _keyBackgroundPreset,
+      legacyKey: _keyLegacyCardBackground,
+      value: presetName,
     ),
   );
 
