@@ -1,6 +1,7 @@
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
+import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ContributionDay day(String iso, {int? count, ContributionLevel? level}) =>
@@ -27,7 +28,7 @@ void main() {
     });
 
     test('starts on the Sunday on or before 1 January', () {
-      for (final year in [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]) {
+      for (var year = Year.minYear; year <= 2060; year++) {
         final first = ContributionGridService.buildFor(
           days: const [],
           year: year,
@@ -36,6 +37,39 @@ void main() {
         expect(first.weekday, DateTime.sunday, reason: 'year $year');
         expect(first.isAfter(DateTime(year, 1, 1)), isFalse);
         expect(DateTime(year, 1, 1).difference(first).inDays, lessThan(7));
+      }
+    });
+
+    test('needs a 54th week only when a leap Year opens on a Saturday', () {
+      final wide = <int>[
+        for (var year = Year.minYear; year <= 2060; year++)
+          if (ContributionGridService.weeksFor(year) != 53) year,
+      ];
+
+      expect(wide, [2028, 2056]);
+      for (final year in wide) {
+        expect(ContributionGridService.weeksFor(year), 54, reason: '$year');
+        expect(DateTime(year, 1, 1).weekday, DateTime.saturday);
+      }
+    });
+
+    test('covers every day of the Year it was asked for', () {
+      for (var year = Year.minYear; year <= 2060; year++) {
+        final days = ContributionGridService.buildFor(
+          days: const [],
+          year: year,
+        ).expand((week) => week.days).toList();
+
+        expect(
+          days.first.date.isAfter(DateTime(year, 1, 1)),
+          isFalse,
+          reason: 'year $year drops 1 January',
+        );
+        expect(
+          days.last.date.isBefore(DateTime(year, 12, 31)),
+          isFalse,
+          reason: 'year $year drops 31 December',
+        );
       }
     });
 

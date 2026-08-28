@@ -4,7 +4,7 @@ Date: 2026-07-26
 
 ## Status
 
-Accepted. Amended by [19](0019-an-unknown-count-is-null-in-both-clients.md): a padding day carries a `null` Count, not zero, and the streak and activity figures read the Contribution Level rather than the Count. The lattice decision below still stands.
+Superseded by [23](0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md): the lattice covers the Year, which is 53 weeks for every Year but 2028 and 2056, where 371 cells cannot hold the Year and the grid dropped 31 December. The rest of the decision below stands, and 23 restates it. Amended by [19](0019-an-unknown-count-is-null-in-both-clients.md): a padding day carries a `null` Count, not zero, and the streak and activity figures read the Contribution Level rather than the Count.
 
 ## Context
 

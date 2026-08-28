@@ -111,7 +111,7 @@ Two rules follow, and they are the whole reason the type changed:
 
 The week-based shape is what makes `ContributionStatsService`'s `weeklyAverage` a simple division: the grid is
 always 53×7, so `weeks.length` is a constant and never a partial year
-([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)).
+([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
 
 **Every figure derived from Counts is nullable, and `null` means "not knowable" rather than zero.** `weeklyAverage`
 is `null` when Total Contributions is; `bestDayCount` and `bestMonthContributions` are `null` the moment any active
@@ -152,11 +152,14 @@ Background to embed and the app's Export does not.
   The `yearMax == 0` arm is unreachable from both call sites: it sits after the `count == 0` check, and both
   derive `yearMax` as the maximum over the counts, so a positive count implies a positive maximum. It is kept as a
   total function's answer for an input the callers happen not to produce, not as a live branch.
-- **`ContributionGridService.buildFor`** turns a flat list of Contribution Days into the 53 × 7 lattice, padding
-  every date outside the requested Year as a day with no Count
-  ([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)). `weeksPerYear` and `daysPerWeek` are
-  declared here and are what makes the Home Screen Widget's seven separate writes safe. [`app/lib/ui/CLAUDE.md`](../ui/CLAUDE.md)
-  carries that argument.
+- **`ContributionGridService.buildFor`** turns a flat list of Contribution Days into a lattice of whole
+  Sunday-aligned weeks covering the requested Year, padding every date outside it as a day with no Count
+  ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). `weeksFor` answers how many weeks that
+  takes: 53 for every Year the app offers except 2028 and 2056, where a leap Year opening on a Saturday needs 372
+  cells and 53 × 7 is 371. There is deliberately **no** `weeksPerYear` constant, because a constant is what let
+  the grid drop 31 December 2028 in silence. `daysPerWeek` is declared here and is 7.
+  [ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md) is the superseded decision that fixed
+  the lattice at 53, and is worth reading for why the lattice exists at all.
 - **`PaletteService.resolve({ palettes, storedKey })`** answers which Palette a stored setting names. It accepts a
   **key or a name**, which is the in-code half of the `paletteKey` / `paletteName` migration, and falls back to the
   first Palette rather than throwing: a Palette removed from [`shared/palettes.json`](../../../shared/palettes.json) degrades to the default

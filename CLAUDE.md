@@ -165,7 +165,7 @@ Three traps worth naming, because all three have already happened here:
 ## Gotchas
 
 - **Levels come from GitHub, not from us.** Both parsers read `data-level` as authoritative. Only the app derives a level from the count when the attribute is missing; the web drops the day and lets the grid backfill it.
-- **The app's grid is always 53×7.** Dates outside the requested year are padded as empty days, so week counts never vary: stats that divide by `weeks.length` depend on this ([ADR 0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md)).
+- **The app's grid covers the year, which is 53 weeks or, twice this century, 54.** Dates outside the requested year are padded as empty days. A leap year opening on a Saturday needs 372 cells and 53×7 is 371, so 2028 and 2056 take a 54th week; `ContributionGridService.weeksFor` is the only answer, and nothing may assume a constant ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
 - **The cache is versioned.** Changing what a cached calendar means requires bumping `_cacheBoxName`; past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)).
 - **The parser uses regexes on purpose.** There is no DOM in a Worker; do not "upgrade" it to an HTML parser ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)).
 - **Tips unlock nothing.** No code may start checking purchase state ([ADR 0009](./docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)).

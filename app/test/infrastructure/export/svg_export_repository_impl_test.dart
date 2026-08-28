@@ -82,7 +82,7 @@ void main() {
       final svg = await _render();
       final size = ExportGeometryService.logicalSizeFor(
         cellSize: CellSize.fallback,
-        weeks: ContributionGridService.weeksPerYear,
+        weeks: ContributionGridService.weeksFor(2024),
       );
 
       expect(svg, contains('width="${size.width.toStringAsFixed(1)}"'));
@@ -108,7 +108,7 @@ void main() {
           );
           final logical = ExportGeometryService.logicalSizeFor(
             cellSize: cellSize,
-            weeks: ContributionGridService.weeksPerYear,
+            weeks: ContributionGridService.weeksFor(2024),
           );
 
           expect(
@@ -143,7 +143,7 @@ void main() {
 
       expect(
         cells,
-        ContributionGridService.weeksPerYear *
+        ContributionGridService.weeksFor(2024) *
             ContributionGridService.daysPerWeek,
       );
     });

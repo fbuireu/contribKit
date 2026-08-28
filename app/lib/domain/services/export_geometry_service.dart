@@ -6,7 +6,7 @@ abstract final class ExportGeometryService {
 
   static ({double width, double height}) logicalSizeFor({
     required CellSize cellSize,
-    int weeks = ContributionGridService.weeksPerYear,
+    required int weeks,
   }) {
     final step = cellSize.pixels + cellSize.gap;
     return (
@@ -17,7 +17,7 @@ abstract final class ExportGeometryService {
 
   static ({int width, int height}) pngPixelSizeFor({
     required CellSize cellSize,
-    int weeks = ContributionGridService.weeksPerYear,
+    required int weeks,
   }) {
     final logical = logicalSizeFor(cellSize: cellSize, weeks: weeks);
     return (

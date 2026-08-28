@@ -148,7 +148,7 @@ through GitHub's shared image proxy, so a per-IP limit would throttle every read
 | 2 | `FetchContributions.call(...)` | application | One class, one public `call` |
 | 3 | `GitHubContributionRepository.fetchCalendar(...)` | infrastructure | Hive cache first: 1h TTL for the current year, indefinite for past years ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)) |
 | 4 | DTO → entity at the boundary | infrastructure/github/dtos | A DTO never leaves the layer |
-| 5 | Grid padded to 53×7 | domain | `ContributionGridService.buildFor` pads dates outside the requested year with an unknown Count, so week counts never vary ([ADR 0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md)). Both the fresh fetch and the cache read go through it, and the web builds its grid in its own domain layer |
+| 5 | Grid padded to cover the year | domain | `ContributionGridService.buildFor` pads dates outside the requested year with an unknown Count, over the 53 or 54 whole weeks the year needs ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). Both the fresh fetch and the cache read go through it, and the web builds its grid in its own domain layer |
 | 6 | `ContributionStats` derived | domain/services | Streaks, best day, best month, weekly average, active days |
 
 Separately, `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart) runs every 24 hours under WorkManager to refresh the
@@ -289,6 +289,7 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md) | The app keeps its own scraper for now |
 | [0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md) | The light-theme palette variant is app-only |
 | [0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md) | The app's calendar grid is always 53 by 7 |
+| [0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md) | The app grid covers the Year, in 53 or 54 weeks |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |

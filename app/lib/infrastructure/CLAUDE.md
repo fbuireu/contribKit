@@ -69,7 +69,7 @@ detect ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-ht
 `ContributionGridService.buildFor` always emits 53 × 7 days, starting from the Sunday on or before 1 January
 (`firstOfYear.weekday % 7`: Dart weekdays run 1 = Monday … 7 = Sunday, so Sunday maps to 0). Dates with no parsed
 day become `count: null, level: none`: an unknown Count, not a measured zero
-([ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md)).
+([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
 
 **Every date in that walk is built with the `DateTime` constructor, never by adding a `Duration`.** This is not a
 style preference. `DateTime.add(Duration(days: 1))` adds 24 hours of absolute time, so crossing a daylight-saving

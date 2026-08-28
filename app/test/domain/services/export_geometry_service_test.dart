@@ -23,7 +23,10 @@ void main() {
 
     test('is seven Cells tall, whatever the Cell Size', () {
       for (final cellSize in CellSize.values) {
-        final size = ExportGeometryService.logicalSizeFor(cellSize: cellSize);
+        final size = ExportGeometryService.logicalSizeFor(
+          cellSize: cellSize,
+          weeks: ContributionGridService.weeksFor(2024),
+        );
         final step = cellSize.pixels + cellSize.gap;
 
         expect(
@@ -34,37 +37,53 @@ void main() {
       }
     });
 
-    test('defaults to the full 53-week grid', () {
-      expect(
-        ExportGeometryService.logicalSizeFor(cellSize: CellSize.normal).width,
-        ExportGeometryService.logicalSizeFor(
-          cellSize: CellSize.normal,
-          weeks: ContributionGridService.weeksPerYear,
-        ).width,
+    test('grows with the week count, so a 54-week Year is wider', () {
+      final short = ExportGeometryService.logicalSizeFor(
+        cellSize: CellSize.normal,
+        weeks: ContributionGridService.weeksFor(2024),
       );
+      final long = ExportGeometryService.logicalSizeFor(
+        cellSize: CellSize.normal,
+        weeks: ContributionGridService.weeksFor(2028),
+      );
+
+      expect(long.width, greaterThan(short.width));
+      expect(long.height, short.height);
     });
 
     test('reports the exact pixel size the export tile advertises', () {
-      expect(ExportGeometryService.pngPixelSizeFor(cellSize: CellSize.normal), (
-        width: 2061,
-        height: 267,
-      ), reason: 'the tile shows this, and it used to be an invented 2880x720');
       expect(
-        ExportGeometryService.pngPixelSizeFor(cellSize: CellSize.compact),
+        ExportGeometryService.pngPixelSizeFor(
+          cellSize: CellSize.normal,
+          weeks: 53,
+        ),
+        (width: 2061, height: 267),
+        reason: 'the tile shows this, and it used to be an invented 2880x720',
+      );
+      expect(
+        ExportGeometryService.pngPixelSizeFor(
+          cellSize: CellSize.compact,
+          weeks: 53,
+        ),
         (width: 1743, height: 225),
       );
-      expect(ExportGeometryService.pngPixelSizeFor(cellSize: CellSize.large), (
-        width: 2694,
-        height: 348,
-      ));
+      expect(
+        ExportGeometryService.pngPixelSizeFor(
+          cellSize: CellSize.large,
+          weeks: 53,
+        ),
+        (width: 2694, height: 348),
+      );
     });
 
     test('a larger Cell Size makes a larger PNG, so the tile cannot lie', () {
       final compact = ExportGeometryService.pngPixelSizeFor(
         cellSize: CellSize.compact,
+        weeks: 53,
       );
       final large = ExportGeometryService.pngPixelSizeFor(
         cellSize: CellSize.large,
+        weeks: 53,
       );
 
       expect(large.width, greaterThan(compact.width));

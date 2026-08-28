@@ -161,6 +161,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
               child: _FormatTile(
                 fmt: fmt,
                 cellSize: widget.cellSize,
+                weeks: widget.calendar.weeks.length,
                 isSelected: fmt == _selected,
                 colors: colors,
                 onTap: () => setState(() => _selected = fmt),
@@ -309,6 +310,7 @@ class _FormatTile extends StatelessWidget {
   const _FormatTile({
     required this.fmt,
     required this.cellSize,
+    required this.weeks,
     required this.isSelected,
     required this.colors,
     required this.onTap,
@@ -316,6 +318,7 @@ class _FormatTile extends StatelessWidget {
 
   final ExportFormat fmt;
   final CellSize cellSize;
+  final int weeks;
   final bool isSelected;
   final AppColors colors;
   final VoidCallback onTap;
@@ -327,7 +330,10 @@ class _FormatTile extends StatelessWidget {
   };
 
   String get _pngDetail {
-    final pixels = ExportGeometryService.pngPixelSizeFor(cellSize: cellSize);
+    final pixels = ExportGeometryService.pngPixelSizeFor(
+      cellSize: cellSize,
+      weeks: weeks,
+    );
     return '${pixels.width}×${pixels.height} · transparent';
   }
 

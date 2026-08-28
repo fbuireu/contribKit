@@ -72,7 +72,7 @@ version in the same commit, or do not change the order.''',
       expect(
         HomeScreenWidgetPayload.encodeLevels(_calendar()),
         hasLength(
-          ContributionGridService.weeksPerYear *
+          ContributionGridService.weeksFor(2024) *
               ContributionGridService.daysPerWeek,
         ),
       );
@@ -121,7 +121,7 @@ version in the same commit, or do not change the order.''',
         today: DateTime(2026, 8, 14),
       );
 
-      expect(payload.weeks, ContributionGridService.weeksPerYear);
+      expect(payload.weeks, ContributionGridService.weeksFor(2024));
       expect(
         payload.levels,
         hasLength(payload.weeks * ContributionGridService.daysPerWeek),
@@ -205,8 +205,8 @@ version in the same commit, or do not change the order.''',
       },
     );
   });
-  group('the payload is fixed-width, which is what makes a torn write harmless', () {
-    test('always sends 53 weeks, whatever the calendar holds', () {
+  group('levels and weeks agree inside one payload, which is what bounds a torn write', () {
+    test("sends the calendar's own week count, whatever it holds", () {
       for (final year in [2019, 2020, 2023, 2024]) {
         final calendar = ContributionCalendar(
           username: Username('octocat'),
@@ -224,13 +224,13 @@ version in the same commit, or do not change the order.''',
 
         expect(
           payload.weeks,
-          ContributionGridService.weeksPerYear,
+          ContributionGridService.weeksFor(2024),
           reason: '$year',
         );
       }
     });
 
-    test('always sends 53 x 7 level digits, so an index can never run past the end', () {
+    test('sends exactly weeks x 7 level digits, so the Kotlin bounds check holds', () {
       final calendar = ContributionCalendar(
         username: Username('octocat'),
         year: Year(2024),
@@ -247,7 +247,7 @@ version in the same commit, or do not change the order.''',
 
       expect(
         payload.levels.length,
-        ContributionGridService.weeksPerYear *
+        ContributionGridService.weeksFor(2024) *
             ContributionGridService.daysPerWeek,
       );
       expect(
@@ -255,8 +255,8 @@ version in the same commit, or do not change the order.''',
         payload.weeks * ContributionGridService.daysPerWeek,
         reason:
             'CalendarWidgetService writes these two keys separately, so Kotlin '
-            'can read a new one beside a stale one. Both are invariant, so the '
-            'pair always agrees and the bounds check can never trip',
+            'can read a new one beside a stale one. They agree inside one '
+            'payload, which is what makes idx < levels.length sufficient',
       );
     });
   });
