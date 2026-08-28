@@ -222,7 +222,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   [`web/src/domain/value-objects/palette.ts`](./web/src/domain/value-objects/palette.ts), the most natural shared change there is, would read as touching both
   packages.
 - **Releases.** semantic-release per component, own tag series (`web-vX.Y.Z`, `app-vX.Y.Z`), configured in
-  [`web/.releaserc.json`](./web/.releaserc.json) and [`app/.releaserc.json`](./app/.releaserc.json).
+  [`web/.releaserc.json`](./web/.releaserc.json) and [`app/.releaserc.json`](./app/.releaserc.json). **The release commit is scoped to the package it releases**, `chore(contribkit-web): release …`, because lefthook's `commit-msg` hook runs on it like any other commit and `@commitlint/config-pnpm-scopes` allows only workspace package names. It said `chore(release): web …` until 2026-08-28, which the hook rejected, so `@semantic-release/git` failed after the tag and the GitHub release already existed. Nothing caught it for six days because no commit in between cut a release.
 
 [`.github/workflows/`](./.github/workflows):
 

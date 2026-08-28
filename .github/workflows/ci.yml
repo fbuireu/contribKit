@@ -135,7 +135,7 @@ jobs:
     environment: web-production
     defaults:
       run:
-        working-directory: web/workers/tail
+        working-directory: web
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -171,7 +171,10 @@ jobs:
         env:
           BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}
           SECRETS_FILE: ${{ runner.temp }}/tail-secrets.json
-        run: pnpm exec wrangler deploy --var "BETTER_STACK_INGESTING_URL:$BETTER_STACK_INGESTING_URL" --secrets-file "$SECRETS_FILE"
+        run: |
+          pnpm exec wrangler deploy --config workers/tail/wrangler.toml \
+            --var "BETTER_STACK_INGESTING_URL:$BETTER_STACK_INGESTING_URL" \
+            --secrets-file "$SECRETS_FILE"
 
       - name: Remove the secrets file
         if: always()
