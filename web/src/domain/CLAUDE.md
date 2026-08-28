@@ -73,8 +73,12 @@ The test reads the Dart with a regex and looks for the literal `const EMBED_ORIG
 these three declarations is load-bearing**: split one across two lines, or move it onto an object, and the contract
 fails against code that is perfectly correct. It also asserts that both clients omit the *same* defaults: the
 Palette `github`, and the Cell Shape that is **first in [`shared/shapes.json`](../../../shared/shapes.json)**, which is the second thing reordering
-that file silently changes. The two deliberately diverge on one point: `buildEmbedUrl` takes a `background` and
-`Embed.urlFor` does not, because the app has no Background to put in an Embed.
+that file silently changes. The two do not diverge: neither builder emits a Background.
+`buildEmbedUrl` used to accept one, and this line used to call that a deliberate divergence, but the Customizer
+offers a Palette and a Cell Shape and nothing else, so no production caller ever passed it and the arm was
+reachable only from its own test. The **route** still accepts `background`, validated by
+`EMBED_BACKGROUND_PATTERN`, which is what an Embed URL written by hand may carry; the pattern is now tested
+directly against what it must reject rather than through a builder that no longer emits it.
 
 ## Dates live in local time, both halves
 

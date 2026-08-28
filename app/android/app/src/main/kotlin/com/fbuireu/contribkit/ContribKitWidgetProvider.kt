@@ -76,8 +76,6 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             }
             views.setTextViewText(R.id.widget_streak_count, streakInt.toString())
 
-            // Dart sends the finished sentence, including the wording for a
-            // Count it could not measure. An older install stored an Int here.
             val totalText = totalContributions as? String
             if (totalText != null) {
                 views.setTextViewText(R.id.widget_contributions, totalText)
@@ -93,8 +91,6 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             val colorsStr = prefs.getString("widget_colors", null)
             val shape = prefs.getString("widget_shape", "rounded") ?: "rounded"
 
-            // Track the bitmap for recycling AFTER updateAppWidget to avoid
-            // IllegalStateException when RemoteViews parcels the bitmap.
             var bitmapRef: Bitmap? = null
 
             if (levels != null && weeks > 0 && colorsStr != null) {
@@ -123,19 +119,12 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
 
             appWidgetManager.updateAppWidget(widgetId, views)
 
-            // Recycle only after the Binder parcel is done.
             bitmapRef?.recycle()
         } catch (e: Exception) {
             Log.e("ContribKitWidget", "updateWidget failed for id=$widgetId", e)
         }
     }
 
-    /**
-     * Draws the contribution grid natively, adapting the number of columns to
-     * the widget's real size. Weeks are merged into as many columns as fit at a
-     * comfortable cell size (max level per group), so the full year is always
-     * visible without distortion.
-     */
     private fun renderGrid(
         appWidgetManager: AppWidgetManager,
         widgetId: Int,

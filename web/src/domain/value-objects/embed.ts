@@ -16,9 +16,9 @@ export const EmbedParam = {
 } as const;
 
 export interface EmbedQuery {
-	palette: string;
-	shape: string;
-	background: string;
+	readonly palette: string;
+	readonly shape: string;
+	readonly background: string;
 }
 
 export const DEFAULT_EMBED_QUERY: EmbedQuery = {
@@ -27,29 +27,35 @@ export const DEFAULT_EMBED_QUERY: EmbedQuery = {
 	background: DEFAULT_BACKGROUND_COLOR,
 };
 
-export interface BuildEmbedUrlParams extends Partial<EmbedQuery> {
-	username: string;
-	origin?: string;
-	keepDefaults?: boolean;
+export interface BuildEmbedUrlParams {
+	readonly username: string;
+	readonly palette?: string;
+	readonly shape?: string;
+	readonly origin?: string;
+	readonly keepDefaults?: boolean;
 }
 
 const embedPathFor = (username: string): string => `/${EMBED_SEGMENT}/${username}${EMBED_EXTENSION}`;
+
+type EmbedQueryEntry = readonly [name: string, value: string | undefined, fallback: string];
 
 export const buildEmbedUrl = ({
 	username,
 	palette,
 	shape,
-	background,
 	origin = EMBED_ORIGIN,
 	keepDefaults = false,
 }: BuildEmbedUrlParams): string => {
-	const query = [
+	const entries: readonly EmbedQueryEntry[] = [
 		[EmbedParam.Palette, palette, DEFAULT_EMBED_QUERY.palette],
 		[EmbedParam.Shape, shape, DEFAULT_EMBED_QUERY.shape],
-		[EmbedParam.Background, background, DEFAULT_EMBED_QUERY.background],
-	]
-		.filter(([, value, fallback]) => value !== undefined && (keepDefaults || value !== fallback))
-		.map(([name, value]) => `${name}=${encodeURIComponent(value as string)}`)
+	];
+	const query = entries
+		.filter((entry): entry is readonly [string, string, string] => {
+			const [, value, fallback] = entry;
+			return value !== undefined && (keepDefaults || value !== fallback);
+		})
+		.map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
 		.join("&");
 
 	const url = `${origin}${embedPathFor(username)}`;

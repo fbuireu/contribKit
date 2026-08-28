@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CELL_SHAPE } from "./cell-shape";
-import { buildEmbedUrl, DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE } from "./embed";
+import { buildEmbedUrl, DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE, EmbedParam } from "./embed";
 import { DEFAULT_PALETTE_KEY } from "./palette";
 
 describe("EMBED_ROUTE", () => {
@@ -26,7 +26,6 @@ describe("buildEmbedUrl", () => {
 				username: "torvalds",
 				palette: DEFAULT_PALETTE_KEY,
 				shape: DEFAULT_CELL_SHAPE,
-				background: DEFAULT_EMBED_QUERY.background,
 			}),
 		).toBe("https://contribkit.app/user/torvalds.svg");
 	});
@@ -46,30 +45,31 @@ describe("buildEmbedUrl", () => {
 	it("never emits a doubled separator for any combination of options", () => {
 		const values = [undefined, "catppuccin"];
 		const shapes = [undefined, "hex"];
-		const backgrounds = [undefined, "#0d1117"];
 
 		for (const palette of values) {
 			for (const shape of shapes) {
-				for (const background of backgrounds) {
-					const url = buildEmbedUrl({ username: "torvalds", palette, shape, background });
-					expect(url).not.toContain("&&");
-					expect(url).not.toContain("?&");
-					expect(new URL(url).pathname).toBe("/user/torvalds.svg");
-				}
+				const url = buildEmbedUrl({ username: "torvalds", palette, shape });
+				expect(url).not.toContain("&&");
+				expect(url).not.toContain("?&");
+				expect(new URL(url).pathname).toBe("/user/torvalds.svg");
 			}
 		}
 	});
 
-	it("percent-encodes a background so the query stays parseable", () => {
-		const url = buildEmbedUrl({ username: "torvalds", background: "#0d1117" });
+	it("never emits a background, because nothing on the web chooses one", () => {
+		const url = buildEmbedUrl({ username: "torvalds", palette: "nord", shape: "hex", keepDefaults: true });
 
-		expect(new URL(url).searchParams.get("background")).toBe("#0d1117");
+		expect(url).not.toContain(EmbedParam.Background);
 	});
+});
 
-	it("round-trips through the pattern the route validates with", () => {
-		const url = buildEmbedUrl({ username: "torvalds", background: "#0d1117" });
-		const background = new URL(url).searchParams.get("background") ?? "";
-
-		expect(EMBED_BACKGROUND_PATTERN.test(background)).toBe(true);
+describe("EMBED_BACKGROUND_PATTERN", () => {
+	it("accepts what the SVG route may be handed, and nothing that could break out of an attribute", () => {
+		for (const accepted of ["transparent", "#0d1117", "#fff", "#0d1117ff", "rebeccapurple"]) {
+			expect(EMBED_BACKGROUND_PATTERN.test(accepted), accepted).toBe(true);
+		}
+		for (const rejected of ['"', "'", "<script>", '#0d1117" onload=x', "url(evil)", ""]) {
+			expect(EMBED_BACKGROUND_PATTERN.test(rejected), rejected).toBe(false);
+		}
 	});
 });

@@ -275,6 +275,16 @@ key, was read as `0`, and rendered as a blank footer indistinguishable from a me
 to declare. The total now crosses as a finished sentence, which also puts its wording in the same place as the
 on-screen one instead of duplicating a format string in Kotlin.
 
+**Three things on the Kotlin side carried their reasons as source comments, and ADR 0021 says they belong here.**
+`ContribKitWidgetProvider` reads the total with `totalContributions as? String` rather than as a plain string
+because an older install stored an `Int` under that key, and the cast is what makes such an install render nothing
+instead of crashing. It holds the rendered bitmap in a local and recycles it **after** `updateAppWidget` returns,
+because `RemoteViews` parcels the bitmap during that call and recycling first throws `IllegalStateException`.
+And `renderGrid` does not draw one column per Contribution Week: it merges the weeks into as many columns as fit
+the widget's real width at a comfortable cell size, taking the **maximum** Contribution Level of each group, so the
+whole Year stays visible on a small widget without distortion. That merge is why the column count is derived from
+`widget_weeks` rather than assumed.
+
 **Reordering `ContributionLevel` silently recolours every Home Screen Widget**, because both payloads are indexed by
 position and Kotlin reads them positionally. It also changes what every cached calendar means. A test in
 `test/ui/features/widget/` pins the enum order for exactly that reason. It is the only thing that would fail, and

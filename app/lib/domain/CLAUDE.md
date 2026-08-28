@@ -140,9 +140,12 @@ The defaults are checked too: `defaultPaletteKey` must be `github`, and `default
 [`shared/shapes.json`](../../../shared/shapes.json)**, which is what the web derives its own default from. Reordering that file therefore changes
 the Dart default as well, and the test is the only thing that will say so.
 
-`Embed.urlFor` takes a Palette key and a Cell Shape and omits either when it equals the default. It does **not**
-take a Background, and the web's `buildEmbedUrl` does: a deliberate divergence, because the Customizer has a
-Background to embed and the app's Export does not.
+`Embed.urlFor` takes a Palette key and a Cell Shape and omits either when it equals the default. So does the web's
+`buildEmbedUrl`, and neither takes a Background. This used to say the web's builder took one, and justified it by
+saying the Customizer had a Background to embed: it does not, it offers a Palette and a Cell Shape and nothing
+else, and no production caller ever passed a background. The parameter was dead surface a false sentence kept
+alive, and it is gone. The **SVG endpoint** still reads a `background` query parameter, because an Embed URL a
+person writes by hand may carry one; what no client does is *build* one.
 
 ## Services
 

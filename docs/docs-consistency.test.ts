@@ -689,6 +689,14 @@ describe("the source carries no code comments", () => {
 		expect(offenders).toEqual([]);
 	});
 
+	it("has no // or /* comment in the hand-written Kotlin either", () => {
+		const offenders = walk({
+			dir: join(REPO, "app/android/app/src/main/kotlin"),
+			match: (path) => path.endsWith(".kt"),
+		}).flatMap(commentLines);
+		expect(offenders).toEqual([]);
+	});
+
 	it("has no // or /* comment in web TypeScript or Astro either", () => {
 		const configs = ["web/astro.config.ts", "web/playwright.config.ts", "web/vitest.config.ts"].map((path) =>
 			join(REPO, path),
