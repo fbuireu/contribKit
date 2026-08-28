@@ -16,9 +16,11 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 ## Versions (pinned: match exactly)
 
 - pnpm **11.21.0**: always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
-  `pnpm/action-setup` resolves everywhere it runs, because [`ci.yml`](./.github/workflows/ci.yml) and [`release-app.yml`](./.github/workflows/release-app.yml) pass
+  `pnpm/action-setup` resolves everywhere it runs, because [`release-app.yml`](./.github/workflows/release-app.yml) passes
   `package_json_file: package.json` explicitly, and the `prepare-env` composite action passes nothing, which
-  defaults to the same root manifest. [`app/package.json`](./app/package.json) deliberately declares none, which a docs guard asserts.
+  defaults to the same root manifest. [`ci.yml`](./.github/workflows/ci.yml) used to be a third case: its
+  `release` job set up pnpm, Node and two installs by hand, which was the composite written out again against
+  one lockfile, so it did the same install twice and skipped the `.nvmrc` guard. It calls the composite now. [`app/package.json`](./app/package.json) deliberately declares none, which a docs guard asserts.
   It used to carry the second pin, and because Renovate's `includePaths` did not list the root manifest, that copy
   was the one it kept current. Consolidating onto the root pin silently rolled the package manager back three
   minors, until this was caught and the root was bumped to match
