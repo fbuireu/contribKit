@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CELL_SHAPE } from "./cell-shape";
-import { buildEmbedUrl, DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE, EmbedParam } from "./embed";
+import { buildEmbedUrl, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE, EmbedParam } from "./embed";
 import { DEFAULT_PALETTE_KEY } from "./palette";
 
 describe("EMBED_ROUTE", () => {
