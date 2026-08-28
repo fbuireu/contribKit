@@ -18,7 +18,9 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   widgets that paint.
 - **The value objects that can be invalid validate on construction**, and the ones that carry data compare by
   value. Neither is universal, and the difference matters: `Username` and `Year` reject bad input in their factory,
-  and so does `Color.fromHex`, which throws `ArgumentError` on anything that is not 6 or 8 hex digits (though
+  and so does `Color.fromHex`, which throws `ArgumentError` on anything that is not 6 or 8 hex digits. It checks
+  the characters as well as the length: it used to check only the length, so `'#ZZZZZZ'` reached `int.parse` and
+  threw a `FormatException` instead, and the claim on this line was false for every wrong-character input (though
   `Color`'s primary constructor takes any `int` unchecked). `TipProduct` and `ContributionStats` validate nothing. `Username`, `Year`, `Color` and
   `Palette` override `==` and `hashCode`, and so does `ContributionStats`; `TipProduct` compares by `id` alone.
   **`ContributionStats` overrode neither until it started riding on `ViewerState`**, where identity equality would

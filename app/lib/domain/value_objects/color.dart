@@ -16,14 +16,15 @@ final class Color {
 
   factory Color.fromHex(String hex) {
     final cleaned = hex.startsWith('#') ? hex.substring(1) : hex;
-    if (cleaned.length == 6) {
-      return Color(int.parse('FF$cleaned', radix: 16));
+    if (!_hexPattern.hasMatch(cleaned)) {
+      throw ArgumentError('Invalid hex color: "$hex"');
     }
-    if (cleaned.length == 8) {
-      return Color(int.parse(cleaned, radix: 16));
-    }
-    throw ArgumentError('Invalid hex color: "$hex"');
+    return Color(
+      int.parse(cleaned.length == 6 ? 'FF$cleaned' : cleaned, radix: 16),
+    );
   }
+
+  static final _hexPattern = RegExp(r'^[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$');
 
   String toHex() =>
       '#${argb.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';

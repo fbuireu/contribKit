@@ -585,7 +585,10 @@ describe("the glossary's forbidden names stay out of the code", () => {
 			),
 		);
 
-	const SDK_SEAMS: readonly string[] = ["app/lib/infrastructure/tip/revenuecat_tip_repository.dart"];
+	const SDK_SEAMS: readonly string[] = [
+		"app/lib/infrastructure/tip/revenuecat_tip_repository.dart",
+		"app/lib/infrastructure/tip/store_error.dart",
+	];
 
 	const identifierFiles = (): string[] =>
 		[
@@ -740,6 +743,20 @@ describe("the app's feature widgets go through the wrappers", () => {
 			.filter((path) => !path.startsWith("app/lib/ui/widgets/"))
 			.filter((path) => !allowed.includes(path));
 		expect(offenders).toEqual([]);
+	});
+
+	it("lets shadcn_ui out of widgets/ only through the one re-export, narrowed to LucideIcons", () => {
+		const ICONS = "app/lib/ui/widgets/app_icons.dart";
+		const reExporters = walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") })
+			.filter((path) => !GENERATED_DART_FILE.test(path))
+			.filter((path) => /^\s*export\s+['"]package:shadcn_ui\//m.test(read(path)))
+			.map(relative);
+
+		expect(reExporters).toEqual([ICONS]);
+		expect(
+			read(join(REPO, ICONS)),
+			"the show clause is the whole confinement: without it every importer of app_icons gets all of shadcn_ui, and the import guard above cannot see a re-export",
+		).toContain("show LucideIcons");
 	});
 });
 

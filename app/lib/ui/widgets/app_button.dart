@@ -6,9 +6,9 @@ enum AppButtonSize {
   md(ShadButtonSize.regular),
   lg(ShadButtonSize.lg);
 
-  const AppButtonSize(this.shadSize);
+  const AppButtonSize(this._shadSize);
 
-  final ShadButtonSize shadSize;
+  final ShadButtonSize _shadSize;
 }
 
 class AppButton extends StatelessWidget {
@@ -45,7 +45,7 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ShadButton.raw(
     variant: _variant,
-    size: size?.shadSize,
+    size: size?._shadSize,
     enabled: enabled && onPressed != null,
     onPressed: onPressed,
     child: child,

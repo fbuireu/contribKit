@@ -37,6 +37,16 @@ void main() {
       expect(() => Color.fromHex('#123'), throwsA(isA<ArgumentError>()));
     });
 
+    test('fromHex throws ArgumentError for the right length of the wrong characters', () {
+      for (final hex in ['#ZZZZZZ', 'ZZZZZZ', '#GGHHIIJJ', '#12345 ']) {
+        expect(
+          () => Color.fromHex(hex),
+          throwsA(isA<ArgumentError>()),
+          reason: hex,
+        );
+      }
+    });
+
     test('toHex returns 6-digit uppercase hex', () {
       expect(Color.fromHex('#112233').toHex(), '#112233');
     });
