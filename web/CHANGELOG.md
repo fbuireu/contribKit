@@ -1,3 +1,11 @@
+# [contribkit-web-v1.12.6](https://github.com/fbuireu/contribKit/compare/web-v1.12.5...web-v1.12.6) (2026-08-28)
+
+
+### Bug Fixes
+
+* **ci:** deploy the environment wrangler.toml describes, and the Worker it names ([53ab7ca](https://github.com/fbuireu/contribKit/commit/53ab7cac48b3f723d608e7def786f366842cf561))
+* **ci:** run the tail deploy from web, and scope the release commit to its package ([d6700f2](https://github.com/fbuireu/contribKit/commit/d6700f2f343c391b65b0abffc8dc11fa88018751))
+
 # [contribkit-web-v1.12.5](https://github.com/fbuireu/contribKit/compare/web-v1.12.4...web-v1.12.5) (2026-08-15)
 
 
