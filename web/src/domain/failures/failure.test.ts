@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { Username } from "../value-objects/username";
 import { FailureKind, invalidInput, isFailure, network, notFound, parse, rateLimited } from "./failure";
+
+const handle = (value: string): Username => ({ _tag: "Username", value });
 
 describe("isFailure", () => {
 	it("detects failure-shaped objects", () => {
-		expect(isFailure(notFound("torvalds"))).toBe(true);
+		expect(isFailure(notFound(handle("torvalds")))).toBe(true);
 		expect(isFailure(parse("bad json"))).toBe(true);
 	});
 
@@ -16,7 +19,7 @@ describe("isFailure", () => {
 
 describe("failure constructors", () => {
 	it("notFound", () => {
-		expect(notFound("torvalds")).toEqual({ kind: "NotFound", username: "torvalds" });
+		expect(notFound(handle("torvalds"))).toEqual({ kind: "NotFound", username: handle("torvalds") });
 	});
 
 	it("invalidInput", () => {

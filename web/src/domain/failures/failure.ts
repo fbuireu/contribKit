@@ -1,3 +1,4 @@
+import type { Username } from "../value-objects/username";
 export const FailureKind = {
 	NotFound: "NotFound",
 	InvalidInput: "InvalidInput",
@@ -16,7 +17,7 @@ export const FailureField = {
 export type FailureField = (typeof FailureField)[keyof typeof FailureField];
 
 export type Failure =
-	| { readonly kind: typeof FailureKind.NotFound; readonly username: string }
+	| { readonly kind: typeof FailureKind.NotFound; readonly username: Username }
 	| { readonly kind: typeof FailureKind.InvalidInput; readonly field: FailureField; readonly message: string }
 	| { readonly kind: typeof FailureKind.Network; readonly status?: number; readonly message: string }
 	| { readonly kind: typeof FailureKind.Parse; readonly message: string }
@@ -36,7 +37,7 @@ export interface InvalidInputParams {
 	message: string;
 }
 
-export const notFound = (username: string): Failure => ({ kind: FailureKind.NotFound, username });
+export const notFound = (username: Username): Failure => ({ kind: FailureKind.NotFound, username });
 export const invalidInput = ({ field, message }: InvalidInputParams): Failure => ({
 	kind: FailureKind.InvalidInput,
 	field,

@@ -1,4 +1,5 @@
 import type { ContributionLevel } from "../value-objects/contribution-level";
+import type { Username } from "../value-objects/username";
 
 export interface ContributionDay {
 	readonly date: string;
@@ -7,7 +8,7 @@ export interface ContributionDay {
 }
 
 export interface ContributionCalendar {
-	readonly username: string;
+	readonly username: Username;
 	readonly days: readonly ContributionDay[];
 	readonly total: number | null;
 }

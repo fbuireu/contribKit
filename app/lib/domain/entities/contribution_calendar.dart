@@ -17,10 +17,13 @@ final class ContributionCalendar {
 
   final int? totalContributions;
 
-  bool _listEquals(List<ContributionWeek> a, List<ContributionWeek> b) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
+  bool _listEquals({
+    required List<ContributionWeek> left,
+    required List<ContributionWeek> right,
+  }) {
+    if (left.length != right.length) return false;
+    for (var i = 0; i < left.length; i++) {
+      if (left[i] != right[i]) return false;
     }
     return true;
   }
@@ -31,7 +34,7 @@ final class ContributionCalendar {
       other.username == username &&
       other.year == year &&
       other.totalContributions == totalContributions &&
-      _listEquals(other.weeks, weeks);
+      _listEquals(left: other.weeks, right: weeks);
 
   @override
   int get hashCode =>

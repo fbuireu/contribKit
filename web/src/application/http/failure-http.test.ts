@@ -1,10 +1,13 @@
 import { invalidInput, network, notFound, parse, rateLimited } from "@domain/failures/failure";
+import type { Username } from "@domain/value-objects/username";
 import { describe, expect, it } from "vitest";
 import { messageFor, retryAfterHeader, statusFor } from "./failure-http";
 
+const handle = (value: string): Username => ({ _tag: "Username", value });
+
 describe("statusFor", () => {
 	it("maps each failure kind to a status", () => {
-		expect(statusFor(notFound("x"))).toBe(404);
+		expect(statusFor(notFound(handle("x")))).toBe(404);
 		expect(statusFor(invalidInput({ field: "username", message: "bad" }))).toBe(400);
 		expect(statusFor(network({ message: "down" }))).toBe(502);
 		expect(statusFor(parse("oops"))).toBe(502);
@@ -14,7 +17,7 @@ describe("statusFor", () => {
 
 describe("messageFor", () => {
 	it("uses a friendly message for not-found", () => {
-		expect(messageFor(notFound("ghost"))).toBe("User not found");
+		expect(messageFor(notFound(handle("ghost")))).toBe("User not found");
 	});
 
 	it("passes through the failure message otherwise", () => {
@@ -41,7 +44,7 @@ describe("retryAfterHeader", () => {
 	});
 
 	it("is empty for every other kind, so a 404 never carries one", () => {
-		expect(retryAfterHeader(notFound("ghost"))).toEqual({});
+		expect(retryAfterHeader(notFound(handle("ghost")))).toEqual({});
 		expect(retryAfterHeader(network({ message: "down" }))).toEqual({});
 		expect(retryAfterHeader(parse("oops"))).toEqual({});
 		expect(retryAfterHeader(invalidInput({ field: "username", message: "bad" }))).toEqual({});

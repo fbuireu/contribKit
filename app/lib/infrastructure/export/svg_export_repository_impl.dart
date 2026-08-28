@@ -14,14 +14,17 @@ final class SvgExportRepository implements ExportRepository {
     required RenderOptions options,
   }) async {
     try {
-      final svg = _buildSvg(calendar, options);
+      final svg = _buildSvg(calendar: calendar, options: options);
       return utf8.encode(svg);
     } catch (e) {
       throw ExportFailure(message: 'SVG render failed: $e');
     }
   }
 
-  String _buildSvg(ContributionCalendar calendar, RenderOptions options) {
+  String _buildSvg({
+    required ContributionCalendar calendar,
+    required RenderOptions options,
+  }) {
     final cell = options.namedSize.pixels;
     final step = options.namedSize.step;
 

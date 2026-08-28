@@ -53,17 +53,23 @@ final class GitHubContributionRepository implements ContributionRepository {
     required Username username,
     required Year year,
   }) async {
-    final cacheKey = _cacheKeyFor(username, year);
-    final cached = await _readCache(cacheKey, username, year);
+    final cacheKey = _cacheKeyFor(username: username, year: year);
+    final cached = await _readCache(
+      key: cacheKey,
+      username: username,
+      year: year,
+    );
     if (cached != null) return (calendar: cached, fromCache: true);
 
-    final data = await _fetch(username, year);
-    await _writeCache(cacheKey, data);
+    final data = await _fetch(username: username, year: year);
+    await _writeCache(key: cacheKey, calendar: data);
     return (calendar: data, fromCache: false);
   }
 
-  static String _cacheKeyFor(Username username, Year year) =>
-      '${username.value.toLowerCase()}:${year.value}';
+  static String _cacheKeyFor({
+    required Username username,
+    required Year year,
+  }) => '${username.value.toLowerCase()}:${year.value}';
 
   @override
   Future<void> invalidateCache(Username username) async {
@@ -81,7 +87,10 @@ final class GitHubContributionRepository implements ContributionRepository {
 
   static const _timeout = Duration(seconds: 20);
 
-  Future<ContributionCalendar> _fetch(Username username, Year year) async {
+  Future<ContributionCalendar> _fetch({
+    required Username username,
+    required Year year,
+  }) async {
     final uri = Uri.parse(
       'https://github.com/users/${username.value}/contributions'
       '?from=${year.value}-01-01&to=${year.value}-12-31',
@@ -111,7 +120,11 @@ final class GitHubContributionRepository implements ContributionRepository {
         throw NetworkFailure(message: 'HTTP ${response.statusCode}');
       }
 
-      final calendar = _parseHtml(response.body, username, year);
+      final calendar = _parseHtml(
+        html: response.body,
+        username: username,
+        year: year,
+      );
       return calendar;
     } on Failure {
       rethrow;
@@ -133,7 +146,11 @@ final class GitHubContributionRepository implements ContributionRepository {
     }
   }
 
-  ContributionCalendar _parseHtml(String html, Username username, Year year) {
+  ContributionCalendar _parseHtml({
+    required String html,
+    required Username username,
+    required Year year,
+  }) {
     final parsed = <({DateTime date, int? level, String? id})>[];
     for (final tdMatch in _tdRegex.allMatches(html)) {
       final td = tdMatch.group(0)!;
@@ -226,11 +243,11 @@ final class GitHubContributionRepository implements ContributionRepository {
           ContributionLevel.values.length - 1,
         )];
 
-  Future<ContributionCalendar?> _readCache(
-    String key,
-    Username username,
-    Year year,
-  ) async {
+  Future<ContributionCalendar?> _readCache({
+    required String key,
+    required Username username,
+    required Year year,
+  }) async {
     try {
       final box = await _openBox();
       final raw = box.get(key) as Map<dynamic, dynamic>?;
@@ -247,13 +264,16 @@ final class GitHubContributionRepository implements ContributionRepository {
       final dto = ContributionCalendarDto.fromJson(
         jsonDecode(raw['json'] as String) as Map<String, dynamic>,
       );
-      return _toDomain(dto, username, year);
+      return _toDomain(dto: dto, username: username, year: year);
     } catch (_) {
       return null;
     }
   }
 
-  Future<void> _writeCache(String key, ContributionCalendar calendar) async {
+  Future<void> _writeCache({
+    required String key,
+    required ContributionCalendar calendar,
+  }) async {
     try {
       final box = await _openBox();
       final dto = _toDto(calendar);
@@ -264,11 +284,11 @@ final class GitHubContributionRepository implements ContributionRepository {
     } catch (_) {}
   }
 
-  ContributionCalendar _toDomain(
-    ContributionCalendarDto dto,
-    Username username,
-    Year year,
-  ) {
+  ContributionCalendar _toDomain({
+    required ContributionCalendarDto dto,
+    required Username username,
+    required Year year,
+  }) {
     int? yearMax;
     int derivedYearMax() {
       return yearMax ??= dto.weeks

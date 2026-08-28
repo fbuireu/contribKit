@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { svgStringRenderer } from "./svg-string-renderer";
 
 const calendar: ContributionCalendar = {
-	username: "torvalds",
+	username: { _tag: "Username", value: "torvalds" },
 	days: Array.from({ length: 371 }, (_, index) => ({
 		date: "2024-01-01",
 		level: (index % 5) as ContributionLevel,

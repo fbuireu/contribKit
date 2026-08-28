@@ -173,6 +173,11 @@ test helper reintroduces the same bug in the test rather than the code.
   the defect, because `StreakService` filters to the Year before anchoring. `today` is a parameter rather than a
   clock read for the same reason `StreakService` takes one: with the clock inside, the test has to rebuild its
   expectation from the value it is testing and can never disagree with the code.
+- **A `Username` stays a `Username` all the way out.** `ContributionCalendar.username` and the `NotFound` failure
+  both carry the value object, not a `string`. They used to hold `username.value`, so the repository took a
+  validated handle in and handed a bare string back, and `parseUsername` stopped being the choke point exactly
+  where the guarantee had the furthest left to travel. `/api/contributions` unwraps it with `.value` when it
+  serialises, which is where a value object is supposed to come apart.
 - **`Username` accepts consecutive hyphens; GitHub does not.** `a--b` passes `parseUsername` and then 404s upstream.
   Tightening the pattern is not free (it would turn a truthful "user not found" into a misleading "invalid
   username" for any handle GitHub later starts allowing), so the rule is deliberately looser than GitHub's, and the

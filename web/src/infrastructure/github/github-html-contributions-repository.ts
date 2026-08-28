@@ -114,7 +114,7 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 			return network({ message: error instanceof Error ? error.message : String(error) });
 		}
 
-		if (response.status === 404) return notFound(username.value);
+		if (response.status === 404) return notFound(username);
 		if (response.status === TOO_MANY_REQUESTS)
 			return rateLimited({
 				message: "GitHub is rate-limiting this Worker",
@@ -132,6 +132,6 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 		const { days, total } = parseHtml(html);
 		if (days.length === 0) return parse("Could not parse contributions");
 
-		return { username: username.value, days, total };
+		return { username, days, total };
 	},
 };

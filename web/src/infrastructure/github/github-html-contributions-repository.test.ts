@@ -55,7 +55,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
-		expect(result.username).toBe("torvalds");
+		expect(result.username).toEqual(username);
 		expect(result.days).toEqual([
 			{ date: "2024-01-01", level: 2, count: 5 },
 			{ date: "2024-01-02", level: 0, count: null },
@@ -68,7 +68,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 
 		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
 
-		expect(result).toEqual({ kind: "NotFound", username: "torvalds" });
+		expect(result).toEqual({ kind: "NotFound", username });
 	});
 
 	it("returns Network on a non-ok response", async () => {
