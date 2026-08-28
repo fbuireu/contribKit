@@ -156,7 +156,7 @@ test helper reintroduces the same bug in the test rather than the code.
   they will.
 - **`cellSize` in [`services/types.ts`](./services/types.ts) is pixel geometry, not the glossary's Cell Size.** Nothing ever assigns it:
   the field exists so `svgStringRenderer` can fall back to `SVG_DEFAULT_CELL_SIZE`, and the SVG endpoint exposes no
-  size parameter. The three presets in [`ui/components/grid/grid-presets.ts`](../ui/components/grid/grid-presets.ts) carry their own `size`/`gap` and feed the
+  size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
 - **`computeContributionStats` returns three fields, not the glossary's five.** `totalContributions`,

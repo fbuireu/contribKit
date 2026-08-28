@@ -8,7 +8,7 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 |---|---|
 | `core/` | App shell and head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `analytics/`, `cookie-consent/`. |
 | `hero/` · `customize/` · `export/` · `how-it-works/` · `widget/` | Home-page feature sections: one folder each (`.astro` + `.css` + any local logic). |
-| `grid/` | The contribution graph: `CellTooltip` plus its rendering utilities (`calendar`, `render-svg`, `mini-grid`, `contribution`, `grid-presets`). |
+| `grid/` | The contribution graph: `CellTooltip` plus its rendering utilities (`calendar`, `render-svg`, `mini-grid`, `contribution`, `grid-geometry`). |
 | `error/` | The 404/500 UI: `ErrorView` + `ContributionCode` + `glyph-utils`, generic over code and tone. |
 | `icons/` | Inline SVG icon components: no external icon library. |
 | `legal/` | Shared styles for the legal pages. |
@@ -82,10 +82,10 @@ remember.
 "Contributions unknown on …" rather than showing a number nobody measured. Emitting `data-count="0"` would be
 inventing data for the user.
 
-The three presets in [`grid-presets.ts`](./grid/grid-presets.ts) (`HERO_GRID_PRESET` (13/3), `CUSTOMIZE_GRID_PRESET` (12/3) and
-`EXPORT_GRID_PRESET`) are the only sizes the web draws. They are pixel geometry, not the glossary's Cell Size
+The three fixed geometries in [`grid-geometry.ts`](./grid/grid-geometry.ts) (`HERO_GRID_GEOMETRY` (13/3), `CUSTOMIZE_GRID_GEOMETRY` (12/3) and
+`EXPORT_GRID_GEOMETRY`) are the only sizes the web draws. They are pixel geometry, not the glossary's Cell Size
 ([ADR 0016](../../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
-`EXPORT_GRID_PRESET` is pinned to the domain defaults, so the export preview matches what the SVG endpoint emits.
+`EXPORT_GRID_GEOMETRY` is pinned to the domain defaults, so the export preview matches what the SVG endpoint emits.
 A test asserts exactly that, and it is the reason the constant is not just `{ size: 10, gap: 2 }` written out.
 
 **The export tiles compute their own numbers, and the code preview draws the visitor's own choices.**

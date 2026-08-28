@@ -249,7 +249,7 @@ test there. The pairing is prose and a code review.
 the Embed and the browser preview, and it used to hold its own numbers: a corner radius fixed at `2.5` where this
 service returns `cell * 0.2`, and a dot radius of `1.4 + level` unscaled where this one multiplies by
 `cellSize / 10`. There was **no** Cell Size at which the corners agreed, and the dots agreed only at exactly 10
-(which the web itself does not always use, since [`grid-presets.ts`](../../../web/src/ui/components/grid/grid-presets.ts) draws the hero at 13 and the customizer at 12).
+(which the web itself does not always use, since [`grid-geometry.ts`](../../../web/src/ui/components/grid/grid-geometry.ts) draws the hero at 13 and the customizer at 12).
 
 It carries `CORNER_RADIUS_RATIO = 0.2`, `DOT_BASE_RADIUS = 1.4` and `DOT_REFERENCE_CELL_SIZE = 10` now, and its
 `cornerRadiusFor` / `dotRadius` are this service's formulas in TypeScript. The published Embed's rounded corner

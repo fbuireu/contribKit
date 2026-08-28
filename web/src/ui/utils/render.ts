@@ -5,7 +5,7 @@ import { DEFAULT_PALETTE_KEY, type Palette, paletteByKey } from "@domain/value-o
 import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "@ui/components/export/code-preview";
 import { DEFAULT_EXPORT_FORMAT, ExportFormatKey } from "@ui/components/export/export-formats";
 import { formatTotalContributions } from "@ui/components/grid/contribution";
-import { CUSTOMIZE_GRID_PRESET, EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
+import { CUSTOMIZE_GRID_GEOMETRY, EXPORT_GRID_GEOMETRY, HERO_GRID_GEOMETRY } from "@ui/components/grid/grid-geometry";
 import { generateMiniGrid } from "@ui/components/grid/mini-grid";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
@@ -68,10 +68,16 @@ export function renderCustomize(): void {
 	const days = getDays();
 	const customGrid = document.getElementById(ElementId.CustomGrid);
 	if (customGrid)
-		customGrid.innerHTML = renderCalendarString({ days, palette, shape, ...CUSTOMIZE_GRID_PRESET, showLabels: false });
+		customGrid.innerHTML = renderCalendarString({
+			days,
+			palette,
+			shape,
+			...CUSTOMIZE_GRID_GEOMETRY,
+			showLabels: false,
+		});
 	const heroGrid = document.getElementById(ElementId.HeroGrid);
 	if (heroGrid)
-		heroGrid.innerHTML = renderCalendarString({ days, palette, shape, ...HERO_GRID_PRESET, showLabels: true });
+		heroGrid.innerHTML = renderCalendarString({ days, palette, shape, ...HERO_GRID_GEOMETRY, showLabels: true });
 	document.querySelectorAll<HTMLElement>(Selector.LegendSquares).forEach((square, index) => {
 		square.style.background = palette[index] ?? palette[0];
 	});
@@ -103,7 +109,7 @@ export function renderExportPreview(): void {
 		card.appendChild(checker);
 		const content = document.createElement("div");
 		content.className = "preview-content";
-		content.innerHTML = renderCalendarString({ days, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false });
+		content.innerHTML = renderCalendarString({ days, palette, shape, ...EXPORT_GRID_GEOMETRY, showLabels: false });
 		card.appendChild(content);
 		const tag = document.createElement("div");
 		tag.className = "preview-tag mono";
@@ -119,7 +125,7 @@ export function renderExportPreview(): void {
 			),
 		);
 		const plainText = isSvgTab
-			? renderCalendarString({ days, palette, shape, ...EXPORT_GRID_PRESET, showLabels: false })
+			? renderCalendarString({ days, palette, shape, ...EXPORT_GRID_GEOMETRY, showLabels: false })
 			: markdownSnippet({ username, palette: paletteKey, shape });
 		const copyButton = document.createElement("button");
 		copyButton.className = `${ClassName.CopyButton} mono`;

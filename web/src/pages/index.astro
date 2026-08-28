@@ -14,7 +14,7 @@ import Customize from "@ui/components/customize/Customize.astro";
 import Export from "@ui/components/export/Export.astro";
 import CellTooltip from "@ui/components/grid/CellTooltip.astro";
 import { generateData } from "@ui/components/grid/calendar";
-import { EXPORT_GRID_PRESET, HERO_GRID_PRESET } from "@ui/components/grid/grid-presets";
+import { EXPORT_GRID_GEOMETRY, HERO_GRID_GEOMETRY } from "@ui/components/grid/grid-geometry";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import Hero from "@ui/components/hero/Hero.astro";
 import HowItWorks from "@ui/components/how-it-works/HowItWorks.astro";
@@ -106,14 +106,14 @@ const heroSVG = renderCalendarString({
 	days,
 	palette: CLASSIC,
 	shape: CellShape.Rounded,
-	...HERO_GRID_PRESET,
+	...HERO_GRID_GEOMETRY,
 	showLabels: true,
 });
 const exportSvg = renderCalendarString({
 	days,
 	palette: CLASSIC,
 	shape: DEFAULT_CELL_SHAPE,
-	...EXPORT_GRID_PRESET,
+	...EXPORT_GRID_GEOMETRY,
 	showLabels: false,
 });
 

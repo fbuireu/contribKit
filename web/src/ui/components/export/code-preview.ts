@@ -51,54 +51,68 @@ interface CellLineParams {
 	shape: CellShape;
 }
 
-const cellLine = ({ column, level, palette, shape }: CellLineParams): CodeLine => {
-	const fill = palette[level];
+type CellLineRenderer = (params: CellLineParams) => CodeLine;
+
+const circleLine = ({ column, level, palette, shape }: CellLineParams): CodeLine => {
 	const x = column * CELL_STEP;
 	const centre = SVG_DEFAULT_CELL_SIZE / 2;
 
-	if (shape === CellShape.Circle || shape === CellShape.Dot) {
-		return [
-			["", " "],
-			["c-tag", "<circle "],
-			...joinWithSpaces([
-				attributeTokens({ name: "cx", value: x + centre }),
-				attributeTokens({ name: "cy", value: centre }),
-				attributeTokens({
-					name: "r",
-					value: shape === CellShape.Dot ? dotRadius({ level, size: SVG_DEFAULT_CELL_SIZE }) : centre,
-				}),
-				attributeTokens({ name: "fill", value: fill }),
-			]),
-			["c-tag", "/>"],
-		];
-	}
-
-	if (shape === CellShape.Hex) {
-		return [
-			["", " "],
-			["c-tag", "<polygon "],
-			...joinWithSpaces([
-				attributeTokens({ name: "points", value: hexPoints({ cx: x + centre, cy: centre, radius: centre }) }),
-				attributeTokens({ name: "fill", value: fill }),
-			]),
-			["c-tag", "/>"],
-		];
-	}
-
 	return [
 		["", " "],
-		["c-tag", "<rect "],
+		["c-tag", "<circle "],
 		...joinWithSpaces([
-			attributeTokens({ name: "x", value: x }),
-			attributeTokens({ name: "y", value: 0 }),
-			attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
-			attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
-			attributeTokens({ name: "rx", value: shape === CellShape.Rounded ? cornerRadiusFor(SVG_DEFAULT_CELL_SIZE) : 0 }),
-			attributeTokens({ name: "fill", value: fill }),
+			attributeTokens({ name: "cx", value: x + centre }),
+			attributeTokens({ name: "cy", value: centre }),
+			attributeTokens({
+				name: "r",
+				value: shape === CellShape.Dot ? dotRadius({ level, size: SVG_DEFAULT_CELL_SIZE }) : centre,
+			}),
+			attributeTokens({ name: "fill", value: palette[level] }),
 		]),
 		["c-tag", "/>"],
 	];
 };
+
+const hexLine = ({ column, level, palette }: CellLineParams): CodeLine => {
+	const x = column * CELL_STEP;
+	const centre = SVG_DEFAULT_CELL_SIZE / 2;
+
+	return [
+		["", " "],
+		["c-tag", "<polygon "],
+		...joinWithSpaces([
+			attributeTokens({ name: "points", value: hexPoints({ cx: x + centre, cy: centre, radius: centre }) }),
+			attributeTokens({ name: "fill", value: palette[level] }),
+		]),
+		["c-tag", "/>"],
+	];
+};
+
+const rectLine =
+	(radius: number): CellLineRenderer =>
+	({ column, level, palette }: CellLineParams): CodeLine => [
+		["", " "],
+		["c-tag", "<rect "],
+		...joinWithSpaces([
+			attributeTokens({ name: "x", value: column * CELL_STEP }),
+			attributeTokens({ name: "y", value: 0 }),
+			attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
+			attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
+			attributeTokens({ name: "rx", value: radius }),
+			attributeTokens({ name: "fill", value: palette[level] }),
+		]),
+		["c-tag", "/>"],
+	];
+
+const CELL_LINE_RENDERERS: Record<CellShape, CellLineRenderer> = {
+	[CellShape.Square]: rectLine(0),
+	[CellShape.Rounded]: rectLine(cornerRadiusFor(SVG_DEFAULT_CELL_SIZE)),
+	[CellShape.Circle]: circleLine,
+	[CellShape.Dot]: circleLine,
+	[CellShape.Hex]: hexLine,
+};
+
+const cellLine = (params: CellLineParams): CodeLine => CELL_LINE_RENDERERS[params.shape](params);
 
 export interface BuildSvgLinesParams {
 	palette: PaletteColors;

@@ -5,7 +5,7 @@ import { DAYS_PER_WEEK, WEEKS_PER_YEAR } from "@domain/services/dates";
 import { calendarLayout } from "@domain/services/svg-geometry";
 import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import { EXPORT_GRID_PRESET } from "@ui/components/grid/grid-presets";
+import { EXPORT_GRID_GEOMETRY } from "@ui/components/grid/grid-geometry";
 import { ExportFormatKey } from "./export-formats";
 
 interface Props {
@@ -16,7 +16,7 @@ const { exportSvg } = Astro.props;
 const exportLayout = calendarLayout({
 	days: [],
 	shape: DEFAULT_CELL_SHAPE,
-	...EXPORT_GRID_PRESET,
+	...EXPORT_GRID_GEOMETRY,
 	showLabels: false,
 });
 

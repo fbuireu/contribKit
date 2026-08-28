@@ -576,6 +576,9 @@ describe("the glossary's forbidden names stay out of the code", () => {
 		"offering",
 		"timeframe",
 		"bucket",
+		"density",
+		"intensity",
+		"zoom",
 	];
 
 	const avoidedTerms = (): Set<string> =>
@@ -613,7 +616,7 @@ describe("the glossary's forbidden names stay out of the code", () => {
 		const offenders = identifierFiles().flatMap((file) => {
 			const body = withoutStringLiterals(read(file));
 			return PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) =>
-				new RegExp(`(?<![A-Za-z0-9])${word}(?![A-Za-z0-9])`, "i").test(body),
+				new RegExp(`(?:(?<![A-Za-z0-9])|(?<=[a-z0-9_]))${word}(?![a-z0-9])`, "i").test(body),
 			).map((word) => `${relative(file)} uses ${word}`);
 		});
 		expect(offenders).toEqual([]);

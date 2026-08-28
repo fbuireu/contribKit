@@ -2,7 +2,7 @@
 
 import { GRID_CELL_COUNT } from "@domain/services/dates";
 import { cornerRadiusFor, SVG_DEFAULT_CELL_SIZE } from "@domain/services/svg-geometry";
-import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
+import { CELL_SHAPES, CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { buildEmbedUrl, EmbedParam } from "@domain/value-objects/embed";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
@@ -46,6 +46,28 @@ describe("buildSvgLines", () => {
 
 	it("accounts for every remaining grid cell in the ellipsis comment", () => {
 		expect(toText(SVG_LINES)).toContain(`${GRID_CELL_COUNT - 3} more cells`);
+	});
+});
+
+describe("every Cell Shape draws its own preview", () => {
+	const tagFor = (shape: CellShape): string =>
+		buildSvgLines({ palette: GITHUB, shape })
+			.flat()
+			.map(([, text]) => text)
+			.join("")
+			.match(/<(circle|polygon|rect)/)?.[1] ?? "none";
+
+	it("never falls through to a rect for a shape it does not know", () => {
+		expect(
+			Object.fromEntries(CELL_SHAPES.map((shape) => [shape, tagFor(shape)])),
+			"the preview used to dispatch on an if-chain, so a sixth shape showed rects while the clipboard got the real markup",
+		).toEqual({
+			square: "rect",
+			rounded: "rect",
+			circle: "circle",
+			dot: "circle",
+			hex: "polygon",
+		});
 	});
 });
 

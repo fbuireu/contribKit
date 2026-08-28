@@ -138,7 +138,7 @@ thrown a `TypeError` reading `.colors` of `undefined`. `getActiveShape` returns 
 also means the key it reports is the key it used, so the label under the picker cannot disagree with the colours on
 screen.
 
-**2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_PRESET` 13/3, `CUSTOMIZE_GRID_PRESET` 12/3, `EXPORT_GRID_PRESET` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
+**2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_GEOMETRY` 13/3, `CUSTOMIZE_GRID_GEOMETRY` 12/3, `EXPORT_GRID_GEOMETRY` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
 
 **3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in [`ui/utils/page-init.ts`](../../web/src/ui/utils/page-init.ts); their `onActivate` is `renderCustomize`:
 
