@@ -1,5 +1,4 @@
 import type { ContributionDay } from "../entities/types";
-import { toIsoDate } from "./dates";
 
 export interface ContributionStats {
 	readonly totalContributions: number | null;
@@ -7,7 +6,13 @@ export interface ContributionStats {
 	readonly longestStreak: number;
 }
 
-export function computeContributionStats(days: readonly ContributionDay[]): ContributionStats {
+export interface ComputeContributionStatsParams {
+	readonly days: readonly ContributionDay[];
+	readonly year: number;
+	readonly today: string;
+}
+
+export function computeContributionStats({ days, year, today }: ComputeContributionStatsParams): ContributionStats {
 	const sorted = [...days].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 	let knownTotal = 0,
 		currentStreak = 0,
@@ -22,15 +27,17 @@ export function computeContributionStats(days: readonly ContributionDay[]): Cont
 			if (run > longestStreak) longestStreak = run;
 		} else run = 0;
 	}
-	const today = toIsoDate(new Date());
+	const yearStart = `${year}-01-01`;
+	const yearEnd = `${year}-12-31`;
+	const anchor = yearEnd < today ? yearEnd : today;
 	let index = sorted.length - 1;
 	while (index >= 0) {
-		const isFuture = sorted[index].date > today;
+		const isAfterAnchor = sorted[index].date > anchor;
 		const isPendingToday = sorted[index].date === today && sorted[index].level === 0;
-		if (!isFuture && !isPendingToday) break;
+		if (!isAfterAnchor && !isPendingToday) break;
 		index--;
 	}
-	while (index >= 0 && sorted[index].level > 0) {
+	while (index >= 0 && sorted[index].date >= yearStart && sorted[index].level > 0) {
 		currentStreak++;
 		index--;
 	}
@@ -38,11 +45,18 @@ export function computeContributionStats(days: readonly ContributionDay[]): Cont
 }
 
 export interface StatsWithScrapedTotalParams {
-	days: readonly ContributionDay[];
-	scrapedTotal?: number | null;
+	readonly days: readonly ContributionDay[];
+	readonly year: number;
+	readonly today: string;
+	readonly scrapedTotal?: number | null;
 }
 
-export const statsWithScrapedTotal = ({ days, scrapedTotal }: StatsWithScrapedTotalParams): ContributionStats => {
-	const stats = computeContributionStats(days);
+export const statsWithScrapedTotal = ({
+	days,
+	year,
+	today,
+	scrapedTotal,
+}: StatsWithScrapedTotalParams): ContributionStats => {
+	const stats = computeContributionStats({ days, year, today });
 	return scrapedTotal == null ? stats : { ...stats, totalContributions: scrapedTotal };
 };

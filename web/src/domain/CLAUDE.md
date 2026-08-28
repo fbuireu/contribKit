@@ -159,9 +159,16 @@ test helper reintroduces the same bug in the test rather than the code.
   `currentStreak` and `longestStreak`. Best day, best month, weekly average and active days exist only in the
   app's `ContributionStats`. That is an unbuilt half, not a decision, so no ADR records it; widen it here when the
   web grows a stats surface that needs them.
-- **The current streak skips the future and a pending today.** It walks backwards past any date after today, and
-  past today itself while today is still at level 0, so a streak is not broken at midnight by a day that has not
-  happened yet. Trailing padding days from the 53×7 grid are exactly what that loop is stepping over.
+- **The current streak is anchored inside the Year it was asked about, and the anchor is injected.** It walks
+  backwards from the earlier of 31 December and `today`, steps past today itself while today is still at level 0
+  so a streak is not broken at midnight by a day that has not happened yet, and stops at 1 January rather than
+  running out into the leading padding.
+  This used to have no Year at all. It anchored on `today` alone, so for a past Year the walk started on a
+  trailing padding day synthesised from the following January, found level 0, and broke immediately: the web
+  returned **0 for every past Year**, and only the rolling window on the landing page hid it. The app never had
+  the defect, because `StreakService` filters to the Year before anchoring. `today` is a parameter rather than a
+  clock read for the same reason `StreakService` takes one: with the clock inside, the test has to rebuild its
+  expectation from the value it is testing and can never disagree with the code.
 - **`Username` accepts consecutive hyphens; GitHub does not.** `a--b` passes `parseUsername` and then 404s upstream.
   Tightening the pattern is not free (it would turn a truthful "user not found" into a misleading "invalid
   username" for any handle GitHub later starts allowing), so the rule is deliberately looser than GitHub's, and the

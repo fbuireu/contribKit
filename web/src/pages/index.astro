@@ -4,6 +4,7 @@ import { DaySource, daySourceFor, resolveViewerIdentity } from "@application/use
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
+import { toIsoDate } from "@domain/services/dates";
 import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
 import { loggerFor } from "@infrastructure/logging/better-stack-logger";
@@ -96,6 +97,8 @@ switch (daySourceFor({ loaded: initial.ok, isExplicit })) {
 
 const stats = statsWithScrapedTotal({
 	days,
+	year: initial.ok ? initial.data.year : currentYear,
+	today: toIsoDate(new Date()),
 	scrapedTotal: initial.ok ? initial.data.total : null,
 });
 

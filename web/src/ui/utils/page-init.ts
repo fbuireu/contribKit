@@ -1,6 +1,7 @@
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
+import { toIsoDate } from "@domain/services/dates";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import { generateData } from "@ui/components/grid/calendar";
@@ -90,7 +91,12 @@ export async function renderFromGitHub({
 			setDays(buildGridFromApi({ days: data.days, year }));
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
-			const stats = statsWithScrapedTotal({ days: data.days, scrapedTotal: data.total });
+			const stats = statsWithScrapedTotal({
+				days: data.days,
+				year,
+				today: toIsoDate(new Date()),
+				scrapedTotal: data.total,
+			});
 			updateHeroStats(stats);
 			updateYearRange(getDays());
 			renderExportPreview();
