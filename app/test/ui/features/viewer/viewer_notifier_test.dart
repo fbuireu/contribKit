@@ -125,16 +125,24 @@ final class _FakeSettingsRepository implements SettingsRepository {
   }
 
   @override
-  Future<void> savePaletteKey(String key) async {}
+  Future<void> savePaletteKey(String key) async {
+    if (writeFails) throw const CacheFailure(message: 'box is gone');
+  }
 
   @override
-  Future<void> saveCellShape(CellShape shape) async {}
+  Future<void> saveCellShape(CellShape shape) async {
+    if (writeFails) throw const CacheFailure(message: 'box is gone');
+  }
 
   @override
-  Future<void> saveCellSize(CellSize size) async {}
+  Future<void> saveCellSize(CellSize size) async {
+    if (writeFails) throw const CacheFailure(message: 'box is gone');
+  }
 
   @override
-  Future<void> saveBackgroundPreset(String presetName) async {}
+  Future<void> saveBackgroundPreset(String presetName) async {
+    if (writeFails) throw const CacheFailure(message: 'box is gone');
+  }
 
   @override
   Future<void> saveThemeMode(AppThemeMode mode) async {}
@@ -318,6 +326,51 @@ void main() {
 
       expect(container.read(viewerProvider).error, isA<UnexpectedFailure>());
     });
+  });
+
+  group('a settings write that fails', () {
+    test('never escapes as an uncaught async error', () async {
+      final errors = <Object>[];
+
+      await runZonedGuarded(() async {
+        final container = _container(
+          settings: _FakeSettingsRepository(writeFails: true),
+        );
+        addTearDown(container.dispose);
+        container.listen(viewerProvider, (_, _) {});
+        await _settle();
+
+        container.read(viewerProvider.notifier)
+          ..setCellShape(CellShape.hex)
+          ..setCellSize(CellSize.large);
+        await _settle();
+      }, (error, _) => errors.add(error));
+
+      expect(
+        errors,
+        isEmpty,
+        reason:
+            'a CacheFailure from a fire-and-forget write reached the zone '
+            'handler, which is not the exhaustive match ADR 0004 asks for',
+      );
+    });
+
+    test(
+      'still applies the choice, because the screen is not the store',
+      () async {
+        final container = _container(
+          settings: _FakeSettingsRepository(writeFails: true),
+        );
+        addTearDown(container.dispose);
+        container.listen(viewerProvider, (_, _) {});
+        await _settle();
+
+        container.read(viewerProvider.notifier).setCellShape(CellShape.hex);
+        await _settle();
+
+        expect(container.read(viewerProvider).cellShape, CellShape.hex);
+      },
+    );
   });
 
   group('the Palette load', () {

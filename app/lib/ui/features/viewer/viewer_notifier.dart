@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/domain/failures/failure.dart';
@@ -140,26 +143,38 @@ class ViewerNotifier extends _$ViewerNotifier {
   static Failure _asFailure(Object error) =>
       error is Failure ? error : UnexpectedFailure(message: error.toString());
 
+  void _persist(Future<void> Function(SettingsRepository) write) {
+    unawaited(
+      Future<void>(() async {
+        try {
+          await write(ref.read(settingsRepositoryProvider));
+        } on Failure {
+          return;
+        }
+      }),
+    );
+  }
+
   void setPalette(Palette palette) {
     state = state.copyWith(palette: palette);
-    ref.read(settingsRepositoryProvider).savePaletteKey(palette.key);
+    _persist((repository) => repository.savePaletteKey(palette.key));
     _updateWidget();
   }
 
   void setCellShape(CellShape shape) {
     state = state.copyWith(cellShape: shape);
-    ref.read(settingsRepositoryProvider).saveCellShape(shape);
+    _persist((repository) => repository.saveCellShape(shape));
     _updateWidget();
   }
 
   void setCellSize(CellSize size) {
     state = state.copyWith(cellSize: size);
-    ref.read(settingsRepositoryProvider).saveCellSize(size);
+    _persist((repository) => repository.saveCellSize(size));
   }
 
   void setBackgroundPreset(BackgroundPreset bg) {
     state = state.copyWith(backgroundPreset: bg);
-    ref.read(settingsRepositoryProvider).saveBackgroundPreset(bg.name);
+    _persist((repository) => repository.saveBackgroundPreset(bg.name));
   }
 
   void setYear(Year year) {

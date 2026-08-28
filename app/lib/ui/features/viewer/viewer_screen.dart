@@ -255,7 +255,8 @@ class _Suggestions extends ConsumerWidget {
 
     return suggestionsAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (error, _) =>
+          _SuggestionsError(message: FailureMessage.ofAny(error)),
       data: (names) => SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -475,7 +476,7 @@ class _CalendarCard extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '${formatTotalContributions(format: _contribFmt, total: state.calendar!.totalContributions)} commits',
+                  '${formatTotalContributions(format: _contribFmt, total: state.calendar!.totalContributions)} contributions',
                   style: AppTextStyles.mono(
                     fontSize: Tokens.textXs,
                     color: colors.accent,
@@ -690,4 +691,20 @@ class _EmptyState extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _SuggestionsError extends StatelessWidget {
+  const _SuggestionsError({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
+    return Text(
+      message,
+      style: TextStyle(fontSize: Tokens.textSm, color: colors.destructive),
+    );
+  }
 }

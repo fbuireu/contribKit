@@ -268,6 +268,25 @@ broadcast repairs it. [`home_screen_widget_payload_test.dart`](../../test/ui/fea
 The other interleaving is cosmetic and self-heals the same way: new levels painted with the previous Palette's
 colours for one frame. Do not add an eighth key without asking how it behaves against a stale neighbour.
 
+**The Viewer says Contributions, not commits.** [`CONTEXT.md`](../../../CONTEXT.md) defines a Contribution as any recorded activity on
+a GitHub account, and issues, pull requests and reviews are contributions and are not commits. Both surfaces that
+render a Total Contributions said `commits` until this was corrected, so the app disagreed with its own Home
+Screen Widget, which has always said `contributions this year`, and with the web. When the Total is unknown the
+old wording read `unknown commits`. The glossary guard cannot see either one: it strips string literals before it
+scans, deliberately, so user-facing copy is a human read.
+
+**A failed Suggested Username load shows the failure.** `_Suggestions` collapsed to `SizedBox.shrink()` on
+`error` as well as on `loading`, which is the exact defect this guide already records as fixed for
+`PalettePicker`: `AssetSuggestedUsernameRepository` throws `AssetFailure` for an asset **we ship**, and it
+vanished, on the first screen a person sees. It renders `FailureMessage.ofAny` now, like its sibling.
+
+**A settings write that fails is swallowed on purpose, not by accident.** The four Customizer writes discarded the
+returned future, so a `CacheFailure` from `HiveSettingsRepository._write` landed in the zone's uncaught-error
+handler rather than in the exhaustive match [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) asks for. They go through `_persist` now, which catches
+`Failure` and returns, the way `_remember` already did. The product behaviour is unchanged and still what this
+guide describes: a setting can appear to stick and be gone on the next launch. What changed is that the decision
+is in the code instead of being an omission.
+
 **Never send a `null` across this seam.** `home_widget` deletes the key when the value is null, and the Kotlin side
 cannot tell a deleted key from one that was never written. So an unknown Total Contributions arrived as a missing
 key, was read as `0`, and rendered as a blank footer indistinguishable from a measured zero. That defeated

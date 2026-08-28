@@ -29,7 +29,7 @@ class StatsPanel extends StatelessWidget {
               format: fmt,
               total: calendar.totalContributions,
             ),
-            unit: 'commits',
+            unit: 'contributions',
             colors: colors,
           ),
         ),
