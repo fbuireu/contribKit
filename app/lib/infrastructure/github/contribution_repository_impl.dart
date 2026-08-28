@@ -34,12 +34,13 @@ final class GitHubContributionRepository implements ContributionRepository {
 
   static final _tdRegex = RegExp(r'<td\b[^>]*ContributionCalendar-day[^>]*>');
   static final _idAttr = RegExp(r'\bid="([^"]+)"');
-  static final _dateAttr = RegExp(r'\bdata-date="([^"]+)"');
+  static final _dateAttr = RegExp(r'\bdata-date="(\d{4}-\d{2}-\d{2})"');
   static final _levelAttr = RegExp(r'\bdata-level="(\d)"');
   static final _tooltipRegex = RegExp(
     r'<tool-tip\b[^>]*for="([^"]+)"[^>]*>([^<]+)</tool-tip>',
   );
-  static final _countPrefix = RegExp(r'^(\d+)');
+  static final _countPrefix = RegExp(r'^([\d,  ]+)');
+  static final _countSeparators = RegExp(r'[,  ]');
 
   @override
   Future<({ContributionCalendar calendar, bool fromCache})> fetchCalendar({
@@ -153,7 +154,9 @@ final class GitHubContributionRepository implements ContributionRepository {
       final forId = tooltipMatch.group(1)!;
       final text = tooltipMatch.group(2)!.trim();
       final numMatch = _countPrefix.firstMatch(text);
-      final count = numMatch == null ? null : int.tryParse(numMatch.group(1)!);
+      final count = numMatch == null
+          ? null
+          : int.tryParse(numMatch.group(1)!.replaceAll(_countSeparators, ''));
       if (count != null) idToCount[forId] = count;
     }
 
@@ -210,10 +213,12 @@ final class GitHubContributionRepository implements ContributionRepository {
     return total;
   }
 
-  static ContributionLevel? _levelFromIndex(int? index) =>
-      index != null && index >= 0 && index < ContributionLevel.values.length
-      ? ContributionLevel.values[index]
-      : null;
+  static ContributionLevel? _levelFromIndex(int? index) => index == null
+      ? null
+      : ContributionLevel.values[index.clamp(
+          0,
+          ContributionLevel.values.length - 1,
+        )];
 
   Future<ContributionCalendar?> _readCache(
     String key,

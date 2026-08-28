@@ -63,6 +63,82 @@ void main() {
     if (hiveDir.existsSync()) await hiveDir.delete(recursive: true);
   });
 
+  group('GitHubContributionRepository parses the same HTML the web does', () {
+    test(
+      'clamps a data-level GitHub has never sent, rather than deriving one',
+      () async {
+        final html =
+            _day(id: 'a', date: '2023-03-06', level: '7') +
+            _day(id: 'b', date: '2023-03-07', level: '4') +
+            _tip(id: 'a', count: 1) +
+            _tip(id: 'b', count: 100);
+
+        final repository = GitHubContributionRepository(
+          httpClient: _clientReturning(html),
+        );
+
+        final result = await repository.fetchCalendar(
+          username: username,
+          year: year,
+        );
+
+        expect(
+          _dayOn(result.calendar, '2023-03-06').level,
+          ContributionLevel.veryHigh,
+          reason:
+              'the web clamps to veryHigh; falling back to the count gives low',
+        );
+      },
+    );
+
+    test(
+      'drops a data-date that is not a bare ISO day, as the web does',
+      () async {
+        const timestamped =
+            '<td class="ContributionCalendar-day" id="b" '
+            'data-date="2023-03-07T00:00:00Z" data-level="3"></td>';
+        final html =
+            '${_day(id: 'a', date: '2023-03-06', level: '2')}$timestamped';
+
+        final repository = GitHubContributionRepository(
+          httpClient: _clientReturning(html),
+        );
+
+        final result = await repository.fetchCalendar(
+          username: username,
+          year: year,
+        );
+
+        expect(
+          _allDays(result.calendar)
+              .where((d) => d.level != ContributionLevel.none),
+          hasLength(1),
+        );
+      },
+    );
+
+    test('reads a grouped Count in full rather than truncating it', () async {
+      const grouped =
+          '<tool-tip for="a">1,234 contributions on some day.</tool-tip>';
+      final html = '${_day(id: 'a', date: '2023-03-06', level: '4')}$grouped';
+
+      final repository = GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      );
+
+      final result = await repository.fetchCalendar(
+        username: username,
+        year: year,
+      );
+
+      expect(
+        _dayOn(result.calendar, '2023-03-06').count,
+        1234,
+        reason: 'truncating to 1 reports a wrong number as an exact one',
+      );
+    });
+  });
+
   group('GitHubContributionRepository level derivation', () {
     test(
       'prefers GitHub data-level over a level derived from the count',

@@ -12,7 +12,8 @@ const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
 const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
 const LEVEL_REGEX = /data-level="(\d)"/;
 const ID_REGEX = /\bid="([^"]+)"/;
-const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>\s*(\d+)/g;
+const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>\s*([\d,\u00a0\u202f]+)/g;
+const COUNT_SEPARATORS = /[,\u00a0\u202f]/g;
 
 interface BuildUrlParams {
 	username: string;
@@ -54,7 +55,7 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 	}
 
 	for (const match of html.matchAll(TOOLTIP_REGEX)) {
-		idToCount.set(match[1], Number.parseInt(match[2], 10));
+		idToCount.set(match[1], Number.parseInt(match[2].replace(COUNT_SEPARATORS, ""), 10));
 	}
 
 	const enriched: ContributionDay[] = days.map(({ date, level, id }) => ({

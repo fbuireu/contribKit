@@ -18,7 +18,10 @@ Flutter widgets, and must never import from `ui/`.
 - **DTOs convert to entities at the boundary and never leak upward.** See
   [`github/dtos/`](./github/dtos/CLAUDE.md).
 - **Levels come from GitHub when GitHub supplies them.** `data-level` is authoritative; a derived level is a
-  fallback, not the normal path.
+  fallback for an **absent** attribute, not for an unreadable one. It used to be a fallback for both: an index
+  outside 0 to 4 returned `null` and fell through to the count, so the same HTML painted `veryHigh` on the web and
+  `none` here, and `none` also made the day inactive and broke a Streak. It clamps now, the way the web always
+  did, and `null` means absent and nothing else.
 
 ## Layout
 
@@ -45,6 +48,9 @@ equivalent, and the differences are the whole reason this section exists:
 | A `<td>` with no `id` | kept, `count: null` | kept, `count: null` |
 | A day outside the requested year | kept | **dropped** (`date.year != year.value`) |
 | Missing `data-level` | day dropped, grid backfills it | derived by `ContributionLevelService` |
+| A `data-level` outside 0 to 4 | clamped | clamped |
+| `data-date` that is not a bare ISO day | dropped | dropped |
+| A grouped Count (`1,234`) in the tool-tip | separators stripped, read in full | separators stripped, read in full |
 | Unknown Count | `null` | `null` |
 | HTTP 429 | `rateLimited(…, retryAfterSeconds)` | `RateLimitedFailure`, with `resetAt` from `Retry-After` |
 | Timeout | 20 s → `network` | 20 s → `NetworkFailure` |

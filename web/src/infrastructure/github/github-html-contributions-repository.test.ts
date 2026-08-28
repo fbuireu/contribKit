@@ -20,6 +20,20 @@ const stubFetch = (impl: typeof fetch): void => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("githubHtmlContributionsRepository.fetch", () => {
+	it("reads a grouped Count in full rather than truncating it at the separator", async () => {
+		const grouped = `
+<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="4" id="cell-1"></td>
+<tool-tip class="sr-only" for="cell-1">1,234 contributions on January 1st.</tool-tip>
+`;
+		stubFetch(async () => new Response(grouped, { status: 200 }));
+
+		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		expect("days" in result && result.days[0].count, "truncating to 1 reports a wrong number as an exact one").toBe(
+			1234,
+		);
+	});
+
 	it("parses days, levels and counts from the HTML", async () => {
 		stubFetch(async () => new Response(HTML, { status: 200 }));
 
