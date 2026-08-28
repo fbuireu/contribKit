@@ -25,10 +25,16 @@ final class GitHubContributionRepository implements ContributionRepository {
     http.Client? httpClient,
     DateTime Function()? now,
   }) : _httpClient = httpClient ?? http.Client(),
+       _ownsClient = httpClient == null,
        _now = now ?? DateTime.now;
 
   final http.Client _httpClient;
+  final bool _ownsClient;
   final DateTime Function() _now;
+
+  void close() {
+    if (_ownsClient) _httpClient.close();
+  }
 
   static const _currentYearTtl = Duration(hours: 1);
 

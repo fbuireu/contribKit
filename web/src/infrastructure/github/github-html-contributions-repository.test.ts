@@ -34,6 +34,20 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		);
 	});
 
+	it("asks the edge to cache the origin response, which is the SVG endpoint's only throttle", async () => {
+		const spy = vi.fn(async (_input: unknown, _init?: unknown) => new Response(HTML, { status: 200 }));
+		stubFetch(spy as unknown as typeof fetch);
+
+		await githubHtmlContributionsRepository.fetch({ username, year: null });
+
+		const init = spy.mock.calls[0]?.[1] as { cf?: { cacheTtl?: number; cacheEverything?: boolean } };
+		expect(
+			init.cf,
+			"ADR 0010 leaves the SVG route unthrottled inbound, so a cache-busted query must not become a fresh origin hit",
+		).toMatchObject({ cacheEverything: true });
+		expect(init.cf?.cacheTtl).toBeGreaterThan(0);
+	});
+
 	it("parses days, levels and counts from the HTML", async () => {
 		stubFetch(async () => new Response(HTML, { status: 200 }));
 

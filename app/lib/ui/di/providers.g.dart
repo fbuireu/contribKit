@@ -230,7 +230,7 @@ final class ContributionRepositoryProvider
 }
 
 String _$contributionRepositoryHash() =>
-    r'7bb8b16906957922dcc2e88d824e87b06f96cafd';
+    r'946511336466063d32ed261f9493122938db6690';
 
 @ProviderFor(tipRepository)
 final tipRepositoryProvider = TipRepositoryProvider._();

@@ -5,6 +5,16 @@ it is running inside a Cloudflare Worker. Never imports from `ui/`, `pages/` or 
 assertion checks every layer's import direction now, because this rule was stated for a year and enforced by
 nothing.
 
+**The outbound GitHub request is cached at the edge, and that is the SVG endpoint's real throttle.**
+[ADR 0010](../../../docs/adr/0010-rate-limit-only-the-json-api.md) deliberately leaves `/user/:username.svg`
+out of the inbound rate limiter, and the pages guide says caching is the only thing between it and unthrottled
+origin load. The response header alone did not deliver that: the CDN key is the whole URL and the route ignores
+unknown query parameters, so `?cb=1`, `?cb=2` and so on were unlimited distinct keys for one answer, each a fresh
+fetch to github.com. One caller could have had GitHub rate-limit the Worker, which takes the embed down for every
+README using it. The `fetch` carries `cf: { cacheTtl: ORIGIN_CACHE_SECONDS, cacheEverything: true }`, so N
+cache-busted variants collapse to one origin hit per username and year per hour. A colocated test asserts the
+directive, because it is load-bearing and invisible in the response.
+
 ## Invariants & rules
 
 - **Factory functions returning an object that satisfies a domain interface.** No classes.

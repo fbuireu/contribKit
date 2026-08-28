@@ -6,6 +6,15 @@ Dependency wiring: the one place that knows how to construct the full object gra
 It instantiates concrete repositories, passes them into use cases, and exposes the results as `@riverpod` providers
 for widgets and notifiers to watch. Everything else in `ui/` sees a provider, never a constructor.
 
+**A provider that builds a closeable thing closes it.** Every generated provider here is auto-dispose, and
+`contributionRepositoryProvider` is only ever reached with `ref.read` from `ViewerNotifier`, never watched by a
+widget, so nothing holds it alive between calls: it is torn down after each read. `GitHubContributionRepository`
+builds an `http.Client` when it is not given one, and that client used to go with it unclosed, leaking its
+keep-alive connections once per fetch. The provider registers `ref.onDispose(repository.close)` now, and `close`
+shuts the client **only when the repository built it**, so an injected client stays the caller's to close. The
+background isolate in [`main.dart`](../../main.dart) constructs its own repository outside any `ProviderScope`, so it closes it and
+Hive in a `finally`.
+
 ## Invariants & rules
 
 - **Every provider is generated.** `part 'providers.g.dart'` plus `@riverpod` on a top-level function; run

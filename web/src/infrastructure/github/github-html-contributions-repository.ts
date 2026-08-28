@@ -6,6 +6,7 @@ import type { Year } from "@domain/value-objects/year";
 
 const USER_AGENT =
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+const ORIGIN_CACHE_SECONDS = 3600;
 const FETCH_TIMEOUT_MS = 20_000;
 const TOO_MANY_REQUESTS = 429;
 const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
@@ -100,6 +101,7 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 			response = await fetch(url, {
 				redirect: "follow",
 				signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+				cf: { cacheTtl: ORIGIN_CACHE_SECONDS, cacheEverything: true },
 				headers: {
 					"User-Agent": USER_AGENT,
 					Accept: "text/html, */*",

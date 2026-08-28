@@ -63,6 +63,31 @@ void main() {
     if (hiveDir.existsSync()) await hiveDir.delete(recursive: true);
   });
 
+  group('GitHubContributionRepository owns only the client it built', () {
+    test(
+      'leaves an injected client open, because the caller owns it',
+      () async {
+        var closed = false;
+        final injected = MockClient((_) async {
+          return http.Response('', 200);
+        });
+        final repository = GitHubContributionRepository(
+          httpClient: _ClosingClient(injected, () => closed = true),
+        );
+
+        repository.close();
+
+        expect(
+          closed,
+          isFalse,
+          reason:
+              'closing a client the repository did not build would break '
+              'every caller that shares one',
+        );
+      },
+    );
+  });
+
   group('GitHubContributionRepository parses the same HTML the web does', () {
     test(
       'clamps a data-level GitHub has never sent, rather than deriving one',
@@ -665,4 +690,21 @@ void main() {
       expect(result.calendar.totalContributions, isNull);
     });
   });
+}
+
+final class _ClosingClient extends http.BaseClient {
+  _ClosingClient(this._inner, this._onClose);
+
+  final http.Client _inner;
+  final void Function() _onClose;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      _inner.send(request);
+
+  @override
+  void close() {
+    _onClose();
+    _inner.close();
+  }
 }

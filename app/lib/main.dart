@@ -26,16 +26,20 @@ void callbackDispatcher() {
 
     WidgetsFlutterBinding.ensureInitialized();
 
+    final contributions = GitHubContributionRepository();
     try {
       await Hive.initFlutter();
 
       await HomeScreenWidgetRefresh(
         settings: HiveSettingsRepository(),
         palettes: AssetPaletteRepository(),
-        contributions: GitHubContributionRepository(),
+        contributions: contributions,
       )();
     } catch (_) {
       return false;
+    } finally {
+      contributions.close();
+      await Hive.close();
     }
 
     return true;

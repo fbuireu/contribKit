@@ -40,8 +40,11 @@ Future<List<String>> suggestedUsernames(Ref ref) =>
     ref.watch(suggestedUsernameRepositoryProvider).loadAll();
 
 @riverpod
-ContributionRepository contributionRepository(Ref ref) =>
-    GitHubContributionRepository();
+ContributionRepository contributionRepository(Ref ref) {
+  final repository = GitHubContributionRepository();
+  ref.onDispose(repository.close);
+  return repository;
+}
 
 @riverpod
 TipRepository tipRepository(Ref ref) => RevenueCatTipRepository();
