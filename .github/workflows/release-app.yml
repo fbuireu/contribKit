@@ -95,7 +95,7 @@ jobs:
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git "$MAJOR_VERSION" --force
 
   deliver:
-    name: Deliver to Google Play
+    name: Deliver ${{ needs.release.outputs.version }} to Google Play
     runs-on: ubuntu-latest
     needs: [release]
     if: needs.release.outputs.published == 'true'
@@ -169,6 +169,7 @@ jobs:
 
       - name: Generate Play release notes from changelog
         env:
+          EXTRACT_VERSION_NAME: 's/^version:[[:space:]]*//; s/\+.*//'
           EXTRACT_VERSION_CODE: 's/.*\+([0-9]+).*/\1/'
           KEEP_LATEST_SECTION: '/^# / || /^## / { version_headers++; if (version_headers > 1) exit } { print }'
           DROP_VERSION_HEADER: '1d'
@@ -181,9 +182,10 @@ jobs:
           DROP_BLANK_LINES: '/^[[:space:]]*$/d'
           GOOGLE_PLAY_NOTES_MAX_CHARS: "500"
         run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed -E "$EXTRACT_VERSION_NAME")
           VERSION_CODE=$(grep '^version:' pubspec.yaml | sed -E "$EXTRACT_VERSION_CODE")
-          if [ -z "$VERSION_CODE" ] || [ ! -f CHANGELOG.md ]; then
-            echo "No version code or CHANGELOG.md found; leaving release notes untouched." | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ -z "$VERSION_NAME" ] || [ -z "$VERSION_CODE" ] || [ ! -f CHANGELOG.md ]; then
+            echo "No version or CHANGELOG.md found; leaving release notes untouched." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           NOTES=$(awk "$KEEP_LATEST_SECTION" CHANGELOG.md \
@@ -204,10 +206,10 @@ jobs:
           DEST=android/fastlane/metadata/android/en-US/changelogs
           mkdir -p "$DEST"
           printf '%s\n' "$NOTES" > "$DEST/${VERSION_CODE}.txt"
-          echo "Release notes for versionCode ${VERSION_CODE}:"
+          echo "Release notes for ${VERSION_NAME} (versionCode ${VERSION_CODE}):"
           cat "$DEST/${VERSION_CODE}.txt"
           {
-            echo "### 📝 Google Play release notes for versionCode ${VERSION_CODE}"
+            echo "### 📝 Google Play release notes for ${VERSION_NAME} (versionCode ${VERSION_CODE})"
             echo '```text'
             cat "$DEST/${VERSION_CODE}.txt"
             echo '```'
@@ -216,7 +218,7 @@ jobs:
       - name: Upload Play release notes artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: play-release-notes
+          name: play-release-notes-${{ needs.release.outputs.version }}
           path: app/android/fastlane/metadata/android/en-US/changelogs/
           if-no-files-found: warn
 
