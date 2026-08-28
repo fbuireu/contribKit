@@ -121,7 +121,7 @@ These documents are not generated. A change that does not update them leaves the
 | The web layers import only inwards | over `.astro` as well as `.ts`, and over every import form rather than `from "…"` alone: that hole is how a marketing component reached around the domain and counted the raw token JSON instead of the filtered `CELL_SHAPES` |
 | `shadcn_ui` stays inside [`app/lib/ui/widgets/`](./app/lib/ui/widgets), the theme and the composition root | |
 | **Two things written more than once stay identical** | the Embed contract in Dart and TypeScript, and the dark palette in its two CSS blocks. A third used to be here, the web path filter written across three workflows, and it is gone because the filters are gone: one unfiltered `ci.yml` replaced them |
-| Every `tail_consumers` entry names the Worker [`web/workers/tail/wrangler.toml`](./web/workers/tail/wrangler.toml) declares | nothing deploys that Worker from CI, so a rename in either file stops log forwarding with no error anywhere |
+| Every `tail_consumers` entry names the Worker [`web/workers/tail/wrangler.toml`](./web/workers/tail/wrangler.toml) declares | a rename in either file stops log forwarding, and until 2026-08-28 it did so with no error anywhere, because nothing deployed that Worker from CI. `ci.yml`'s `deploy-tail` job does now, and `deploy-production` needs it, so the name is resolved at deploy time as well as asserted here |
 
 **The glossary guard polices far less than its name suggests, deliberately.** It covers the code-shaped terms (`ShapeKind`, `DOW`, `IAP`, `SKU`) anywhere, plus a curated set of plain words (`purchase`, `paywall`, `heatmap`, `donation`, …) in `.ts` and `.dart` with string literals stripped, so it reads identifiers rather than prose. A companion assertion proves every policed word is one `CONTEXT.md` actually rejects, so the list cannot invent a rule. It is not all 106 terms and cannot be: most are ordinary English (`value`, `range`, `save`) that any codebase uses honestly, and some name a platform API rather than our vocabulary: `showPopover` is the HTML Popover API, not a Cell Tooltip called the wrong thing. For the same reason `SDK_SEAMS` exempts the one file that speaks to the store SDK, whose job is to talk the vendor's language on one side and the glossary's on the other; a third assertion caps that list at two and checks each file still exists, so the exemption cannot quietly grow. The stripper removes Dart raw strings before escape sequences and works one line at a time, so a regex literal cannot break quote pairing for the rest of a file.
 
@@ -177,5 +177,16 @@ Three traps worth naming, because all three have already happened here:
 - **`noneLight` is app-only.** The web ignores the light-theme palette variant, because an embed cannot know the viewer's theme ([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)).
 
 ## Deploy
+
+**The deploy names its wrangler environment, and for a long time it did not.** `web/wrangler.toml` keeps
+everything but the assets binding under `[env.production]` and `[env.development]`: the two custom domains,
+the `API_RATE_LIMITER` rate limit, observability, smart placement and the `contribkit-tail` tail consumer.
+`_deploy.yml` derives the stage from the GitHub Environment and passed it to the **build** as
+`CLOUDFLARE_ENV` and to nothing else, so `wrangler deploy` ran with no environment selected and shipped the
+bare top level. Everything in those two blocks was configuration that never reached a Worker, and the
+[API rate limit](./docs/adr/0010-rate-limit-only-the-json-api.md) in particular existed only in the file:
+`env.API_RATE_LIMITER` was `undefined` in production and the middleware skipped it. The deploy passes
+`--env` now. `CLOUDFLARE_ENV` on the build step stays, because that is Astro's build-time switch, not
+wrangler's.
 
 Web deploys to Cloudflare Workers via `ci.yml` (production on `main`, a per-PR preview otherwise). It is server-rendered because the SVG endpoint cannot be prerendered ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). The `changes` job counts `docs/**`, `shared/**` and `*.md` as web changes, so a docs-only push to `main` still redeploys production; that is the accepted price of the docs contract and the shared tokens both living outside `web/`. The app ships to Google Play via `release-app.yml` on manual dispatch with a track. The two components are released independently, which is why GitHub Environments are namespaced `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)); see the README for the mapping. A commit that touches both `app/` and `web/` is filed in both changelogs, because `semantic-release-monorepo` attributes by path and `main` takes squash merges. That is correct for a change which genuinely spans both clients, so it is a notice and not a gate: the `cross-package-notice` job in `ci.yml` comments on the pull request and does not block it.

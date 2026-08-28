@@ -79,10 +79,11 @@ jobs:
       - name: Deploy to Cloudflare Workers
         env:
           INPUTS_WORKER_NAME: ${{ inputs.worker_name }}
+          WRANGLER_ENV: ${{ steps.stage.outputs.wrangler_env }}
           DEPLOY_MESSAGE: ${{ github.sha }} - ${{ github.event_name }}
         run: |
           NAME_FLAG=""
           if [ -n "${INPUTS_WORKER_NAME}" ]; then
             NAME_FLAG="--name ${INPUTS_WORKER_NAME}"
           fi
-          pnpm exec wrangler deploy $NAME_FLAG --message "$DEPLOY_MESSAGE"
+          pnpm exec wrangler deploy --env "$WRANGLER_ENV" --message "$DEPLOY_MESSAGE" $NAME_FLAG

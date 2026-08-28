@@ -141,9 +141,62 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         run: pnpm exec semantic-release
 
+  deploy-tail:
+    name: Deploy the tail Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [changes, web-ci]
+    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    environment: web-production
+    defaults:
+      run:
+        working-directory: web/workers/tail
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare web environment
+        uses: ./.github/actions/prepare-env
+
+      - name: Collect the ingest token
+        env:
+          BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}
+          BETTER_STACK_SOURCE_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_SOURCE_TOKEN }}
+          SECRETS_FILE: ${{ runner.temp }}/tail-secrets.json
+        run: |
+          if [ -z "$BETTER_STACK_INGESTING_URL" ]; then
+            echo '::error::PUBLIC_BETTER_STACK_INGESTING_URL is not set on web-production.'
+            exit 1
+          fi
+          if [ -z "$BETTER_STACK_SOURCE_TOKEN" ]; then
+            echo '::error::PUBLIC_BETTER_STACK_SOURCE_TOKEN is not set on web-production.'
+            exit 1
+          fi
+          node -e "
+          const body = JSON.stringify({ BETTER_STACK_SOURCE_TOKEN: process.env.BETTER_STACK_SOURCE_TOKEN });
+          require('node:fs').writeFileSync(process.env.SECRETS_FILE, body, { mode: 0o600 });
+          "
+
+      - name: Deploy to Cloudflare Workers
+        env:
+          BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}
+          SECRETS_FILE: ${{ runner.temp }}/tail-secrets.json
+        run: pnpm exec wrangler deploy --var "BETTER_STACK_INGESTING_URL:$BETTER_STACK_INGESTING_URL" --secrets-file "$SECRETS_FILE"
+
+      - name: Remove the secrets file
+        if: always()
+        env:
+          SECRETS_FILE: ${{ runner.temp }}/tail-secrets.json
+        run: rm -f "$SECRETS_FILE"
+
   deploy-production:
     name: Deploy (Production)
-    needs: [changes, web-ci]
+    needs: [changes, web-ci, deploy-tail]
     if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/_deploy.yml
     with:
@@ -290,7 +343,7 @@ jobs:
 
   check:
     name: Check
-    needs: [changes, docs-contract, app-ci, web-ci, deploy-development, e2e]
+    needs: [changes, docs-contract, app-ci, web-ci, deploy-tail, deploy-development, e2e]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
