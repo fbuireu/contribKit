@@ -23,6 +23,7 @@ jobs:
   release:
     name: Semantic Release (App)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: ${{ github.ref == 'refs/heads/main' }}
     permissions:
       contents: write
@@ -97,6 +98,7 @@ jobs:
   deliver:
     name: Deliver ${{ needs.release.outputs.version }} to Google Play
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [release]
     if: needs.release.outputs.published == 'true'
     environment: ${{ inputs.track == 'production' && 'app-production' || 'app-development' }}

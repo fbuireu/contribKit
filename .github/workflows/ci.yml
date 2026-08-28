@@ -18,6 +18,7 @@ jobs:
   changes:
     name: Detect changed packages
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       app: ${{ steps.filter.outputs.app }}
       web: ${{ steps.filter.outputs.web }}
@@ -66,6 +67,7 @@ jobs:
   docs-contract:
     name: Docs Contract
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -96,6 +98,7 @@ jobs:
   release:
     name: Semantic Release (Web)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [changes, web-ci]
     if: ${{ needs.changes.outputs.web == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     permissions:
@@ -168,6 +171,7 @@ jobs:
     needs: [changes, deploy-development]
     if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       pull-requests: write
     env:
@@ -203,6 +207,7 @@ jobs:
     needs: [changes, deploy-development]
     if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: web-development
     defaults:
       run:
@@ -251,6 +256,7 @@ jobs:
     needs: [changes]
     if: ${{ github.event_name == 'pull_request' && needs.changes.outputs.cross_package == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       pull-requests: write
     env:
@@ -287,6 +293,7 @@ jobs:
     needs: [changes, docs-contract, app-ci, web-ci, deploy-development, e2e]
     if: ${{ always() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Fail if any job above did not succeed
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
