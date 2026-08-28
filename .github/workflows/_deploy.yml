@@ -27,6 +27,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-${{ inputs.environment }}-${{ inputs.worker_name }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}

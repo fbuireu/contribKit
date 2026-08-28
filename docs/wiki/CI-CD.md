@@ -1,6 +1,6 @@
 # CI/CD
 
-CI is split per component with **path filters**, so an app change never triggers a web build and vice versa.
+CI is one workflow with **no path filter**, and a `changes` job that gates each per-component job with `if:`, so an app change never triggers a web build and vice versa.
 
 > **Path filters used to be where guards died here.** The CI was two workflows filtered by `paths:`, so every
 > guard had to be paired with the question of which filter carried the files it read, and that was answered wrong
@@ -153,7 +153,14 @@ semantic-release runs per component and tags `web-vX.Y.Z` / `app-vX.Y.Z`, driven
 - **zizmor:** static security analysis of the workflows themselves.
 - **Secrets never touch disk in the repo:** keystore and service-account JSON are base64/secret-decoded into `$RUNNER_TEMP` at runtime.
 - **Dependency autopilot:** Dependabot and Renovate PRs are auto-approved/merged once green; pnpm enforces a `minimumReleaseAge` cooldown before pulling new versions.
-- **Path-filtered, cancel-in-progress** concurrency keeps runs fast and cheap.
+- **Concurrency is declared three times, for three different races.** `ci.yml` cancels a superseded pull-request
+  run and never cancels one on `main`; `_deploy.yml` groups on the Environment and the Worker name with
+  `cancel-in-progress: false`, so two deploys aimed at one Worker queue rather than interleave; and
+  `cleanup-development.yml` joins `ci.yml`'s group so a preview Worker is never deleted out from under the
+  `E2E (preview)` job still driving it. That last group is a literal, and it has to equal `ci.yml`'s `name:`,
+  which is `CI`. It said `CI Web` until 2026-08-28, and `CI Web` is `_ci-web.yml`'s name: `github.workflow`
+  inside a reusable workflow resolves to the **caller's** name, so no run has ever occupied a group called
+  `CI Web-…` and the cleanup queued behind nothing at all.
 
 ---
 
