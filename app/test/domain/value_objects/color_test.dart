@@ -9,7 +9,12 @@ void main() {
     });
 
     test('fromARGB extracts channels correctly', () {
-      final color = Color.fromARGB(0xAA, 0x11, 0x22, 0x33);
+      final color = Color.fromARGB(
+        alpha: 0xAA,
+        red: 0x11,
+        green: 0x22,
+        blue: 0x33,
+      );
       expect(color.alpha, 0xAA);
       expect(color.red, 0x11);
       expect(color.green, 0x22);
@@ -17,7 +22,7 @@ void main() {
     });
 
     test('fromRGB defaults alpha to fully opaque', () {
-      final color = Color.fromRGB(0x11, 0x22, 0x33);
+      final color = Color.fromRGB(red: 0x11, green: 0x22, blue: 0x33);
       expect(color.alpha, 0xFF);
     });
 

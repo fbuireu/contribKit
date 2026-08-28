@@ -12,12 +12,6 @@ class SizePicker extends StatelessWidget {
   final CellSize selected;
   final ValueChanged<CellSize> onSelected;
 
-  static const _labels = {
-    CellSize.compact: 'Compact',
-    CellSize.normal: 'Normal',
-    CellSize.large: 'Large',
-  };
-
   @override
   Widget build(BuildContext context) => SettingPicker<CellSize>(
     label: 'Cell size',
@@ -25,7 +19,7 @@ class SizePicker extends StatelessWidget {
     selected: selected,
     onSelected: onSelected,
     optionBuilder: (size, isSelected, onTap) => SettingChoiceButton(
-      label: _labels[size]!,
+      label: size.label,
       isSelected: isSelected,
       onTap: onTap,
     ),

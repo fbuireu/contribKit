@@ -8,7 +8,7 @@ abstract final class ExportGeometryService {
     required CellSize cellSize,
     required int weeks,
   }) {
-    final step = cellSize.pixels + cellSize.gap;
+    final step = cellSize.step;
     return (
       width: weeks * step - cellSize.gap,
       height: ContributionGridService.daysPerWeek * step - cellSize.gap,

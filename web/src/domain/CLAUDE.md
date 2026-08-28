@@ -37,7 +37,7 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 | --- | --- | --- |
 | `Username` | trimmed, then `/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/`: 1–39 chars, no leading or trailing hyphen | `InvalidInput(username)` |
 | `Year` | `null` / `''` / `undefined` → `null`, meaning the rolling latest year; otherwise an integer in `MIN_YEAR … currentYear` | `InvalidInput(year)` |
-| `ContributionLevel` | `clampLevel` forces any number into `0–4` | never fails: it clamps |
+| `ContributionLevel` | `clampLevel` forces any number into `0–4` | never fails: it clamps, rounds, and answers `0` for `NaN` |
 | `Palette` / `CellShape` | looked up by key; an unknown key falls back to `DEFAULT_PALETTE_KEY` (`github`) / `DEFAULT_CELL_SHAPE` (first in `shapes.json`) | never fails: it defaults |
 
 `MIN_YEAR` is **2005**, which is a product floor, not GitHub's launch year. GitHub launched in 2008; four

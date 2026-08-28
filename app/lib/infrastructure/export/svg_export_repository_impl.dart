@@ -22,9 +22,8 @@ final class SvgExportRepository implements ExportRepository {
   }
 
   String _buildSvg(ContributionCalendar calendar, RenderOptions options) {
-    final cell = options.cellSize;
-    final gap = options.gap;
-    final step = cell + gap;
+    final cell = options.namedSize.pixels;
+    final step = options.namedSize.step;
 
     final weeks = calendar.weeks;
     final size = ExportGeometryService.logicalSizeFor(

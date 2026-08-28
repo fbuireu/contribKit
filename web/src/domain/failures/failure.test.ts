@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { invalidInput, isFailure, network, notFound, parse } from "./failure";
+import { FailureKind, invalidInput, isFailure, network, notFound, parse, rateLimited } from "./failure";
 
 describe("isFailure", () => {
 	it("detects failure-shaped objects", () => {
@@ -37,5 +37,24 @@ describe("failure constructors", () => {
 
 	it("parse", () => {
 		expect(parse("broke")).toEqual({ kind: "Parse", message: "broke" });
+	});
+
+	it("rateLimited, with and without a Retry-After", () => {
+		expect(rateLimited({ message: "slow down", retryAfterSeconds: 30 })).toEqual({
+			kind: "RateLimited",
+			message: "slow down",
+			retryAfterSeconds: 30,
+		});
+		expect(rateLimited({ message: "slow down", retryAfterSeconds: null })).toEqual({
+			kind: "RateLimited",
+			message: "slow down",
+			retryAfterSeconds: null,
+		});
+	});
+
+	it("recognises every kind in the sealed set, so the next one cannot be forgotten here", () => {
+		for (const kind of Object.values(FailureKind)) {
+			expect(isFailure({ kind }), kind).toBe(true);
+		}
 	});
 });

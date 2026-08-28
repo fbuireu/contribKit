@@ -13,10 +13,6 @@ final class RenderOptions {
   final Palette palette;
   final CellShape shape;
   final CellSize namedSize;
-
-  double get cellSize => namedSize.pixels;
-
-  double get gap => namedSize.gap;
 }
 
 abstract interface class ExportRepository {

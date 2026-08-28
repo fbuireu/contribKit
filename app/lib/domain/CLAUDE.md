@@ -165,6 +165,16 @@ person writes by hand may carry one; what no client does is *build* one.
   the grid drop 31 December 2028 in silence. `daysPerWeek` is declared here and is 7.
   [ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md) is the superseded decision that fixed
   the lattice at 53, and is worth reading for why the lattice exists at all.
+- **`CellSize` carries its own `label` and `step`.** `label` is an exhaustive `switch (this)`, like `CellShape.label`
+  and `BackgroundPreset.label`, so a fourth Cell Size is a compile error. `SizePicker` held a hand-maintained
+  `const Map` reached as `labels[size]!` until this landed, which is the **exact** shape
+  [`app/lib/ui/theme/CLAUDE.md`](../ui/theme/CLAUDE.md) records as a past crash: the fix was applied to the other two enums and not to this
+  one. `step` is `pixels + gap`, the pitch a renderer advances by, and it exists so that number is written once:
+  `ExportGeometryService` and both Export repositories each spelled it out, and `RenderOptions` carried a `cellSize`
+  getter that restated `pixels` under the name [ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) reserves for pixel geometry. That getter is gone.
+- **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
+  the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
+  and a wrong colour, with nothing to catch it.
 - **`PaletteService.resolve({ palettes, storedKey })`** answers which Palette a stored setting names. It accepts a
   **key or a name**, which is the in-code half of the `paletteKey` / `paletteName` migration, and falls back to the
   first Palette rather than throwing: a Palette removed from [`shared/palettes.json`](../../../shared/palettes.json) degrades to the default

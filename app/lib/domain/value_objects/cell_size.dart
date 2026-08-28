@@ -16,4 +16,12 @@ enum CellSize {
     CellSize.normal => 2.0,
     CellSize.large => 3.0,
   };
+
+  String get label => switch (this) {
+    CellSize.compact => 'Compact',
+    CellSize.normal => 'Normal',
+    CellSize.large => 'Large',
+  };
+
+  double get step => pixels + gap;
 }

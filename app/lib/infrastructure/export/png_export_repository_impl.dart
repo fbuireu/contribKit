@@ -15,9 +15,8 @@ final class PngExportRepository implements ExportRepository {
     required RenderOptions options,
   }) async {
     try {
-      final cell = options.cellSize;
-      final gap = options.gap;
-      final step = cell + gap;
+      final cell = options.namedSize.pixels;
+      final step = options.namedSize.step;
       final weeks = calendar.weeks;
 
       final pixels = ExportGeometryService.pngPixelSizeFor(

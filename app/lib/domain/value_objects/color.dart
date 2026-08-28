@@ -8,11 +8,23 @@ final class Color {
   int get green => (argb >> 8) & 0xFF;
   int get blue => argb & 0xFF;
 
-  factory Color.fromARGB(int a, int r, int g, int b) => Color(
-    ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF),
+  factory Color.fromARGB({
+    required int alpha,
+    required int red,
+    required int green,
+    required int blue,
+  }) => Color(
+    ((alpha & 0xFF) << 24) |
+        ((red & 0xFF) << 16) |
+        ((green & 0xFF) << 8) |
+        (blue & 0xFF),
   );
 
-  factory Color.fromRGB(int r, int g, int b) => Color.fromARGB(0xFF, r, g, b);
+  factory Color.fromRGB({
+    required int red,
+    required int green,
+    required int blue,
+  }) => Color.fromARGB(alpha: 0xFF, red: red, green: green, blue: blue);
 
   factory Color.fromHex(String hex) {
     final cleaned = hex.startsWith('#') ? hex.substring(1) : hex;
