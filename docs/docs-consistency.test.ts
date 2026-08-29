@@ -772,6 +772,11 @@ describe("the app's feature widgets go through the wrappers", () => {
 });
 
 describe("the web layers only import inwards", () => {
+	interface ReachesParams {
+		readonly file: string;
+		readonly specifier: string;
+	}
+
 	const FORBIDDEN_BY_LAYER: Record<string, readonly string[]> = {
 		domain: ["@application/", "@infrastructure/", "@ui/"],
 		application: ["@infrastructure/", "@ui/"],
@@ -785,9 +790,50 @@ describe("the web layers only import inwards", () => {
 
 	for (const [layer, forbidden] of Object.entries(FORBIDDEN_BY_LAYER)) {
 		it(`keeps ${layer} clear of ${forbidden.join(", ")}`, () => {
+			const reaches = ({ file, specifier }: ReachesParams): boolean => {
+				if (forbidden.some((prefix) => specifier.startsWith(prefix))) return true;
+				if (!specifier.startsWith(".")) return false;
+				const landed = relative(resolve(dirname(file), specifier));
+				return (
+					forbidden.some((prefix) => landed.startsWith(`web/src/${prefix.slice(1)}`)) ||
+					landed.startsWith("web/src/pages/")
+				);
+			};
+
 			const offenders = walk({ dir: join(REPO, "web/src", layer), match: (path) => WEB_SOURCE_FILE.test(path) })
 				.flatMap((path) =>
 					importsOf(read(path))
+						.filter((specifier) => reaches({ file: path, specifier }))
+						.map((specifier) => `${relative(path)} imports ${specifier}`),
+				)
+				.sort();
+			expect(offenders).toEqual([]);
+		});
+	}
+});
+
+describe("the app layers only import inwards", () => {
+	const FORBIDDEN_BY_LAYER: Record<string, readonly string[]> = {
+		domain: ["application/", "infrastructure/", "ui/"],
+		application: ["infrastructure/", "ui/"],
+		infrastructure: ["application/", "ui/"],
+	};
+
+	const DART_IMPORT = /(?:import|export)\s+'package:contribkit\/([^']+)'/g;
+
+	const layerImportsOf = (source: string): string[] => [...source.matchAll(DART_IMPORT)].map((match) => match[1]);
+
+	const dartFiles = (layer: string): string[] =>
+		walk({
+			dir: join(REPO, "app/lib", layer),
+			match: (path) => path.endsWith(".dart") && !GENERATED_DART_FILE.test(path),
+		});
+
+	for (const [layer, forbidden] of Object.entries(FORBIDDEN_BY_LAYER)) {
+		it(`keeps ${layer} clear of ${forbidden.join(", ")}`, () => {
+			const offenders = dartFiles(layer)
+				.flatMap((path) =>
+					layerImportsOf(read(path))
 						.filter((specifier) => forbidden.some((prefix) => specifier.startsWith(prefix)))
 						.map((specifier) => `${relative(path)} imports ${specifier}`),
 				)
@@ -795,6 +841,23 @@ describe("the web layers only import inwards", () => {
 			expect(offenders).toEqual([]);
 		});
 	}
+
+	it("keeps the pure core free of Flutter, Riverpod and the platform", () => {
+		const BANNED = ["package:flutter", "package:riverpod", "dart:ui", "dart:io", "package:hive", "package:http"];
+		const offenders = ["domain", "application"]
+			.flatMap(dartFiles)
+			.flatMap((path) => {
+				const body = read(path);
+				return BANNED.filter((banned) => body.includes(`import '${banned}`) || body.includes(`export '${banned}`)).map(
+					(banned) => `${relative(path)} imports ${banned}`,
+				);
+			})
+			.sort();
+		expect(
+			offenders,
+			"app/lib/domain/CLAUDE.md promises zero external dependencies, and nothing was checking it",
+		).toEqual([]);
+	});
 });
 
 describe("two or more arguments are one object typed after the function", () => {
