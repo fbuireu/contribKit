@@ -1,3 +1,10 @@
+# [contribkit-web-v1.13.0](https://github.com/fbuireu/contribKit/compare/web-v1.12.6...web-v1.13.0) (2026-08-29)
+
+
+### Features
+
+* **web:** let SITE_URL name the site, and fall back where vars cannot reach ([2cf0114](https://github.com/fbuireu/contribKit/commit/2cf01147e3bff9894162ff0c8f4ab3683cd9ae62))
+
 # [contribkit-web-v1.12.6](https://github.com/fbuireu/contribKit/compare/web-v1.12.5...web-v1.12.6) (2026-08-28)
 
 
