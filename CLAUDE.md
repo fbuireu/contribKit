@@ -201,7 +201,13 @@ repeating the domain, and a first step fails `smoke` when it is empty: Playwrigh
 `http://localhost:4321` when `BASE_URL` is unset, and a smoke run against nothing is worse than none. It has to be a
 **repository** variable rather than one on `web-production`: neither a job that declares no `environment:` nor a job
 that calls a reusable workflow can read an environment-scoped `vars`, and both would see an empty string. It was
-declared on the two `web-*` environments first, which is exactly how that was found. The three cases tagged `@smoke` are the homepage, an unknown path and `/user/<name>.svg`; the last is the route
+declared on the two `web-*` environments first, which is exactly how that was found. The build reads it as
+`process.env.SITE_URL` in `astro.config.ts`, **not** `import.meta.env`: Astro exposes only `PUBLIC_`-prefixed names
+through `import.meta.env`, so the first version of that line was undefined whatever the variable said and the site
+silently kept the literal fallback. Verified by building with `SITE_URL=https://example.test` and reading the
+emitted `sitemap-index.xml`: it says `example.test` now and `contribkit.app` with the variable unset. That is also
+why the three analytics variables carry the `PUBLIC_` prefix and this one does not: they are read from
+`import.meta.env` in app code, and this one is read in the config. The three cases tagged `@smoke` are the homepage, an unknown path and `/user/<name>.svg`; the last is the route
 that [cannot be prerendered](./docs/adr/0007-server-rendered-web-app-on-the-edge.md), so it is the one that
 distinguishes a running Worker from a bucket of assets. A smoke case can only assert what the deploy it follows has
 already published, which is why none of them names a feature. The step passes no `--pass-with-no-tests`, because

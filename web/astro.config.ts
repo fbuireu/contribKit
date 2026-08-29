@@ -6,7 +6,7 @@ import { defineConfig, envField, fontProviders } from "astro/config";
 
 const NOINDEX_SLUGS = ["legal-notice", "privacy", "terms", "CLAUDE"];
 
-const SITE = import.meta.env.SITE_URL ?? "https://contribkit.app";
+const SITE = process.env.SITE_URL ?? "https://contribkit.app";
 
 const APP_VERSION =
 	readFileSync(new URL("../app/pubspec.yaml", import.meta.url), "utf8").match(/^version:\s*([\d.]+)/m)?.[1] ?? "0.0.0";
