@@ -189,7 +189,7 @@ jobs:
     uses: ./.github/workflows/_deploy.yml
     with:
       environment: web-production
-      url: ${{ vars.SITE_URL }}
+      url: ${{ vars.SITE_URL || 'https://contribkit.app' }}
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -299,7 +299,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      BASE_URL: ${{ vars.SITE_URL }}
+      BASE_URL: ${{ vars.SITE_URL || 'https://contribkit.app' }}
     defaults:
       run:
         working-directory: web

@@ -6,6 +6,8 @@ import { defineConfig, envField, fontProviders } from "astro/config";
 
 const NOINDEX_SLUGS = ["legal-notice", "privacy", "terms", "CLAUDE"];
 
+const SITE = import.meta.env.SITE_URL ?? "https://contribkit.app";
+
 const APP_VERSION =
 	readFileSync(new URL("../app/pubspec.yaml", import.meta.url), "utf8").match(/^version:\s*([\d.]+)/m)?.[1] ?? "0.0.0";
 
@@ -14,12 +16,12 @@ export default defineConfig({
 	adapter: cloudflare(),
 	integrations: [
 		sitemap({
-			customPages: ["https://contribkit.app/"],
+			customPages: [`${SITE}/`],
 			filter: (page) => !NOINDEX_SLUGS.some((slug) => page.includes(slug)),
 		}),
 	],
 	trailingSlash: "never",
-	site: "https://contribkit.app",
+	site: SITE,
 	prefetch: {
 		prefetchAll: true,
 	},
@@ -41,6 +43,11 @@ export default defineConfig({
 	],
 	env: {
 		schema: {
+			SITE_URL: envField.string({
+				access: "public",
+				context: "client",
+				default: SITE,
+			}),
 			PUBLIC_GOOGLE_ANALYTICS_ID: envField.string({ context: "client", access: "public" }),
 			PUBLIC_BETTER_STACK_SOURCE_TOKEN: envField.string({ context: "client", access: "public" }),
 			PUBLIC_BETTER_STACK_INGESTING_URL: envField.string({ context: "client", access: "public" }),

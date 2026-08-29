@@ -63,6 +63,7 @@ jobs:
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         env:
           CLOUDFLARE_ENV: ${{ steps.stage.outputs.wrangler_env }}
+          SITE_URL: ${{ vars.SITE_URL }}
           PUBLIC_GOOGLE_ANALYTICS_ID: ${{ vars.PUBLIC_GOOGLE_ANALYTICS_ID }}
           PUBLIC_BETTER_STACK_SOURCE_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_SOURCE_TOKEN }}
           PUBLIC_BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}

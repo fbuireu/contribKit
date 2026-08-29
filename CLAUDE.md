@@ -196,9 +196,12 @@ needs `deploy-development`, which runs on `pull_request` only, so a push to `mai
 `web-v*` tag and made no request to `https://contribkit.app` at all. Worse, `release` needed only `web-ci`, so
 the tag, the GitHub release and the changelog entry did not even wait for the deploy: a failed deploy still
 published a version. `release` needs `deploy-production` and `smoke` now, which is what makes a tag mean *the
-version is live and answering*. Both the deploy and the smoke run take the address from the **`SITE_URL` repository
-variable** rather than repeating the domain, and a first step fails `smoke` when that variable is empty: Playwright
-falls back to `http://localhost:4321` when `BASE_URL` is unset, and a smoke run against nothing is worse than none. The three cases tagged `@smoke` are the homepage, an unknown path and `/user/<name>.svg`; the last is the route
+version is live and answering*. Both the deploy and the smoke run take the address from the **`SITE_URL` variable**, falling back to the
+literal, and a first step fails `smoke` when the result is empty: Playwright falls back to `http://localhost:4321`
+when `BASE_URL` is unset, and a smoke run against nothing is worse than none. The fallback is there because
+`SITE_URL` is declared on the `web-*` **environments**, and neither a job that declares no `environment:` nor a job
+that calls a reusable workflow can read one: both see an empty string. It becomes a no-op the day `SITE_URL` exists
+as a repository variable. The three cases tagged `@smoke` are the homepage, an unknown path and `/user/<name>.svg`; the last is the route
 that [cannot be prerendered](./docs/adr/0007-server-rendered-web-app-on-the-edge.md), so it is the one that
 distinguishes a running Worker from a bucket of assets. A smoke case can only assert what the deploy it follows has
 already published, which is why none of them names a feature. The step passes no `--pass-with-no-tests`, because
