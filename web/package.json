@@ -22,7 +22,8 @@
 	},
 	"scripts": {
 		"types": "wrangler types",
-		"dev": "pnpm types && astro dev --open",
+		"dev": "pnpm types && astro dev",
+		"dev:open": "pnpm dev --open",
 		"wrangler:dev": "pnpm types && pnpm build && wrangler dev",
 		"build": "pnpm types && astro build",
 		"preview": "astro preview",

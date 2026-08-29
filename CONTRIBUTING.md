@@ -74,7 +74,7 @@ cd app && flutter pub get            # only if you are touching the app
 
 ```bash
 cd web
-pnpm dev                  # astro dev --open
+pnpm dev                  # astro dev (dev:open appends --open)
 pnpm wrangler:dev         # build + wrangler dev, against the real Workers runtime
 pnpm test:ut                 # vitest, including the docs contract
 pnpm test:docs            # the docs contract alone

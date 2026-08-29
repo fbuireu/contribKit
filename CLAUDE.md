@@ -34,7 +34,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 pnpm sync:assets                 # copy shared/*.json into app/assets (also runs on commit)
 
 # web/: run from web/
-pnpm dev                         # astro dev --open
+pnpm dev                         # astro dev (dev:open appends --open)
 pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
 pnpm typecheck           # wrangler types + tsc --noEmit
