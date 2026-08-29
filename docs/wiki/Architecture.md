@@ -1,6 +1,6 @@
 # Architecture
 
-Both the web and mobile apps follow the same DDD-ish layered architecture. The dependency direction is strict: `domain` knows nothing about anything else; everything points inward toward it.
+Both the web and mobile apps follow the same DDD-ish layered architecture. The `-ish` is deliberate and defined: the layers, the vocabulary, the ports and the typed failures are non-negotiable, while the tactical patterns are applied only where they pay, so the code does not carry abstractions nothing reads. [ADR 0025](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0025-how-much-ddd-and-where-it-stops.md) states the test and the calls it produced. The dependency direction is strict: `domain` knows nothing about anything else; everything points inward toward it.
 
 ```mermaid
 ---

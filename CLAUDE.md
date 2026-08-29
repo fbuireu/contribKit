@@ -143,6 +143,13 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | The layer map, a run end to end, or the release pipeline | [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
 | A claim the docs-consistency test asserts, on purpose | the doc first; the test only when the claim itself changed |
 
+**How much DDD is a decision, and it is written down.** The layers, the ubiquitous language, the ports and the
+sealed `Failure` set are not negotiable. The tactical patterns are applied where they pay, decided by three
+questions in order: can the illegal state be reached, does anything read it, and does it cross a boundary. A "no"
+to all three means write the rule down (an assert, a doc line, an ADR) rather than encode it, because a value
+object nothing reads is the shared-token-nothing-reads trap wearing a pattern's name. [ADR 0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md)
+carries the rule and five worked examples, in both directions.
+
 Propose an ADR in [`docs/adr/`](./docs/adr/) when a decision is **hard to reverse**, **surprising without context**, and **the result of a real trade-off**. All three, or it is not an ADR. Copy [`0000-adr-template.md`](./docs/adr/0000-adr-template.md) to `NNNN-kebab-title.md`, numbered one above the highest existing file; the `# N. Title` heading carries that same number, and Date / Status / Context / Decision / Consequences are all required. Add a row to the index in [`ARCHITECTURE.md`](./ARCHITECTURE.md) **and** link it from wherever it bites: a gotcha here, a nested guide, a wiki page. Both are asserted, because an ADR only the index points at will not be read. Refer to one as `ADR 0007`, never `ADR 7`: the four-digit form is what the dangling-reference guard can see.
 
 Three traps worth naming, because all three have already happened here:

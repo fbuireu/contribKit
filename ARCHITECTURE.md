@@ -291,6 +291,7 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md) | The app's calendar grid is always 53 by 7 |
 | [0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md) | The grid covers the Year, in 53 or 54 weeks |
 | [0024](./docs/adr/0024-calendar-labels-are-a-web-only-surface.md) | Calendar Labels are a web-only surface |
+| [0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md) | How much DDD, and where it stops |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |
