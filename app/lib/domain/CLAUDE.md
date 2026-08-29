@@ -177,6 +177,18 @@ person writes by hand may carry one; what no client does is *build* one.
 - **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
   the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
   and a wrong colour, with nothing to catch it.
+- **`Color`'s constructor asserts its range, and stays `const`.** It took any `int` unchecked, so `Color(-1)`
+  compared unequal to `Color(0xFFFFFFFF)` despite painting identically, and `toHex()` emitted `#0000-1` for it,
+  which `SvgExportRepository` writes into a `fill=` attribute. A masking factory would have fixed it and cost every
+  `const Color(0x...)` in the tree, including `BackgroundPreset`'s five; the assert makes an out-of-range **literal**
+  a compile error instead, and catches a computed one in debug. No production path can reach it today, because
+  `fromHex` parses at most eight hex digits, so this is a guard rather than a bug fix.
+- **Every `CellFigure` compares by value, and a polygon's vertices are unmodifiable.** The guide called it a value
+  object and none of the four declared `==`, so two identical figures were unequal. `_PolygonPainter.shouldRepaint`
+  had to hand-roll `listEquals` over the vertices in `ui/`, doing in a widget what the value object should do, on a
+  path that runs for every one of 371 cells per rebuild. Note the trap this hid behind: a test written with `const`
+  figures **passes without the fix**, because Dart canonicalises const instances and identity equality succeeds.
+  `CellGeometryService.figureFor` allocates fresh ones, so the test builds through it.
 - **`BackgroundPreset` is a domain value object, and the Flutter colour is an adapter.** Background is a glossary
   concept and the web modelled it in `domain/`; here it lived in [`ui/theme/background_presets.dart`](../ui/theme/background_presets.dart) because its
   `color` returned a **Flutter** `Color`, which the domain may not name. The identity (`system` / `charcoal` /

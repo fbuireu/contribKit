@@ -1,5 +1,9 @@
 final class Color {
-  const Color(this.argb);
+  const Color(this.argb)
+    : assert(
+        argb >= 0 && argb <= 0xFFFFFFFF,
+        'A Color is an ARGB value; anything else makes toHex emit garbage',
+      );
 
   final int argb;
 

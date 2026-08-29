@@ -63,5 +63,20 @@ void main() {
     test('unequal colors are not equal', () {
       expect(Color.fromHex('#AABBCC'), isNot(equals(Color.fromHex('#001122'))));
     });
+
+    test(
+      'refuses an int outside the colour space, which toHex cannot render',
+      () {
+        expect(
+          () => Color(-1),
+          throwsA(isA<AssertionError>()),
+          reason:
+              'toHex emitted #0000-1 for it, and a negative argb compared '
+              'unequal to the value that paints identically',
+        );
+        expect(() => Color(0x1FFFFFFFF), throwsA(isA<AssertionError>()));
+        expect(const Color(0xFFFFFFFF).toHex(), '#FFFFFF');
+      },
+    );
   });
 }
