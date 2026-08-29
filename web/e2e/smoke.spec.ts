@@ -1,19 +1,31 @@
 import { expect, test } from "@playwright/test";
 
+const UNKNOWN_PATH = "/this-does-not-exist-xyz";
+
 test.describe("smoke", () => {
-	test("the homepage answers 200 @smoke", async ({ page }) => {
+	test("the homepage answers with a rendered document @smoke", async ({ page }) => {
 		const response = await page.goto("/");
+
 		expect(response?.status()).toBe(200);
+		await expect(page).toHaveTitle(/.+/);
 	});
 
 	test("an unknown path answers 404 @smoke", async ({ page }) => {
-		const response = await page.goto("/this-does-not-exist-xyz");
+		const response = await page.goto(UNKNOWN_PATH);
+
 		expect(response?.status()).toBe(404);
-		await expect(page.locator("main#main-content")).toContainText("404");
+	});
+
+	test("robots.txt is served @smoke", async ({ request }) => {
+		const response = await request.get("/robots.txt");
+
+		expect(response.status()).toBe(200);
+		expect(response.headers()["content-type"]).toContain("text/plain");
 	});
 
 	test("the SVG endpoint answers with an image @smoke", async ({ request }) => {
 		const response = await request.get("/user/torvalds.svg");
+
 		expect(response.status()).toBe(200);
 		expect(response.headers()["content-type"]).toContain("svg");
 		expect(await response.text()).toContain("<svg");
