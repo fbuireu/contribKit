@@ -2,7 +2,6 @@ import { type ContributionDayParams, contributionDay } from "@domain/entities/co
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
 import { isFailure } from "@domain/failures/failure";
 import type { CellShape } from "@domain/value-objects/cell-shape";
-import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { svgStringRenderer } from "./svg-string-renderer";
