@@ -1,18 +1,22 @@
-import type { ContributionCalendar } from "@domain/entities/types";
+import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
+import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
+import { isFailure } from "@domain/failures/failure";
 import type { CellShape } from "@domain/value-objects/cell-shape";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { svgStringRenderer } from "./svg-string-renderer";
 
+const day = (params: ContributionDayParams): ContributionDay => {
+	const built = contributionDay(params);
+	if (isFailure(built)) throw new Error(`fixture is not a Contribution Day: ${params.date}`);
+	return built;
+};
+
 const calendar: ContributionCalendar = {
 	username: { _tag: "Username", value: "torvalds" },
 	year: null,
-	days: Array.from({ length: 371 }, (_, index) => ({
-		date: "2024-01-01",
-		level: (index % 5) as ContributionLevel,
-		count: index % 5,
-	})),
+	days: Array.from({ length: 371 }, (_, index) => day({ date: "2024-01-01", level: index % 5, count: index % 5 })),
 	totalContributions: 100,
 };
 

@@ -1,9 +1,10 @@
 import type { ContributionLevel } from "../value-objects/contribution-level";
+import type { IsoDate } from "../value-objects/iso-date";
 import type { Username } from "../value-objects/username";
 import type { Year } from "../value-objects/year";
 
 export interface ContributionDay {
-	readonly date: string;
+	readonly date: IsoDate;
 	readonly level: ContributionLevel;
 	readonly count: number | null;
 }

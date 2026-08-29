@@ -13,6 +13,7 @@ export const FailureField = {
 	Username: "username",
 	Year: "year",
 	Color: "color",
+	Date: "date",
 } as const;
 
 export type FailureField = (typeof FailureField)[keyof typeof FailureField];

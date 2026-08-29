@@ -1,4 +1,5 @@
 import type { ContributionDay } from "../entities/types";
+import type { IsoDate } from "../value-objects/iso-date";
 
 export interface ContributionStats {
 	readonly totalContributions: number | null;
@@ -21,7 +22,7 @@ export const totalContributionsFor = (days: readonly ContributionDay[]): number 
 export interface ComputeContributionStatsParams {
 	readonly days: readonly ContributionDay[];
 	readonly year: number;
-	readonly today: string;
+	readonly today: IsoDate;
 }
 
 export function computeContributionStats({ days, year, today }: ComputeContributionStatsParams): ContributionStats {
@@ -35,8 +36,8 @@ export function computeContributionStats({ days, year, today }: ComputeContribut
 			if (run > longestStreak) longestStreak = run;
 		} else run = 0;
 	}
-	const yearStart = `${year}-01-01`;
-	const yearEnd = `${year}-12-31`;
+	const yearStart = `${year}-01-01` as IsoDate;
+	const yearEnd = `${year}-12-31` as IsoDate;
 	const anchor = yearEnd < today ? yearEnd : today;
 	let index = sorted.length - 1;
 	while (index >= 0) {
@@ -55,7 +56,7 @@ export function computeContributionStats({ days, year, today }: ComputeContribut
 export interface StatsWithScrapedTotalParams {
 	readonly days: readonly ContributionDay[];
 	readonly year: number;
-	readonly today: string;
+	readonly today: IsoDate;
 	readonly scrapedTotal?: number | null;
 }
 

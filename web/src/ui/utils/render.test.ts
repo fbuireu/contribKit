@@ -17,9 +17,17 @@ import { setDays, setUsername } from "./state";
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const $ = (selector: string) => document.querySelector(selector) as HTMLElement;
 
+import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
+import { isFailure } from "@domain/failures/failure";
 
-const days: ContributionDay[] = Array.from({ length: 371 }, () => ({ date: "2024-06-15", level: 2, count: 4 }));
+const day = (params: ContributionDayParams): ContributionDay => {
+	const built = contributionDay(params);
+	if (isFailure(built)) throw new Error(`fixture is not a Contribution Day: ${params.date}`);
+	return built;
+};
+
+const days: ContributionDay[] = Array.from({ length: 371 }, () => day({ date: "2024-06-15", level: 2, count: 4 }));
 
 beforeEach(() => {
 	document.body.innerHTML = "";

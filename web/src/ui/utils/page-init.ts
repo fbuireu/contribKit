@@ -1,4 +1,6 @@
+import { contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
+import { isFailure } from "@domain/failures/failure";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import { toIsoDate } from "@domain/services/dates";
@@ -88,11 +90,14 @@ export async function renderFromGitHub({
 			});
 		} else {
 			void writeUsernameCookie(username);
-			setDays(buildGridFromApi({ days: data.days, year }));
+			const days = data.days
+				.map((day) => contributionDay(day))
+				.filter((day): day is ContributionDay => !isFailure(day));
+			setDays(buildGridFromApi({ days, year }));
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
 			const stats = statsWithScrapedTotal({
-				days: data.days,
+				days,
 				year,
 				today: toIsoDate(new Date()),
 				scrapedTotal: data.total,

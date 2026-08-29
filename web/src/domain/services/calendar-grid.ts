@@ -1,18 +1,20 @@
+import { emptyDay } from "../entities/contribution-day";
 import type { ContributionDay } from "../entities/types";
-import { clampLevel } from "../value-objects/contribution-level";
+import type { ContributionLevel } from "../value-objects/contribution-level";
+import type { IsoDate } from "../value-objects/iso-date";
 import { addDays, DAYS_PER_WEEK, GRID_CELL_COUNT, getWeekday, leadingDaysFor, weeksFor } from "./dates";
 
 interface ContributionDayValues {
-	readonly level: number;
+	readonly level: ContributionLevel;
 	readonly count: number | null;
 }
 
-const byDate = (days: readonly ContributionDay[]): Map<string, ContributionDayValues> =>
+const byDate = (days: readonly ContributionDay[]): Map<IsoDate, ContributionDayValues> =>
 	new Map(days.map((day) => [day.date, { level: day.level, count: day.count }]));
 
 interface WalkFromParams {
-	readonly start: string;
-	readonly map: Map<string, ContributionDayValues>;
+	readonly start: IsoDate;
+	readonly map: Map<IsoDate, ContributionDayValues>;
 	readonly cells: number;
 }
 
@@ -21,7 +23,7 @@ const walkFrom = ({ start, map, cells }: WalkFromParams): ContributionDay[] => {
 	for (let dayOffset = 0; dayOffset < cells; dayOffset++) {
 		const date = addDays({ iso: start, days: dayOffset });
 		const entry = map.get(date);
-		days.push({ date, level: clampLevel(entry?.level ?? 0), count: entry?.count ?? null });
+		days.push(entry === undefined ? emptyDay({ date }) : { date, level: entry.level, count: entry.count });
 	}
 	return days;
 };
@@ -32,7 +34,7 @@ export interface BuildGridFromApiParams {
 }
 
 export const buildGridFromApi = ({ days, year }: BuildGridFromApiParams): ContributionDay[] => {
-	const yearStart = `${year}-01-01`;
+	const yearStart = `${year}-01-01` as IsoDate;
 	return walkFrom({
 		start: addDays({ iso: yearStart, days: -leadingDaysFor(year) }),
 		map: byDate(days),

@@ -1,8 +1,16 @@
+import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
+import { isFailure } from "@domain/failures/failure";
 import { colorOrThrow } from "@domain/value-objects/color";
 import type { PaletteColors } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { generateMiniGrid } from "./mini-grid";
+
+const day = (params: ContributionDayParams): ContributionDay => {
+	const built = contributionDay(params);
+	if (isFailure(built)) throw new Error(`fixture is not a Contribution Day: ${params.date}`);
+	return built;
+};
 
 const CELL_RECT = /<rect/g;
 
@@ -25,11 +33,9 @@ describe("generateMiniGrid", () => {
 	});
 
 	it("renders a responsive 53×7 grid from live days", () => {
-		const liveDays: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({
-			date: "2024-01-01",
-			level: 2,
-			count: 4,
-		}));
+		const liveDays: ContributionDay[] = Array.from({ length: 53 * 7 }, () =>
+			day({ date: "2024-01-01", level: 2, count: 4 }),
+		);
 		const svg = generateMiniGrid({ palette, liveDays });
 		expect(svg).toContain('width="100%"');
 		expect(svg.match(CELL_RECT) ?? []).toHaveLength(53 * 7);

@@ -1,20 +1,26 @@
+import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
+import { isFailure } from "@domain/failures/failure";
 import { CellShape } from "@domain/value-objects/cell-shape";
 import { colorOrThrow } from "@domain/value-objects/color";
 import type { PaletteColors } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { renderCalendarString, shapePreviewSVG } from "./render-svg";
 
+const day = (params: ContributionDayParams): ContributionDay => {
+	const built = contributionDay(params);
+	if (isFailure(built)) throw new Error(`fixture is not a Contribution Day: ${params.date}`);
+	return built;
+};
+
 const palette = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"].map(colorOrThrow) as unknown as PaletteColors;
-const days: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({ date: "2024-01-01", level: 2, count: 4 }));
+const days: ContributionDay[] = Array.from({ length: 53 * 7 }, () => day({ date: "2024-01-01", level: 2, count: 4 }));
 
 describe("renderCalendarString", () => {
 	it("emits data-count for known counts and omits it entirely when the count is unknown", () => {
-		const unknown: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({
-			date: "2024-01-01",
-			level: 3,
-			count: null,
-		}));
+		const unknown: ContributionDay[] = Array.from({ length: 53 * 7 }, () =>
+			day({ date: "2024-01-01", level: 3, count: null }),
+		);
 		const svg = renderCalendarString({ days: unknown, palette, shape: CellShape.Square });
 		expect(svg).toContain('data-date="2024-01-01"');
 		expect(svg).not.toContain("data-count");

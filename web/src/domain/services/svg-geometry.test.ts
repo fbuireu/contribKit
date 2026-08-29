@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { type ContributionDayParams, contributionDay } from "../entities/contribution-day";
 import type { ContributionDay } from "../entities/types";
+import { isFailure } from "../failures/failure";
 import { buildGridFromApi } from "./calendar-grid";
 import { GRID_CELL_COUNT, WEEKS_PER_YEAR } from "./dates";
 import { calendarLayout, cornerRadiusFor, dotRadius, hexPoints } from "./svg-geometry";
+
+const day = (params: ContributionDayParams): ContributionDay => {
+	const built = contributionDay(params);
+	if (isFailure(built)) throw new Error(`fixture is not a Contribution Day: ${params.date}`);
+	return built;
+};
 
 const TWO_DECIMAL_POINT_PAIR = /^-?\d+\.\d{2},-?\d+\.\d{2}$/;
 
@@ -101,8 +109,8 @@ describe("calendarLayout: month labels", () => {
 
 	it("skips a month whose first visible week starts too late", () => {
 		const days: ContributionDay[] = [
-			{ date: "2024-01-01", level: 0, count: null },
-			{ date: "2024-02-09", level: 0, count: null },
+			day({ date: "2024-01-01", level: 0, count: null }),
+			day({ date: "2024-02-09", level: 0, count: null }),
 		];
 
 		expect(labelsFor(days).map(({ label }) => label)).toEqual(["Jan"]);
@@ -139,7 +147,7 @@ describe("calendarLayout: cells", () => {
 	});
 
 	it("carries each Contribution Day's own date and Count", () => {
-		const days: ContributionDay[] = [{ date: "2024-06-15", level: 3, count: 9 }];
+		const days: ContributionDay[] = [day({ date: "2024-06-15", level: 3, count: 9 })];
 		const cell = calendarLayout({ days: buildGridFromApi({ days, year: 2024 }), shape: "rounded" }).cells.find(
 			({ date }) => date === "2024-06-15",
 		);
@@ -148,9 +156,11 @@ describe("calendarLayout: cells", () => {
 		expect(cell?.level).toBe(3);
 	});
 
-	it("clamps a level neither renderer's input type guarantees", () => {
-		const untrusted = [{ date: "2024-06-15", level: 9, count: 1 }] as unknown as ContributionDay[];
-		const cell = calendarLayout({ days: untrusted, shape: "rounded" }).cells[0];
+	it("draws the level the day carries, which contributionDay already bounded", () => {
+		const cell = calendarLayout({
+			days: [day({ date: "2024-06-15", level: 9, count: 1 })],
+			shape: "rounded",
+		}).cells[0];
 
 		expect(cell.level).toBe(4);
 	});

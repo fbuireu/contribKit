@@ -1,32 +1,30 @@
 import type { ContributionDay, ContributionWeek } from "../entities/types";
+import { type IsoDate, isoDateOf } from "../value-objects/iso-date";
 export const WEEKS_PER_YEAR = 53;
 export const DAYS_PER_WEEK = 7;
 export const GRID_CELL_COUNT = WEEKS_PER_YEAR * DAYS_PER_WEEK;
-const MONTH_DIGITS = 2;
-const DAY_DIGITS = 2;
 
-export const toIsoDate = (date: Date): string =>
-	`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(MONTH_DIGITS, "0")}-${String(date.getDate()).padStart(DAY_DIGITS, "0")}`;
+export const toIsoDate = isoDateOf;
 
 export interface AddDaysParams {
-	iso: string;
+	iso: IsoDate;
 	days: number;
 }
 
-export const addDays = ({ iso, days }: AddDaysParams): string => {
+export const addDays = ({ iso, days }: AddDaysParams): IsoDate => {
 	const date = new Date(`${iso}T12:00:00`);
 	date.setDate(date.getDate() + days);
 	return toIsoDate(date);
 };
 
-export const getWeekday = (iso: string): number => new Date(`${iso}T12:00:00`).getDay();
+export const getWeekday = (iso: IsoDate): number => new Date(`${iso}T12:00:00`).getDay();
 
 const isLeapYear = (year: number): boolean => (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
 const DAYS_IN_LEAP_YEAR = 366;
 const DAYS_IN_COMMON_YEAR = 365;
 
-export const leadingDaysFor = (year: number): number => getWeekday(`${year}-01-01`);
+export const leadingDaysFor = (year: number): number => getWeekday(`${year}-01-01` as IsoDate);
 
 export const weeksFor = (year: number): number =>
 	Math.ceil((leadingDaysFor(year) + (isLeapYear(year) ? DAYS_IN_LEAP_YEAR : DAYS_IN_COMMON_YEAR)) / DAYS_PER_WEEK);

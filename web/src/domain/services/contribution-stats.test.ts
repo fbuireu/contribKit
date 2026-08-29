@@ -1,39 +1,55 @@
 import { describe, expect, it } from "vitest";
+import { type ContributionDayParams, contributionDay } from "../entities/contribution-day";
+import type { ContributionDay } from "../entities/types";
+import { isFailure } from "../failures/failure";
+import { type IsoDate, parseIsoDate } from "../value-objects/iso-date";
 import { buildGridFromApi } from "./calendar-grid";
 import { computeContributionStats, statsWithScrapedTotal, totalContributionsFor } from "./contribution-stats";
+
+const day = (params: ContributionDayParams): ContributionDay => {
+	const built = contributionDay(params);
+	if (isFailure(built)) throw new Error(`fixture is not a Contribution Day: ${params.date}`);
+	return built;
+};
+
+const iso = (raw: string): IsoDate => {
+	const parsed = parseIsoDate(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not a calendar date: ${raw}`);
+	return parsed;
+};
 
 describe("computeContributionStats", () => {
 	it("counts a streak that ended on 31 December of a past Year", () => {
 		const days = buildGridFromApi({
 			days: [
-				{ date: "2020-12-29", level: 1, count: 1 },
-				{ date: "2020-12-30", level: 2, count: 4 },
-				{ date: "2020-12-31", level: 3, count: 9 },
+				day({ date: "2020-12-29", level: 1, count: 1 }),
+				day({ date: "2020-12-30", level: 2, count: 4 }),
+				day({ date: "2020-12-31", level: 3, count: 9 }),
 			],
 			year: 2020,
 		});
 
-		expect(computeContributionStats({ days, year: 2020, today: "2026-08-28" }).currentStreak).toBe(3);
+		expect(computeContributionStats({ days, year: 2020, today: iso("2026-08-28") }).currentStreak).toBe(3);
 	});
 
 	it("does not let a streak run back out of the Year it was asked about", () => {
 		const days = buildGridFromApi({
-			days: [{ date: "2021-01-01", level: 2, count: 4 }],
+			days: [day({ date: "2021-01-01", level: 2, count: 4 })],
 			year: 2021,
 		});
 
-		expect(computeContributionStats({ days, year: 2021, today: "2026-08-28" }).currentStreak).toBe(0);
+		expect(computeContributionStats({ days, year: 2021, today: iso("2026-08-28") }).currentStreak).toBe(0);
 	});
 
 	it("totals counts and computes trailing streak + longest run", () => {
 		const stats = computeContributionStats({
 			year: 2024,
-			today: "2024-01-04",
+			today: iso("2024-01-04"),
 			days: [
-				{ date: "2024-01-01", level: 1, count: 2 },
-				{ date: "2024-01-02", level: 0, count: 0 },
-				{ date: "2024-01-03", level: 2, count: 3 },
-				{ date: "2024-01-04", level: 1, count: 1 },
+				day({ date: "2024-01-01", level: 1, count: 2 }),
+				day({ date: "2024-01-02", level: 0, count: 0 }),
+				day({ date: "2024-01-03", level: 2, count: 3 }),
+				day({ date: "2024-01-04", level: 1, count: 1 }),
 			],
 		});
 		expect(stats.totalContributions).toBe(6);
@@ -44,12 +60,12 @@ describe("computeContributionStats", () => {
 	it("skips trailing future days and a pending empty today when counting the streak", () => {
 		const stats = computeContributionStats({
 			year: 2024,
-			today: "2024-06-15",
+			today: iso("2024-06-15"),
 			days: [
-				{ date: "2024-06-13", level: 2, count: 3 },
-				{ date: "2024-06-14", level: 1, count: 1 },
-				{ date: "2024-06-15", level: 0, count: 0 },
-				{ date: "2024-06-16", level: 0, count: 0 },
+				day({ date: "2024-06-13", level: 2, count: 3 }),
+				day({ date: "2024-06-14", level: 1, count: 1 }),
+				day({ date: "2024-06-15", level: 0, count: 0 }),
+				day({ date: "2024-06-16", level: 0, count: 0 }),
 			],
 		});
 		expect(stats.currentStreak).toBe(2);
@@ -58,14 +74,14 @@ describe("computeContributionStats", () => {
 	it("distinguishes the current streak from the longest one", () => {
 		const stats = computeContributionStats({
 			year: 2024,
-			today: "2024-01-06",
+			today: iso("2024-01-06"),
 			days: [
-				{ date: "2024-01-01", level: 1, count: 1 },
-				{ date: "2024-01-02", level: 1, count: 1 },
-				{ date: "2024-01-03", level: 1, count: 1 },
-				{ date: "2024-01-04", level: 1, count: 1 },
-				{ date: "2024-01-05", level: 0, count: 0 },
-				{ date: "2024-01-06", level: 2, count: 2 },
+				day({ date: "2024-01-01", level: 1, count: 1 }),
+				day({ date: "2024-01-02", level: 1, count: 1 }),
+				day({ date: "2024-01-03", level: 1, count: 1 }),
+				day({ date: "2024-01-04", level: 1, count: 1 }),
+				day({ date: "2024-01-05", level: 0, count: 0 }),
+				day({ date: "2024-01-06", level: 2, count: 2 }),
 			],
 		});
 		expect(stats.longestStreak).toBe(4);
@@ -75,11 +91,8 @@ describe("computeContributionStats", () => {
 	it("reports an unknown total rather than a lower bound when an active day has no count", () => {
 		const stats = computeContributionStats({
 			year: 2024,
-			today: "2024-01-02",
-			days: [
-				{ date: "2024-01-01", level: 4, count: null },
-				{ date: "2024-01-02", level: 2, count: 5 },
-			],
+			today: iso("2024-01-02"),
+			days: [day({ date: "2024-01-01", level: 4, count: null }), day({ date: "2024-01-02", level: 2, count: 5 })],
 		});
 		expect(stats.totalContributions).toBeNull();
 	});
@@ -87,11 +100,8 @@ describe("computeContributionStats", () => {
 	it("treats an unknown count on a level-0 day as the zero it must be", () => {
 		const stats = computeContributionStats({
 			year: 2024,
-			today: "2024-01-02",
-			days: [
-				{ date: "2024-01-01", level: 0, count: null },
-				{ date: "2024-01-02", level: 2, count: 5 },
-			],
+			today: iso("2024-01-02"),
+			days: [day({ date: "2024-01-01", level: 0, count: null }), day({ date: "2024-01-02", level: 2, count: 5 })],
 		});
 		expect(stats.totalContributions).toBe(5);
 	});
@@ -99,56 +109,58 @@ describe("computeContributionStats", () => {
 
 describe("statsWithScrapedTotal", () => {
 	const days = [
-		{ date: "2024-01-01", level: 1, count: 3 },
-		{ date: "2024-01-02", level: 1, count: 4 },
+		day({ date: "2024-01-01", level: 1, count: 3 }),
+		day({ date: "2024-01-02", level: 1, count: 4 }),
 	] as const;
 
 	it("lets a scraped total win over the computed sum", () => {
 		expect(
-			statsWithScrapedTotal({ days: [...days], year: 2024, today: "2024-01-02", scrapedTotal: 99 }).totalContributions,
+			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: 99 })
+				.totalContributions,
 		).toBe(99);
 	});
 
 	it("keeps a scraped zero, because zero is a fact and not a missing value", () => {
 		expect(
-			statsWithScrapedTotal({ days: [...days], year: 2024, today: "2024-01-02", scrapedTotal: 0 }).totalContributions,
+			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: 0 })
+				.totalContributions,
 		).toBe(0);
 	});
 
 	it("keeps the computed sum when nothing was scraped", () => {
 		expect(
-			statsWithScrapedTotal({ days: [...days], year: 2024, today: "2024-01-02", scrapedTotal: null })
+			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: null })
 				.totalContributions,
 		).toBe(7);
 	});
 
 	it("keeps the computed sum when no total is passed at all", () => {
-		expect(statsWithScrapedTotal({ days: [...days], year: 2024, today: "2024-01-02" }).totalContributions).toBe(7);
+		expect(statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02") }).totalContributions).toBe(7);
 	});
 
 	it("leaves the streaks to computeContributionStats", () => {
-		const stats = statsWithScrapedTotal({ days: [...days], year: 2024, today: "2024-01-02", scrapedTotal: 99 });
+		const stats = statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: 99 });
 
 		expect(stats.longestStreak).toBe(
-			computeContributionStats({ days: [...days], year: 2024, today: "2024-01-02" }).longestStreak,
+			computeContributionStats({ days: [...days], year: 2024, today: iso("2024-01-02") }).longestStreak,
 		);
 	});
 });
 
 describe("totalContributionsFor", () => {
 	it("is the one place the unknown-Count rule lives, and the scraper uses it", () => {
-		expect(totalContributionsFor([{ date: "2024-01-01", level: 2, count: 5 }])).toBe(5);
+		expect(totalContributionsFor([day({ date: "2024-01-01", level: 2, count: 5 })])).toBe(5);
 		expect(
 			totalContributionsFor([
-				{ date: "2024-01-01", level: 4, count: null },
-				{ date: "2024-01-02", level: 2, count: 5 },
+				day({ date: "2024-01-01", level: 4, count: null }),
+				day({ date: "2024-01-02", level: 2, count: 5 }),
 			]),
 			"an unknown Count on an active day voids the total",
 		).toBeNull();
 		expect(
 			totalContributionsFor([
-				{ date: "2024-01-01", level: 0, count: null },
-				{ date: "2024-01-02", level: 2, count: 5 },
+				day({ date: "2024-01-01", level: 0, count: null }),
+				day({ date: "2024-01-02", level: 2, count: 5 }),
 			]),
 			"a level-0 unknown is the zero GitHub means",
 		).toBe(5);
@@ -156,12 +168,12 @@ describe("totalContributionsFor", () => {
 
 	it("agrees with the total computeContributionStats reports", () => {
 		const days = [
-			{ date: "2024-01-01", level: 1, count: 2 },
-			{ date: "2024-01-02", level: 0, count: null },
-			{ date: "2024-01-03", level: 3, count: 7 },
+			day({ date: "2024-01-01", level: 1, count: 2 }),
+			day({ date: "2024-01-02", level: 0, count: null }),
+			day({ date: "2024-01-03", level: 3, count: 7 }),
 		] as const;
 
-		expect(computeContributionStats({ days: [...days], year: 2024, today: "2024-01-03" }).totalContributions).toBe(
+		expect(computeContributionStats({ days: [...days], year: 2024, today: iso("2024-01-03") }).totalContributions).toBe(
 			totalContributionsFor([...days]),
 		);
 	});

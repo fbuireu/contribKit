@@ -159,6 +159,20 @@ test helper reintroduces the same bug in the test rather than the code.
   size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+- **`contributionDay` is the only way to make a Contribution Day, and it is what clamps.** The entity had no
+  constructor, so `clampLevel` was re-applied defensively in **two** downstream places, `walkFrom` and
+  `calendarLayout`, each re-validating data the type claimed to have guaranteed. Both are gone: the level is
+  bounded once, at construction. Two tests needed `as unknown as ContributionDay[]` to build a day the type
+  forbids, which is the tell that the type was a promise nothing kept; neither cast survives.
+- **`IsoDate` is a branded string, and `date` is one.** The date was a bare `string` doing four jobs: the key of
+  `byDate`, an ordered comparison with `>`, a positional `slice(5, 7)` in `monthLabelsFor`, and a template in
+  `addDays`. Every one is correct only for a zero-padded `YYYY-MM-DD`, and no signature said so. `parseIsoDate`
+  rejects `2024-6-15`, a full timestamp and `20240615`, the shapes that miss a map lookup in silence, and it
+  rejects a date that looks right and does not exist, like `2023-02-30`. `monthOf` and `dayOfMonthOf` replace the
+  magic offsets. Because the brand is a `string` at runtime, ordering and map keys keep working untouched.
+  **It paid for itself immediately**: typing the field made the compiler point at [`ui/utils/page-init.ts`](../ui/utils/page-init.ts), which was
+  casting the JSON API response straight into domain types. It parses through `contributionDay` now, which is the
+  anti-corruption the client side never had.
 - **`InvalidInput` carries a `field`, and `/api/contributions` now says which one.** The field was set by
   `parseUsername`, `parseYear` and `parseColor` and read by **nothing**, so a 400 told a machine consumer that
   something was wrong and not which parameter. Carrying discriminating data nobody reads is how a sealed union

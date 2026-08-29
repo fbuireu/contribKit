@@ -1,8 +1,8 @@
+import { contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
-import { type Failure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
+import { type Failure, isFailure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
 import type { ContributionRepository, FetchCalendarParams } from "@domain/repositories/types";
 import { totalContributionsFor } from "@domain/services/contribution-stats";
-import { clampLevel } from "@domain/value-objects/contribution-level";
 import type { Year } from "@domain/value-objects/year";
 
 const USER_AGENT =
@@ -60,11 +60,11 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 		idToCount.set(match[1], Number.parseInt(match[2].replace(COUNT_SEPARATORS, ""), 10));
 	}
 
-	const enriched: ContributionDay[] = days.map(({ date, level, id }) => ({
-		date,
-		level: clampLevel(level),
-		count: id === null ? null : (idToCount.get(id) ?? null),
-	}));
+	const enriched: ContributionDay[] = days
+		.map(({ date, level, id }) =>
+			contributionDay({ date, level, count: id === null ? null : (idToCount.get(id) ?? null) }),
+		)
+		.filter((day): day is ContributionDay => !isFailure(day));
 
 	return { days: enriched, totalContributions: totalContributionsFor(enriched) };
 };

@@ -1,7 +1,8 @@
 import type { ContributionDay, ContributionWeek } from "../entities/types";
 import { MONTH_LABELS, WEEKDAY_LABELS } from "../value-objects/calendar-labels";
 import { CellShape } from "../value-objects/cell-shape";
-import { type ContributionLevel, clampLevel } from "../value-objects/contribution-level";
+import type { ContributionLevel } from "../value-objects/contribution-level";
+import { dayOfMonthOf, monthOf } from "../value-objects/iso-date";
 import { DAYS_PER_WEEK, weeksOf } from "./dates";
 
 const SVG_PAD_X = 12;
@@ -76,8 +77,8 @@ const monthLabelsFor = (weeks: readonly ContributionWeek[]): Array<{ weekIndex: 
 	weeks.forEach((week, weekIndex) => {
 		const first = week[0];
 		if (!first) return;
-		const month = Number.parseInt(first.date.slice(5, 7), 10) - 1;
-		if (month !== lastMonth && Number.parseInt(first.date.slice(8, 10), 10) <= SVG_MONTH_LABEL_MAX_DAY) {
+		const month = monthOf(first.date) - 1;
+		if (month !== lastMonth && dayOfMonthOf(first.date) <= SVG_MONTH_LABEL_MAX_DAY) {
 			labels.push({ weekIndex, label: MONTH_LABELS[month] });
 			lastMonth = month;
 		}
@@ -149,7 +150,7 @@ export const calendarLayout = ({
 				x: weekIndex * cellWidth,
 				y: dayIndex * cellWidth,
 				date: day.date,
-				level: clampLevel(day.level),
+				level: day.level,
 				count: day.count,
 			});
 		});
