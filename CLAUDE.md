@@ -207,6 +207,24 @@ distinguishes a running Worker from a bucket of assets. A smoke case can only as
 already published, which is why none of them names a feature. The step passes no `--pass-with-no-tests`, because
 Playwright exiting 1 on an empty set is the only thing keeping the tag honest.
 
+**The smoke job labels its own report.** Playwright's `github` reporter annotates every run with the same
+`🎭 Playwright Run Summary`, whichever suite produced it, so a step writes a *Production smoke tests* heading to
+`$GITHUB_STEP_SUMMARY` first, naming the address it ran against and the sha it followed. The artifact is
+`playwright-smoke-report` for the same reason.
+
+**A failed smoke run rolls production back.** Withholding the tag leaves a version that does not answer serving
+traffic, so `rollback` runs `wrangler rollback --env production --yes` from `web/` when `deploy-production`
+succeeded and `smoke` failed, returning the Worker to the version that was live before. It is a separate job
+because it needs the Cloudflare credentials and `smoke` deliberately has none. The cost is the obvious one: a smoke
+case that fails for a reason outside the Worker now reverts a good deploy, which is the second reason
+`/api/health` is out of the set and the rule for anything added to it.
+
+**`Check` needed widening for any of that to be visible.** It aggregates the other jobs and is the only context the
+ruleset names, and its `needs` list stopped at `e2e`: run 33237524280 reported a green `Check` beside a red run
+whose `smoke` job had failed, which is how a broken push looks passing in the branch's checks.
+`deploy-production` and `smoke` are in that list now. They are skipped on a pull request, and a skipped job is not
+a failure, so nothing about the pull-request gate changes.
+
 **`/api/health` was the fourth case and is not, because production answered it with HTML.** On the first run of this
 job the other three passed and that one failed parsing `<!DOCTYPE …` as JSON. Nothing here renders HTML for that path:
 the route sets `prerender = false` and returns `Response.json`, the middleware's only `/api/` branch returns a JSON
