@@ -41,7 +41,7 @@ describe("buildSvgLines", () => {
 	});
 
 	it("uses github palette colors for the sample rects", () => {
-		expect(toText(SVG_LINES)).toContain(PALETTES.github.colors[1]);
+		expect(toText(SVG_LINES)).toContain(PALETTES.github.colors[1].hex);
 	});
 
 	it("accounts for every remaining grid cell in the ellipsis comment", () => {
@@ -145,8 +145,8 @@ describe("the SVG preview shows what the copy button copies", () => {
 	it("draws the visitor's Palette, not the default one", () => {
 		const text = toText(buildSvgLines({ palette: NORD, shape: DEFAULT_CELL_SHAPE }));
 
-		expect(text).toContain(NORD[4]);
-		expect(text).not.toContain(PALETTES.github.colors[4]);
+		expect(text).toContain(NORD[4].hex);
+		expect(text).not.toContain(PALETTES.github.colors[4].hex);
 	});
 
 	it("draws the visitor's Cell Shape, not always a rect", () => {

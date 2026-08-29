@@ -1,5 +1,6 @@
 import type { ContributionDay } from "@domain/entities/types";
 import { DAYS_PER_WEEK, WEEKS_PER_YEAR } from "@domain/services/dates";
+import type { PaletteColors } from "@domain/value-objects/palette";
 import { mulberry32 } from "@ui/utils/mulberry";
 
 const DEMO_COLS = 26;
@@ -16,7 +17,7 @@ const LEVEL_THRESHOLDS = [
 ] as const;
 
 export interface GenerateMiniGridParams {
-	palette: readonly string[];
+	palette: PaletteColors;
 	liveDays?: ContributionDay[];
 }
 
@@ -49,7 +50,7 @@ export function generateMiniGrid({ palette, liveDays }: GenerateMiniGridParams):
 	for (let columnIndex = 0; columnIndex < cols; columnIndex++) {
 		for (let rowIndex = 0; rowIndex < DAYS_PER_WEEK; rowIndex++) {
 			const level = levels[columnIndex * DAYS_PER_WEEK + rowIndex];
-			svg += `<rect x="${columnIndex * STEP}" y="${rowIndex * STEP}" width="${CELL_SIZE}" height="${CELL_SIZE}" rx="1" fill="${palette[level]}"/>`;
+			svg += `<rect x="${columnIndex * STEP}" y="${rowIndex * STEP}" width="${CELL_SIZE}" height="${CELL_SIZE}" rx="1" fill="${palette[level].hex}"/>`;
 		}
 	}
 	return `${svg}</svg>`;

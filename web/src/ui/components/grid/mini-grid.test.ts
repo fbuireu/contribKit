@@ -1,10 +1,12 @@
 import type { ContributionDay } from "@domain/entities/types";
+import { colorOrThrow } from "@domain/value-objects/color";
+import type { PaletteColors } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { generateMiniGrid } from "./mini-grid";
 
 const CELL_RECT = /<rect/g;
 
-const palette = ["#0", "#1", "#2", "#3", "#4"];
+const palette = ["#000000", "#111111", "#222222", "#333333", "#444444"].map(colorOrThrow) as unknown as PaletteColors;
 
 describe("generateMiniGrid", () => {
 	it("returns an svg element", () => {

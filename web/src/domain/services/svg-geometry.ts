@@ -1,8 +1,8 @@
-import type { ContributionDay } from "../entities/types";
+import type { ContributionDay, ContributionWeek } from "../entities/types";
 import { MONTH_LABELS, WEEKDAY_LABELS } from "../value-objects/calendar-labels";
 import { CellShape } from "../value-objects/cell-shape";
 import { type ContributionLevel, clampLevel } from "../value-objects/contribution-level";
-import { chunkWeeks, DAYS_PER_WEEK } from "./dates";
+import { DAYS_PER_WEEK, weeksOf } from "./dates";
 
 const SVG_PAD_X = 12;
 const SVG_PAD_Y = 12;
@@ -70,9 +70,7 @@ export const hexPoints = ({ cx, cy, radius }: HexPointsParams): string => {
 	return points.join(" ");
 };
 
-const monthLabelsFor = (
-	weeks: ReadonlyArray<ReadonlyArray<{ date: string }>>,
-): Array<{ weekIndex: number; label: string }> => {
+const monthLabelsFor = (weeks: readonly ContributionWeek[]): Array<{ weekIndex: number; label: string }> => {
 	const labels: Array<{ weekIndex: number; label: string }> = [];
 	let lastMonth = -1;
 	weeks.forEach((week, weekIndex) => {
@@ -126,7 +124,7 @@ export const calendarLayout = ({
 	const cellWidth = size + gap;
 	const labelWidth = showLabels ? SVG_LABEL_WIDTH : 0;
 	const labelHeight = showLabels ? SVG_LABEL_HEIGHT : 0;
-	const weeks = chunkWeeks(days);
+	const weeks = weeksOf(days);
 
 	const monthLabels: CalendarLabelPlacement[] = showLabels
 		? monthLabelsFor(weeks).map(({ weekIndex, label }) => ({

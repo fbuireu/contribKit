@@ -159,6 +159,16 @@ test helper reintroduces the same bug in the test rather than the code.
   size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+- **`Color` is a value object, and `PaletteColors` is five of them.** The colours in [`shared/palettes.json`](../../../shared/palettes.json) used to
+  reach an SVG `fill=` attribute as raw strings, so a malformed token was a caught, typed failure on the phone
+  (`Color.fromHex` throws) and a silently broken embed on the web. `PALETTES` parses every colour at module load
+  through `colorOrThrow`, so a bad token fails the build rather than the render, and the value comes apart with
+  `.hex` at the three places that emit markup. That is the same discipline the app has always had.
+- **`ContributionWeek` is named here too.** It is `readonly ContributionDay[]`, produced by `weeksOf`, where the
+  app has a class wrapping a list. The shape differs because the web's grid is a flat array and the app's is a list
+  of weeks; the **concept** is now spelled in both, which is what [`CONTEXT.md`](../../../CONTEXT.md) giving it its own entry asks for.
+  `monthLabelsFor` used to take `ReadonlyArray<ReadonlyArray<{ date: string }>>`, a structural stand-in invented
+  because the type did not exist.
 - **The aggregate's field is `totalContributions`, and the endpoint's JSON key is still `total`.**
   [`CONTEXT.md`](../../../CONTEXT.md) rejects `total` for Total Contributions in as many words, and the entity carried it until this
   landed while the app's `ContributionCalendar` had always spelled it out. The **payload** keeps `total` because it

@@ -1,9 +1,11 @@
 import type { ContributionDay } from "@domain/entities/types";
 import { CellShape } from "@domain/value-objects/cell-shape";
+import { colorOrThrow } from "@domain/value-objects/color";
+import type { PaletteColors } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { renderCalendarString, shapePreviewSVG } from "./render-svg";
 
-const palette = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"] as const;
+const palette = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"].map(colorOrThrow) as unknown as PaletteColors;
 const days: ContributionDay[] = Array.from({ length: 53 * 7 }, () => ({ date: "2024-01-01", level: 2, count: 4 }));
 
 describe("renderCalendarString", () => {

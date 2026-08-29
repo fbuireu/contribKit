@@ -1,6 +1,7 @@
 import palettes from "@shared/palettes.json" with { type: "json" };
+import { type Color, colorOrThrow } from "./color";
 
-export type PaletteColors = readonly [string, string, string, string, string];
+export type PaletteColors = readonly [Color, Color, Color, Color, Color];
 
 export interface Palette {
 	readonly key: string;
@@ -14,7 +15,13 @@ export const PALETTES: Record<string, Palette> = Object.fromEntries(
 		{
 			key: palette.key,
 			name: palette.name,
-			colors: [palette.none, palette.low, palette.medium, palette.high, palette.veryHigh] as const,
+			colors: [
+				colorOrThrow(palette.none),
+				colorOrThrow(palette.low),
+				colorOrThrow(palette.medium),
+				colorOrThrow(palette.high),
+				colorOrThrow(palette.veryHigh),
+			] as const,
 		},
 	]),
 );

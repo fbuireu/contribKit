@@ -48,7 +48,15 @@ export const svgStringRenderer: SvgRenderer = ({ calendar, options }) => {
 
 	for (const { x, y, level } of layout.cells) {
 		parts.push(
-			renderCellShape({ shape, x, y, size: layout.size, radius: layout.radius, fill: palette.colors[level], level }),
+			renderCellShape({
+				shape,
+				x,
+				y,
+				size: layout.size,
+				radius: layout.radius,
+				fill: palette.colors[level].hex,
+				level,
+			}),
 		);
 	}
 

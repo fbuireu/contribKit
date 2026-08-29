@@ -67,7 +67,7 @@ const circleLine = ({ column, level, palette, shape }: CellLineParams): CodeLine
 				name: "r",
 				value: shape === CellShape.Dot ? dotRadius({ level, size: SVG_DEFAULT_CELL_SIZE }) : centre,
 			}),
-			attributeTokens({ name: "fill", value: palette[level] }),
+			attributeTokens({ name: "fill", value: palette[level].hex }),
 		]),
 		["c-tag", "/>"],
 	];
@@ -82,7 +82,7 @@ const hexLine = ({ column, level, palette }: CellLineParams): CodeLine => {
 		["c-tag", "<polygon "],
 		...joinWithSpaces([
 			attributeTokens({ name: "points", value: hexPoints({ cx: x + centre, cy: centre, radius: centre }) }),
-			attributeTokens({ name: "fill", value: palette[level] }),
+			attributeTokens({ name: "fill", value: palette[level].hex }),
 		]),
 		["c-tag", "/>"],
 	];
@@ -99,7 +99,7 @@ const rectLine =
 			attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
 			attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
 			attributeTokens({ name: "rx", value: radius }),
-			attributeTokens({ name: "fill", value: palette[level] }),
+			attributeTokens({ name: "fill", value: palette[level].hex }),
 		]),
 		["c-tag", "/>"],
 	];

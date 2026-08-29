@@ -54,7 +54,7 @@ export const getActiveExportTab = (): string =>
 export function renderWidget(): void {
 	const palette = getActivePalette().colors;
 	const phoneScreen = document.getElementById(ElementId.PhoneScreen);
-	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4]);
+	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4].hex);
 	const widgetGrid = document.getElementById(ElementId.WidgetMiniGrid);
 	if (widgetGrid) widgetGrid.innerHTML = generateMiniGrid({ palette, liveDays: getDays() });
 	const widgetUsername = document.getElementById(ElementId.WidgetUsername);
@@ -79,7 +79,7 @@ export function renderCustomize(): void {
 	if (heroGrid)
 		heroGrid.innerHTML = renderCalendarString({ days, palette, shape, ...HERO_GRID_GEOMETRY, showLabels: true });
 	document.querySelectorAll<HTMLElement>(Selector.LegendSquares).forEach((square, index) => {
-		square.style.background = palette[index] ?? palette[0];
+		square.style.background = (palette[index] ?? palette[0]).hex;
 	});
 	const paletteLabelEl = document.getElementById(ElementId.CustomPaletteLabel);
 	if (paletteLabelEl) paletteLabelEl.textContent = getActivePalette().key;

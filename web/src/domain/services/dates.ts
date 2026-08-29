@@ -1,3 +1,4 @@
+import type { ContributionDay, ContributionWeek } from "../entities/types";
 export const WEEKS_PER_YEAR = 53;
 export const DAYS_PER_WEEK = 7;
 export const GRID_CELL_COUNT = WEEKS_PER_YEAR * DAYS_PER_WEEK;
@@ -34,3 +35,5 @@ export const chunkWeeks = <T>(days: readonly T[]): T[][] =>
 	Array.from({ length: Math.ceil(days.length / DAYS_PER_WEEK) }, (_, weekIndex) =>
 		days.slice(weekIndex * DAYS_PER_WEEK, (weekIndex + 1) * DAYS_PER_WEEK),
 	);
+
+export const weeksOf = (days: readonly ContributionDay[]): readonly ContributionWeek[] => chunkWeeks(days);

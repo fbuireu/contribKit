@@ -7,6 +7,8 @@ export interface ContributionDay {
 	readonly count: number | null;
 }
 
+export type ContributionWeek = readonly ContributionDay[];
+
 export interface ContributionCalendar {
 	readonly username: Username;
 	readonly days: readonly ContributionDay[];
