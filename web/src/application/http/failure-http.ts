@@ -10,6 +10,9 @@ const STATUS_BY_KIND: Record<Failure["kind"], number> = {
 
 export const statusFor = (failure: Failure): number => STATUS_BY_KIND[failure.kind];
 
+export const fieldFor = (failure: Failure): Record<string, string> =>
+	failure.kind === FailureKind.InvalidInput ? { field: failure.field } : {};
+
 export const messageFor = (failure: Failure): string =>
 	failure.kind === FailureKind.NotFound ? "User not found" : failure.message;
 

@@ -1,4 +1,4 @@
-import { messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
+import { fieldFor, messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
 import {
 	ContributionsEndpoint,
 	logContributionsFailure,
@@ -29,12 +29,12 @@ const handle: APIRoute = async ({ url, locals }) => {
 
 	const username = parseUsername(data.data.user);
 	if (isFailure(username)) {
-		return Response.json({ error: messageFor(username) }, { status: statusFor(username) });
+		return Response.json({ error: messageFor(username), ...fieldFor(username) }, { status: statusFor(username) });
 	}
 
 	const year = parseYear(data.data.year);
 	if (isFailure(year)) {
-		return Response.json({ error: messageFor(year) }, { status: statusFor(year) });
+		return Response.json({ error: messageFor(year), ...fieldFor(year) }, { status: statusFor(year) });
 	}
 
 	const result = await loadContributions({ username, year: isYear(year) ? year : null });

@@ -159,6 +159,11 @@ test helper reintroduces the same bug in the test rather than the code.
   size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+- **`InvalidInput` carries a `field`, and `/api/contributions` now says which one.** The field was set by
+  `parseUsername`, `parseYear` and `parseColor` and read by **nothing**, so a 400 told a machine consumer that
+  something was wrong and not which parameter. Carrying discriminating data nobody reads is how a sealed union
+  rots, and this endpoint is the one surface consumed by code rather than by a person. `fieldFor` spreads it into
+  the body; the SVG route stays `text/plain`, because an `<img>` cannot read a field name.
 - **The aggregate knows its own span: `year: Year | null`.** [`CONTEXT.md`](../../../CONTEXT.md) defines a Contribution Calendar as the
   days "for one Year", and the app's has always carried a `Year`. The web's did not, so the Year travelled beside
   the aggregate as a bare `number` through five signatures, unwrapped from the `Year` the repository was handed at

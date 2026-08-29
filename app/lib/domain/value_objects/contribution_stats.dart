@@ -8,7 +8,19 @@ final class ContributionStats {
     required this.weeklyAverage,
     required this.bestMonthContributions,
     required this.bestMonth,
-  });
+  }) : assert(
+         (bestDayCount == null) == (bestDayDate == null),
+         'A best day is one fact: a Count with no date, or a date with no '
+         'Count, is half an answer and was shipped once',
+       ),
+       assert(
+         (bestMonth == null) == (bestMonthContributions == null),
+         'A best month is one fact, the same way a best day is',
+       ),
+       assert(
+         bestMonth == null || (bestMonth >= 1 && bestMonth <= 12),
+         'A best month is a calendar month',
+       );
 
   final int currentStreak;
   final int longestStreak;

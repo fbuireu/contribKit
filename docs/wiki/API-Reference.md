@@ -100,7 +100,9 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
 
 ### Errors
 
-Errors return `{ "error": "<message>" }` with an appropriate status:
+Errors return `{ "error": "<message>" }` with an appropriate status. A **400** carries one extra key, `field`,
+naming the parameter that was rejected (`username` or `year`), because this endpoint is consumed by code and
+"something was wrong" is not enough to act on:
 
 | Status | Meaning |
 |--------|---------|

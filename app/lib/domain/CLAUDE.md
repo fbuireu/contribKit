@@ -177,6 +177,12 @@ person writes by hand may carry one; what no client does is *build* one.
 - **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
   the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
   and a wrong colour, with nothing to catch it.
+- **`ContributionStats` pairs its two facts in the constructor.** `bestDayCount` with `bestDayDate`, and
+  `bestMonth` with `bestMonthContributions`, are each **one fact**, and the rule lived only in
+  `ContributionStatsService.compute`, one keystroke from being violated by the next caller. It was violated once
+  already: the stats said the best day was 15 June and that we could not tell you how many. Asserts, not nested
+  value objects: six of the eight figures have **no reader** in `lib/`, so wrapping them would invent types for
+  surface nothing consumes. The month is bounded to 1 to 12 while we are here.
 - **A `ContributionCalendar` and a `ContributionWeek` freeze their lists.** Both stored a `final List`, which
   freezes the reference and not the contents, so `calendar.weeks.clear()` compiled and analyzed clean. That matters
   more here than usually: `hashCode` is `Object.hash(..., Object.hashAll(weeks))`, so mutating a week in place

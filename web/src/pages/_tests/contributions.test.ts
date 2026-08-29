@@ -27,6 +27,14 @@ describe("GET /api/contributions", () => {
 		expect(await res.json()).toEqual({ error: "Missing required parameter: user" });
 	});
 
+	it("names the parameter it rejected, because a machine consumer cannot guess", async () => {
+		const badUser = await call("?user=foo_bar");
+		const badYear = await call("?user=torvalds&year=1999");
+
+		expect(await badUser.json()).toMatchObject({ field: "username" });
+		expect(await badYear.json()).toMatchObject({ field: "year" });
+	});
+
 	it("400 on an invalid username", async () => {
 		const res = await call("?user=foo_bar");
 		expect(res.status).toBe(400);
