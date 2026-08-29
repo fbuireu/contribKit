@@ -12,11 +12,6 @@ test.describe("homepage", () => {
 		await page.goto("/");
 	});
 
-	test("returns 200 @smoke", async ({ page }) => {
-		const response = await page.goto("/");
-		expect(response?.status()).toBe(200);
-	});
-
 	test("has a non-empty title", async ({ page }) => {
 		await expect(page).toHaveTitle(ANY_NON_EMPTY_TITLE);
 	});

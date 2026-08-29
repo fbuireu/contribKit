@@ -214,7 +214,7 @@ through `import.meta.env`, so the first version of that line was undefined whate
 silently kept the literal fallback. Verified by building with `SITE_URL=https://example.test` and reading the
 emitted `sitemap-index.xml`: it says `example.test` now and `contribkit.app` with the variable unset. That is also
 why the three analytics variables carry the `PUBLIC_` prefix and this one does not: they are read from
-`import.meta.env` in app code, and this one is read in the config. The three cases tagged `@smoke` are the homepage, an unknown path and `/user/<name>.svg`; the last is the route
+`import.meta.env` in app code, and this one is read in the config. The three cases tagged `@smoke` live in [`web/e2e/smoke.spec.ts`](./web/e2e/smoke.spec.ts) and nowhere else, so the set that can revert a deploy is one file rather than a tag scattered through the suite: the homepage, an unknown path and `/user/<name>.svg`; the last is the route
 that [cannot be prerendered](./docs/adr/0007-server-rendered-web-app-on-the-edge.md), so it is the one that
 distinguishes a running Worker from a bucket of assets. A smoke case can only assert what the deploy it follows has
 already published, which is why none of them names a feature. The step passes no `--pass-with-no-tests`, because
