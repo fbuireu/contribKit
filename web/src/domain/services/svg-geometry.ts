@@ -2,7 +2,7 @@ import type { ContributionDay } from "../entities/types";
 import { MONTH_LABELS, WEEKDAY_LABELS } from "../value-objects/calendar-labels";
 import { CellShape } from "../value-objects/cell-shape";
 import { type ContributionLevel, clampLevel } from "../value-objects/contribution-level";
-import { chunkWeeks, DAYS_PER_WEEK, WEEKS_PER_YEAR } from "./dates";
+import { chunkWeeks, DAYS_PER_WEEK } from "./dates";
 
 const SVG_PAD_X = 12;
 const SVG_PAD_Y = 12;
@@ -158,7 +158,7 @@ export const calendarLayout = ({
 	});
 
 	return {
-		width: WEEKS_PER_YEAR * cellWidth + labelWidth + SVG_PAD_X * 2,
+		width: weeks.length * cellWidth + labelWidth + SVG_PAD_X * 2,
 		height: DAYS_PER_WEEK * cellWidth + labelHeight + SVG_PAD_Y * 2,
 		size,
 		radius: radiusFor({ shape, size }),

@@ -182,6 +182,12 @@ test helper reintroduces the same bug in the test rather than the code.
   Tightening the pattern is not free (it would turn a truthful "user not found" into a misleading "invalid
   username" for any handle GitHub later starts allowing), so the rule is deliberately looser than GitHub's, and the
   app's Dart regex is looser in the same way.
+- **`buildGridFromApi` covers the Year, which is 53 weeks or, twice this century, 54.** `weeksFor(year)` answers
+  how many whole Sunday-aligned weeks the Year takes: a leap Year opening on a Saturday needs `6 + 366 = 372`
+  cells and 53 x 7 is 371, so 2028 and 2056 take a 54th week. `GRID_CELL_COUNT` is now only the **rolling**
+  window's size, which is genuinely fixed because it has no Year to cover. `chunkWeeks` slices whatever it is
+  handed instead of padding to 53, and `calendarLayout` takes its width from `weeks.length`
+  ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
 - **`buildRollingGrid` is the anchor-free sibling of `buildGridFromApi`.** It keys the days by date and ends on
   the Saturday of the latest day it was given, rather than on a calendar year, because the Embed deliberately
   shows a rolling window and never a pinned Year. Reach for it whenever days arrive without a Year to anchor on;

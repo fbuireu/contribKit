@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { ContributionDay } from "../entities/types";
+import { MIN_YEAR } from "../value-objects/year";
 import { buildGridFromApi, buildRollingGrid } from "./calendar-grid";
-import { addDays, GRID_CELL_COUNT, getWeekday } from "./dates";
+import { addDays, DAYS_PER_WEEK, GRID_CELL_COUNT, getWeekday } from "./dates";
 
 describe("buildGridFromApi", () => {
 	it("builds a full 53×7 grid", () => {
@@ -97,5 +98,26 @@ describe("buildRollingGrid", () => {
 
 	it("returns nothing when it was given nothing", () => {
 		expect(buildRollingGrid({ days: [] })).toEqual([]);
+	});
+});
+
+describe("the Year-anchored grid covers the Year", () => {
+	it("reaches 31 December in every Year the app offers, 2028 and 2056 included", () => {
+		const uncovered: number[] = [];
+		for (let year = MIN_YEAR; year <= 2060; year++) {
+			const days = buildGridFromApi({ days: [], year });
+			if (days[0].date > `${year}-01-01` || days[days.length - 1].date < `${year}-12-31`) uncovered.push(year);
+		}
+
+		expect(uncovered, "a leap Year opening on a Saturday needs 372 cells and 53 x 7 is 371").toEqual([]);
+	});
+
+	it("emits whole weeks that start on Sunday", () => {
+		for (const year of [2024, 2028, 2056]) {
+			const days = buildGridFromApi({ days: [], year });
+
+			expect(days.length % DAYS_PER_WEEK, String(year)).toBe(0);
+			expect(getWeekday(days[0].date), String(year)).toBe(0);
+		}
 	});
 });

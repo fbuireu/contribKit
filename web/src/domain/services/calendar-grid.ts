@@ -1,6 +1,6 @@
 import type { ContributionDay } from "../entities/types";
 import { clampLevel } from "../value-objects/contribution-level";
-import { addDays, DAYS_PER_WEEK, GRID_CELL_COUNT, getWeekday } from "./dates";
+import { addDays, DAYS_PER_WEEK, GRID_CELL_COUNT, getWeekday, leadingDaysFor, weeksFor } from "./dates";
 
 interface ContributionDayValues {
 	readonly level: number;
@@ -10,9 +10,15 @@ interface ContributionDayValues {
 const byDate = (days: readonly ContributionDay[]): Map<string, ContributionDayValues> =>
 	new Map(days.map((day) => [day.date, { level: day.level, count: day.count }]));
 
-const walkFrom = ({ start, map }: { start: string; map: Map<string, ContributionDayValues> }): ContributionDay[] => {
+interface WalkFromParams {
+	readonly start: string;
+	readonly map: Map<string, ContributionDayValues>;
+	readonly cells: number;
+}
+
+const walkFrom = ({ start, map, cells }: WalkFromParams): ContributionDay[] => {
 	const days: ContributionDay[] = [];
-	for (let dayOffset = 0; dayOffset < GRID_CELL_COUNT; dayOffset++) {
+	for (let dayOffset = 0; dayOffset < cells; dayOffset++) {
 		const date = addDays({ iso: start, days: dayOffset });
 		const entry = map.get(date);
 		days.push({ date, level: clampLevel(entry?.level ?? 0), count: entry?.count ?? null });
@@ -27,7 +33,11 @@ export interface BuildGridFromApiParams {
 
 export const buildGridFromApi = ({ days, year }: BuildGridFromApiParams): ContributionDay[] => {
 	const yearStart = `${year}-01-01`;
-	return walkFrom({ start: addDays({ iso: yearStart, days: -getWeekday(yearStart) }), map: byDate(days) });
+	return walkFrom({
+		start: addDays({ iso: yearStart, days: -leadingDaysFor(year) }),
+		map: byDate(days),
+		cells: weeksFor(year) * DAYS_PER_WEEK,
+	});
 };
 
 export interface BuildRollingGridParams {
@@ -40,5 +50,9 @@ export const buildRollingGrid = ({ days }: BuildRollingGridParams): Contribution
 	const latest = days.reduce((last, day) => (day.date > last ? day.date : last), days[0].date);
 	const end = addDays({ iso: latest, days: DAYS_PER_WEEK - 1 - getWeekday(latest) });
 
-	return walkFrom({ start: addDays({ iso: end, days: -(GRID_CELL_COUNT - 1) }), map: byDate(days) });
+	return walkFrom({
+		start: addDays({ iso: end, days: -(GRID_CELL_COUNT - 1) }),
+		map: byDate(days),
+		cells: GRID_CELL_COUNT,
+	});
 };

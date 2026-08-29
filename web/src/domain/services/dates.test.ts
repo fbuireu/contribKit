@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, chunkWeeks, DAYS_PER_WEEK, getWeekday, toIsoDate, WEEKS_PER_YEAR } from "./dates";
+import { addDays, chunkWeeks, DAYS_PER_WEEK, getWeekday, toIsoDate, WEEKS_PER_YEAR, weeksFor } from "./dates";
 
 describe("toIsoDate", () => {
 	it("reads the local calendar fields, not the UTC ones", () => {
@@ -48,10 +48,17 @@ describe("chunkWeeks", () => {
 		expect(weeks.at(-1)?.at(-1)).toBe(WEEKS_PER_YEAR * DAYS_PER_WEEK - 1);
 	});
 
-	it("leaves trailing weeks empty when there are fewer days", () => {
-		const weeks = chunkWeeks([1, 2, 3]);
-		expect(weeks).toHaveLength(WEEKS_PER_YEAR);
-		expect(weeks[0]).toEqual([1, 2, 3]);
-		expect(weeks[1]).toEqual([]);
+	it("chunks whatever it is given, because the grid decides how many weeks a Year takes", () => {
+		expect(chunkWeeks([1, 2, 3])).toEqual([[1, 2, 3]]);
+		expect(chunkWeeks(Array.from({ length: 54 * DAYS_PER_WEEK }, (_, index) => index))).toHaveLength(54);
+		expect(chunkWeeks([])).toEqual([]);
+	});
+
+	it("needs a 54th week only when a leap Year opens on a Saturday", () => {
+		const wide: number[] = [];
+		for (let year = 2005; year <= 2060; year++) if (weeksFor(year) !== WEEKS_PER_YEAR) wide.push(year);
+
+		expect(wide).toEqual([2028, 2056]);
+		for (const year of wide) expect(weeksFor(year)).toBe(54);
 	});
 });

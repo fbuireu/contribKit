@@ -1,4 +1,4 @@
-# 23. The app grid covers the Year, in 53 or 54 weeks
+# 23. The grid covers the Year, in 53 or 54 weeks
 
 Date: 2026-08-28
 
@@ -29,7 +29,13 @@ The lattice covers the Year. `ContributionGridService.weeksFor(year)` answers ho
 - **The Home Screen Widget's payload is no longer fixed-width, so a torn write is now possible rather than impossible.** `CalendarWidgetService` writes `widget_weeks` and `widget_levels` separately, and 13 argued the pair could never disagree because both were constant. Across a Year change into or out of 2028 they can. The Kotlin side already guards it: `renderGrid` reads `widget_weeks` for its column count and bounds every lookup with `idx < levels.length`, so a stale pair paints the overflow as level 0 for one frame and self-heals on the next broadcast. That is the same class of transient as the Palette tear 13 accepted, not a crash, but it is a real tear where there was none, and it is the price of the grid being honest about the Year.
 - **`weeks.length` is no longer a constant, and the figures that divide by it are correct precisely because it is not.** `ContributionStatsService`'s weekly average divides by the Year's real week count. For 2028 that is 54 rather than 53, which is the right denominator.
 - **Two Exports change size in 2028 and 2056.** They already asked the geometry service for their dimensions and passed the calendar's own week count, so they follow automatically; the format tile did not and now does. A PNG for 2028 is one column wider than one for 2029.
-- The web is unaffected. It builds its own grid from `GRID_CELL_COUNT`, and whether it should follow is a separate question this decision does not answer.
+- **The web had the identical defect, and this decision now covers both clients.** That sentence used to read "the
+  web is unaffected", which was false: `buildGridFromApi` walked a fixed `GRID_CELL_COUNT` from the same Sunday
+  anchor, so 31 December 2028 fell off the web grid exactly as it fell off the app's. Fixing one client and leaving
+  the other is the failure [ADR 0011](0011-keep-the-apps-own-scraper-for-now.md) exists to prevent, and this ADR
+  committed it for one commit. `weeksFor(year)` exists in both languages now, `chunkWeeks` slices whatever it is
+  given rather than padding to 53, and `calendarLayout` takes its width from the real week count so a 54-week Year
+  renders one column wider.
 
 ## Notes
 
