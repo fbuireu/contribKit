@@ -1,3 +1,26 @@
+# [contribkit-web-v1.14.0](https://github.com/fbuireu/contribKit/compare/web-v1.13.1...web-v1.14.0) (2026-08-29)
+
+
+### Bug Fixes
+
+* cache the origin fetch and close the client the repository builds ([09b80ef](https://github.com/fbuireu/contribKit/commit/09b80ef765f7c40b672e884ac93fca611cb9387c))
+* **contribkit-web:** anchor the current streak inside the Year it was asked about ([d1eecc8](https://github.com/fbuireu/contribKit/commit/d1eecc862c763422fff719fa0c59328ed7cbb4bb))
+* **contribkit-web:** cover the Year in the web grid too, which 2028 needs 54 weeks for ([c8142e3](https://github.com/fbuireu/contribKit/commit/c8142e38e45a7d99727a7963c9a9426c8058dc2f))
+* **contribkit-web:** let e2e run locally, and let a preview claim its own URL ([2f403be](https://github.com/fbuireu/contribKit/commit/2f403be5f65815f282d808b02f422c1849447cba))
+* **contribkit-web:** never let a failure enter the caches an embed passes through ([0286340](https://github.com/fbuireu/contribKit/commit/0286340779aa20f4d12a281cac827a1b1a174bb3))
+* **contribkit-web:** put astro check inside verify, which is how a real type error hid ([e4e3cdb](https://github.com/fbuireu/contribKit/commit/e4e3cdb0973cd6834fcac2936283ec552eb94249))
+* give the public routes a failure boundary and the app a test gate ([58e1fba](https://github.com/fbuireu/contribKit/commit/58e1fba6c00777d60c24b8c43ff1a1f0d8ac7b69))
+* make both parsers read the same HTML the same way ([7d9817b](https://github.com/fbuireu/contribKit/commit/7d9817b21e18aad081f0cf63eeb09c58b0cef089))
+* put the value objects in charge of what belongs to them ([f2c4b87](https://github.com/fbuireu/contribKit/commit/f2c4b871939f3e137db1330d22eb2cbf6f726d1b))
+
+
+### Features
+
+* **contribkit-web:** make a Contribution Day constructible one way, with a real date ([3c62134](https://github.com/fbuireu/contribKit/commit/3c62134d8bd60f7f90bf43edaf29fae72603f0ea))
+* **contribkit-web:** model Colour and Contribution Week, which only the app had ([699eb26](https://github.com/fbuireu/contribKit/commit/699eb26f8093572d32537b4fd033ac89e02561f1))
+* **global:** let the web aggregate know its own span, and name the Rolling Window ([3eb7229](https://github.com/fbuireu/contribKit/commit/3eb72295d73b25064c40c3474b6154908ff13d59))
+* say which parameter a 400 rejected, and pair the stats facts that travel together ([6764313](https://github.com/fbuireu/contribKit/commit/67643132909a70870ce06688544a2fed74549ba0))
+
 # [contribkit-web-v1.13.1](https://github.com/fbuireu/contribKit/compare/web-v1.13.0...web-v1.13.1) (2026-08-29)
 
 
