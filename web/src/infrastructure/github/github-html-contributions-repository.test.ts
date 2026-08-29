@@ -60,7 +60,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 			{ date: "2024-01-01", level: 2, count: 5 },
 			{ date: "2024-01-02", level: 0, count: null },
 		]);
-		expect(result.total).toBe(5);
+		expect(result.totalContributions).toBe(5);
 	});
 
 	it("returns NotFound on a 404", async () => {
@@ -193,7 +193,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
-		expect(result.total).toBeNull();
+		expect(result.totalContributions).toBeNull();
 		expect(result.days[0].count).toBeNull();
 	});
 
@@ -234,7 +234,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
 		expect(result.days[1].count).toBeNull();
-		expect(result.total).toBeNull();
+		expect(result.totalContributions).toBeNull();
 	});
 
 	it("still totals when every day whose Count is unknown is a level-0 day", async () => {
@@ -254,7 +254,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
-		expect(result.total).toBe(5);
+		expect(result.totalContributions).toBe(5);
 	});
 
 	it("leaves the current year open-ended so it ends today", async () => {

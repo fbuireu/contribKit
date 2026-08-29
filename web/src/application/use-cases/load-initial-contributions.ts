@@ -15,7 +15,7 @@ export interface LoadInitialContributionsParams {
 
 export interface InitialContributions {
 	days: ContributionDay[];
-	total: number | null;
+	totalContributions: number | null;
 	year: number;
 }
 
@@ -48,7 +48,7 @@ export const loadInitialContributions =
 			ok: true,
 			data: {
 				days: buildGridFromApi({ days: result.days, year: year.value }),
-				total: result.total,
+				totalContributions: result.totalContributions,
 				year: year.value,
 			},
 		};

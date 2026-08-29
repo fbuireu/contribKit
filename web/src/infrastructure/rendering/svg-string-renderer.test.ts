@@ -12,7 +12,7 @@ const calendar: ContributionCalendar = {
 		level: (index % 5) as ContributionLevel,
 		count: index % 5,
 	})),
-	total: 100,
+	totalContributions: 100,
 };
 
 const palette = paletteByKey(DEFAULT_PALETTE_KEY);

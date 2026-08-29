@@ -58,7 +58,7 @@ const handle: APIRoute = async ({ url, locals }) => {
 			username: result.username.value,
 			days,
 			cells: days,
-			total: result.total,
+			total: result.totalContributions,
 		},
 		{
 			headers: {

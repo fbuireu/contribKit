@@ -159,6 +159,12 @@ test helper reintroduces the same bug in the test rather than the code.
   size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+- **The aggregate's field is `totalContributions`, and the endpoint's JSON key is still `total`.**
+  [`CONTEXT.md`](../../../CONTEXT.md) rejects `total` for Total Contributions in as many words, and the entity carried it until this
+  landed while the app's `ContributionCalendar` had always spelled it out. The **payload** keeps `total` because it
+  is a published contract, the same reason the `cells` alias survives; the two are decoupled at the one line in
+  `pages/api/contributions.ts` that serialises the field. The glossary guard cannot see this class of violation:
+  adding `total` to the policed list would fire on `totalContributions` itself.
 - **`totalContributionsFor(days)` owns the Total Contributions rule, and the scraper calls it.** An unknown Count
   on a day at level 1 or above voids the Total; a level-0 unknown does not, because GitHub's level 0 is the zero it
   means ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)). The scraper used to carry

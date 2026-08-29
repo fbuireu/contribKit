@@ -39,7 +39,7 @@ interface RawDay {
 }
 interface ParseHtmlReturnType {
 	days: ContributionDay[];
-	total: number | null;
+	totalContributions: number | null;
 }
 
 const parseHtml = (html: string): ParseHtmlReturnType => {
@@ -66,7 +66,7 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 		count: id === null ? null : (idToCount.get(id) ?? null),
 	}));
 
-	return { days: enriched, total: totalContributionsFor(enriched) };
+	return { days: enriched, totalContributions: totalContributionsFor(enriched) };
 };
 
 const RETRY_AFTER_SECONDS = /^\d+$/;
@@ -118,9 +118,9 @@ export const githubHtmlContributionsRepository: ContributionsRepository = {
 			return network({ message: error instanceof Error ? error.message : String(error) });
 		}
 
-		const { days, total } = parseHtml(html);
+		const { days, totalContributions } = parseHtml(html);
 		if (days.length === 0) return parse("Could not parse contributions");
 
-		return { username, days, total };
+		return { username, days, totalContributions };
 	},
 };

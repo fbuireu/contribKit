@@ -5,7 +5,7 @@ import { loadInitialContributions } from "./load-initial-contributions";
 const calendar = {
 	username: "torvalds",
 	days: [{ date: "2024-06-15", level: 4, count: 16 }],
-	total: 1234,
+	totalContributions: 1234,
 };
 
 describe("loadInitialContributions", () => {
@@ -14,7 +14,7 @@ describe("loadInitialContributions", () => {
 		const result = await loadInitialContributions(loadContributions)({ username: "torvalds", year: 2024 });
 		expect(result.ok).toBe(true);
 		if (result.ok) {
-			expect(result.data.total).toBe(1234);
+			expect(result.data.totalContributions).toBe(1234);
 			expect(result.data.days).toHaveLength(53 * 7);
 		}
 	});

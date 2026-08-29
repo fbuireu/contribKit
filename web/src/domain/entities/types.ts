@@ -10,5 +10,5 @@ export interface ContributionDay {
 export interface ContributionCalendar {
 	readonly username: Username;
 	readonly days: readonly ContributionDay[];
-	readonly total: number | null;
+	readonly totalContributions: number | null;
 }

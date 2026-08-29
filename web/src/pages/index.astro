@@ -99,7 +99,7 @@ const stats = statsWithScrapedTotal({
 	days,
 	year: initial.ok ? initial.data.year : currentYear,
 	today: toIsoDate(new Date()),
-	scrapedTotal: initial.ok ? initial.data.total : null,
+	scrapedTotal: initial.ok ? initial.data.totalContributions : null,
 });
 
 const heroSVG = renderCalendarString({
