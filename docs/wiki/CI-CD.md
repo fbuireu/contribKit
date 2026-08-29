@@ -39,6 +39,7 @@ flowchart LR
   build --> prod["deploy-production"]
   build --> dev["deploy-development"]
   prod --> smoke["smoke (production)"]
+  smoke -->|failed| back["rollback"]
   smoke --> rel["release (semantic-release)"]
   dev --> comment["comment preview URL"]
   dev --> e2e["e2e (preview)"]
@@ -50,6 +51,7 @@ flowchart LR
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. The `--env` is load-bearing and was missing until 2026-08-28: without it wrangler ships the top level of `wrangler.toml`, which declares no routes, no rate limiter, no observability, no placement and no tail consumer.
 - **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-development.yml`, which carries no path filter at all, so no preview can outlive its pull request.
 - **smoke:** on push to `main`, the only job that ever requests `https://contribkit.app`. It runs the three cases tagged `@smoke` against production: the homepage answering 200, an unknown path answering 404, and `/user/<name>.svg` returning an SVG, which is the route that cannot be prerendered and therefore the one that proves the Worker is running rather than serving assets. `/api/health` was a fourth until production answered it with an HTML document while a browser got the expected JSON; the root guide records why that points at a zone rule rather than at the Worker. The grep carries no `--pass-with-no-tests`: Playwright exits 1 on an empty set, so a tag that stops matching fails the job instead of passing vacuously.
+- **rollback:** on push to `main`, runs `wrangler rollback --env production` when the deploy succeeded and `smoke` failed, so a version that does not answer stops serving rather than merely going untagged. It is a separate job because it needs the Cloudflare credentials `smoke` deliberately does without.
 - **release:** semantic-release versions the web component. It needs `deploy-production` **and** `smoke`, so a `web-v*` tag means the version is live and answering. It used to need only `web-ci`, which meant the tag, the GitHub release and the changelog entry could all be published for a version whose deploy had just failed, and `workflow_dispatch` could cut one without deploying at all; that trigger is gone from its condition for the same reason.
 
 Both deploys pass an explicit `--message` (`<sha> - <event>`) to `wrangler deploy`. Without it, wrangler
