@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const LOCAL_URL = "http://localhost:8787";
+const BASE_URL = process.env.BASE_URL ?? LOCAL_URL;
+
 export default defineConfig({
 	testDir: "./e2e",
 	fullyParallel: true,
@@ -8,7 +11,7 @@ export default defineConfig({
 	workers: process.env.CI ? "50%" : undefined,
 	reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
 	use: {
-		baseURL: process.env.BASE_URL ?? "http://localhost:4321",
+		baseURL: BASE_URL,
 		trace: "on-first-retry",
 		extraHTTPHeaders: ((): Record<string, string> => {
 			const id = process.env.CF_ACCESS_CLIENT_ID;
@@ -22,6 +25,9 @@ export default defineConfig({
 			return { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": secret };
 		})(),
 	},
+	webServer: process.env.BASE_URL
+		? undefined
+		: { command: "pnpm wrangler:dev", url: LOCAL_URL, reuseExistingServer: true, timeout: 180_000 },
 	projects: process.env.CI
 		? [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }]
 		: [

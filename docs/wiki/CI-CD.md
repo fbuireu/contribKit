@@ -95,6 +95,13 @@ flowchart LR
 - **flutter-test:** unit/widget tests with coverage uploaded to Codecov.
 - **flutter-build:** builds a debug APK to catch build breakages early.
 
+**The e2e suite runs against a deployed preview Worker in CI, and against a local one everywhere else.** `BASE_URL`
+points the run at `pr-<n>-contribkit-development.workers.dev`, which is the only place the Workers runtime is real:
+the rate-limiter binding, the security headers and the SVG route's `Cross-Origin-Resource-Policy` exemption do not
+exist in a plain Astro dev server. With `BASE_URL` unset, Playwright's `webServer` starts `pnpm wrangler:dev` on
+`localhost:8787` instead, so `pnpm test:e2e` works on a laptop. That fallback used to be declared in `baseURL` and
+wired to nothing, so a local run pointed at an empty port.
+
 Both `flutter analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
 
 Coverage thresholds live in [`.github/codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/codecov.yml): the project status allows a 1% drop against the base, and a patch must reach 80%. That file used to declare `ignore` and nothing else, so enforcement rested on Codecov's undeclared defaults and the bar could be moved from a web UI without leaving a trace in the tree.
