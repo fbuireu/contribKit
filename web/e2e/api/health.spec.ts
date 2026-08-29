@@ -14,7 +14,7 @@ interface HealthBody {
 }
 
 test.describe("api/health", () => {
-	test("reports every key it claims to check, and agrees with its own status code @smoke", async ({ request }) => {
+	test("reports every key it claims to check, and agrees with its own status code", async ({ request }) => {
 		const response = await request.get("/api/health");
 		const body = (await response.json()) as HealthBody;
 

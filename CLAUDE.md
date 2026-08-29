@@ -196,9 +196,20 @@ needs `deploy-development`, which runs on `pull_request` only, so a push to `mai
 `web-v*` tag and made no request to `https://contribkit.app` at all. Worse, `release` needed only `web-ci`, so
 the tag, the GitHub release and the changelog entry did not even wait for the deploy: a failed deploy still
 published a version. `release` needs `deploy-production` and `smoke` now, which is what makes a tag mean *the
-version is live and answering*. The four cases tagged `@smoke` are the homepage, an unknown path, `/api/health`
-and `/user/<name>.svg`; the last is the route that [cannot be prerendered](./docs/adr/0007-server-rendered-web-app-on-the-edge.md),
-so it is the one that distinguishes a running Worker from a bucket of assets. The step passes no
-`--pass-with-no-tests`, because Playwright exiting 1 on an empty set is the only thing keeping the tag honest.
+version is live and answering*. The three cases tagged `@smoke` are the homepage, an unknown path and `/user/<name>.svg`; the last is the route
+that [cannot be prerendered](./docs/adr/0007-server-rendered-web-app-on-the-edge.md), so it is the one that
+distinguishes a running Worker from a bucket of assets. A smoke case can only assert what the deploy it follows has
+already published, which is why none of them names a feature. The step passes no `--pass-with-no-tests`, because
+Playwright exiting 1 on an empty set is the only thing keeping the tag honest.
+
+**`/api/health` was the fourth case and is not, because production answered it with HTML.** On the first run of this
+job the other three passed and that one failed parsing `<!DOCTYPE …` as JSON. Nothing here renders HTML for that path:
+the route sets `prerender = false` and returns `Response.json`, the middleware's only `/api/` branch returns a JSON
+429, and the same spec passes against the preview Worker on every pull request. What differs in production is the zone,
+not the code, and the case that passed beside it is the strongest evidence: `/user/<name>.svg` is server-rendered too,
+so the Worker is running and routing. The likely answer is a zone-level bot rule answering a datacenter address on
+`/api/*`, which is worth settling from a browser before touching anything: if a browser gets JSON, the rule is the
+edge's and the fix is a Cloudflare setting, and if a browser gets HTML too then the JSON API is down and this is the
+outage the smoke run found.
 
 Web deploys to Cloudflare Workers via `ci.yml` (production on `main`, a per-PR preview otherwise). It is server-rendered because the SVG endpoint cannot be prerendered ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). The `changes` job counts `docs/**`, `shared/**` and `*.md` as web changes, so a docs-only push to `main` still redeploys production; that is the accepted price of the docs contract and the shared tokens both living outside `web/`. The app ships to Google Play via `release-app.yml` on manual dispatch with a track. The two components are released independently, which is why GitHub Environments are namespaced `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)); see the README for the mapping. A commit that touches both `app/` and `web/` is filed in both changelogs, because `semantic-release-monorepo` attributes by path and `main` takes squash merges. That is correct for a change which genuinely spans both clients, so it is a notice and not a gate: the `cross-package-notice` job in `ci.yml` comments on the pull request and does not block it.
