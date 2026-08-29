@@ -45,7 +45,9 @@ flowchart LR
   dev --> e2e["e2e (preview)"]
 ```
 
-- **web-check:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck` and the Vitest coverage run; then upload coverage to Codecov. The same command runs on `pre-push`, so a green push is a green check.
+- **web-check:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck`, `lint:astro` and the Vitest coverage run; then upload coverage to Codecov. The same command runs on `pre-push`, so a green push is a green check.
+
+`lint:astro` is inside `verify` because `tsc --noEmit` does not typecheck `.astro` files: only `astro check` does. It used to run solely in `web-build`, so a type error in a component's props passed `verify`, passed `pre-push`, and failed a later CI job. A prop typed `readonly string[]` that started receiving a value object is exactly how that was found.
 - **web-build:** production build + `pnpm lint:astro` (`astro check` over the Astro diagnostics). No workflow runs `tsc`; `pnpm lint:ts:typecheck` is a local command only.
 - **deploy-tail:** on push to `main`, deploys `web/workers/tail/`, the `contribkit-tail` Worker that both `[env.*.tail_consumers]` entries name. `deploy-production` needs it, so the reference is always resolvable; nothing deployed it from CI before.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. The `--env` is load-bearing and was missing until 2026-08-28: without it wrangler ships the top level of `wrangler.toml`, which declares no routes, no rate limiter, no observability, no placement and no tail consumer.

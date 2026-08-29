@@ -44,7 +44,7 @@
 		"test:docs": "pnpm test:ut ../docs/docs-consistency.test.ts",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "pnpm test:e2e --ui",
-		"verify": "pnpm format:check && pnpm typecheck && pnpm test:ut:coverage"
+		"verify": "pnpm format:check && pnpm typecheck && pnpm lint:astro && pnpm test:ut:coverage"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "14.2.1",
