@@ -19,7 +19,7 @@ abstract final class ContributionStatsService {
 
   static ContributionStats compute(
     ContributionCalendar calendar, {
-    DateTime? today,
+    required DateTime today,
   }) {
     final allDays = calendar.weeks.expand((w) => w.days).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
@@ -85,10 +85,7 @@ abstract final class ContributionStatsService {
     }
 
     return ContributionStats(
-      currentStreak: StreakService.currentFor(
-        calendar: calendar,
-        today: today ?? DateTime.now(),
-      ),
+      currentStreak: StreakService.currentFor(calendar: calendar, today: today),
       longestStreak: longestStreak,
       bestDayCount: incomplete || bestDate == null ? null : bestCount,
       bestDayDate: incomplete ? null : bestDate,

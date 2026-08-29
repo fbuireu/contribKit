@@ -1,3 +1,5 @@
+import 'package:contribkit/domain/value_objects/username.dart';
+
 sealed class Failure implements Exception {
   const Failure();
 }
@@ -12,7 +14,7 @@ final class NetworkFailure extends Failure {
 
 final class NotFoundFailure extends Failure {
   const NotFoundFailure({required this.username});
-  final String username;
+  final Username username;
 
   @override
   String toString() => 'NotFoundFailure: user "$username" not found';

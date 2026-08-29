@@ -64,11 +64,13 @@ ContributionCalendar _calendarWithUnknownCount() {
   );
 }
 
+final _today = DateTime(2024, 12, 31);
+
 void main() {
   group('ContributionStatsService.compute', () {
     test('counts nothing, and measures nothing, for an empty calendar', () {
       final cal = _calendar([]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
 
       expect(stats.currentStreak, 0);
       expect(stats.longestStreak, 0);
@@ -84,7 +86,7 @@ void main() {
       'reports no derived figure when an active day has an unknown Count',
       () {
         final cal = _calendarWithUnknownCount();
-        final stats = ContributionStatsService.compute(cal);
+        final stats = ContributionStatsService.compute(cal, today: _today);
 
         expect(stats.bestDayCount, isNull);
         expect(stats.bestMonthContributions, isNull);
@@ -100,7 +102,7 @@ void main() {
 
     test('counts a single active day correctly', () {
       final cal = _calendar([(_d(6, 15), 5)]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
 
       expect(stats.longestStreak, 1);
       expect(stats.bestDayCount, 5);
@@ -119,13 +121,13 @@ void main() {
         (_d(3, 5), 4),
         (_d(3, 6), 5),
       ]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.longestStreak, 3);
     });
 
     test('finds the best day by contribution count', () {
       final cal = _calendar([(_d(1, 10), 3), (_d(1, 11), 10), (_d(1, 12), 7)]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.bestDayCount, 10);
       expect(stats.bestDayDate, _d(1, 11));
     });
@@ -138,7 +140,7 @@ void main() {
         (_d(2, 4), 0),
         (_d(2, 5), 2),
       ]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.totalDaysActive, 3);
     });
 
@@ -150,14 +152,14 @@ void main() {
         (_d(2, 2), 8),
         (_d(3, 1), 3),
       ]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.bestMonth, 2);
       expect(stats.bestMonthContributions, 16);
     });
 
     test('weekly average equals total divided by week count', () {
       final cal = _calendar([(_d(1, 7), 6), (_d(1, 14), 4)]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.weeklyAverage, closeTo(10.0 / cal.weeks.length, 0.01));
     });
 
@@ -169,7 +171,7 @@ void main() {
         (_d(5, 4), 4),
         (_d(5, 5), 5),
       ]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.longestStreak, 5);
     });
 
@@ -180,7 +182,7 @@ void main() {
         (_d(4, 3), 1),
         (_d(4, 4), 1),
       ]);
-      final stats = ContributionStatsService.compute(cal);
+      final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.longestStreak, 2);
     });
   });
@@ -188,6 +190,7 @@ void main() {
     test('because a date with no number beside it is not an answer', () {
       final stats = ContributionStatsService.compute(
         _calendarWithUnknownCount(),
+        today: _today,
       );
 
       expect(stats.bestDayCount, isNull);
@@ -197,6 +200,7 @@ void main() {
     test('and reports both when every active day carries a Count', () {
       final stats = ContributionStatsService.compute(
         _calendar([(_d(6, 15), 30), (_d(6, 16), 1)]),
+        today: _today,
       );
 
       expect(stats.bestDayCount, 30);

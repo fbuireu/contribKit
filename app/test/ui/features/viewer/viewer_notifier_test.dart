@@ -300,7 +300,7 @@ void main() {
     test('keeps a typed Failure typed', () async {
       final container = _container(
         contributions: _FakeContributionRepository(
-          failure: const NotFoundFailure(username: 'ghost'),
+          failure: NotFoundFailure(username: Username('ghost')),
         ),
       );
       final notifier = await _ready(container);

@@ -96,7 +96,10 @@ class ViewerNotifier extends _$ViewerNotifier {
       if (generation != _generation || !ref.mounted) return;
       state = state.copyWith(
         calendar: calendar,
-        stats: ContributionStatsService.compute(calendar),
+        stats: ContributionStatsService.compute(
+          calendar,
+          today: DateTime.now(),
+        ),
         fromCache: fromCache,
       );
       await _remember(username: username, year: year);

@@ -1,23 +1,24 @@
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/ui/failure_message.dart';
+import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-const _everyFailure = <Failure>[
-  NetworkFailure(message: 'offline'),
-  NotFoundFailure(username: 'octocat'),
-  RateLimitedFailure(),
-  ParseFailure(message: 'markup changed'),
-  CacheFailure(message: 'box closed'),
-  ExportFailure(message: 'no bytes'),
-  TipFailure(message: 'declined'),
-  UnexpectedFailure(message: 'boom'),
+final _everyFailure = <Failure>[
+  const NetworkFailure(message: 'offline'),
+  NotFoundFailure(username: Username('octocat')),
+  const RateLimitedFailure(),
+  const ParseFailure(message: 'markup changed'),
+  const CacheFailure(message: 'box closed'),
+  const ExportFailure(message: 'no bytes'),
+  const TipFailure(message: 'declined'),
+  const UnexpectedFailure(message: 'boom'),
 ];
 
 void main() {
   group('FailureMessage', () {
     test('names the user a NotFoundFailure could not find', () {
       expect(
-        FailureMessage.of(const NotFoundFailure(username: 'octocat')),
+        FailureMessage.of(NotFoundFailure(username: Username('octocat'))),
         contains('octocat'),
       );
     });

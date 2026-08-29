@@ -177,6 +177,16 @@ person writes by hand may carry one; what no client does is *build* one.
 - **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
   the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
   and a wrong colour, with nothing to catch it.
+- **`ContributionStatsService.compute` requires `today`.** It used to take `DateTime? today` and fall back to
+  `today ?? DateTime.now()`, and the only production caller passed nothing, so the app's **pure** layer read the
+  wall clock on every render. That defeated the reason `StreakService` takes `today` at all, one level up, and it
+  is why every test in `contribution_stats_service_test.dart` rebuilt its expectation from the same clock it was
+  testing. `ViewerNotifier` passes `DateTime.now()` now, which is where an impure read belongs, and the web's
+  `computeContributionStats` has required it all along.
+- **`NotFoundFailure` carries a `Username`, not a `String`.** The web's `NotFound` carries the value object and this
+  did not, so the repository unwrapped a perfectly good `Username` to throw. The cost is that the failure is no
+  longer `const`-constructible, because `Username`'s factory validates; failures are built at runtime, so that is
+  a price worth paying for the type surviving the boundary.
 - **`ContributionStatsService.totalFor(days)`** owns the Total Contributions rule: an unknown Count on an active
   day voids the Total, a level-`none` unknown does not, because GitHub's level `none` is the zero it means
   ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)). The parser calls it. It used
