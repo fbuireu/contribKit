@@ -1,3 +1,10 @@
+# [contribkit-web-v1.13.1](https://github.com/fbuireu/contribKit/compare/web-v1.13.0...web-v1.13.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* **web:** read SITE_URL from process.env, which is where it arrives ([0a0095b](https://github.com/fbuireu/contribKit/commit/0a0095b5f0a0b737ca2c048ed80cb16302270ae2))
+
 # [contribkit-web-v1.13.0](https://github.com/fbuireu/contribKit/compare/web-v1.12.6...web-v1.13.0) (2026-08-29)
 
 
