@@ -335,6 +335,17 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
+      - name: Label the smoke report
+        if: ${{ !cancelled() }}
+        working-directory: .
+        run: |
+          {
+            echo "## Production smoke tests"
+            echo
+            echo "Playwright ran the \`@smoke\` cases against <$BASE_URL> after deploying \`$GITHUB_SHA\`."
+            echo "The Playwright Run Summary annotation on this run belongs to this job. The preview E2E suite does not run on \`main\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Run smoke tests against production
         run: pnpm exec playwright test --grep "@smoke"
 
