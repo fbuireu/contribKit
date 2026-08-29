@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildGridFromApi } from "./calendar-grid";
-import { computeContributionStats, statsWithScrapedTotal } from "./contribution-stats";
+import { computeContributionStats, statsWithScrapedTotal, totalContributionsFor } from "./contribution-stats";
 
 describe("computeContributionStats", () => {
 	it("counts a streak that ended on 31 December of a past Year", () => {
@@ -131,6 +131,38 @@ describe("statsWithScrapedTotal", () => {
 
 		expect(stats.longestStreak).toBe(
 			computeContributionStats({ days: [...days], year: 2024, today: "2024-01-02" }).longestStreak,
+		);
+	});
+});
+
+describe("totalContributionsFor", () => {
+	it("is the one place the unknown-Count rule lives, and the scraper uses it", () => {
+		expect(totalContributionsFor([{ date: "2024-01-01", level: 2, count: 5 }])).toBe(5);
+		expect(
+			totalContributionsFor([
+				{ date: "2024-01-01", level: 4, count: null },
+				{ date: "2024-01-02", level: 2, count: 5 },
+			]),
+			"an unknown Count on an active day voids the total",
+		).toBeNull();
+		expect(
+			totalContributionsFor([
+				{ date: "2024-01-01", level: 0, count: null },
+				{ date: "2024-01-02", level: 2, count: 5 },
+			]),
+			"a level-0 unknown is the zero GitHub means",
+		).toBe(5);
+	});
+
+	it("agrees with the total computeContributionStats reports", () => {
+		const days = [
+			{ date: "2024-01-01", level: 1, count: 2 },
+			{ date: "2024-01-02", level: 0, count: null },
+			{ date: "2024-01-03", level: 3, count: 7 },
+		] as const;
+
+		expect(computeContributionStats({ days: [...days], year: 2024, today: "2024-01-03" }).totalContributions).toBe(
+			totalContributionsFor([...days]),
 		);
 	});
 });

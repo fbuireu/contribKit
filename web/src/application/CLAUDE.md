@@ -22,7 +22,7 @@ Cloudflare or `fetch`: everything reaches it through a closure. Stateless: state
 
 | Function | Returns | Notes |
 | --- | --- | --- |
-| `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | The one use case there is: it defaults, validates, loads and builds the 53×7 grid. |
+| `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | The one use case there is: it defaults, validates, loads and builds the grid covering the Year. |
 
 [`resolve-initial-view.ts`](./use-cases/resolve-initial-view.ts) sits alongside them and is not a use case in the curried sense: it takes no
 dependencies. It holds the landing page's request policy: `resolveViewerIdentity` (username precedence, whether the
@@ -51,7 +51,7 @@ than real. Re-adding a use case is cheap if a second repository ever appears.
 2. `year` goes through `parseYear`; anything that is not a `Year`, including a `Failure`, falls back to
    `currentYear()`. A bad `?year=` therefore renders the current year rather than erroring, which is the opposite
    of how `/api/contributions` treats the same input.
-3. On success it returns the **built grid** under `days`, not the raw response: `buildGridFromApi` pads to 53×7, so
+3. On success it returns the **built grid** under `days`, not the raw response: `buildGridFromApi` pads to whole weeks covering the Year, so
    the caller never sees a short year.
 
 ## The two error shapes, and why there are two
@@ -130,6 +130,6 @@ long must I wait" when the answer is "no longer". Only `null` means we were not 
 - The params object is optional all the way down (`({ … } = {})`), so `loadInitialContributions(load)()` is legal
   and renders `torvalds` for the current year. That is what the landing page relies on for a first-time visitor.
 - **`InitialContributions.days` is the grid; `/api/contributions`'s `days` is the scrape.** Same word, two shapes:
-  this one is already padded to 53×7 by `buildGridFromApi`, so its first date is the Sunday on or before January
+  this one is already padded to whole weeks by `buildGridFromApi`, so its first date is the Sunday on or before January
   1st and its length never varies. The endpoint returns the scraper's own days and leaves the padding to the
   client, which is why `page-init` calls `buildGridFromApi` itself before rendering.

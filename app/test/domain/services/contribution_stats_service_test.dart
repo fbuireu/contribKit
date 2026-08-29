@@ -203,4 +203,49 @@ void main() {
       expect(stats.bestDayDate?.day, 15);
     });
   });
+
+  group('ContributionStatsService.totalFor', () {
+    test(
+      'is the one place the unknown-Count rule lives, and the parser uses it',
+      () {
+        expect(
+          ContributionStatsService.totalFor([
+            ContributionDay(
+              date: DateTime(2024, 1, 1),
+              count: 5,
+              level: ContributionLevel.medium,
+            ),
+          ]),
+          5,
+        );
+        expect(
+          ContributionStatsService.totalFor([
+            ContributionDay(
+              date: DateTime(2024, 1, 1),
+              count: null,
+              level: ContributionLevel.veryHigh,
+            ),
+          ]),
+          isNull,
+          reason: 'an unknown Count on an active day voids the Total',
+        );
+        expect(
+          ContributionStatsService.totalFor([
+            ContributionDay(
+              date: DateTime(2024, 1, 1),
+              count: null,
+              level: ContributionLevel.none,
+            ),
+            ContributionDay(
+              date: DateTime(2024, 1, 2),
+              count: 5,
+              level: ContributionLevel.medium,
+            ),
+          ]),
+          5,
+          reason: 'a level-none unknown is the zero GitHub means',
+        );
+      },
+    );
+  });
 }

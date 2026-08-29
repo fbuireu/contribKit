@@ -1,6 +1,7 @@
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
 import { type Failure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
 import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/types";
+import { totalContributionsFor } from "@domain/services/contribution-stats";
 import { clampLevel } from "@domain/value-objects/contribution-level";
 import type { Year } from "@domain/value-objects/year";
 
@@ -65,19 +66,7 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 		count: id === null ? null : (idToCount.get(id) ?? null),
 	}));
 
-	return { days: enriched, total: totalFor(enriched) };
-};
-
-const totalFor = (days: readonly ContributionDay[]): number | null => {
-	let total = 0;
-	for (const day of days) {
-		if (day.count === null) {
-			if (day.level > 0) return null;
-			continue;
-		}
-		total += day.count;
-	}
-	return total;
+	return { days: enriched, total: totalContributionsFor(enriched) };
 };
 
 const RETRY_AFTER_SECONDS = /^\d+$/;

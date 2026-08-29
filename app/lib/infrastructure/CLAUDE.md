@@ -72,7 +72,9 @@ rather than being a deliberate difference.
 **An empty first pass is a `ParseFailure`, never an empty calendar**: a calendar of zeros is a lie a reader cannot
 detect ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-html.md)).
 
-`ContributionGridService.buildFor` always emits 53 × 7 days, starting from the Sunday on or before 1 January
+`ContributionGridService.buildFor` emits `weeksFor(year)` whole weeks of 7 days, 53 for every Year but 2028 and
+2056 where it is 54 ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)),
+starting from the Sunday on or before 1 January
 (`firstOfYear.weekday % 7`: Dart weekdays run 1 = Monday … 7 = Sunday, so Sunday maps to 0). Dates with no parsed
 day become `count: null, level: none`: an unknown Count, not a measured zero
 ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).

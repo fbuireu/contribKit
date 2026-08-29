@@ -6,6 +6,7 @@ import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
+import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/services/contribution_level_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
@@ -219,21 +220,8 @@ final class GitHubContributionRepository implements ContributionRepository {
       username: username,
       year: year,
       weeks: ContributionGridService.buildFor(days: days, year: year.value),
-      totalContributions: _totalFor(days),
+      totalContributions: ContributionStatsService.totalFor(days),
     );
-  }
-
-  static int? _totalFor(List<ContributionDay> days) {
-    var total = 0;
-    for (final day in days) {
-      final count = day.count;
-      if (count == null) {
-        if (day.isActive) return null;
-        continue;
-      }
-      total += count;
-    }
-    return total;
   }
 
   static ContributionLevel? _levelFromIndex(int? index) => index == null

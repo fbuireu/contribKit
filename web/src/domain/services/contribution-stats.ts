@@ -6,6 +6,18 @@ export interface ContributionStats {
 	readonly longestStreak: number;
 }
 
+export const totalContributionsFor = (days: readonly ContributionDay[]): number | null => {
+	let total = 0;
+	for (const day of days) {
+		if (day.count === null) {
+			if (day.level > 0) return null;
+			continue;
+		}
+		total += day.count;
+	}
+	return total;
+};
+
 export interface ComputeContributionStatsParams {
 	readonly days: readonly ContributionDay[];
 	readonly year: number;
@@ -14,14 +26,10 @@ export interface ComputeContributionStatsParams {
 
 export function computeContributionStats({ days, year, today }: ComputeContributionStatsParams): ContributionStats {
 	const sorted = [...days].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-	let knownTotal = 0,
-		currentStreak = 0,
+	let currentStreak = 0,
 		longestStreak = 0,
-		run = 0,
-		hasUnknownCount = false;
+		run = 0;
 	for (const day of sorted) {
-		if (day.count === null) hasUnknownCount ||= day.level > 0;
-		else knownTotal += day.count;
 		if (day.level > 0) {
 			run++;
 			if (run > longestStreak) longestStreak = run;
@@ -41,7 +49,7 @@ export function computeContributionStats({ days, year, today }: ComputeContribut
 		currentStreak++;
 		index--;
 	}
-	return { totalContributions: hasUnknownCount ? null : knownTotal, currentStreak, longestStreak };
+	return { totalContributions: totalContributionsFor(sorted), currentStreak, longestStreak };
 }
 
 export interface StatsWithScrapedTotalParams {

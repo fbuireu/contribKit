@@ -110,7 +110,7 @@ and now identical *positions*, because neither computes any. What is left here i
   has no `data-date` or `data-count`: only the client-side preview adds them, for the Cell Tooltip. An embed is an
   image, not a queryable document.
 - The root element carries `role="img"` and a fixed `aria-label`.
-- It draws whatever the layout's `cells` hold, and `chunkWeeks` inside it always returns 53 arrays. A calendar
+- It draws whatever the layout's `cells` hold, and `chunkWeeks` inside it returns as many weeks as the days make. A calendar
   shorter than 371 days therefore renders with empty trailing weeks rather than a narrower image: the width comes
   from `WEEKS_PER_YEAR`, not from the data.
 

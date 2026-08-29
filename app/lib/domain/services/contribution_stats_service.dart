@@ -1,8 +1,22 @@
+import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/services/streak_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_stats.dart';
 
 abstract final class ContributionStatsService {
+  static int? totalFor(Iterable<ContributionDay> days) {
+    var total = 0;
+    for (final day in days) {
+      final count = day.count;
+      if (count == null) {
+        if (day.isActive) return null;
+        continue;
+      }
+      total += count;
+    }
+    return total;
+  }
+
   static ContributionStats compute(
     ContributionCalendar calendar, {
     DateTime? today,

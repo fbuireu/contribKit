@@ -159,6 +159,12 @@ test helper reintroduces the same bug in the test rather than the code.
   size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+- **`totalContributionsFor(days)` owns the Total Contributions rule, and the scraper calls it.** An unknown Count
+  on a day at level 1 or above voids the Total; a level-0 unknown does not, because GitHub's level 0 is the zero it
+  means ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)). The scraper used to carry
+  its own `totalFor`, so the rule sat in **infrastructure** while `computeContributionStats` implemented it again
+  here: one rule, two layers, nothing making them agree, which is the shape ADR 0011 warns about reproduced inside
+  a single client. The app had the identical split and was moved in the same commit.
 - **`computeContributionStats` returns three fields, not the glossary's five.** `totalContributions`,
   `currentStreak` and `longestStreak`. Best day, best month, weekly average and active days exist only in the
   app's `ContributionStats`. That is an unbuilt half, not a decision, so no ADR records it; widen it here when the
@@ -192,7 +198,8 @@ test helper reintroduces the same bug in the test rather than the code.
   the Saturday of the latest day it was given, rather than on a calendar year, because the Embed deliberately
   shows a rolling window and never a pinned Year. Reach for it whenever days arrive without a Year to anchor on;
   never for `chunkWeeks` alone, which trusts its input to already be a date-ordered lattice.
-- `chunkWeeks` always returns exactly `WEEKS_PER_YEAR` arrays, whatever it is given; a short input leaves trailing
+- `chunkWeeks` slices whatever it is given into sevens and returns as many weeks as that takes. It used to pad to
+  `WEEKS_PER_YEAR` unconditionally, which stopped being honest once a Year could need 54; a short input now leaves no trailing
   weeks empty rather than shortening the result, which is why the month-label pass inside `calendarLayout` guards
   on an empty week. Neither renderer calls `chunkWeeks` any more; the layout does.
 - `MONTH_LABELS` is built once from `Intl.DateTimeFormat("en", …)` against year 2024, which is arbitrary and only there

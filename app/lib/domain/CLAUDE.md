@@ -111,9 +111,11 @@ Two rules follow, and they are the whole reason the type changed:
   would be a lower bound presented as a measurement. `formatTotalContributions` in `ui/` prints it as `unknown`,
   never as a figure: the same word, for the same reason, as the web's function of that name.
 
-The week-based shape is what makes `ContributionStatsService`'s `weeklyAverage` a simple division: the grid is
-always 53×7, so `weeks.length` is a constant and never a partial year
-([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
+The week-based shape is what makes `ContributionStatsService`'s `weeklyAverage` a simple division: every week is
+whole, so `weeks.length` is never a partial year. It is **not** a constant. This line used to say the grid is
+always 53x7, which is the very claim
+[ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md) removed, and the constant it
+named is what let the grid drop 31 December 2028 in silence. Divide by `weeks.length`, never by 53.
 
 **Every figure derived from Counts is nullable, and `null` means "not knowable" rather than zero.** `weeklyAverage`
 is `null` when Total Contributions is; `bestDayCount` and `bestMonthContributions` are `null` the moment any active
@@ -175,6 +177,12 @@ person writes by hand may carry one; what no client does is *build* one.
 - **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
   the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
   and a wrong colour, with nothing to catch it.
+- **`ContributionStatsService.totalFor(days)`** owns the Total Contributions rule: an unknown Count on an active
+  day voids the Total, a level-`none` unknown does not, because GitHub's level `none` is the zero it means
+  ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)). The parser calls it. It used
+  to be `_totalFor`, private to `contribution_repository_impl.dart`, so the project's flagship rule lived in
+  **infrastructure** while `compute` implemented it again in the domain: one rule, two layers, two spellings,
+  nothing making them agree. The web had the same split and was moved in the same commit.
 - **`PaletteService.resolve({ palettes, storedKey })`** answers which Palette a stored setting names. It accepts a
   **key or a name**, which is the in-code half of the `paletteKey` / `paletteName` migration, and falls back to the
   first Palette rather than throwing: a Palette removed from [`shared/palettes.json`](../../../shared/palettes.json) degrades to the default
