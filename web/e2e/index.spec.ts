@@ -12,7 +12,7 @@ test.describe("homepage", () => {
 		await page.goto("/");
 	});
 
-	test("returns 200", async ({ page }) => {
+	test("returns 200 @smoke", async ({ page }) => {
 		const response = await page.goto("/");
 		expect(response?.status()).toBe(200);
 	});

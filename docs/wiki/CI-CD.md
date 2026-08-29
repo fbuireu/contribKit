@@ -12,7 +12,7 @@ CI is one workflow with **no path filter**, and a `changes` job that gates each 
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
-| `ci.yml` | every push and PR to `main`, plus manual dispatch | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then release, deploy, preview comment and e2e. A final `Check` job aggregates them all |
+| `ci.yml` | every push and PR to `main`, plus manual dispatch | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then deploy, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates them all |
 | [`_ci-app.yml`](../../.github/workflows/_ci-app.yml) | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build`, and none of them can be a required check: see `Check` below |
 | [`_ci-web.yml`](../../.github/workflows/_ci-web.yml) | reusable, called by `ci.yml` | lint, format check, test with coverage, build, typecheck. Its jobs show as `Web / Check`, `Web / Build` |
 | [`_deploy.yml`](../../.github/workflows/_deploy.yml) | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
@@ -38,8 +38,10 @@ flowchart LR
   check["web-check (pnpm verify)"] --> build["web-build (build + typecheck)"]
   build --> prod["deploy-production"]
   build --> dev["deploy-development"]
-  build --> rel["release (semantic-release)"]
+  prod --> smoke["smoke (production)"]
+  smoke --> rel["release (semantic-release)"]
   dev --> comment["comment preview URL"]
+  dev --> e2e["e2e (preview)"]
 ```
 
 - **web-check:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck` and the Vitest coverage run; then upload coverage to Codecov. The same command runs on `pre-push`, so a green push is a green check.
@@ -47,7 +49,8 @@ flowchart LR
 - **deploy-tail:** on push to `main`, deploys `web/workers/tail/`, the `contribkit-tail` Worker that both `[env.*.tail_consumers]` entries name. `deploy-production` needs it, so the reference is always resolvable; nothing deployed it from CI before.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. The `--env` is load-bearing and was missing until 2026-08-28: without it wrangler ships the top level of `wrangler.toml`, which declares no routes, no rate limiter, no observability, no placement and no tail consumer.
 - **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-development.yml`, which carries no path filter at all, so no preview can outlive its pull request.
-- **release:** semantic-release versions the web component (decoupled from deploy).
+- **smoke:** on push to `main`, the only job that ever requests `https://contribkit.app`. It runs the four cases tagged `@smoke` against production: the homepage answering 200, an unknown path answering 404, `/api/health` agreeing with its own status code, and `/user/<name>.svg` returning an SVG, which is the route that cannot be prerendered and therefore the one that proves the Worker is running rather than serving assets. The grep carries no `--pass-with-no-tests`: Playwright exits 1 on an empty set, so a tag that stops matching fails the job instead of passing vacuously.
+- **release:** semantic-release versions the web component. It needs `deploy-production` **and** `smoke`, so a `web-v*` tag means the version is live and answering. It used to need only `web-ci`, which meant the tag, the GitHub release and the changelog entry could all be published for a version whose deploy had just failed, and `workflow_dispatch` could cut one without deploying at all; that trigger is gone from its condition for the same reason.
 
 Both deploys pass an explicit `--message` (`<sha> - <event>`) to `wrangler deploy`. Without it, wrangler
 annotates the deployment with the full commit message, and Cloudflare rejects the deploy when that message

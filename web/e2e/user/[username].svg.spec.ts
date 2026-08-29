@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("user svg endpoint", () => {
-	test("returns an SVG image for a real user", async ({ request }) => {
+	test("returns an SVG image for a real user @smoke", async ({ request }) => {
 		const response = await request.get("/user/torvalds.svg");
 		expect(response.status()).toBe(200);
 		expect(response.headers()["content-type"]).toContain("svg");
