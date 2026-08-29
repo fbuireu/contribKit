@@ -28,7 +28,7 @@ void main() {
         for (final preset in BackgroundPreset.values.where(
           (p) => p != BackgroundPreset.system,
         )) {
-          expect(preset.colorOr(fallback), preset.color);
+          expect(preset.colorOr(fallback), preset.flutterColor);
           expect(preset.colorOr(fallback), isNot(fallback));
         }
       },

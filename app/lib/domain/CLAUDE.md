@@ -177,6 +177,14 @@ person writes by hand may carry one; what no client does is *build* one.
 - **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
   the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
   and a wrong colour, with nothing to catch it.
+- **`BackgroundPreset` is a domain value object, and the Flutter colour is an adapter.** Background is a glossary
+  concept and the web modelled it in `domain/`; here it lived in [`ui/theme/background_presets.dart`](../ui/theme/background_presets.dart) because its
+  `color` returned a **Flutter** `Color`, which the domain may not name. The identity (`system` / `charcoal` /
+  `github` / `navy` / `black`), the labels and the ARGB values are in `value_objects/background_preset.dart` now,
+  typed with the project's own `Color`; `ui/theme/` keeps a `BackgroundPresetPainting` extension with
+  `flutterColor` and `colorOr`, which is the same shape the guide already mandates for `Palette` ("the conversion
+  to a Flutter colour happens in the widgets that paint"). That also puts the persisted preset name's meaning in
+  the layer that owns the migration.
 - **`ContributionStatsService.compute` requires `today`.** It used to take `DateTime? today` and fall back to
   `today ?? DateTime.now()`, and the only production caller passed nothing, so the app's **pure** layer read the
   wall clock on every render. That defeated the reason `StreakService` takes `today` at all, one level up, and it

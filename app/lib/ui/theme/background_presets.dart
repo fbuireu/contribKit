@@ -1,32 +1,14 @@
-import 'package:flutter/widgets.dart';
+import 'package:contribkit/domain/value_objects/background_preset.dart';
+import 'package:flutter/widgets.dart' as flutter;
 
-enum BackgroundPreset {
-  system,
-  charcoal,
-  github,
-  navy,
-  black;
+export 'package:contribkit/domain/value_objects/background_preset.dart';
 
-  static const BackgroundPreset fallback = BackgroundPreset.system;
+extension BackgroundPresetPainting on BackgroundPreset {
+  flutter.Color? get flutterColor {
+    final own = color;
+    return own == null ? null : flutter.Color(own.argb);
+  }
 
-  String get label => switch (this) {
-    BackgroundPreset.system => 'System',
-    BackgroundPreset.charcoal => 'Charcoal',
-    BackgroundPreset.github => 'GitHub',
-    BackgroundPreset.navy => 'Navy',
-    BackgroundPreset.black => 'Black',
-  };
-
-  Color? get color => switch (this) {
-    BackgroundPreset.system => null,
-    BackgroundPreset.charcoal => const Color(0xFF1C1C1E),
-    BackgroundPreset.github => const Color(0xFF0D1117),
-    BackgroundPreset.navy => const Color(0xFF0A0E1A),
-    BackgroundPreset.black => const Color(0xFF000000),
-  };
-
-  Color colorOr(Color systemColor) => color ?? systemColor;
-
-  static BackgroundPreset? byName(String name) =>
-      BackgroundPreset.values.where((p) => p.name == name).firstOrNull;
+  flutter.Color colorOr(flutter.Color systemColor) =>
+      flutterColor ?? systemColor;
 }
