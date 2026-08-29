@@ -1,4 +1,4 @@
-import type { ContributionCalendar } from "../entities/types";
+import type { ContributionDay } from "../entities/types";
 import type { CellShape } from "../value-objects/cell-shape";
 import type { Palette } from "../value-objects/palette";
 
@@ -12,7 +12,7 @@ export interface SvgRenderOptions {
 }
 
 export interface SvgRendererParams {
-	readonly calendar: ContributionCalendar;
+	readonly days: readonly ContributionDay[];
 	readonly options: SvgRenderOptions;
 }
 

@@ -159,6 +159,20 @@ test helper reintroduces the same bug in the test rather than the code.
   size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+- **The aggregate knows its own span: `year: Year | null`.** [`CONTEXT.md`](../../../CONTEXT.md) defines a Contribution Calendar as the
+  days "for one Year", and the app's has always carried a `Year`. The web's did not, so the Year travelled beside
+  the aggregate as a bare `number` through five signatures, unwrapped from the `Year` the repository was handed at
+  the first domain call. `null` is not "missing": it is the **Rolling Window**, which now has a glossary entry,
+  and it is the span the Embed asks for and the app has no concept of.
+- **`svgStringRenderer` takes `days`, not the calendar.** It only ever read `calendar.days`, and demanding the
+  aggregate forced the SVG route to mint one with a spread whose `totalContributions` described a different day
+  set than its `days`. That object was internally inconsistent by construction and the type system was happy with
+  it. The port takes what it uses, so the spread is gone.
+- **Calendar Labels are web-only, on purpose.** `MONTH_LABELS`, `WEEKDAY_LABELS`, `monthLabelsFor` and the
+  `showLabels` flag have no Dart counterpart, so an SVG exported from the phone is an unlabelled lattice while the
+  embed this renderer serves is labelled. The surface is the reason, not the model: an embed is a wide image in a
+  README, while the app's grid scrolls, its widget is four centimetres wide, and its Exports are sized as exactly
+  the lattice ([ADR 0024](../../../docs/adr/0024-calendar-labels-are-a-web-only-surface.md)).
 - **The port is `ContributionRepository.fetchCalendar`, the same words the app uses.** It was
   `ContributionsRepository.fetch`: plural where the app is singular, and named after the global HTTP function the
   implementation literally calls, which is not a word [`CONTEXT.md`](../../../CONTEXT.md) has. A reader diffing the two layers hit

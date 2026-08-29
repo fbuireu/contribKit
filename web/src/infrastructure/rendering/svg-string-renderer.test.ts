@@ -7,6 +7,7 @@ import { svgStringRenderer } from "./svg-string-renderer";
 
 const calendar: ContributionCalendar = {
 	username: { _tag: "Username", value: "torvalds" },
+	year: null,
 	days: Array.from({ length: 371 }, (_, index) => ({
 		date: "2024-01-01",
 		level: (index % 5) as ContributionLevel,
@@ -23,7 +24,7 @@ interface RenderParams {
 }
 
 const render = ({ shape, overrides = {} }: RenderParams): string =>
-	svgStringRenderer({ calendar, options: { palette, shape, background: "transparent", ...overrides } });
+	svgStringRenderer({ days: calendar.days, options: { palette, shape, background: "transparent", ...overrides } });
 
 describe("svgStringRenderer", () => {
 	it("produces an <svg> root with a viewBox", () => {

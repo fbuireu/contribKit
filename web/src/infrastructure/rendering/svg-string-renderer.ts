@@ -13,10 +13,10 @@ const LABEL_FONT_FAMILY = "ui-monospace,monospace";
 const MONTH_LABEL_FILL = "rgba(255,255,255,0.45)";
 const WEEKDAY_LABEL_FILL = "rgba(255,255,255,0.35)";
 
-export const svgStringRenderer: SvgRenderer = ({ calendar, options }) => {
+export const svgStringRenderer: SvgRenderer = ({ days, options }) => {
 	const { palette, shape, background } = options;
 	const layout = calendarLayout({
-		days: calendar.days,
+		days,
 		shape,
 		size: options.cellSize,
 		gap: options.cellGap,

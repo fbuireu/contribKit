@@ -121,6 +121,6 @@ export const githubHtmlContributionRepository: ContributionRepository = {
 		const { days, totalContributions } = parseHtml(html);
 		if (days.length === 0) return parse("Could not parse contributions");
 
-		return { username, days, totalContributions };
+		return { username, year, days, totalContributions };
 	},
 };

@@ -58,8 +58,8 @@ const handle: APIRoute = async ({ params, url, locals }) => {
 		background,
 	} = querySchema.parse(Object.fromEntries(url.searchParams));
 	const shape: CellShape = isCellShape(shapeParam) ? shapeParam : DEFAULT_CELL_SHAPE;
-	const grid = { ...calendar, days: buildRollingGrid({ days: calendar.days }) };
-	const svg = svgStringRenderer({ calendar: grid, options: { palette: paletteByKey(paletteKey), shape, background } });
+	const days = buildRollingGrid({ days: calendar.days });
+	const svg = svgStringRenderer({ days, options: { palette: paletteByKey(paletteKey), shape, background } });
 
 	return new Response(svg, {
 		headers: {

@@ -25,6 +25,10 @@ _Avoid_: chart, graph, heatmap, contribution graph
 The exact number of contributions on a Contribution Day. Unknown for some days, which is distinct from a known zero.
 _Avoid_: contributions, amount, value
 
+**Rolling Window**:
+The span an Embed shows when no Year is pinned: the latest Contribution Days GitHub returns, ending today, rather than a calendar Year. A Contribution Calendar whose Year is absent covers a Rolling Window. The app has no such span, because it always asks for a Year.
+_Avoid_: latest, recent, default range
+
 **Total Contributions**:
 The sum of every known Count in a Contribution Calendar.
 _Avoid_: total, sum, contributions count
