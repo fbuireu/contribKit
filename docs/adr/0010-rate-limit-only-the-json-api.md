@@ -21,6 +21,7 @@ The `API_RATE_LIMITER` binding is applied in [`middleware.ts`](../../web/src/mid
 ## Consequences
 
 - **The SVG endpoint has no per-caller ceiling.** Its protection is downstream cache hit rate, so anything that defeats caching (a flood of distinct usernames, or cache-busting query strings) reaches the origin unthrottled and turns into a real GitHub fetch.
+- **Only a rendered calendar is cacheable; every failure says `no-store`.** The one-hour window this decision leans on is a reason to be deliberate about what enters it. Failure responses set no `Cache-Control` at all for a year, which reads as "uncacheable" and is not: an intermediary may store a response that states no policy. A transient 502 held by Camo is a broken image in someone's README that no refresh clears, on the one route with no rate limit behind it.
 - No Cloudflare-side cache is configured for Worker responses either, so a miss in Camo is a real origin hit. Enabling one would narrow that gap without reintroducing the shared-IP problem.
 - This is why the mobile app cannot simply be pointed at `/api/*` as it stands: many users behind one carrier NAT would share a single bucket. See [11](0011-keep-the-apps-own-scraper-for-now.md), which holds that decision, and [8](0008-the-mobile-app-fetches-github-directly.md), which it supersedes.
 - Anyone tempted to "fix" the missing limit on the SVG route should read this first. Adding it is a regression, not a hardening.

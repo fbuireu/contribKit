@@ -1,6 +1,6 @@
 # API Reference
 
-ContribKit's web component exposes a small public API on Cloudflare Workers. All data responses are cached `public, max-age=3600, stale-while-revalidate=86400`. Requests to `/api/*` are rate-limited per IP. Every response carries CSP and security headers set by the [middleware](https://github.com/fbuireu/ContribKit/blob/main/web/src/middleware.ts).
+ContribKit's web component exposes a small public API on Cloudflare Workers. A data response that succeeded is cached `public, max-age=3600, stale-while-revalidate=86400`; one that failed is `no-store`. Requests to `/api/*` are rate-limited per IP. Every response carries CSP and security headers set by the [middleware](https://github.com/fbuireu/ContribKit/blob/main/web/src/middleware.ts).
 
 Base URL: `https://contribkit.app`
 
@@ -157,13 +157,15 @@ a missing header means *we do not know*, never *retry now*.
 
 ## Caching
 
-Data responses carry:
+A response that carries a calendar carries:
 
 ```
 Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 ```
 
-So a calendar is served from cache for an hour, then revalidated in the background for up to a day. `/api/health` is the exception (`no-store`). README image embeds are additionally cached by GitHub's Camo proxy.
+So a calendar is served from cache for an hour, then revalidated in the background for up to a day. README image embeds are additionally cached by GitHub's Camo proxy.
+
+**Every answer that is not a calendar says `no-store`**: a 400, a 404, a 429 and a 500 on either endpoint, and `/api/health` whichever answer it gives. Only the success path is cacheable, so a transient upstream failure cannot be stored by an intermediary and replayed at a reader who retries. That matters most on the SVG endpoint, whose responses reach a README through Camo: a cached failure would show a broken image that no refresh could clear.
 
 ---
 

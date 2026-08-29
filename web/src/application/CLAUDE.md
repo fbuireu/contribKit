@@ -118,6 +118,18 @@ long must I wait" when the answer is "no longer". Only `null` means we were not 
   beside the code that applies it. It sat in this file and was imported by the logging module, which is the seam
   being crossed backwards.
 
+## `http/cache-control.ts`
+
+Two constants, `CACHEABLE_ANSWER` and `NOT_CACHEABLE`, and the rule they exist to make sayable: **only an answer
+that carries data is cacheable.** Every route reads them rather than spelling a header value at the `Response`;
+the one-hour policy was written out at two call sites and the failure branches wrote nothing at all, which is not
+the same as `no-store` because an intermediary may store a response that states no policy. The
+[pages guide](../pages/CLAUDE.md) has the surface-by-surface table and why the SVG endpoint is where it bites.
+
+It sits beside `failure-http.ts` and not inside it: a cache policy is a property of the *answer*, not a mapping
+from a `Failure`, and half the sites that need `NOT_CACHEABLE` (`/api/health`, the Zod shape rejection) never
+produce a `Failure` at all.
+
 ## Gotchas
 
 - **A 502 here is a claim about GitHub, not about this Worker.** Every route logs anything at or above

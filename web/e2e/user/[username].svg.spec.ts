@@ -50,7 +50,15 @@ test.describe("user svg endpoint", () => {
 	test("is cached for an hour, which is the only thing throttling this route", async ({ request }) => {
 		const response = await request.get("/user/torvalds.svg");
 
+		expect(response.status(), await response.text()).toBe(200);
 		expect(response.headers()["cache-control"]).toBe("public, max-age=3600, stale-while-revalidate=86400");
+	});
+
+	test("says no-store when it could not answer, so nobody's README caches a failure", async ({ request }) => {
+		const response = await request.get("/user/foo_bar.svg");
+
+		expect(response.status()).toBe(400);
+		expect(response.headers()["cache-control"]).toBe("no-store");
 	});
 
 	test("opts out of the same-origin resource policy, so the Embed renders elsewhere", async ({ request }) => {

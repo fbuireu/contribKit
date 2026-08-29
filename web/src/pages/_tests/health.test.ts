@@ -36,4 +36,15 @@ describe("GET /api/health", () => {
 		expect(body.status).toBe("misconfigured");
 		expect(body.env.PUBLIC_GOOGLE_ANALYTICS_ID).toBe(false);
 	});
+
+	it("is never stored, whichever answer it gives", async () => {
+		for (const key of PUBLIC_VARS) vi.stubEnv(key, "set");
+		const healthy = GET({} as never) as Response;
+
+		vi.stubEnv("PUBLIC_GOOGLE_ANALYTICS_ID", "");
+		const misconfigured = GET({} as never) as Response;
+
+		expect(healthy.headers.get("Cache-Control")).toBe("no-store");
+		expect(misconfigured.headers.get("Cache-Control")).toBe("no-store");
+	});
 });

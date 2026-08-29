@@ -1,3 +1,4 @@
+import { CACHEABLE_ANSWER, NOT_CACHEABLE } from "@application/http/cache-control";
 import { messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
 import {
 	ContributionsEndpoint,
@@ -31,7 +32,7 @@ const handle: APIRoute = async ({ params, url, locals }) => {
 	if (isFailure(username)) {
 		return new Response(messageFor(username), {
 			status: statusFor(username),
-			headers: { "Content-Type": "text/plain" },
+			headers: { "Content-Type": "text/plain", "Cache-Control": NOT_CACHEABLE },
 		});
 	}
 
@@ -48,7 +49,7 @@ const handle: APIRoute = async ({ params, url, locals }) => {
 		});
 		return new Response(messageFor(calendar), {
 			status,
-			headers: { "Content-Type": "text/plain", ...retryAfterHeader(calendar) },
+			headers: { "Content-Type": "text/plain", "Cache-Control": NOT_CACHEABLE, ...retryAfterHeader(calendar) },
 		});
 	}
 
@@ -64,7 +65,7 @@ const handle: APIRoute = async ({ params, url, locals }) => {
 	return new Response(svg, {
 		headers: {
 			"Content-Type": "image/svg+xml",
-			"Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+			"Cache-Control": CACHEABLE_ANSWER,
 		},
 	});
 };
@@ -76,7 +77,7 @@ export const GET: APIRoute = async (context) => {
 		logServerError({ logger: loggerFor(context.locals), error, path: context.url.pathname });
 		return new Response(SERVER_ERROR_MESSAGE, {
 			status: SERVER_ERROR_STATUS,
-			headers: { "Content-Type": "text/plain" },
+			headers: { "Content-Type": "text/plain", "Cache-Control": NOT_CACHEABLE },
 		});
 	}
 };

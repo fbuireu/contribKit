@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { NOT_CACHEABLE } from "@application/http/cache-control";
 import type { APIRoute } from "astro";
 
 export const prerender = false;
@@ -15,6 +16,6 @@ export const GET: APIRoute = () => {
 
 	return Response.json(
 		{ status: ok ? "ok" : "misconfigured", env: presence, timestamp: new Date().toISOString() },
-		{ status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
+		{ status: ok ? 200 : 503, headers: { "Cache-Control": NOT_CACHEABLE } },
 	);
 };

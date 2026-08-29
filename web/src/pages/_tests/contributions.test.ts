@@ -40,6 +40,20 @@ describe("GET /api/contributions", () => {
 		expect(res.status).toBe(400);
 	});
 
+	it("keeps every failure out of the caches, so a retry is not answered by a stored error", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("", { status: 404 })),
+		);
+
+		for (const query of ["", "?user=foo_bar", "?user=torvalds&year=1999", "?user=ghost"]) {
+			const res = await call(query);
+
+			expect(res.status, query).not.toBe(200);
+			expect(res.headers.get("Cache-Control"), query).toBe("no-store");
+		}
+	});
+
 	it("returns the calendar for a valid user", async () => {
 		vi.stubGlobal(
 			"fetch",

@@ -1,3 +1,4 @@
+import { CACHEABLE_ANSWER, NOT_CACHEABLE } from "@application/http/cache-control";
 import { fieldFor, messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
 import {
 	ContributionsEndpoint,
@@ -24,17 +25,26 @@ const querySchema = z.object({
 const handle: APIRoute = async ({ url, locals }) => {
 	const data = querySchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!data.success) {
-		return Response.json({ error: "Missing required parameter: user" }, { status: 400 });
+		return Response.json(
+			{ error: "Missing required parameter: user" },
+			{ status: 400, headers: { "Cache-Control": NOT_CACHEABLE } },
+		);
 	}
 
 	const username = parseUsername(data.data.user);
 	if (isFailure(username)) {
-		return Response.json({ error: messageFor(username), ...fieldFor(username) }, { status: statusFor(username) });
+		return Response.json(
+			{ error: messageFor(username), ...fieldFor(username) },
+			{ status: statusFor(username), headers: { "Cache-Control": NOT_CACHEABLE } },
+		);
 	}
 
 	const year = parseYear(data.data.year);
 	if (isFailure(year)) {
-		return Response.json({ error: messageFor(year), ...fieldFor(year) }, { status: statusFor(year) });
+		return Response.json(
+			{ error: messageFor(year), ...fieldFor(year) },
+			{ status: statusFor(year), headers: { "Cache-Control": NOT_CACHEABLE } },
+		);
 	}
 
 	const result = await loadContributions({ username, year: isYear(year) ? year : null });
@@ -48,7 +58,10 @@ const handle: APIRoute = async ({ url, locals }) => {
 			status,
 			endpoint: ContributionsEndpoint.Api,
 		});
-		return Response.json({ error: messageFor(result) }, { status, headers: retryAfterHeader(result) });
+		return Response.json(
+			{ error: messageFor(result) },
+			{ status, headers: { "Cache-Control": NOT_CACHEABLE, ...retryAfterHeader(result) } },
+		);
 	}
 
 	const days = result.days.map((day) => ({ date: day.date, level: day.level, count: day.count }));
@@ -62,7 +75,7 @@ const handle: APIRoute = async ({ url, locals }) => {
 		},
 		{
 			headers: {
-				"Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+				"Cache-Control": CACHEABLE_ANSWER,
 			},
 		},
 	);
@@ -73,6 +86,9 @@ export const GET: APIRoute = async (context) => {
 		return await handle(context);
 	} catch (error) {
 		logServerError({ logger: loggerFor(context.locals), error, path: context.url.pathname });
-		return Response.json({ error: SERVER_ERROR_MESSAGE }, { status: SERVER_ERROR_STATUS });
+		return Response.json(
+			{ error: SERVER_ERROR_MESSAGE },
+			{ status: SERVER_ERROR_STATUS, headers: { "Cache-Control": NOT_CACHEABLE } },
+		);
 	}
 };

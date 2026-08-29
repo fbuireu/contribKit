@@ -48,19 +48,30 @@ runtime bundled into the Worker. Two assertions in the docs contract keep both s
 ([ADR 0018](../../../docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)). Before adding a file
 here, decide what URL it becomes.
 
-## Caching, and the one exception
+## Caching, and what is deliberately kept out of it
 
-`public, max-age=3600, stale-while-revalidate=86400` on both data responses. `/api/health` sets `no-store`, because
-a cached health check answers a question nobody asked. The landing page is `private` either way, and keyed on the
+`public, max-age=3600, stale-while-revalidate=86400` on both data responses, **and only when they carry data**.
+Every failure answer on every route here is `no-store`: a rejected username, a 404, a 429, and the 500 the boundary
+writes. They carried no `Cache-Control` at all, which is not the same thing as uncacheable, because an intermediary
+may store a response that says nothing heuristically. The SVG endpoint is where that bites: its answers reach a
+README through Camo, so a stored 502 is a broken image a reader cannot refresh away, on the one route with no rate
+limit to fall back on ([ADR 0010](../../../docs/adr/0010-rate-limit-only-the-json-api.md)). The two policies are
+named once in [`application/http/cache-control.ts`](../application/http/cache-control.ts) rather than spelled at
+each `Response`. `/api/health` sets `no-store` on both its answers, because a cached health check answers a
+question nobody asked. The landing page is `private` either way, and keyed on the
 same `isExplicit` the failure branch uses: the one-hour window when the visitor asked for a username **or carries
 the cookie**, `no-store` when it is showing the default. It keyed on the query param alone until that was
 reconciled, so a returning visitor's own calendar was never cached. Caching is also the
 only thing standing between the SVG endpoint and unthrottled origin load, which is what makes the rate-limiting
-decision the shape it is ([ADR 0010](../../../docs/adr/0010-rate-limit-only-the-json-api.md)).
+decision the shape it is.
 
 **That header is pinned by an e2e**, in `web/e2e/user/[username].svg.spec.ts`, along with the `background=`
-pattern's reject arm. Changing the cache policy is therefore a failing test rather than a silent loosening of the
-only throttle that route has. **Nothing end to end covers a 429 on either route**, because reproducing one means
+pattern's reject arm and the `no-store` a rejected handle gets. Changing the cache policy is therefore a failing
+test rather than a silent loosening of the only throttle that route has. The e2e asserts the **status** before the
+header, which it did not: the assertion read a success-path header without establishing that the route had
+succeeded, so a single throttled scrape during a parallel run reported as "the caching contract is broken". Every
+`no-store` site is covered at the unit level too, in the three route tests and the failure boundary; each one was
+verified by mutation. **Nothing end to end covers a 429 on either route**, because reproducing one means
 GitHub rate-limiting the Worker; the `Retry-After` passthrough is pinned at the unit level instead: both
 arms on both routes, in [`_tests/contributions.test.ts`](./_tests/contributions.test.ts) and [`_tests/username-svg.test.ts`](./_tests/username-svg.test.ts), over the mapping in
 [`failure-http.test.ts`](../application/http/failure-http.test.ts).

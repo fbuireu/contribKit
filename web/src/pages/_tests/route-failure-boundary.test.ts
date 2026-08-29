@@ -43,6 +43,7 @@ describe("an unexpected throw never escapes a public route", () => {
 		expect(res.status).toBe(500);
 		expect(res.headers.get("Content-Type")).toContain("application/json");
 		expect(await res.json()).toEqual({ error: "Something went wrong. Please try again." });
+		expect(res.headers.get("Cache-Control")).toBe("no-store");
 		expect(logServerError).toHaveBeenCalledTimes(1);
 	});
 
@@ -55,6 +56,7 @@ describe("an unexpected throw never escapes a public route", () => {
 
 		expect(res.status).toBe(500);
 		expect(res.headers.get("Content-Type")).toContain("text/plain");
+		expect(res.headers.get("Cache-Control")).toBe("no-store");
 		expect(logServerError).toHaveBeenCalledTimes(1);
 	});
 

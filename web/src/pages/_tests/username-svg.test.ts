@@ -87,6 +87,18 @@ describe("GET /user/[username].svg", () => {
 		expect(res.headers.has("Retry-After")).toBe(false);
 	});
 
+	it("keeps every failure out of the caches an embed passes through", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("", { status: 404 })),
+		);
+
+		for (const res of [await call({ username: "ghost" }), await call({ username: "foo_bar" })]) {
+			expect(res.status, await res.text()).not.toBe(200);
+			expect(res.headers.get("Cache-Control")).toBe("no-store");
+		}
+	});
+
 	it("honors the shape query param", async () => {
 		vi.stubGlobal(
 			"fetch",
