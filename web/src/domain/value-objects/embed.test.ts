@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CELL_SHAPE } from "./cell-shape";
+import { CellShape, DEFAULT_CELL_SHAPE } from "./cell-shape";
 import { buildEmbedUrl, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE, EmbedParam } from "./embed";
 import { DEFAULT_PALETTE_KEY } from "./palette";
 
@@ -44,7 +44,7 @@ describe("buildEmbedUrl", () => {
 
 	it("never emits a doubled separator for any combination of options", () => {
 		const values = [undefined, "catppuccin"];
-		const shapes = [undefined, "hex"];
+		const shapes: (CellShape | undefined)[] = [undefined, CellShape.Hex];
 
 		for (const palette of values) {
 			for (const shape of shapes) {

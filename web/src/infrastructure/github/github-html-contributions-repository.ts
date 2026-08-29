@@ -1,6 +1,6 @@
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
 import { type Failure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
-import type { ContributionsRepository, FetchContributionsParams } from "@domain/repositories/types";
+import type { ContributionRepository, FetchCalendarParams } from "@domain/repositories/types";
 import { totalContributionsFor } from "@domain/services/contribution-stats";
 import { clampLevel } from "@domain/value-objects/contribution-level";
 import type { Year } from "@domain/value-objects/year";
@@ -81,8 +81,8 @@ const retryAfterFrom = (header: string | null): number | null => {
 	return Number.isNaN(at) ? null : Math.max(0, Math.round((at - Date.now()) / 1000));
 };
 
-export const githubHtmlContributionsRepository: ContributionsRepository = {
-	async fetch({ username, year }: FetchContributionsParams): Promise<ContributionCalendar | Failure> {
+export const githubHtmlContributionRepository: ContributionRepository = {
+	async fetchCalendar({ username, year }: FetchCalendarParams): Promise<ContributionCalendar | Failure> {
 		const url = buildUrl({ username: username.value, year });
 
 		let response: Response;

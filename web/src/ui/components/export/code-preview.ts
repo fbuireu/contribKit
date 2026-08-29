@@ -24,7 +24,7 @@ const IMAGE_ALT = "contributions";
 export interface MarkdownSnippetParams {
 	username: string;
 	palette?: string;
-	shape?: string;
+	shape?: CellShape;
 }
 
 export const markdownSnippet = ({ username, palette, shape }: MarkdownSnippetParams): string =>
@@ -145,7 +145,7 @@ export const buildSvgLines = ({ palette, shape }: BuildSvgLinesParams): CodeLine
 export interface BuildMarkdownLinesParams {
 	username: string;
 	palette: string;
-	shape: string;
+	shape: CellShape;
 }
 
 const imageLine = (url: string): CodeLine => {

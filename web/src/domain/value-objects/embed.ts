@@ -1,4 +1,4 @@
-import { DEFAULT_CELL_SHAPE } from "./cell-shape";
+import { type CellShape, DEFAULT_CELL_SHAPE } from "./cell-shape";
 import { DEFAULT_BACKGROUND_COLOR, DEFAULT_PALETTE_KEY } from "./palette";
 
 const EMBED_ORIGIN = "https://contribkit.app";
@@ -30,12 +30,13 @@ export const DEFAULT_EMBED_QUERY: EmbedQuery = {
 export interface BuildEmbedUrlParams {
 	readonly username: string;
 	readonly palette?: string;
-	readonly shape?: string;
+	readonly shape?: CellShape;
 	readonly origin?: string;
 	readonly keepDefaults?: boolean;
 }
 
-const embedPathFor = (username: string): string => `/${EMBED_SEGMENT}/${username}${EMBED_EXTENSION}`;
+const embedPathFor = (username: string): string =>
+	`/${EMBED_SEGMENT}/${encodeURIComponent(username)}${EMBED_EXTENSION}`;
 
 type EmbedQueryEntry = readonly [name: string, value: string | undefined, fallback: string];
 

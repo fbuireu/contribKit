@@ -2,7 +2,7 @@ import { FailureKind } from "@domain/failures/failure";
 import type { Username } from "@domain/value-objects/username";
 import type { Year } from "@domain/value-objects/year";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { githubHtmlContributionsRepository } from "./github-html-contributions-repository";
+import { githubHtmlContributionRepository } from "./github-html-contributions-repository";
 
 const username = { _tag: "Username", value: "torvalds" } as Username;
 
@@ -19,7 +19,7 @@ const stubFetch = (impl: typeof fetch): void => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("githubHtmlContributionsRepository.fetch", () => {
+describe("githubHtmlContributionRepository.fetchCalendar", () => {
 	it("reads a grouped Count in full rather than truncating it at the separator", async () => {
 		const grouped = `
 <td class="ContributionCalendar-day" data-date="2024-01-01" data-level="4" id="cell-1"></td>
@@ -27,7 +27,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 `;
 		stubFetch(async () => new Response(grouped, { status: 200 }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect("days" in result && result.days[0].count, "truncating to 1 reports a wrong number as an exact one").toBe(
 			1234,
@@ -38,7 +38,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		const spy = vi.fn(async (_input: unknown, _init?: unknown) => new Response(HTML, { status: 200 }));
 		stubFetch(spy as unknown as typeof fetch);
 
-		await githubHtmlContributionsRepository.fetch({ username, year: null });
+		await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		const init = spy.mock.calls[0]?.[1] as { cf?: { cacheTtl?: number; cacheEverything?: boolean } };
 		expect(
@@ -51,7 +51,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 	it("parses days, levels and counts from the HTML", async () => {
 		stubFetch(async () => new Response(HTML, { status: 200 }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
@@ -66,7 +66,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 	it("returns NotFound on a 404", async () => {
 		stubFetch(async () => new Response("", { status: 404 }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toEqual({ kind: "NotFound", username });
 	});
@@ -74,7 +74,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 	it("returns Network on a non-ok response", async () => {
 		stubFetch(async () => new Response("", { status: 503 }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toEqual({ kind: "Network", status: 503, message: "GitHub returned 503" });
 	});
@@ -82,7 +82,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 	it("tells a 429 apart from an outage, so the reader is not told GitHub is unreachable", async () => {
 		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": "120" } }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toEqual({
 			kind: FailureKind.RateLimited,
@@ -95,7 +95,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		const at = new Date(Date.now() + 60_000).toUTCString();
 		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": at } }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toMatchObject({ kind: FailureKind.RateLimited });
 		if (!("retryAfterSeconds" in result)) return;
@@ -106,7 +106,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 	it("survives a 429 with no Retry-After at all", async () => {
 		stubFetch(async () => new Response("", { status: 429 }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toMatchObject({ kind: FailureKind.RateLimited, retryAfterSeconds: null });
 	});
@@ -118,7 +118,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 			return new Response(HTML, { status: 200 });
 		});
 
-		await githubHtmlContributionsRepository.fetch({ username, year: null });
+		await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(passedSignal).toBeInstanceOf(AbortSignal);
 	});
@@ -128,7 +128,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 			throw new DOMException("The operation was aborted", "TimeoutError");
 		});
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toMatchObject({ kind: FailureKind.Network });
 	});
@@ -144,7 +144,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 				}) as unknown as Response,
 		);
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toMatchObject({ kind: FailureKind.Network });
 	});
@@ -152,7 +152,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 	it("reads Retry-After only in the two forms the RFC allows", async () => {
 		const parsed = async (retryAfter: string) => {
 			stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": retryAfter } }));
-			const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+			const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 			return "retryAfterSeconds" in result ? result.retryAfterSeconds : undefined;
 		};
 
@@ -168,7 +168,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 			throw new Error("boom");
 		});
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toEqual({ kind: "Network", status: undefined, message: "boom" });
 	});
@@ -176,7 +176,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 	it("returns Parse when no contribution days are found", async () => {
 		stubFetch(async () => new Response("<html>nothing here</html>", { status: 200 }));
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect(result).toEqual({ kind: "Parse", message: "Could not parse contributions" });
 	});
@@ -189,7 +189,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 				}),
 		);
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
@@ -209,7 +209,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 				),
 		);
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
@@ -229,7 +229,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 				),
 		);
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
@@ -250,7 +250,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 				),
 		);
 
-		const result = await githubHtmlContributionsRepository.fetch({ username, year: null });
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
@@ -262,7 +262,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		vi.stubGlobal("fetch", fetchMock);
 		const year = { _tag: "Year", value: new Date().getFullYear() } as Year;
 
-		await githubHtmlContributionsRepository.fetch({ username, year });
+		await githubHtmlContributionRepository.fetchCalendar({ username, year });
 
 		const calledUrl = String(fetchMock.mock.calls[0]?.[0]);
 		expect(calledUrl).toContain(`from=${year.value}-01-01`);
@@ -274,7 +274,7 @@ describe("githubHtmlContributionsRepository.fetch", () => {
 		vi.stubGlobal("fetch", fetchMock);
 		const year = { _tag: "Year", value: 2020 } as Year;
 
-		await githubHtmlContributionsRepository.fetch({ username, year });
+		await githubHtmlContributionRepository.fetchCalendar({ username, year });
 
 		const calledUrl = String(fetchMock.mock.calls[0]?.[0]);
 		expect(calledUrl).toContain("from=2020-01-01");

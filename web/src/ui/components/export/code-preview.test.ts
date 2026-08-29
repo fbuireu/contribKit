@@ -98,7 +98,7 @@ describe("buildMarkdownLines", () => {
 	});
 
 	it("shows exactly what markdownSnippet copies", () => {
-		const params = { username: "torvalds", palette: "catppuccin", shape: "hex" };
+		const params = { username: "torvalds", palette: "catppuccin", shape: CellShape.Hex };
 		const shown = buildMarkdownLines(params)
 			.map((line) => line.map(([, text]) => text).join(""))
 			.filter((line) => line.startsWith("!["));

@@ -159,6 +159,14 @@ test helper reintroduces the same bug in the test rather than the code.
   size parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
   browser grid, not this option. Named Cell Sizes are an app-only concept
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+- **The port is `ContributionRepository.fetchCalendar`, the same words the app uses.** It was
+  `ContributionsRepository.fetch`: plural where the app is singular, and named after the global HTTP function the
+  implementation literally calls, which is not a word [`CONTEXT.md`](../../../CONTEXT.md) has. A reader diffing the two layers hit
+  that first. `year: Year | null` stays, and the `null` is the **rolling window** the Embed needs and the app has
+  no concept of, which is why the app's port takes a required `Year`.
+- **`buildEmbedUrl` takes a `CellShape` and encodes the handle into the path.** `shape` was a bare `string`, so
+  `buildEmbedUrl({ username, shape: "triangle" })` type-checked here and could not be written in Dart; and the
+  path interpolated the username raw while Dart wrapped it in `Uri.encodeComponent`. Both now match the app.
 - **`Color` is a value object, and `PaletteColors` is five of them.** The colours in [`shared/palettes.json`](../../../shared/palettes.json) used to
   reach an SVG `fill=` attribute as raw strings, so a malformed token was a caught, typed failure on the phone
   (`Color.fromHex` throws) and a silently broken embed on the web. `PALETTES` parses every colour at module load
