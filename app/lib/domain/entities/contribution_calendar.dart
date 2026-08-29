@@ -3,12 +3,12 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 
 final class ContributionCalendar {
-  const ContributionCalendar({
+  ContributionCalendar({
     required this.username,
     required this.year,
-    required this.weeks,
+    required List<ContributionWeek> weeks,
     required this.totalContributions,
-  });
+  }) : weeks = List.unmodifiable(weeks);
 
   final Username username;
   final Year year;

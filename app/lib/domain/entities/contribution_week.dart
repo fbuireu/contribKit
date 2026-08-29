@@ -1,7 +1,8 @@
 import 'package:contribkit/domain/entities/contribution_day.dart';
 
 final class ContributionWeek {
-  const ContributionWeek({required this.days});
+  ContributionWeek({required List<ContributionDay> days})
+    : days = List.unmodifiable(days);
 
   final List<ContributionDay> days;
 

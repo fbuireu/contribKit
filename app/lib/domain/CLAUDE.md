@@ -177,6 +177,12 @@ person writes by hand may carry one; what no client does is *build* one.
 - **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
   the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
   and a wrong colour, with nothing to catch it.
+- **A `ContributionCalendar` and a `ContributionWeek` freeze their lists.** Both stored a `final List`, which
+  freezes the reference and not the contents, so `calendar.weeks.clear()` compiled and analyzed clean. That matters
+  more here than usually: `hashCode` is `Object.hash(..., Object.hashAll(weeks))`, so mutating a week in place
+  changed the object's `==` **and** `hashCode` while `ViewerState.calendar` still pointed at the same instance,
+  and freezed compared it to itself, reported equal, and left the screen rendering data it no longer held. Nothing
+  in `lib/` did it, so this is a guard. The constructors lost `const`, which cost nothing: no call site used it.
 - **`Color`'s constructor asserts its range, and stays `const`.** It took any `int` unchecked, so `Color(-1)`
   compared unequal to `Color(0xFFFFFFFF)` despite painting identically, and `toHex()` emitted `#0000-1` for it,
   which `SvgExportRepository` writes into a `fill=` attribute. A masking factory would have fixed it and cost every
