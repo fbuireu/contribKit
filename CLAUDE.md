@@ -223,7 +223,10 @@ Playwright exiting 1 on an empty set is the only thing keeping the tag honest.
 **The smoke job labels its own report.** Playwright's `github` reporter annotates every run with the same
 `🎭 Playwright Run Summary`, whichever suite produced it, so a step writes a *Production smoke tests* heading to
 `$GITHUB_STEP_SUMMARY` first, naming the address it ran against and the sha it followed. The artifact is
-`playwright-smoke-report` for the same reason.
+`playwright-smoke-report` for the same reason. The Vitest block gets the same treatment: its
+*Vitest Test Report* heading is a constant inside Vitest's `github-actions` reporter with no rename option,
+so `web/vitest.config.ts` registers `summaryLabel`, a reporter that writes the suite's own heading above the
+block, on CI only. forever-pto and biancafiore label theirs the same way, each shaped to its own config.
 
 **A failed smoke run rolls production back.** Withholding the tag leaves a version that does not answer serving
 traffic, so `rollback` runs `wrangler rollback --env production --yes` from `web/` when `deploy-production`
