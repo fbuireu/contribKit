@@ -485,3 +485,129 @@ describe("history syncing", () => {
 		expect(new URLSearchParams(globalThis.location.search).get("user")).toBe("torvalds");
 	});
 });
+
+describe("the grid the page starts with", () => {
+	const injected = [
+		{ date: `${CURRENT_YEAR}-01-01`, level: 1, count: 2 },
+		{ date: `${CURRENT_YEAR}-01-02`, level: 0, count: 0 },
+	];
+
+	afterEach(() => {
+		Reflect.deleteProperty(window, "__INITIAL_DAYS__");
+	});
+
+	it("uses what the server rendered rather than inventing a placeholder", () => {
+		vi.stubGlobal("__INITIAL_DAYS__", injected);
+		document.body.innerHTML = `<div id="hero-grid-container"></div>`;
+
+		initPage();
+
+		expect(getDays()).toStrictEqual(injected);
+	});
+
+	it("falls back to a placeholder when the server injected an empty list", () => {
+		vi.stubGlobal("__INITIAL_DAYS__", []);
+		document.body.innerHTML = `<div id="hero-grid-container"></div>`;
+
+		initPage();
+
+		expect(getDays()).toHaveLength(53 * 7);
+	});
+
+	it("falls back to a placeholder when the injected value is not a list at all", () => {
+		vi.stubGlobal("__INITIAL_DAYS__", "not a grid");
+		document.body.innerHTML = `<div id="hero-grid-container"></div>`;
+
+		initPage();
+
+		expect(getDays()).toHaveLength(53 * 7);
+	});
+});
+
+describe("the customize controls", () => {
+	const CUSTOMIZE = `
+		<div id="palette-list">
+			<button class="palette-row active" data-key="github"></button>
+			<button class="palette-row" data-key="nord"></button>
+		</div>
+		<div id="shape-list">
+			<button class="shape-btn active" data-key="rounded"></button>
+			<button class="shape-btn" data-key="square"></button>
+		</div>
+		<div id="export-tabs">
+			<button data-key="png" aria-selected="true"></button>
+			<button data-key="svg" aria-selected="false"></button>
+		</div>
+		<div id="custom-grid-container"></div>
+		<span id="custom-palette-label"></span>
+		<span id="custom-shape-label"></span>
+		<div id="export-preview"></div>
+	`;
+
+	it("repaints the grid in the Palette the reader picked", () => {
+		document.body.innerHTML = `<div id="hero-grid-container"></div>${CUSTOMIZE}`;
+		initPage();
+
+		document.querySelector<HTMLElement>('.palette-row[data-key="nord"]')?.click();
+
+		expect(byId("custom-palette-label").textContent).toBe("nord");
+	});
+
+	it("repaints the grid in the Cell Shape the reader picked", () => {
+		document.body.innerHTML = `<div id="hero-grid-container"></div>${CUSTOMIZE}`;
+		initPage();
+
+		document.querySelector<HTMLElement>('.shape-btn[data-key="square"]')?.click();
+
+		expect(byId("custom-shape-label").textContent).toBe("square");
+	});
+
+	it("re-renders the export preview when the reader changes tab", () => {
+		document.body.innerHTML = `<div id="hero-grid-container"></div>${CUSTOMIZE}`;
+		initPage();
+
+		document.querySelector<HTMLElement>('#export-tabs [data-key="svg"]')?.click();
+
+		expect(document.querySelector("#export-preview .code-preview")).not.toBeNull();
+	});
+});
+
+describe("history navigation on a half-rendered page", () => {
+	it("restores nothing it cannot find, rather than throwing", async () => {
+		vi.stubGlobal("fetch", vi.fn(okFetch));
+		document.body.innerHTML = `<button id="hero-render-btn"></button><div id="hero-grid-container"></div>`;
+		initPage();
+
+		goTo("?user=gaearon");
+
+		expect(() => globalThis.dispatchEvent(new PopStateEvent("popstate"))).not.toThrow();
+		await settle();
+	});
+});
+
+describe("the username field", () => {
+	it("leaves the caret alone when the browser reports none", () => {
+		document.body.innerHTML = HERO;
+		initPage();
+		const input = byId("hero-username") as HTMLInputElement;
+		const setSelectionRange = vi.spyOn(input, "setSelectionRange");
+		vi.spyOn(input, "selectionStart", "get").mockReturnValue(null);
+
+		input.value = "TORVALDS";
+		input.dispatchEvent(new Event("input", { bubbles: true }));
+
+		expect(input.value).toBe("torvalds");
+		expect(setSelectionRange).not.toHaveBeenCalled();
+	});
+
+	it("marks the suggestion matching what is already typed when the page loads", () => {
+		document.body.innerHTML = `${HERO}${SUGGESTIONS}`;
+		(byId("hero-username") as HTMLInputElement).value = "  GAEARON ";
+
+		initPage();
+
+		const gaearon = document.querySelector<HTMLElement>('.sug-btn[data-username="gaearon"]');
+
+		expect(gaearon?.getAttribute("aria-pressed")).toBe("true");
+	});
+});

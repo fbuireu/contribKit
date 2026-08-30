@@ -246,3 +246,54 @@ describe("initCellTooltip", () => {
 		expect(tooltip.element.style.left).toBe("55px");
 	});
 });
+
+describe("initCellTooltip against events that name no cell", () => {
+	it("ignores a pointer event whose target is the document itself", () => {
+		const tooltip = mountTooltip();
+		initCellTooltip();
+
+		document.dispatchEvent(new MouseEvent("mouseover"));
+
+		expect(tooltip.showPopover).not.toHaveBeenCalled();
+		expect(tooltip.hidePopover).not.toHaveBeenCalled();
+	});
+
+	it("ignores a focus event whose target is the document itself", () => {
+		const tooltip = mountTooltip();
+		initCellTooltip();
+
+		document.dispatchEvent(new FocusEvent("focusin"));
+
+		expect(tooltip.showPopover).not.toHaveBeenCalled();
+	});
+
+	it("closes when focus goes somewhere that is not an element at all", () => {
+		const tooltip = mountTooltip();
+		initCellTooltip();
+		hover(place({ left: 100, top: 200 }));
+
+		document.dispatchEvent(new FocusEvent("focusout"));
+
+		expect(tooltip.hidePopover).toHaveBeenCalled();
+	});
+
+	it("closes when the pointer leaves the document", () => {
+		const tooltip = mountTooltip();
+		initCellTooltip();
+		hover(place({ left: 100, top: 200 }));
+
+		document.dispatchEvent(new MouseEvent("mouseleave"));
+
+		expect(tooltip.hidePopover).toHaveBeenCalled();
+	});
+
+	it("says the date is unknown rather than rendering nothing when a cell carries none", () => {
+		const tooltip = mountTooltip(`<div id="cell" data-date="" data-count="5"></div>`);
+		initCellTooltip();
+
+		hover(place({ left: 100, top: 200 }));
+
+		expect(tooltip.showPopover).toHaveBeenCalled();
+		expect(tooltip.element.textContent).not.toBe("");
+	});
+});
