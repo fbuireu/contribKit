@@ -131,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [changes, web-ci]
-    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ (needs.changes.outputs.web == 'true' && github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
     environment: web-production
     defaults:
       run:
@@ -185,7 +185,7 @@ jobs:
   deploy-production:
     name: Deploy (Production)
     needs: [changes, web-ci, deploy-tail]
-    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ needs.changes.outputs.web == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/_deploy.yml
     with:
       environment: web-production
@@ -295,7 +295,7 @@ jobs:
   smoke:
     name: Production smoke tests
     needs: [changes, deploy-production]
-    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ needs.changes.outputs.web == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
