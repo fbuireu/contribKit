@@ -63,4 +63,36 @@ describe("syncUrl", () => {
 		const url = pushState.mock.calls[0][2] as URL;
 		expect(url.searchParams.has("year")).toBe(false);
 	});
+
+	it("drops the user param rather than publishing an empty one", () => {
+		const pushState = vi.fn();
+		vi.stubGlobal("location", { search: "?user=torvalds", href: "https://x.test/?user=torvalds" });
+		vi.stubGlobal("history", { pushState });
+
+		syncUrl({ username: "", year: 2024, currentYear: 2024 });
+
+		const url = pushState.mock.calls[0][2] as URL;
+		expect(url.searchParams.has("user")).toBe(false);
+	});
+
+	it("drops the year param when there is no year to name", () => {
+		const pushState = vi.fn();
+		vi.stubGlobal("location", { search: "?year=2022", href: "https://x.test/?year=2022" });
+		vi.stubGlobal("history", { pushState });
+
+		syncUrl({ username: "torvalds", year: 0, currentYear: 2024 });
+
+		const url = pushState.mock.calls[0][2] as URL;
+		expect(url.searchParams.has("year")).toBe(false);
+	});
+
+	it("pushes nothing when the address is already the one being asked for", () => {
+		const pushState = vi.fn();
+		vi.stubGlobal("location", { search: "?user=torvalds", href: "https://x.test/?user=torvalds" });
+		vi.stubGlobal("history", { pushState });
+
+		syncUrl({ username: "torvalds", year: 2024, currentYear: 2024 });
+
+		expect(pushState).not.toHaveBeenCalled();
+	});
 });

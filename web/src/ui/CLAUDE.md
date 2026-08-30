@@ -76,7 +76,12 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   not at module scope.** It used to run on import, along with the first `setDays` / `setUsername`, so merely
   importing this module touched `window` and generated a grid. That is most of why the module with the real risk
   in it had two assertions while `roving.ts` and [`url.ts`](./utils/url.ts), both trivially correct, had more test than
-  implementation.
+  implementation. **That imbalance is closed**: the four initialisers `initPage` composes are covered as well as
+  the refresh — the username strip's empty-submission refusal and its lowercasing, the suggestion buttons, the
+  `popstate` restore, and the URL rewrite `initUsernameState` performs when the address and the server-rendered
+  field disagree. The one worth naming is the cookie: [`page-init.test.ts`](./utils/page-init.test.ts) doubles
+  [`cookie.ts`](./utils/cookie.ts) and asserts `writeUsernameCookie` is reached on the success branch and on
+  neither failure branch, which is the gotcha below stated as a test rather than as a paragraph.
 - **`renderFromGitHub` takes its `request`,** defaulting to `fetch`. That one optional parameter is the seam the
   whole refresh is tested through: the year clamp, the grid build, the recognised-status sentence, the unreachable
   server, and the render button being re-enabled either way. Nothing else about it changed: the default is what

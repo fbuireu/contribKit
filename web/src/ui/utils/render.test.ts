@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 
+import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { Selector } from "@ui/utils/dom-contract";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,6 +9,7 @@ import {
 	getActivePalette,
 	renderCustomize,
 	renderExportPreview,
+	renderWidget,
 	setHeroError,
 	updateHeroStats,
 	updateYearRange,
@@ -184,5 +186,120 @@ describe("the copy button", () => {
 
 		await vi.advanceTimersByTimeAsync(1500);
 		expect(button?.textContent).toBe("copy");
+	});
+});
+
+const CUSTOMIZE_DOM = `
+	<div id="palette-list"><button class="palette-row active" data-key="nord"></button></div>
+	<div id="shape-list"><button class="shape-btn active" data-key="square"></button></div>
+	<div id="custom-grid-container"></div>
+	<div id="hero-grid-container"></div>
+	<span id="custom-palette-label"></span>
+	<span id="custom-shape-label"></span>
+`;
+
+describe("getActiveShape", () => {
+	it("falls back rather than trusting a data-key naming no Cell Shape", () => {
+		document.body.innerHTML = `<div id="shape-list"><button class="shape-btn active" data-key="hexagram"></button></div><span id="custom-shape-label"></span>`;
+		renderCustomize();
+
+		expect(byId("custom-shape-label").textContent).toBe(DEFAULT_CELL_SHAPE);
+	});
+
+	it("falls back when nothing is marked active at all", () => {
+		document.body.innerHTML = `<span id="custom-shape-label"></span>`;
+		renderCustomize();
+
+		expect(byId("custom-shape-label").textContent).toBe(DEFAULT_CELL_SHAPE);
+	});
+});
+
+describe("renderCustomize over a full customize panel", () => {
+	it("labels a Palette the markup does not define with the one it fell back to", () => {
+		document.body.innerHTML = `<div id="palette-list"><button class="palette-row active" data-key="sepia"></button></div><span id="custom-palette-label"></span>`;
+
+		expect(() => renderCustomize()).not.toThrow();
+		expect(byId("custom-palette-label").textContent).toBe(DEFAULT_PALETTE_KEY);
+	});
+
+	it("names the Palette and the Cell Shape the reader picked", () => {
+		document.body.innerHTML = CUSTOMIZE_DOM;
+		renderCustomize();
+
+		expect(byId("custom-palette-label").textContent).toBe("nord");
+		expect(byId("custom-shape-label").textContent).toBe("square");
+		expect(byId("custom-grid-container").innerHTML).toContain("<svg");
+		expect(byId("hero-grid-container").innerHTML).toContain("<svg");
+	});
+
+	it("paints the legend from the Palette, and repeats the first colour past its end", () => {
+		document.body.innerHTML = `${CUSTOMIZE_DOM}<div class="legend">${'<span class="legend-sq"></span>'.repeat(6)}</div>`;
+		renderCustomize();
+
+		const squares = document.querySelectorAll<HTMLElement>(".legend .legend-sq");
+		const colours = PALETTES.nord.colors;
+
+		expect(squares[0].style.background).toBe(colours[0].hex);
+		expect(squares[4].style.background).toBe(colours[4].hex);
+		expect(squares[5].style.background).toBe(colours[0].hex);
+	});
+
+	it("skips every node the page does not carry rather than throwing", () => {
+		document.body.innerHTML = "";
+
+		expect(() => renderCustomize()).not.toThrow();
+	});
+});
+
+describe("renderWidget", () => {
+	it("paints the phone preview from the active Palette and names the viewer", () => {
+		document.body.innerHTML = `${CUSTOMIZE_DOM}<div id="phone-screen"></div><div id="widget-mini-grid"></div><span id="widget-username"></span>`;
+		renderWidget();
+
+		expect(byId("phone-screen").style.getPropertyValue("--wp-peak")).toBe(PALETTES.nord.colors[4].hex);
+		expect(byId("widget-mini-grid").innerHTML).toContain("<svg");
+		expect(byId("widget-username").textContent).toBe("torvalds");
+	});
+
+	it("leaves the username slot alone when there is no username to put in it", () => {
+		setUsername("");
+		document.body.innerHTML = `<span id="widget-username">previous</span>`;
+		renderWidget();
+
+		expect(byId("widget-username").textContent).toBe("previous");
+	});
+
+	it("skips every node the page does not carry rather than throwing", () => {
+		document.body.innerHTML = "";
+
+		expect(() => renderWidget()).not.toThrow();
+	});
+});
+
+describe("renderExportPreview on the markdown tab", () => {
+	const MARKDOWN_DOM = `
+		<div id="export-tabs"><button data-key="md" aria-selected="true"></button></div>
+		<div id="palette-list"><button class="palette-row active" data-key="nord"></button></div>
+		<div id="shape-list"><button class="shape-btn active" data-key="square"></button></div>
+		<div id="export-preview"></div>
+	`;
+
+	it("names the file README.md rather than an image", () => {
+		document.body.innerHTML = MARKDOWN_DOM;
+		renderExportPreview();
+
+		expect($("#export-preview .preview-tag").textContent).toBe("README.md");
+	});
+
+	it("shows a code block naming the viewer, the Palette and the Cell Shape", () => {
+		document.body.innerHTML = MARKDOWN_DOM;
+		renderExportPreview();
+
+		const code = $("#export-preview .code-preview").textContent ?? "";
+
+		expect(getActiveExportTab()).toBe("md");
+		expect(code).toContain("torvalds");
+		expect(code).toContain("nord");
+		expect(code).toContain("square");
 	});
 });
