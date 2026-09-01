@@ -34,7 +34,7 @@ dependencies:
   path_provider: 2.1.6
 
   # UI primitives
-  shadcn_ui: 0.56.1
+  shadcn_ui: 0.56.2
   flutter_animate: 4.5.2
 
   # Splash screen
