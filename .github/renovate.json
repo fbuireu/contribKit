@@ -11,6 +11,12 @@
   "rangeStrategy": "pin",
   "pinDigests": true,
   "automergeStrategy": "squash",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "addLabels": ["lock-maintenance"],
+    "schedule": ["on the 1st and 15th day of the month"]
+  },
   "semanticCommits": "enabled",
   "semanticCommitScope": "global",
   "assigneesFromCodeOwners": true,
@@ -89,6 +95,15 @@
       "matchManagers": ["gradle"],
       "matchDepNames": ["dev.flutter.flutter-plugin-loader"],
       "enabled": false
+    },
+    {
+      "matchDepNames": ["node"],
+      "allowedVersions": "/^[0-9]*[02468]\\./",
+      "groupName": "node"
+    },
+    {
+      "matchDepNames": ["pnpm"],
+      "groupName": "pnpm"
     }
   ]
 }
