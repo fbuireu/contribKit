@@ -71,7 +71,7 @@ const VERSIONS_SECTION = /^## Versions$([\s\S]*?)^## /m;
 const QUOTED_VERSION = /\d+\.\d+/;
 const REPINNED_RUNTIME = /^\s*(?:node-version|version):\s*["']?\d/m;
 const PUBSPEC_FLUTTER_PIN = /^ {2}flutter: (\S+)$/m;
-const PUBSPEC_DART_PIN = /^ {2}sdk: (\S+)$/m;
+const PUBSPEC_DART_CONSTRAINT = /^ {2}sdk: "?([^"\n]+)"?$/m;
 const DOCUMENTED_PNPM_SCRIPT = /\bpnpm ([a-z][a-z\d:._-]*)/g;
 const GLOSSARY_AVOID_LINE = /^_Avoid_: (.+)$/gm;
 const adrHeadingFor = (number: number): RegExp => new RegExp(`^# ${number}\\. \\S`);
@@ -447,7 +447,7 @@ describe("the guides match the manifests", () => {
 	});
 
 	it("lets the Dart constraint follow Flutter instead of pinning it a second time", () => {
-		const dart = pubspec.match(PUBSPEC_DART_PIN)?.[1] ?? "";
+		const dart = pubspec.match(PUBSPEC_DART_CONSTRAINT)?.[1] ?? "";
 
 		expect(dart).not.toBe("");
 		expect(EXACT_VERSION.test(dart)).toBe(false);

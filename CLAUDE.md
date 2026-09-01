@@ -35,8 +35,11 @@ change, which is that each one is pinned exactly once, exactly, and re-pinned in
 - Flutter (`environment.flutter` in [`app/pubspec.yaml`](./app/pubspec.yaml)), which is the pin
   [`_ci-app.yml`](./.github/workflows/_ci-app.yml) installs from through `flutter-version-file`. A mismatched local Flutter blocks
   `pub get` and codegen; do not "fix" it by editing the pin
-- Dart is **not** pinned. `environment.sdk` is a caret constraint, a floor on the language features this code
-  uses, and the Dart that satisfies it is whichever one the pinned Flutter ships. It used to be exact, and
+- Dart is a **range**, not a pin: `environment.sdk` is bounded to the minor, which is as tight as it can be
+  and still work. Nothing installs Dart from here; the Dart you run is whichever one the pinned Flutter ships,
+  so the Flutter pin is what makes it reproducible and this line only says which language features the code
+  needs. Bounding it to the minor keeps a Flutter patch inside the range and still fails loudly if Flutter
+  ever jumps a Dart minor, which is a change worth stopping on. It used to be exact, and
   that made one fact two declarations of which a bot updates only half: Renovate raised Flutter to 3.47.2,
   which ships Dart 3.13.2, and `pub get` refused against a `3.13.0` that nothing had told it to move. A docs
   rule keeps the constraint a range so it cannot be pinned again
