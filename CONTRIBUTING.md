@@ -82,8 +82,8 @@ pnpm wrangler:dev         # build + wrangler dev, against the real Workers runti
 pnpm test:ut                 # vitest, including the docs contract
 pnpm test:docs            # the docs contract alone
 pnpm test:e2e             # playwright
-pnpm lint:all             # biome lint
-pnpm format:all           # biome check --write
+pnpm lint:all             # biome lint over web, docs and .github
+pnpm format:all           # biome check --write, the same three
 pnpm format:check         # biome check, read-only: what CI runs
 pnpm typecheck    # wrangler types + tsc --noEmit
 pnpm verify       # format:check + typecheck + astro check + coverage: what CI and pre-push run
