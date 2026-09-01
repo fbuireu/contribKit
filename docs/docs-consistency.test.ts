@@ -67,6 +67,8 @@ const ADR_HEADING_PREFIX = /^# \d+\. /;
 const NON_LETTER = /[^a-z]/gi;
 const GLOSSARY_TERM = /^\*\*(.+?)\*\*:/gm;
 const EXACT_VERSION = /^\d+\.\d+\.\d+$/;
+const VERSIONS_SECTION = /^## Versions$([\s\S]*?)^## /m;
+const QUOTED_VERSION = /\d+\.\d+/;
 const REPINNED_RUNTIME = /^\s*(?:node-version|version):\s*["']?\d/m;
 const PUBSPEC_FLUTTER_PIN = /^ {2}flutter: (\S+)$/m;
 const PUBSPEC_DART_PIN = /^ {2}sdk: (\S+)$/m;
@@ -405,7 +407,7 @@ describe("the guides match the manifests", () => {
 		expect(pinned().filter(({ expected }) => !expected)).toEqual([]);
 	});
 
-	it("pins the package manager in exactly one manifest", () => {
+	it("pins pnpm once, through packageManager", () => {
 		const pinning = [
 			["package.json", rootPackage.packageManager],
 			["web/package.json", webPackage.packageManager],
@@ -417,7 +419,7 @@ describe("the guides match the manifests", () => {
 
 	const RUNTIMES = ["pnpm", "Node", "Flutter", "Dart"];
 
-	it("names every runtime it pins, whatever the manifests carry", () => {
+	it("names every runtime it pins", () => {
 		const unnamed = RUNTIMES.flatMap((runtime) =>
 			[
 				["CLAUDE.md", guide],
@@ -437,11 +439,19 @@ describe("the guides match the manifests", () => {
 		expect(read(join(REPO, "web/.nvmrc")).trim()).toBe(node);
 	});
 
+	it("quotes a version for none of them, since nothing here would keep one current", () => {
+		const section = guide.match(VERSIONS_SECTION)?.[1] ?? "";
+		const quoting = section.split("\n").filter((line) => line.startsWith("- ") && QUOTED_VERSION.test(line));
+
+		expect(section).not.toBe("");
+		expect(quoting).toEqual([]);
+	});
+
 	it("pins every runtime to an exact version, never a range", () => {
 		expect(pinned().filter(({ expected }) => !EXACT_VERSION.test(expected))).toEqual([]);
 	});
 
-	it("lets no workflow pin a runtime the manifests already pin", () => {
+	it("lets no workflow or composite action pin a runtime the manifest already pins", () => {
 		const workflows = walk({ dir: join(REPO, ".github"), match: (path) => path.endsWith(".yml") });
 		const repinned = workflows.filter((file) => REPINNED_RUNTIME.test(read(file)));
 

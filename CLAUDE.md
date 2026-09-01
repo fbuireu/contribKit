@@ -13,7 +13,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 - **shared**: plain JSON, imported by web at build time and mirrored into [`app/assets/`](./app/assets) ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **repo**: pnpm workspaces, lefthook, commitlint, semantic-release per component
 
-## Versions (pinned: match exactly)
+## Versions
 
 **This section names where each runtime is pinned and never what the pin says.** A digit written here is a
 claim a bot invalidates on its own, and neither way of keeping it honest works: asserting it against the
