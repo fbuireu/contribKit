@@ -39,7 +39,11 @@ change, which is that each one is pinned exactly once, exactly, and re-pinned in
   and still work. Nothing installs Dart from here; the Dart you run is whichever one the pinned Flutter ships,
   so the Flutter pin is what makes it reproducible and this line only says which language features the code
   needs. Bounding it to the minor keeps a Flutter patch inside the range and still fails loudly if Flutter
-  ever jumps a Dart minor, which is a change worth stopping on. It used to be exact, and
+  ever jumps a Dart minor, which is a change worth stopping on, and a human widens the bound then. Renovate is
+  told not to manage this line at all: `rangeStrategy` is `pin` for the whole repository and it collapsed the
+  range back to an exact version the day it was written, which the docs guard then refused. It tracks Dart
+  against the Dart SDK and knows nothing about which one a Flutter release bundles, so any update it proposed
+  here could raise the floor above what the pinned Flutter ships. It used to be exact, and
   that made one fact two declarations of which a bot updates only half: Renovate raised Flutter to 3.47.2,
   which ships Dart 3.13.2, and `pub get` refused against a `3.13.0` that nothing had told it to move. A docs
   rule keeps the constraint a range so it cannot be pinned again

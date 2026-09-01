@@ -88,6 +88,10 @@
 			"enabled": false
 		},
 		{
+			"matchDepNames": ["dart"],
+			"enabled": false
+		},
+		{
 			"matchManagers": ["gradle"],
 			"matchDepNames": ["dev.flutter.flutter-plugin-loader"],
 			"enabled": false
