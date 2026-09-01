@@ -52,12 +52,15 @@ all** by design, doc comments included, so the documents are where the explanati
 **Pinned versions: match them exactly.** A mismatch is not a warning here, it is a failed `pub get` or a lockfile
 conflict.
 
-| Tool | Version | Pinned in |
-| --- | --- | --- |
-| pnpm | 11.21.0 | root `packageManager`, and nowhere else: always pnpm, never npm or yarn |
-| Node | 26.7.0 | root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc): the same version in all three |
-| Flutter | 3.47.0 | [`app/pubspec.yaml`](./app/pubspec.yaml) |
-| Dart | 3.13.0 | `app/pubspec.yaml` |
+The table names the file, not the number: read the pin from the file. A version written here would go stale
+the next time a bot bumps it, and a check that defended it could only do so by failing that bump.
+
+| Tool | Pinned in |
+| --- | --- |
+| pnpm | root `packageManager`, and nowhere else: always pnpm, never npm or yarn |
+| Node | root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc): the same version in all three |
+| Flutter | [`app/pubspec.yaml`](./app/pubspec.yaml) |
+| Dart | `app/pubspec.yaml` |
 
 Do not "fix" a version mismatch by editing the pin.
 

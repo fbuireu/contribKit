@@ -66,6 +66,8 @@ const SHORT_ADR_REFERENCE = /\bADR \d{1,3}\b/g;
 const ADR_HEADING_PREFIX = /^# \d+\. /;
 const NON_LETTER = /[^a-z]/gi;
 const GLOSSARY_TERM = /^\*\*(.+?)\*\*:/gm;
+const EXACT_VERSION = /^\d+\.\d+\.\d+$/;
+const REPINNED_RUNTIME = /^\s*(?:node-version|version):\s*["']?\d/m;
 const PUBSPEC_FLUTTER_PIN = /^ {2}flutter: (\S+)$/m;
 const PUBSPEC_DART_PIN = /^ {2}sdk: (\S+)$/m;
 const DOCUMENTED_PNPM_SCRIPT = /\bpnpm ([a-z][a-z\d:._-]*)/g;
@@ -413,16 +415,38 @@ describe("the guides match the manifests", () => {
 		expect(pinning.map(([manifest]) => manifest)).toEqual(["package.json"]);
 	});
 
-	it("states the same pinned versions the manifests declare", () => {
-		const wrong = pinned().flatMap(({ label, expected }) =>
+	const RUNTIMES = ["pnpm", "Node", "Flutter", "Dart"];
+
+	it("names every runtime it pins, whatever the manifests carry", () => {
+		const unnamed = RUNTIMES.flatMap((runtime) =>
 			[
 				["CLAUDE.md", guide],
 				["CONTRIBUTING.md", contributing],
 			]
-				.filter(([, body]) => !body.includes(expected))
-				.map(([doc]) => `${doc} does not state ${label} ${expected}`),
+				.filter(([, body]) => !body.includes(runtime))
+				.map(([doc]) => `${doc} does not name ${runtime}`),
 		);
-		expect(wrong).toEqual([]);
+
+		expect(unnamed).toEqual([]);
+	});
+
+	it("pins Node once: both engines and web/.nvmrc are one fact, so they say the same thing", () => {
+		const node = rootPackage.engines.node;
+
+		expect(webPackage.engines.node).toBe(node);
+		expect(read(join(REPO, "web/.nvmrc")).trim()).toBe(node);
+	});
+
+	it("pins every runtime to an exact version, never a range", () => {
+		expect(pinned().filter(({ expected }) => !EXACT_VERSION.test(expected))).toEqual([]);
+	});
+
+	it("lets no workflow pin a runtime the manifests already pin", () => {
+		const workflows = walk({ dir: join(REPO, ".github"), match: (path) => path.endsWith(".yml") });
+		const repinned = workflows.filter((file) => REPINNED_RUNTIME.test(read(file)));
+
+		expect(workflows.length).toBeGreaterThan(0);
+		expect(repinned).toEqual([]);
 	});
 
 	it("mentions only pnpm scripts that a package.json declares, reading commands rather than prose", () => {

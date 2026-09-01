@@ -9,13 +9,19 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
 ## Stack
 
 - **web**: Astro 7.2 (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Biome, Vitest, Playwright
-- **app**: Flutter 3.47.0 / Dart 3.13.0, Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
+- **app**: Flutter / Dart ([`app/pubspec.yaml`](./app/pubspec.yaml)), Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
 - **shared**: plain JSON, imported by web at build time and mirrored into [`app/assets/`](./app/assets) ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **repo**: pnpm workspaces, lefthook, commitlint, semantic-release per component
 
 ## Versions (pinned: match exactly)
 
-- pnpm **11.21.0**: always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
+**This section names where each runtime is pinned and never what the pin says.** A digit written here is a
+claim a bot invalidates on its own, and neither way of keeping it honest works: asserting it against the
+manifest failed every dependency pull request on a line the bot cannot edit, and not asserting it let the
+digit rot in place. Read the file named beside each runtime; the docs guard asserts only what a bump cannot
+change, which is that each one is pinned exactly once, exactly, and re-pinned in no workflow.
+
+- pnpm ([root `packageManager`](./package.json)): always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
   `pnpm/action-setup` resolves everywhere it runs, because [`release-app.yml`](./.github/workflows/release-app.yml) passes
   `package_json_file: package.json` explicitly, and the `prepare-env` composite action passes nothing, which
   defaults to the same root manifest. [`ci.yml`](./.github/workflows/ci.yml) used to be a third case: its
@@ -24,9 +30,9 @@ A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site o
   It used to carry the second pin, and because Renovate's `includePaths` did not list the root manifest, that copy
   was the one it kept current. Consolidating onto the root pin silently rolled the package manager back three
   minors, until this was caught and the root was bumped to match
-- Node **26.7.0**, stated three times and always the same: the root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc), which
+- Node, stated three times and always the same: the root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc), which
   is the one CI installs. They used to differ (v26.3.0 at the root against 26.5.1 in web) for no recorded reason.
-- Flutter **3.47.0**, Dart **3.13.0** ([`app/pubspec.yaml`](./app/pubspec.yaml)). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
+- Flutter and Dart ([`app/pubspec.yaml`](./app/pubspec.yaml)). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
 
 ## Commands
 
