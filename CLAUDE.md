@@ -32,7 +32,14 @@ change, which is that each one is pinned exactly once, exactly, and re-pinned in
   minors, until this was caught and the root was bumped to match
 - Node, stated three times and always the same: the root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc), which
   is the one CI installs. They used to differ (v26.3.0 at the root against 26.5.1 in web) for no recorded reason.
-- Flutter and Dart ([`app/pubspec.yaml`](./app/pubspec.yaml)). A mismatched local Flutter blocks `pub get` and codegen; do not "fix" it by editing the pin.
+- Flutter (`environment.flutter` in [`app/pubspec.yaml`](./app/pubspec.yaml)), which is the pin
+  [`_ci-app.yml`](./.github/workflows/_ci-app.yml) installs from through `flutter-version-file`. A mismatched local Flutter blocks
+  `pub get` and codegen; do not "fix" it by editing the pin
+- Dart is **not** pinned. `environment.sdk` is a caret constraint, a floor on the language features this code
+  uses, and the Dart that satisfies it is whichever one the pinned Flutter ships. It used to be exact, and
+  that made one fact two declarations of which a bot updates only half: Renovate raised Flutter to 3.47.2,
+  which ships Dart 3.13.2, and `pub get` refused against a `3.13.0` that nothing had told it to move. A docs
+  rule keeps the constraint a range so it cannot be pinned again
 
 ## Commands
 

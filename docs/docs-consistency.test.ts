@@ -400,7 +400,6 @@ describe("the guides match the manifests", () => {
 		{ label: "root Node", expected: rootPackage.engines.node },
 		{ label: "web Node", expected: webPackage.engines.node },
 		{ label: "Flutter", expected: pubspec.match(PUBSPEC_FLUTTER_PIN)?.[1] ?? "" },
-		{ label: "Dart", expected: pubspec.match(PUBSPEC_DART_PIN)?.[1] ?? "" },
 	];
 
 	it("reads a version for every pin it claims to check", () => {
@@ -445,6 +444,13 @@ describe("the guides match the manifests", () => {
 
 		expect(section).not.toBe("");
 		expect(quoting).toEqual([]);
+	});
+
+	it("lets the Dart constraint follow Flutter instead of pinning it a second time", () => {
+		const dart = pubspec.match(PUBSPEC_DART_PIN)?.[1] ?? "";
+
+		expect(dart).not.toBe("");
+		expect(EXACT_VERSION.test(dart)).toBe(false);
 	});
 
 	it("pins every runtime to an exact version, never a range", () => {
