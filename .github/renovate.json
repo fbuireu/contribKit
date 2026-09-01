@@ -12,6 +12,8 @@
   "rangeStrategy": "pin",
   "pinDigests": true,
   "automergeStrategy": "squash",
+  "semanticCommits": "enabled",
+  "semanticCommitScope": "global",
   "assigneesFromCodeOwners": true,
   "reviewersFromCodeOwners": true,
   "vulnerabilityAlerts": {
@@ -23,10 +25,12 @@
   "packageRules": [
     {
       "matchFileNames": ["web/**"],
+      "semanticCommitScope": "contribkit-web",
       "addLabels": ["web"]
     },
     {
       "matchFileNames": ["app/**"],
+      "semanticCommitScope": "contribkit-app",
       "addLabels": ["app"]
     },
     {
