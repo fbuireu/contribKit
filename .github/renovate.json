@@ -3,11 +3,16 @@
   "extends": [
     "config:recommended",
     ":dependencyDashboard",
-    "customManagers:biomeVersions",
     ":enableVulnerabilityAlerts"
   ],
-  "labels": ["dependencies", "renovate", "bot"],
-  "schedule": ["on the 1st and 15th day of the month"],
+  "labels": [
+    "dependencies",
+    "renovate",
+    "bot"
+  ],
+  "schedule": [
+    "on the 1st and 15th day of the month"
+  ],
   "minimumReleaseAge": "4 days",
   "rangeStrategy": "pin",
   "pinDigests": true,
@@ -17,51 +22,93 @@
   "assigneesFromCodeOwners": true,
   "reviewersFromCodeOwners": true,
   "vulnerabilityAlerts": {
-    "schedule": ["at any time"],
-    "labels": ["security", "vulnerability"]
+    "schedule": [
+      "at any time"
+    ],
+    "labels": [
+      "security",
+      "vulnerability"
+    ]
   },
   "osvVulnerabilityAlerts": true,
-  "includePaths": ["package.json", "app/**", "web/**", ".github/**"],
+  "includePaths": [
+    "package.json",
+    "app/**",
+    "web/**",
+    ".github/**"
+  ],
   "packageRules": [
     {
-      "matchFileNames": ["web/**"],
+      "matchFileNames": [
+        "web/**"
+      ],
       "semanticCommitScope": "contribkit-web",
-      "addLabels": ["web"]
+      "addLabels": [
+        "web"
+      ]
     },
     {
-      "matchFileNames": ["app/**"],
+      "matchFileNames": [
+        "app/**"
+      ],
       "semanticCommitScope": "contribkit-app",
-      "addLabels": ["app"]
+      "addLabels": [
+        "app"
+      ]
     },
     {
-      "matchUpdateTypes": ["pin", "pinDigest", "digest"],
+      "matchUpdateTypes": [
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
       "automerge": true,
       "automergeType": "pr",
-      "addLabels": ["pin-update"]
+      "addLabels": [
+        "pin-update"
+      ]
     },
     {
-      "matchUpdateTypes": ["patch"],
+      "matchUpdateTypes": [
+        "patch"
+      ],
       "automerge": true,
       "automergeType": "pr",
-      "addLabels": ["patch-update"]
+      "addLabels": [
+        "patch-update"
+      ]
     },
     {
-      "matchUpdateTypes": ["minor"],
+      "matchUpdateTypes": [
+        "minor"
+      ],
       "automerge": true,
       "automergeType": "pr",
-      "addLabels": ["minor-update"]
+      "addLabels": [
+        "minor-update"
+      ]
     },
     {
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false,
-      "addLabels": ["major-update"]
+      "addLabels": [
+        "major-update"
+      ]
     },
     {
-      "matchManagers": ["github-actions"],
-      "addLabels": ["ci"]
+      "matchManagers": [
+        "github-actions"
+      ],
+      "addLabels": [
+        "ci"
+      ]
     },
     {
-      "matchManagers": ["pub"],
+      "matchManagers": [
+        "pub"
+      ],
       "matchPackageNames": [
         "/^riverpod/",
         "freezed",
@@ -74,21 +121,36 @@
       ],
       "groupName": "flutter codegen",
       "automerge": false,
-      "addLabels": ["codegen"]
+      "addLabels": [
+        "codegen"
+      ]
     },
     {
-      "matchManagers": ["pub"],
-      "matchPackageNames": ["purchases_flutter", "purchases_ui_flutter"],
+      "matchManagers": [
+        "pub"
+      ],
+      "matchPackageNames": [
+        "purchases_flutter",
+        "purchases_ui_flutter"
+      ],
       "groupName": "purchases"
     },
     {
-      "matchManagers": ["pub"],
-      "matchDepNames": ["intl"],
+      "matchManagers": [
+        "pub"
+      ],
+      "matchDepNames": [
+        "intl"
+      ],
       "enabled": false
     },
     {
-      "matchManagers": ["gradle"],
-      "matchDepNames": ["dev.flutter.flutter-plugin-loader"],
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchDepNames": [
+        "dev.flutter.flutter-plugin-loader"
+      ],
       "enabled": false
     }
   ]
