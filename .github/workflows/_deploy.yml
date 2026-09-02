@@ -66,7 +66,7 @@ jobs:
         env:
           INPUTS_WORKER_NAME: ${{ inputs.worker_name }}
           WRANGLER_ENV: ${{ steps.stage.outputs.wrangler_env }}
-          DEPLOY_MESSAGE: ${{ github.sha }} (${{ github.event_name }})
+          DEPLOY_MESSAGE: ${{ github.sha }}-${{ github.event_name }}
         run: |
           NAME_FLAG=""
           if [ -n "${INPUTS_WORKER_NAME}" ]; then

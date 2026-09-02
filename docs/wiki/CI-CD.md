@@ -53,9 +53,11 @@ flowchart LR
 - **rollback:** on push to `main`, runs `wrangler rollback --env production` when the deploy succeeded and `smoke` failed, so a version that does not answer stops serving rather than merely going untagged. It is a separate job because it needs the Cloudflare credentials `smoke` deliberately does without.
 - **release:** semantic-release versions the web component. It needs `deploy-production` **and** `smoke`, so a `web-v*` tag means the version is live and answering. It used to need only `web-ci`, which meant the tag, the GitHub release and the changelog entry could all be published for a version whose deploy had just failed, and `workflow_dispatch` could cut one without deploying at all; that trigger is gone from its condition for the same reason.
 
-Both deploys pass an explicit `--message` (`<sha> - <event>`) to `wrangler deploy`. Without it, wrangler
+Both deploys pass an explicit `--message` (`<sha>-<event>`, one token with no spaces) to `wrangler deploy`. Without it, wrangler
 annotates the deployment with the full commit message, and Cloudflare rejects the deploy when that message
-is very long (e.g. a large squash-merge body). The API error does not mention the message at all.
+is very long (e.g. a large squash-merge body). The API error does not mention the message at all. The token
+is hyphenated because the three repositories that deploy share the format, and in forever-pto the OpenNext
+wrapper re-spawns wrangler through a shell that splits a message on its spaces.
 
 Concurrency cancels in-progress runs for pull requests only.
 
