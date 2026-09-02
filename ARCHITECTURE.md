@@ -22,7 +22,7 @@ config:
 flowchart TD
     gh["github.com/users/:login/contributions<br/>public HTML, no token"]
 
-    gh --> web["web/<br/>Astro 7 SSR on Cloudflare Workers"]
+    gh --> web["web/<br/>Astro SSR on Cloudflare Workers"]
     gh --> app["app/<br/>Flutter, iOS + Android"]
 
     tokens["shared/<br/>palettes · shapes · usernames"] --> web
@@ -43,7 +43,7 @@ flowchart TD
 
 | Component | What it is | Released as |
 | --- | --- | --- |
-| [`web/`](./web/README.md) | Astro 7 (`output: "server"`) on `@astrojs/cloudflare`, serving the site plus the public SVG and JSON endpoints | `web-vX.Y.Z`, deployed to Cloudflare Workers |
+| [`web/`](./web/README.md) | Astro (`output: "server"`) on `@astrojs/cloudflare`, serving the site plus the public SVG and JSON endpoints | `web-vX.Y.Z`, deployed to Cloudflare Workers |
 | [`app/`](./app/README.md) | Flutter iOS/Android client with home-screen widgets and a tip jar | `app-vX.Y.Z`, shipped to Google Play |
 | [`shared/`](./shared/README.md) | Plain JSON design tokens: `palettes.json`, [`shapes.json`](./shared/shapes.json), [`usernames.json`](./shared/usernames.json) | not released; consumed by both |
 
@@ -207,7 +207,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   and the flake, if it comes back, is answered by rerunning rather than by restoring the wrapper. The second
   build the pipeline used to run, in a `Web / Build` job, is gone: it built what the deploy job builds again
   and typechecked what `verify` had already typechecked.
-- **App.** Flutter 3.47.0 / Dart 3.13.0, pinned in [`app/pubspec.yaml`](./app/pubspec.yaml). A mismatched local Flutter blocks `pub get`
+- **App.** Flutter, pinned exactly in [`app/pubspec.yaml`](./app/pubspec.yaml), and Dart as the minor-bounded range the same file declares, since the Flutter pin decides which Dart runs. A mismatched local Flutter blocks `pub get`
   and codegen. Do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
   `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is
   passed, and `--flavor` fails ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)). The Android `release` build type runs **R8**: `isMinifyEnabled` and

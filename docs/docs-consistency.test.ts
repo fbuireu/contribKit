@@ -69,7 +69,7 @@ const GLOSSARY_TERM = /^\*\*(.+?)\*\*:/gm;
 const EXACT_VERSION = /^\d+\.\d+\.\d+$/;
 const VERSIONS_SECTION = /^## Versions$([\s\S]*?)^## /m;
 const QUOTED_VERSION = /\d+\.\d+/;
-const REPINNED_RUNTIME = /^\s*(?:node-version|version):\s*["']?\d/m;
+const REPINNED_RUNTIME = /^\s*(?:node-version|version|ruby-version|wranglerVersion):\s*["']?\d/m;
 const PUBSPEC_FLUTTER_PIN = /^ {2}flutter: (\S+)$/m;
 const PUBSPEC_DART_CONSTRAINT = /^ {2}sdk: "?([^"\n]+)"?$/m;
 const DOCUMENTED_PNPM_SCRIPT = /\bpnpm ([a-z][a-z\d:._-]*)/g;
@@ -400,6 +400,7 @@ describe("the guides match the manifests", () => {
 		{ label: "root Node", expected: rootPackage.engines.node },
 		{ label: "web Node", expected: webPackage.engines.node },
 		{ label: "Flutter", expected: pubspec.match(PUBSPEC_FLUTTER_PIN)?.[1] ?? "" },
+		{ label: "Ruby", expected: read(join(REPO, "app/android/.ruby-version")).trim() },
 	];
 
 	it("reads a version for every pin it claims to check", () => {
@@ -416,7 +417,7 @@ describe("the guides match the manifests", () => {
 		expect(pinning.map(([manifest]) => manifest)).toEqual(["package.json"]);
 	});
 
-	const RUNTIMES = ["pnpm", "Node", "Flutter", "Dart"];
+	const RUNTIMES = ["pnpm", "Node", "Flutter", "Dart", "Ruby"];
 
 	it("names every runtime it pins", () => {
 		const unnamed = RUNTIMES.flatMap((runtime) =>
@@ -996,5 +997,26 @@ describe("the workflows", () => {
 				"release",
 			]),
 		);
+	});
+});
+
+const STATED_VERSION =
+	/\b(?:Node(?:\.js)?|pnpm|TypeScript|Astro|Next(?:\.js)?|React|Effect|Flutter|Dart|[Ww]rangler|Ruby|Starlight)\s+(?:v|@)?\d+(?:\.\d+)*\b/g;
+const NARRATED_VERSIONS: Record<string, string[]> = { "CLAUDE.md": ["Flutter 3.47.2", "Dart 3.13.2"] };
+
+describe("stated versions", () => {
+	it("states the current version of nothing a bot moves, outside the ADRs", () => {
+		const documents = markdownFiles()
+			.map(relative)
+			.filter((file) => !file.startsWith("docs/adr/") && !file.endsWith("CHANGELOG.md"));
+		const stated = documents.flatMap((file) =>
+			[...read(join(REPO, file)).matchAll(STATED_VERSION)]
+				.map(([match]) => match)
+				.filter((match) => !(NARRATED_VERSIONS[file] ?? []).includes(match))
+				.map((match) => `${file}: ${match}`),
+		);
+
+		expect(documents.length).toBeGreaterThan(0);
+		expect(stated).toEqual([]);
 	});
 });

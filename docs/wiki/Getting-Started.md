@@ -57,7 +57,7 @@ Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** f
 
 ContribKit is a pnpm-workspace monorepo (`web/`, `app/`, `shared/`).
 
-**Prerequisites:** Node `26.7.0` (the same in the root `engines`, in `web/engines` and in [`.nvmrc`](../../.nvmrc), which is what CI installs) plus `pnpm@11.21.0`, and, for the app, Flutter `3.47.0` / Dart `3.13.0` exactly as pinned in [`app/pubspec.yaml`](../../app/pubspec.yaml). [lefthook](Git-Hooks) comes with `pnpm install`, which wires the local checks up for you.
+**Prerequisites:** Node at the version [`.nvmrc`](../../.nvmrc) declares (the same digit sits in the root `engines` and in `web/engines`, and it is what CI installs) plus `pnpm@11.21.0`, and, for the app, Flutter `3.47.0` / Dart `3.13.0` exactly as pinned in [`app/pubspec.yaml`](../../app/pubspec.yaml). [lefthook](Git-Hooks) comes with `pnpm install`, which wires the local checks up for you.
 
 To work on the **web** app:
 

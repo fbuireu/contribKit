@@ -4,11 +4,11 @@ Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can vi
 
 ## What this is
 
-A monorepo with two clients over one domain. **`web/`** is an Astro 7 SSR site on Cloudflare Workers that also serves the public SVG and JSON endpoints. **`app/`** is a Flutter iOS/Android app with home-screen widgets. **`shared/`** holds the design tokens both consume. Neither client needs a GitHub token: both read the public contributions page. See [ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md).
+A monorepo with two clients over one domain. **`web/`** is an Astro SSR site on Cloudflare Workers that also serves the public SVG and JSON endpoints. **`app/`** is a Flutter iOS/Android app with home-screen widgets. **`shared/`** holds the design tokens both consume. Neither client needs a GitHub token: both read the public contributions page. See [ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md).
 
 ## Stack
 
-- **web**: Astro 7.2 (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Biome, Vitest, Playwright
+- **web**: Astro (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Biome, Vitest, Playwright
 - **app**: Flutter / Dart ([`app/pubspec.yaml`](./app/pubspec.yaml)), Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
 - **shared**: plain JSON, imported by web at build time and mirrored into [`app/assets/`](./app/assets) ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **repo**: pnpm workspaces, lefthook, commitlint, semantic-release per component
@@ -43,6 +43,10 @@ change, which is that each one is pinned exactly once, exactly, and re-pinned in
   that made one fact two declarations of which a bot updates only half: Renovate raised Flutter to 3.47.2,
   which ships Dart 3.13.2, and `pub get` refused against a `3.13.0` that nothing had told it to move. A docs
   rule keeps the constraint a range so it cannot be pinned again
+- Ruby ([`app/android/.ruby-version`](./app/android/.ruby-version)), which `setup-ruby` in
+  [`release-app.yml`](./.github/workflows/release-app.yml) reads from its working directory before `bundle install`
+  brings in fastlane. It used to be a `ruby-version:` literal in that workflow, the one pin no bot could see; a
+  `.ruby-version` file is what Renovate's `ruby-version` manager keeps current
 
 ## Commands
 
@@ -128,7 +132,8 @@ These documents are not generated. A change that does not update them leaves the
 | The ADR set holds its template | sequential numbering from 0000, `NNNN-kebab-title.md`, the `# N. Title` / Date / Status / *Context* / *Decision* / *Consequences* shape, a row in the [`ARCHITECTURE.md`](./ARCHITECTURE.md) index, and a link from some document **other** than that index |
 | `shared/*.json` equals its mirror in `app/assets/` | normalised for trailing whitespace as well. **Every file the contract reads is normalised for line endings**, in `read` itself: a Windows clone with `core.autocrlf=true` used to fail two ADR assertions that compare a heading against a stored title, which is a guard failing for a non-reason |
 | The README's feature *line* names every palette and shape shipped | the line, not the file: `GitHub` and `square` occur elsewhere in the README and made the old whole-file check unfailable |
-| Every pinned version matches the manifest that pins it, and exactly one manifest pins pnpm | |
+| Every pinned version matches the manifest that pins it, and exactly one manifest pins pnpm | Ruby included: `setup-ruby` reads [`app/android/.ruby-version`](./app/android/.ruby-version), which Renovate keeps current, where a `ruby-version:` literal in the workflow was a pin no bot could see |
+| No document outside the ADRs names a runtime or a framework beside a version | the manifest is the only copy Renovate keeps current, so a digit in prose is a claim a bump falsifies; the two sentences that narrate a past bump by its number are allow-listed by name |
 | Every documented `pnpm` script is declared in a [`package.json`](./package.json) | read from code spans, so prose saying "the pnpm and Node pins" is not mistaken for a command |
 | Every source layer carries a nested `CLAUDE.md`, listed in both maps, with no stray `CONTEXT.md` outside the root | |
 | Nothing under [`web/src/pages`](./web/src/pages) becomes a public URL by accident | [ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) |
