@@ -1,3 +1,10 @@
+# [contribkit-web-v1.14.1](https://github.com/fbuireu/contribKit/compare/web-v1.14.0...web-v1.14.1) (2026-09-02)
+
+
+### Bug Fixes
+
+* **contribkit-web:** paint the palette swatches with the colour's hex ([f4167ff](https://github.com/fbuireu/contribKit/commit/f4167ffd5e7ad95f474260af051a5c294fea8af8))
+
 # [contribkit-web-v1.14.0](https://github.com/fbuireu/contribKit/compare/web-v1.13.1...web-v1.14.0) (2026-08-29)
 
 
