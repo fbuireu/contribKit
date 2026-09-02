@@ -42,7 +42,7 @@ const palettes = Object.values(PALETTES);
                 data-key={key}
               >
                 <span class="palette-swatches">
-                  {colors.map((color) => <span style={`background:${color}`} />)}
+                  {colors.map((color) => <span style={`background:${color.hex}`} />)}
                 </span>
                 <span class="palette-name mono">{name}</span>
                 <span class="palette-check"><ArrowRight /></span>

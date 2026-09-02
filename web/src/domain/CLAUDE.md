@@ -204,7 +204,11 @@ test helper reintroduces the same bug in the test rather than the code.
   reach an SVG `fill=` attribute as raw strings, so a malformed token was a caught, typed failure on the phone
   (`Color.fromHex` throws) and a silently broken embed on the web. `PALETTES` parses every colour at module load
   through `colorOrThrow`, so a bad token fails the build rather than the render, and the value comes apart with
-  `.hex` at the three places that emit markup. That is the same discipline the app has always had.
+  `.hex` at the four places that emit markup: the SVG renderer, the mini grid, the hero legend and the palette
+  swatches in `Customize.astro`. The swatches were missed when the value object landed, so every row painted
+  `background:[object Object]` for four days; TypeScript cannot see a template literal in an `.astro` expression
+  stringifying an object, which is why the home e2e now asserts each swatch's style is a hex colour. That is the
+  same discipline the app has always had.
 - **`ContributionWeek` is named here too.** It is `readonly ContributionDay[]`, produced by `weeksOf`, where the
   app has a class wrapping a list. The shape differs because the web's grid is a flat array and the app's is a list
   of weeks; the **concept** is now spelled in both, which is what [`CONTEXT.md`](../../../CONTEXT.md) giving it its own entry asks for.

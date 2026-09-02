@@ -4,6 +4,7 @@ import { ClassName, ElementId, Selector } from "../src/ui/utils/dom-contract";
 const ANY_NON_EMPTY_TITLE = /.+/;
 const RESOLVED_THEME_CLASS = /theme-(light|dark)/;
 const ACTIVE_ROW_CLASS = new RegExp(ClassName.Active);
+const HEX_BACKGROUND = /^background:#[0-9a-f]{6}$/i;
 
 const byId = (id: string) => `#${id}`;
 
@@ -70,6 +71,13 @@ test.describe("homepage", () => {
 		await rows.nth(1).click();
 		await expect(rows.nth(1)).toHaveClass(ACTIVE_ROW_CLASS);
 		await expect(rows.nth(0)).not.toHaveClass(ACTIVE_ROW_CLASS);
+	});
+
+	test("every palette swatch is painted with a hex colour", async ({ page }) => {
+		const swatches = page.locator(`${Selector.PaletteRows} span[style]`);
+		const styles = await swatches.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("style") ?? ""));
+		expect(styles.length).toBeGreaterThan(0);
+		for (const style of styles) expect(style).toMatch(HEX_BACKGROUND);
 	});
 
 	test("switching the export tab to SVG shows the code preview", async ({ page }) => {
