@@ -14,19 +14,18 @@ CI is one workflow with **no path filter**, and a `changes` job that gates each 
 |----------|-------------|------|
 | `ci.yml` | every push and PR to `main`, plus manual dispatch — the dispatch redeploys production, the tail Worker and the smoke run behind them, and cuts no release: secrets ride the deploy and the build inlines the public env, so a rotated credential reaches nothing until something redeploys | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then deploy, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates them all |
 | [`_ci-app.yml`](../../.github/workflows/_ci-app.yml) | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build`, and none of them can be a required check: see `Check` below |
-| [`_ci-web.yml`](../../.github/workflows/_ci-web.yml) | reusable, called by `ci.yml` | lint, format check, test with coverage, build, typecheck. Its jobs show as `Web / Check`, `Web / Build` |
 | [`_deploy.yml`](../../.github/workflows/_deploy.yml) | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
 | [`release-app.yml`](../../.github/workflows/release-app.yml) | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
-| [`cleanup-development.yml`](../../.github/workflows/cleanup-development.yml) | PR close | deletes the per-PR preview worker |
+| [`cleanup-development.yml`](../../.github/workflows/cleanup-development.yml) | PR close, plus a weekly sweep | deletes the per-PR preview worker once its CI run has finished, and every week the workers of closed pull requests |
 | [`dependency-review.yml`](../../.github/workflows/dependency-review.yml) | every PR | fails a PR that introduces a dependency with a known vulnerability |
-| [`dependabot-auto-merge.yml`](../../.github/workflows/dependabot-auto-merge.yml), [`renovate-auto-approve.yml`](../../.github/workflows/renovate-auto-approve.yml) | dependency PRs | automated dependency updates |
+| [`dependabot-auto-merge.yml`](../../.github/workflows/dependabot-auto-merge.yml) | Dependabot PRs | merges the security updates; Renovate merges its own once `Check` is green |
 | [`sync-wiki.yml`](../../.github/workflows/sync-wiki.yml) | push to `main` under `docs/wiki/**` | publishes this wiki |
 | [`commit-message.yml`](../../.github/workflows/commit-message.yml) | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
 | [`zizmor.yml`](../../.github/workflows/zizmor.yml) | push / PR | GitHub Actions security linting |
 
 ---
 
-## Web pipeline (`_ci-web.yml`, plus the deploy and release jobs in `ci.yml`)
+## Web pipeline (the web jobs in `ci.yml`)
 
 ```mermaid
 ---
@@ -35,9 +34,8 @@ config:
   theme: neutral
 ---
 flowchart LR
-  check["web-check (pnpm verify)"] --> build["web-build (build + typecheck)"]
-  build --> prod["deploy-production"]
-  build --> dev["deploy-development"]
+  check["verify-web (pnpm verify)"] --> prod["deploy-production"]
+  check --> dev["deploy-development"]
   prod --> smoke["smoke (production)"]
   smoke -->|failed| back["rollback"]
   smoke --> rel["release (semantic-release)"]
@@ -45,10 +43,9 @@ flowchart LR
   dev --> e2e["e2e (preview)"]
 ```
 
-- **web-check:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck`, `lint:astro` and the Vitest coverage run; then upload coverage to Codecov. The same command runs on `pre-push`, so a green push is a green check.
+- **verify-web:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck`, `lint:astro` and the Vitest coverage run; then upload coverage to Codecov, whether or not `verify` passed, so a threshold failure still reports. The same command runs on `pre-push`, so a green push is a green check.
 
-`lint:astro` is inside `verify` because `tsc --noEmit` does not typecheck `.astro` files: only `astro check` does. It used to run solely in `web-build`, so a type error in a component's props passed `verify`, passed `pre-push`, and failed a later CI job. A prop typed `readonly string[]` that started receiving a value object is exactly how that was found.
-- **web-build:** production build + `pnpm lint:astro` (`astro check` over the Astro diagnostics). No workflow runs `tsc`; `pnpm lint:ts:typecheck` is a local command only.
+`lint:astro` is inside `verify` because `tsc --noEmit` does not typecheck `.astro` files: only `astro check` does. It used to run solely in a `web-build` job, so a type error in a component's props passed `verify`, passed `pre-push`, and failed a later CI job. A prop typed `readonly string[]` that started receiving a value object is exactly how that was found. That job is gone: once `verify` typechecked everything, it only rebuilt what the deploy job builds again.
 - **deploy-tail:** on push to `main` or a manual dispatch, deploys `web/workers/tail/`, the `contribkit-tail` Worker that both `[env.*.tail_consumers]` entries name. `deploy-production` needs it, so the reference is always resolvable; nothing deployed it from CI before.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. The `--env` is load-bearing and was missing until 2026-08-28: without it wrangler ships the top level of `wrangler.toml`, which declares no routes, no rate limiter, no observability, no placement and no tail consumer.
 - **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-development.yml`, which carries no path filter at all, so no preview can outlive its pull request.
@@ -66,13 +63,7 @@ Concurrency cancels in-progress runs for pull requests only.
 
 ---
 
-**Both `astro build` steps are retried, three attempts with a 15-second wait**: the one in `_ci-web.yml` and the one
-in `_deploy.yml`. Astro's font provider downloads Inter and JetBrains Mono from Google at build time, and Google
-intermittently hands out a `fonts.gstatic.com` URL that then 404s, which fails the build with `CannotFetchFontFile`.
-**Each attempt deletes `node_modules/.astro/fonts` first, and that is the part that makes the retry work at all.**
-Astro caches the resolved URLs there, so a plain retry re-reads the dead one. A run on `338e6e3` failed three
-times on the identical URL before the cache was cleared between attempts. They are `uses:` steps that `cd web`,
-because a step running an action does not inherit the job's `working-directory`.
+**The `astro build` in `_deploy.yml` is not retried, and neither is the deploy.** Astro's font provider downloads Inter and JetBrains Mono from Google at build time, and Google intermittently hands out a `fonts.gstatic.com` URL that then 404s, which fails the build with `CannotFetchFontFile`. The build used to be wrapped in a three-attempt retry that cleared `node_modules/.astro/fonts` between attempts, because Astro caches the resolved URLs there and a plain retry re-read the dead one. The wrapper is gone, as it is in the sibling repositories: a build fails deterministically far more often than for a reason a second attempt fixes, and a type error inside the wrapper burned three attempts before it reported. A runner starts with no font cache, so rerunning a failed job is a real second attempt.
 
 ## App pipeline (`_ci-app.yml`)
 
@@ -171,15 +162,15 @@ semantic-release runs per component and tags `web-vX.Y.Z` / `app-vX.Y.Z`, driven
 - **Least privilege:** workflows declare minimal `permissions`; `release-app.yml` starts from `permissions: {}` and grants per-job.
 - **zizmor:** static security analysis of the workflows themselves.
 - **Secrets never touch disk in the repo:** keystore and service-account JSON are base64/secret-decoded into `$RUNNER_TEMP` at runtime.
-- **Dependency autopilot:** Dependabot and Renovate PRs are auto-approved/merged once green; pnpm enforces a `minimumReleaseAge` cooldown before pulling new versions.
+- **Dependency autopilot:** Renovate merges its own pull requests once `Check` is green and Dependabot's security updates are merged by a workflow; no approval is required, so nothing has to approve them first. pnpm enforces a `minimumReleaseAge` cooldown before pulling new versions.
 - **Concurrency is declared three times, for three different races.** `ci.yml` cancels a superseded pull-request
   run and never cancels one on `main`; `_deploy.yml` groups on the Environment and the Worker name with
   `cancel-in-progress: false`, so two deploys aimed at one Worker queue rather than interleave; and
-  `cleanup-development.yml` joins `ci.yml`'s group so a preview Worker is never deleted out from under the
-  `E2E (preview)` job still driving it. That last group is a literal, and it has to equal `ci.yml`'s `name:`,
-  which is `CI`. It said `CI Web` until 2026-08-28, and `CI Web` is `_ci-web.yml`'s name: `github.workflow`
-  inside a reusable workflow resolves to the **caller's** name, so no run has ever occupied a group called
-  `CI Web-…` and the cleanup queued behind nothing at all.
+  `cleanup-development.yml` joins the group of the pull request's own `ci.yml` run so a preview Worker is never deleted out from under the
+  `E2E (preview)` job still driving it. That group is a literal spelled from the pull request number,
+  `CI-refs/pull/<n>/merge`, and it has to start with `ci.yml`'s `name:`, which is `CI`. It said `CI Web` until 2026-08-28, and `CI Web` was the old reusable web workflow's name: `github.workflow`
+  inside a reusable workflow resolves to the **caller's** name, so no run ever occupied a group called
+  `CI Web-…`. Then it said `CI-${{ github.ref }}`, which on a closed pull request resolves to `refs/heads/main` rather than the merge ref, so the cleanup joined the push's group instead, ran under the E2E and was cancelled whenever two merges came close together, leaving Workers alive. The weekly `sweep` job in the same workflow is the backstop for whatever a cleanup still misses.
 
 ---
 

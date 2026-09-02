@@ -13,8 +13,6 @@
 		"addLabels": ["lock-maintenance"],
 		"schedule": ["on the 1st and 15th day of the month"]
 	},
-	"semanticCommits": "enabled",
-	"semanticCommitScope": "global",
 	"assigneesFromCodeOwners": true,
 	"reviewersFromCodeOwners": true,
 	"vulnerabilityAlerts": {
@@ -22,6 +20,8 @@
 		"labels": ["security", "vulnerability"]
 	},
 	"osvVulnerabilityAlerts": true,
+	"semanticCommits": "enabled",
+	"semanticCommitScope": "global",
 	"includePaths": ["package.json", "app/**", "web/**", ".github/**"],
 	"packageRules": [
 		{

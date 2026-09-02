@@ -115,7 +115,7 @@ Runs heavier checks before pushing, so a broken branch never reaches the remote.
 
 | Command | Runs on | Runs |
 |---------|---------|------|
-| `web-verify` | every push | `pnpm verify` (format check, typecheck, coverage) then `pnpm lint:astro` (`astro check`) |
+| `web-verify` | every push | `pnpm verify` (format check, typecheck, `astro check`, coverage) |
 | `flutter-analyze` | a pushed `*.dart`, [`pubspec.yaml`](../../app/pubspec.yaml) or [`analysis_options.yaml`](../../app/analysis_options.yaml) | `flutter analyze --fatal-infos` |
 
 **`flutter-analyze` carries a `glob` and `web-verify` deliberately does not.** Without one it ran on every

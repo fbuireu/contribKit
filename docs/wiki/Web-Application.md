@@ -71,7 +71,7 @@ Cross-Origin-Embedder-Policy: unsafe-none
 
 ## Environments & deploys
 
-Both deploys run from [`ci.yml`](../../.github/workflows/ci.yml), only after `Web / Check` (lint + test) and `Web / Build` (build + typecheck) pass:
+Both deploys run from [`ci.yml`](../../.github/workflows/ci.yml), only after `Verify (web)` (`pnpm verify`: format check, typecheck, `astro check` and coverage) passes:
 
 - **Production:** every push to `main` matching the workflow's path filter builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`. That filter covers `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files and the workflow's own wiring as well as `web/**`, so a documentation-only push redeploys too; see **[CI/CD](CI-CD)** for why.
 - **Development:** every PR matching the same filter builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.

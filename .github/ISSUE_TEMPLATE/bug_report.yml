@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug or unexpected behavior
+description: Report a bug or unexpected behavior in the web app or the mobile app
 title: '[Bug]: '
 labels: ['bug', 'triage']
 assignees: ['fbuireu']
@@ -7,119 +7,59 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug. Please fill in as much detail as possible.
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible.
 
+        Say which client it is: the web app, the Android app or a home-screen widget.
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: A clear description of what the bug is.
+      description: A clear and concise description of what the bug is.
       placeholder: What happened?
     validations:
       required: true
-
+  - type: input
+    id: url
+    attributes:
+      label: Page URL
+      description: Where did it happen?
+      placeholder: https://contribkit.app/... or the app screen
+    validations:
+      required: true
   - type: textarea
     id: steps
     attributes:
       label: Steps to Reproduce
-      description: Steps to reproduce the behavior.
+      description: Steps to reproduce the behavior
       placeholder: |
-        1. Enter username '...'
-        2. Select palette '...'
-        3. Click export
-        4. See error
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
     validations:
       required: true
-
   - type: textarea
     id: expected
     attributes:
       label: Expected Behavior
-      description: What you expected to happen.
-      placeholder: The app should...
+      description: What did you expect to happen?
     validations:
       required: true
-
   - type: textarea
     id: actual
     attributes:
       label: Actual Behavior
-      description: What actually happened.
-      placeholder: Instead, the app...
+      description: What actually happened?
     validations:
       required: true
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant Logs or Errors
-      description: Paste any relevant console errors or messages.
-      placeholder: Paste logs here...
-      render: shell
-
   - type: input
-    id: url
+    id: environment
     attributes:
-      label: URL
-      description: The URL where the bug occurred (web only).
-      placeholder: https://contribkit.app/...
-
-  - type: dropdown
-    id: platform
-    attributes:
-      label: Platform
-      multiple: true
-      options:
-        - Android
-        - iOS
-        - Web
-        - macOS
-        - Windows
-        - Linux
+      label: Browser, or device and OS version
+      placeholder: Chrome 140 on macOS, Pixel 8 on Android 16...
     validations:
       required: true
-
-  - type: dropdown
-    id: device
-    attributes:
-      label: Device Type
-      options:
-        - Desktop
-        - Mobile
-        - Tablet
-    validations:
-      required: true
-
-  - type: input
-    id: os
-    attributes:
-      label: Operating System
-      description: Your operating system and version.
-      placeholder: e.g. Windows 11, macOS 15, iOS 18, Android 15
-    validations:
-      required: true
-
-  - type: dropdown
-    id: browser
-    attributes:
-      label: Browser (web only)
-      options:
-        - N/A
-        - Chrome
-        - Firefox
-        - Safari
-        - Edge
-        - Other
-
-  - type: input
-    id: flutter_version
-    attributes:
-      label: Flutter Version (app only)
-      placeholder: "e.g. 3.32.0 (run `flutter --version`)"
-
   - type: textarea
     id: additional
     attributes:
       label: Additional Context
-      description: Screenshots, screen recordings, or any other context.
-      placeholder: Any other relevant information...
+      description: Screenshots, logs, console errors, or any other relevant information

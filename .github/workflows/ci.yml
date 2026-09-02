@@ -1,11 +1,18 @@
 name: CI
 
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.reason && format('Redeploy production: {0}', inputs.reason) || '' }}
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      reason:
+        description: Why production is being redeployed (shown as the run name)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -16,7 +23,7 @@ concurrency:
 
 jobs:
   changes:
-    name: Detect changed packages
+    name: Detect changes
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -35,7 +42,7 @@ jobs:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
           APP_PATHS: '^app/'
-          WEB_PATHS: '^(web/|shared/|scripts/|docs/|[^/]+[.]md$|package[.]json$|pnpm-workspace[.]yaml$|pnpm-lock[.]yaml$|lefthook[.]yml$|[.]github/)'
+          WEB_PATHS: '^(web/|shared/|scripts/|docs/|[^/]+[.]md$|package[.]json$|pnpm-workspace[.]yaml$|pnpm-lock[.]yaml$|lefthook[.]yml$|[.]nvmrc$|[.]github/)'
         run: |
           if [ -z "$BASE_SHA" ] || ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
             echo 'app=true' >> "$GITHUB_OUTPUT"
@@ -73,13 +80,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - name: Prepare web environment
-        uses: ./.github/actions/prepare-env
-
+      - uses: ./.github/actions/prepare-env
       - name: Docs consistency
-        run: pnpm test:docs
         working-directory: web
+        run: pnpm test:docs
 
   app-ci:
     name: App
@@ -88,54 +92,36 @@ jobs:
     uses: ./.github/workflows/_ci-app.yml
     secrets: inherit
 
-  web-ci:
-    name: Web
+  verify-web:
+    name: Verify (web)
     needs: [changes]
     if: ${{ needs.changes.outputs.web == 'true' }}
-    uses: ./.github/workflows/_ci-web.yml
-    secrets: inherit
-
-  release:
-    name: Semantic Release (Web)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [changes, web-ci, deploy-production, smoke]
-    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    outputs:
-      new_release_published: ${{ steps.release.outputs.new_release_published }}
-      new_release_version: ${{ steps.release.outputs.new_release_version }}
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
-          token: ${{ secrets.PAT }}
           persist-credentials: false
-
-      - name: Prepare web environment
-        uses: ./.github/actions/prepare-env
-
-      - name: Semantic Release
-        id: release
+      - uses: ./.github/actions/prepare-env
+      - name: Verify
         working-directory: web
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        run: pnpm exec semantic-release
+        run: pnpm verify
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./web/coverage/lcov.info
+          fail_ci_if_error: false
 
   deploy-tail:
     name: Deploy the tail Worker
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [changes, web-ci]
+    needs: [changes, verify-web]
     if: ${{ (needs.changes.outputs.web == 'true' && github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
     environment: web-production
-    defaults:
-      run:
-        working-directory: web
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -144,10 +130,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - name: Prepare web environment
-        uses: ./.github/actions/prepare-env
-
+      - uses: ./.github/actions/prepare-env
       - name: Collect the ingest token
         env:
           BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}
@@ -166,8 +149,8 @@ jobs:
           const body = JSON.stringify({ BETTER_STACK_SOURCE_TOKEN: process.env.BETTER_STACK_SOURCE_TOKEN });
           require('node:fs').writeFileSync(process.env.SECRETS_FILE, body, { mode: 0o600 });
           "
-
       - name: Deploy to Cloudflare Workers
+        working-directory: web
         env:
           BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}
           SECRETS_FILE: ${{ runner.temp }}/tail-secrets.json
@@ -175,7 +158,6 @@ jobs:
           pnpm exec wrangler deploy --config workers/tail/wrangler.toml \
             --var "BETTER_STACK_INGESTING_URL:$BETTER_STACK_INGESTING_URL" \
             --secrets-file "$SECRETS_FILE"
-
       - name: Remove the secrets file
         if: always()
         env:
@@ -183,8 +165,8 @@ jobs:
         run: rm -f "$SECRETS_FILE"
 
   deploy-production:
-    name: Deploy (Production)
-    needs: [changes, web-ci, deploy-tail]
+    name: Deploy to production
+    needs: [changes, verify-web, deploy-tail]
     if: ${{ needs.changes.outputs.web == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
     uses: ./.github/workflows/_deploy.yml
     with:
@@ -194,9 +176,111 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+  smoke:
+    name: Production smoke tests
+    needs: [changes, deploy-production]
+    if: ${{ needs.changes.outputs.web == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - name: Require the production URL
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "SITE_URL is empty, so Playwright would fall back to localhost, boot a dev server and pass against it"
+            exit 1
+          fi
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/prepare-env
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: web
+        run: pnpm exec playwright install-deps chromium
+      - name: Label the smoke report
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## Production smoke tests"
+            echo
+            echo "Playwright ran the \`@smoke\` cases against <$BASE_URL> after deploying \`$GITHUB_SHA\`."
+            echo "The Playwright Run Summary annotation on this run belongs to this job. The preview E2E suite does not run on \`main\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Run smoke tests against production
+        working-directory: web
+        run: pnpm exec playwright test --grep "@smoke"
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-smoke-report
+          path: web/playwright-report/
+          retention-days: 7
+
+  rollback:
+    name: Roll back production
+    needs: [deploy-production, smoke]
+    if: ${{ always() && needs.deploy-production.result == 'success' && needs.smoke.result == 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: web-production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      ROLLBACK_MESSAGE: Smoke tests failed on ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/prepare-env
+      - name: Roll back to the previous version
+        working-directory: web
+        run: pnpm exec wrangler rollback --env production --yes --message "$ROLLBACK_MESSAGE"
+
+  release:
+    name: Semantic Release (web)
+    needs: [changes, verify-web, deploy-production, smoke]
+    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+          persist-credentials: false
+      - uses: ./.github/actions/prepare-env
+      - name: Semantic Release
+        working-directory: web
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: pnpm exec semantic-release
+
   deploy-development:
-    name: Deploy (Development)
-    needs: [changes, web-ci]
+    name: Deploy to development
+    needs: [changes, verify-web]
     if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
     uses: ./.github/workflows/_deploy.yml
     with:
@@ -216,7 +300,7 @@ jobs:
     permissions:
       pull-requests: write
     env:
-      PREVIEW_MARKER: "<!-- web-preview-deployment -->"
+      PREVIEW_MARKER: '<!-- preview-deployment -->'
       PREVIEW_URL: https://pr-${{ github.event.pull_request.number }}-contribkit-development.fbuireu.workers.dev
     steps:
       - name: Find existing comment
@@ -226,7 +310,6 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: github-actions[bot]
           body-includes: ${{ env.PREVIEW_MARKER }}
-
       - name: Upsert preview comment
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
@@ -235,7 +318,7 @@ jobs:
           edit-mode: replace
           body: |
             ${{ env.PREVIEW_MARKER }}
-            ### Web preview deployment
+            ### Preview deployment
 
             | | |
             |---|---|
@@ -250,40 +333,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: web-development
-    defaults:
-      run:
-        working-directory: web
+    env:
+      BASE_URL: https://pr-${{ github.event.pull_request.number }}-contribkit-development.fbuireu.workers.dev
+      CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - name: Prepare web environment
-        uses: ./.github/actions/prepare-env
-
+      - uses: ./.github/actions/prepare-env
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
-
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: web
         run: pnpm exec playwright install --with-deps chromium
-
       - name: Install Playwright OS dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: web
         run: pnpm exec playwright install-deps chromium
-
       - name: Run E2E tests
-        env:
-          BASE_URL: https://pr-${{ github.event.pull_request.number }}-contribkit-development.fbuireu.workers.dev
-          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
-          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        working-directory: web
         run: pnpm test:e2e
-
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -291,97 +367,6 @@ jobs:
           name: playwright-report
           path: web/playwright-report/
           retention-days: 7
-
-  smoke:
-    name: Production smoke tests
-    needs: [changes, deploy-production]
-    if: ${{ needs.changes.outputs.web == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      BASE_URL: ${{ vars.SITE_URL }}
-    defaults:
-      run:
-        working-directory: web
-    steps:
-      - name: Require the production URL
-        working-directory: .
-        run: |
-          if [ -z "$BASE_URL" ]; then
-            echo "SITE_URL is empty, so every request would go to localhost instead of production"
-            exit 1
-          fi
-
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Prepare web environment
-        uses: ./.github/actions/prepare-env
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Install Playwright OS dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
-
-      - name: Label the smoke report
-        if: ${{ !cancelled() }}
-        working-directory: .
-        run: |
-          {
-            echo "## Production smoke tests"
-            echo
-            echo "Playwright ran the \`@smoke\` cases against <$BASE_URL> after deploying \`$GITHUB_SHA\`."
-            echo "The Playwright Run Summary annotation on this run belongs to this job. The preview E2E suite does not run on \`main\`."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Run smoke tests against production
-        run: pnpm exec playwright test --grep "@smoke"
-
-      - name: Upload Playwright report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: playwright-smoke-report
-          path: web/playwright-report/
-          retention-days: 7
-
-  rollback:
-    name: Roll back production
-    needs: [deploy-production, smoke]
-    if: ${{ always() && needs.deploy-production.result == 'success' && needs.smoke.result == 'failure' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: web-production
-    defaults:
-      run:
-        working-directory: web
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      ROLLBACK_MESSAGE: Smoke tests failed on ${{ github.sha }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Prepare web environment
-        uses: ./.github/actions/prepare-env
-
-      - name: Roll back to the previous version
-        run: pnpm exec wrangler rollback --env production --yes --message "$ROLLBACK_MESSAGE"
 
   cross-package-notice:
     name: Cross-package pull request
@@ -422,7 +407,7 @@ jobs:
 
   check:
     name: Check
-    needs: [changes, docs-contract, app-ci, web-ci, deploy-tail, deploy-development, e2e, deploy-production, smoke]
+    needs: [changes, docs-contract, app-ci, verify-web, deploy-tail, deploy-development, e2e, deploy-production, smoke, release]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 15

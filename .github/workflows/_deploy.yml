@@ -7,10 +7,9 @@ on:
         required: true
         type: string
         description: >-
-          The GitHub Environment, namespaced <component>-<stage> per ADR 0001.
-          The wrangler env is the stage half, derived here rather than passed,
-          it used to be a second input, and nothing stopped a caller pairing
-          web-production with development.
+          The GitHub Environment, namespaced <component>-<stage> per ADR 0001. The wrangler
+          environment is the stage half, derived here rather than passed, so a caller cannot
+          pair web-production with development.
       url:
         required: false
         type: string
@@ -39,9 +38,6 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
       url: ${{ inputs.url }}
-    defaults:
-      run:
-        working-directory: web
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -50,38 +46,27 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: ./.github/actions/prepare-env
-
       - name: Resolve the wrangler environment from the GitHub Environment
         id: stage
         env:
           ENVIRONMENT: ${{ inputs.environment }}
-        run: echo "wrangler_env=${ENVIRONMENT#web-}" >> "$GITHUB_OUTPUT"
-
+        run: echo "wrangler_env=${ENVIRONMENT##*-}" >> "$GITHUB_OUTPUT"
       - name: Build
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        working-directory: web
         env:
           CLOUDFLARE_ENV: ${{ steps.stage.outputs.wrangler_env }}
           SITE_URL: ${{ vars.SITE_URL }}
           PUBLIC_GOOGLE_ANALYTICS_ID: ${{ vars.PUBLIC_GOOGLE_ANALYTICS_ID }}
           PUBLIC_BETTER_STACK_SOURCE_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_SOURCE_TOKEN }}
           PUBLIC_BETTER_STACK_INGESTING_URL: ${{ vars.PUBLIC_BETTER_STACK_INGESTING_URL }}
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 15
-          shell: bash
-          command: |
-            cd web
-            rm -rf node_modules/.astro/fonts
-            pnpm exec astro build
-
+        run: pnpm build
       - name: Deploy to Cloudflare Workers
+        working-directory: web
         env:
           INPUTS_WORKER_NAME: ${{ inputs.worker_name }}
           WRANGLER_ENV: ${{ steps.stage.outputs.wrangler_env }}
-          DEPLOY_MESSAGE: ${{ github.sha }} - ${{ github.event_name }}
+          DEPLOY_MESSAGE: ${{ github.sha }} (${{ github.event_name }})
         run: |
           NAME_FLAG=""
           if [ -n "${INPUTS_WORKER_NAME}" ]; then

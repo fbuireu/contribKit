@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: The live site
+    url: https://contribkit.app
+    about: See the web app the issue is about
   - name: Question, idea or discussion
     url: https://github.com/fbuireu/contribkit/discussions
     about: Ask a question, or propose something before opening a feature request.

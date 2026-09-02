@@ -200,11 +200,13 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
   is linter and formatter; Vitest covers unit and docs tests; Playwright runs end-to-end against the deployed
   preview. The build reaches the network: Astro's font provider downloads Inter and JetBrains Mono from Google at
   build time, and Google intermittently serves a `fonts.gstatic.com` URL that then 404s, failing the build with
-  `CannotFetchFontFile`. Both `astro build` steps (in [`ci.yml`](./.github/workflows/ci.yml) and [`_deploy.yml`](./.github/workflows/_deploy.yml)) are therefore wrapped
-  in a three-attempt retry with a fixed fifteen-second wait, and each attempt deletes
-  `node_modules/.astro/fonts` first. Astro caches the resolved URLs there, so a retry without that clears
-  nothing and fails three times on the same dead URL. That is why they are `uses:` steps that `cd web` rather than plain
-  `run:` steps under the job's `working-directory`.
+  `CannotFetchFontFile`. The one `astro build` CI runs, in [`_deploy.yml`](./.github/workflows/_deploy.yml), is a plain `run:` step with no retry
+  wrapper, the same as in the sibling repositories: a wrapper cannot tell a bad flag from a bad network, and a
+  type error inside one burned three attempts before it reported. Astro caches the resolved font URLs in
+  `node_modules/.astro/fonts`, and a runner starts with none, so a rerun of the job is a real second attempt
+  and the flake, if it comes back, is answered by rerunning rather than by restoring the wrapper. The second
+  build the pipeline used to run, in a `Web / Build` job, is gone: it built what the deploy job builds again
+  and typechecked what `verify` had already typechecked.
 - **App.** Flutter 3.47.0 / Dart 3.13.0, pinned in [`app/pubspec.yaml`](./app/pubspec.yaml). A mismatched local Flutter blocks `pub get`
   and codegen. Do not "fix" it by editing the pin. `dart run build_runner build` after touching a `@freezed`,
   `@riverpod` or DTO class. There are **no build flavors**: the stage is chosen by which dart-defines file is
@@ -229,16 +231,16 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | `ci.yml` | push/PR to `main`, and manual dispatch. **No path filter** | A `changes` job diffs the range and exposes `app`, `web` and `cross_package`; every other job is gated on those. It calls the two per-client workflows, then runs the deploys, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates every one of them, and is the only context the ruleset names |
-| [`_ci-app.yml`](./.github/workflows/_ci-app.yml) · [`_ci-web.yml`](./.github/workflows/_ci-web.yml) | called by `ci.yml` | The per-client halves, so neither stack's detail crowds the other. **Their jobs appear as `App / Analyze`, `App / Test`, `App / Build`, `Web / Check` and `Web / Build`**, because a called workflow's jobs are prefixed with the calling job's name. **None of those five can be a required check**, for the reason given under the table |
-| `_deploy.yml` | called by `ci.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed: `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching. That stage reaches `wrangler deploy` as `--env`, which it did not until 2026-08-28: it was passed to the build alone, so every deploy shipped the bare top level of `wrangler.toml` and left the routes, the rate limiter, observability, placement and the tail consumer under `[env.*]` unapplied. It groups on the Environment and the Worker name so two deploys at one Worker queue instead of interleaving, and `wrangler deploy` runs **unwrapped**: its argv is built from workflow inputs, and a retry cannot tell a bad flag from a bad network, so a malformed `--name` used to be reported three attempts late. The `astro build` above it keeps its retry, for the reason in the *Build & release* section: that one has a diagnosed network cause and a cache clear between attempts |
+| [`_ci-app.yml`](./.github/workflows/_ci-app.yml) | called by `ci.yml` | The Flutter half, so its three jobs do not crowd the web ones. **They appear as `App / Analyze`, `App / Test` and `App / Build`**, because a called workflow's jobs are prefixed with the calling job's name, and **none of the three can be a required check**, for the reason given under the table. The web half is one job, `Verify (web)`, inline in `ci.yml`: it used to be a called workflow of its own with a second `Build` job that rebuilt what the deploy rebuilds and typechecked what `verify` typechecks |
+| `_deploy.yml` | called by `ci.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed: `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching. That stage reaches `wrangler deploy` as `--env`, which it did not until 2026-08-28: it was passed to the build alone, so every deploy shipped the bare top level of `wrangler.toml` and left the routes, the rate limiter, observability, placement and the tail consumer under `[env.*]` unapplied. It groups on the Environment and the Worker name so two deploys at one Worker queue instead of interleaving, and both `astro build` and `wrangler deploy` run **unwrapped**: the deploy's argv is built from workflow inputs, and a retry cannot tell a bad flag from a bad network, so a malformed `--name` used to be reported three attempts late, and the build's retry is gone for the reason in the *Build & release* section |
 | `deploy-tail` (in `ci.yml`) | push to `main` | Deploys [`web/workers/tail/`](./web/workers/tail), the Worker every `[env.*.tail_consumers]` entry names. `deploy-production` needs it, so the reference cannot dangle: nothing deployed it before, which is why a rename used to stop log forwarding silently. It takes the Better Stack host and token from the same two `PUBLIC_BETTER_STACK_*` variables the app build reads, rather than hardcoding the host in its own `[vars]`, so reissuing the source cannot move one and leave the other posting into a dead endpoint |
 | [`release-app.yml`](./.github/workflows/release-app.yml) | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
-| [`cleanup-development.yml`](./.github/workflows/cleanup-development.yml) | PR closed | Deletes the per-PR preview Worker. It carries no path filter either, because deleting a Worker that was never created is a no-op and a filter here is one more thing to keep in step |
+| [`cleanup-development.yml`](./.github/workflows/cleanup-development.yml) | PR closed; weekly schedule and manual dispatch | Deletes the per-PR preview Worker, queued behind that pull request's own CI run by number so the `E2E (preview)` job is never left driving a Worker that no longer exists; the weekly `sweep` job deletes every preview Worker whose pull request is closed, for the cleanups something else lost. It carries no path filter either, because deleting a Worker that was never created is a no-op and a filter here is one more thing to keep in step |
 | [`sync-wiki.yml`](./.github/workflows/sync-wiki.yml) | push to `main` under `docs/wiki/**` | Publishes [`docs/wiki/`](./docs/wiki) to the GitHub Wiki |
 | `commit-message.yml` | PR opened, edited, reopened or synchronised | Runs commitlint on the **pull request title**, which is what a squash-merge commits. The `commit-msg` hook only sees what is typed locally, so this is the copy that guards `main` |
 | [`dependency-review.yml`](./.github/workflows/dependency-review.yml) | every PR | Fails a pull request that introduces a dependency with a known vulnerability |
 | [`zizmor.yml`](./.github/workflows/zizmor.yml) | - | Static analysis of the workflow files themselves |
-| [`dependabot-auto-merge.yml`](./.github/workflows/dependabot-auto-merge.yml) · [`renovate-auto-approve.yml`](./.github/workflows/renovate-auto-approve.yml) | dependency PRs | Auto-approve and merge low-risk updates |
+| [`dependabot-auto-merge.yml`](./.github/workflows/dependabot-auto-merge.yml) | Dependabot PRs | Auto-merges the low-risk security updates GitHub raises; Renovate merges its own through the platform once `Check` is green, since the ruleset requires no approval |
 
 **`ci.yml` carries no path filter, and that is the point.** The docs-consistency contract asserts things about
 both clients and about the repository root, so under the old two-workflow split it needed an entry point in each,
@@ -256,10 +258,12 @@ ran, and neither spelling can be required without leaving half the pull requests
 will publish. `Check` needs every gated job, runs under `always()`, and fails if any of them failed or was
 cancelled.
 
-The ruleset requires `Check`, `Docs Contract`, `Lint the pull request title`,
-`Dependency Review` and `Run zizmor`. `Docs Contract` is named directly as well as reached through `Check`,
-because it is ungated and therefore always reports; the other three come from workflows of their own and
-`Check` cannot see them.
+The ruleset requires `Check`, `Lint the pull request title`, `Dependency Review` and `zizmor`, the same four
+as every sibling repository. `Docs Contract` is reached through `Check` and needs no row of its own. The
+other three come from workflows of their own and `Check` cannot see them; `zizmor` is the check run the
+action publishes through code scanning, not the `Run zizmor` job, because the job passes whatever it finds
+and only the code-scanning check turns red on a finding. No approval is required: the owner is the only
+reviewer, and the checks are the gate.
 
 The `changes` job still counts `docs/**`, `shared/**`, `scripts/**`, `*.md` and the root config files as web
 changes, because the shared tokens and the contract both live outside `web/`. So a docs-only push to `main` still

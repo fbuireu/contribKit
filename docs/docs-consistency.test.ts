@@ -431,11 +431,11 @@ describe("the guides match the manifests", () => {
 		expect(unnamed).toEqual([]);
 	});
 
-	it("pins Node once: both engines and web/.nvmrc are one fact, so they say the same thing", () => {
+	it("pins Node once: both engines and .nvmrc are one fact, so they say the same thing", () => {
 		const node = rootPackage.engines.node;
 
 		expect(webPackage.engines.node).toBe(node);
-		expect(read(join(REPO, "web/.nvmrc")).trim()).toBe(node);
+		expect(read(join(REPO, ".nvmrc")).trim()).toBe(node);
 	});
 
 	it("quotes a version for none of them, since nothing here would keep one current", () => {
@@ -943,5 +943,58 @@ describe("two or more arguments are one object typed after the function", () => 
 		);
 
 		expect(positional).toEqual([]);
+	});
+});
+
+describe("the workflows", () => {
+	const WORKFLOWS = join(REPO, ".github/workflows");
+	const workflows = readdirSync(WORKFLOWS)
+		.filter((file) => file.endsWith(".yml"))
+		.map((file) => join(WORKFLOWS, file));
+	const steps = workflows.flatMap((file) =>
+		read(file)
+			.split("- name:")
+			.map((step) => ({ file, step })),
+	);
+	const RETRY_WRAPPER = "nick-fields/retry";
+	const DEPLOY_COMMAND = /\bwrangler deploy\b/;
+	const BUILD_COMMAND = /\b(?:astro build|pnpm build)\b/;
+	const SECRET_COMMAND = /\bwrangler secret\b/;
+	const CLEANUP_GROUP = /group: CI-refs\/pull\/\$\{\{ github\.event\.pull_request\.number \}\}\/merge/;
+	const AGGREGATE_NEEDS = /name: Check\n\s+needs: \[([^\]]+)\]\n\s+if: \$\{\{ always\(\) \}\}/;
+
+	it("runs every deploy, build and secret write without a retry wrapper", () => {
+		const wrapped = steps
+			.filter(({ step }) => DEPLOY_COMMAND.test(step) || BUILD_COMMAND.test(step) || SECRET_COMMAND.test(step))
+			.filter(({ step }) => step.includes(RETRY_WRAPPER))
+			.map(({ file, step }) => `${relative(file)} ->${step.split("\n")[0]}`);
+		const deploying = steps.filter(({ step }) => DEPLOY_COMMAND.test(step)).length;
+
+		expect(deploying).toBeGreaterThan(0);
+		expect(wrapped).toEqual([]);
+	});
+
+	it("queues the preview Worker cleanup behind the pull request's own CI run", () => {
+		expect(read(join(WORKFLOWS, "ci.yml"))).toMatch(/^name: CI$/m);
+		expect(read(join(WORKFLOWS, "cleanup-development.yml"))).toMatch(CLEANUP_GROUP);
+	});
+
+	it("aggregates every gated job under Check, so the preview E2E run gates a merge", () => {
+		const needs = (read(join(WORKFLOWS, "ci.yml")).match(AGGREGATE_NEEDS)?.[1] ?? "")
+			.split(",")
+			.map((job) => job.trim());
+
+		expect(needs).toEqual(
+			expect.arrayContaining([
+				"docs-contract",
+				"app-ci",
+				"verify-web",
+				"deploy-development",
+				"e2e",
+				"deploy-production",
+				"smoke",
+				"release",
+			]),
+		);
 	});
 });

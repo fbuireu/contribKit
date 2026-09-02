@@ -22,16 +22,12 @@ digit rot in place. Read the file named beside each runtime; the docs guard asse
 change, which is that each one is pinned exactly once, exactly, and re-pinned in no workflow.
 
 - pnpm ([root `packageManager`](./package.json)): always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
-  `pnpm/action-setup` resolves everywhere it runs, because [`release-app.yml`](./.github/workflows/release-app.yml) passes
-  `package_json_file: package.json` explicitly, and the `prepare-env` composite action passes nothing, which
-  defaults to the same root manifest. [`ci.yml`](./.github/workflows/ci.yml) used to be a third case: its
-  `release` job set up pnpm, Node and two installs by hand, which was the composite written out again against
-  one lockfile, so it did the same install twice and skipped the `.nvmrc` guard. It calls the composite now. [`app/package.json`](./app/package.json) deliberately declares none, which a docs guard asserts.
+  `pnpm/action-setup` resolves everywhere it runs, because every job, [`release-app.yml`](./.github/workflows/release-app.yml) included, goes through the `prepare-env` composite action, which passes nothing and so defaults to the root manifest. [`ci.yml`](./.github/workflows/ci.yml)'s `release` job and `release-app.yml` each used to set up pnpm, Node and the install by hand, which was the composite written out again against one lockfile, so they did the same install twice and skipped the `.nvmrc` guard. [`app/package.json`](./app/package.json) deliberately declares none, which a docs guard asserts.
   It used to carry the second pin, and because Renovate's `includePaths` did not list the root manifest, that copy
   was the one it kept current. Consolidating onto the root pin silently rolled the package manager back three
   minors, until this was caught and the root was bumped to match
-- Node, stated three times and always the same: the root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc), which
-  is the one CI installs. They used to differ (v26.3.0 at the root against 26.5.1 in web) for no recorded reason.
+- Node, stated three times and always the same: the root `engines`, `web/engines` and [`.nvmrc`](./.nvmrc), which
+  is the one CI installs. It sat in `web/` until the composite action was made identical to the sibling repositories', which read it at the root. They used to differ (v26.3.0 at the root against 26.5.1 in web) for no recorded reason.
 - Flutter (`environment.flutter` in [`app/pubspec.yaml`](./app/pubspec.yaml)), which is the pin
   [`_ci-app.yml`](./.github/workflows/_ci-app.yml) installs from through `flutter-version-file`. A mismatched local Flutter blocks
   `pub get` and codegen; do not "fix" it by editing the pin
@@ -260,6 +256,8 @@ ruleset names, and its `needs` list stopped at `e2e`: run 33237524280 reported a
 whose `smoke` job had failed, which is how a broken push looks passing in the branch's checks.
 `deploy-production` and `smoke` are in that list now. They are skipped on a pull request, and a skipped job is not
 a failure, so nothing about the pull-request gate changes.
+
+**`Check` is also what makes `E2E (preview)` a gate, and the cleanup has to wait for it.** The aggregate needs the preview E2E job, so a pull request cannot merge while the suite is red, which neither sibling repository had until they copied this shape. The Worker that suite drives is deleted by `cleanup-development.yml` on `pull_request: closed`, and closing does not cancel the run already going, so the cleanup queues behind it in a concurrency group spelled from the pull request number, `CI-refs/pull/<n>/merge`, which is literally the group `ci.yml` computes for that run. It used to be spelled from `github.ref`, and on a merged pull request that resolves to `refs/heads/main`: the cleanup joined the wrong group, ran under the E2E, and was cancelled whenever two merges came close together, which is how seven preview Workers were left alive in one week. A weekly `sweep` job in the same workflow deletes every `pr-*-contribkit-development` Worker whose pull request is closed, for the cleanups something else still loses.
 
 **`/api/health` was the fourth case and is not, because production answered it with HTML.** On the first run of this
 job the other three passed and that one failed parsing `<!DOCTYPE …` as JSON. Nothing here renders HTML for that path:

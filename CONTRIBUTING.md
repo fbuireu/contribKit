@@ -58,7 +58,7 @@ the next time a bot bumps it, and a check that defended it could only do so by f
 | Tool | Pinned in |
 | --- | --- |
 | pnpm | root `packageManager`, and nowhere else: always pnpm, never npm or yarn |
-| Node | root `engines`, `web/engines` and [`web/.nvmrc`](./web/.nvmrc): the same version in all three |
+| Node | root `engines`, `web/engines` and [`.nvmrc`](./.nvmrc): the same version in all three |
 | Flutter | `environment.flutter` in [`app/pubspec.yaml`](./app/pubspec.yaml), which CI installs from |
 | Dart | not pinned: `environment.sdk` is a floor, and the Dart you get is the one your Flutter ships |
 

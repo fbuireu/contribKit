@@ -4,7 +4,7 @@ Date: 2026-07-26
 
 ## Status
 
-Accepted. Amended once, to record what attribution by path does to a commit that spans both components. That was never written down here; it lived as a local `commit-msg` hook that rejected such a commit, and as prose in four documents describing the hook.
+Accepted. Amended twice. Once to record what attribution by path does to a commit that spans both components, which was never written down here and lived as a local `commit-msg` hook that rejected such a commit, and as prose in four documents describing the hook. Then to retire the sentence in *Decision* that says CI is path-filtered per component: it was, and [ADR 0015](./0015-the-maintenance-contract-is-enforced-by-a-test.md) records why it no longer is. There is one unfiltered `ci.yml`, and a `changes` job gates the per-component jobs with `if:` instead.
 
 ## Context
 
