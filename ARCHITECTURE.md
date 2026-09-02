@@ -263,7 +263,11 @@ as every sibling repository. `Docs Contract` is reached through `Check` and need
 other three come from workflows of their own and `Check` cannot see them; `zizmor` is the check run the
 action publishes through code scanning, not the `Run zizmor` job, because the job passes whatever it finds
 and only the code-scanning check turns red on a finding. No approval is required: the owner is the only
-reviewer, and the checks are the gate.
+reviewer, and the checks are the gate. Two settings outside that ruleset complete it: `release-tags`, a tag
+ruleset that forbids deleting or moving any `web-v*` or `app-v*` tag (semantic-release creates them with the
+owner's `PAT`, which passes the admin bypass), and a deployment-branch policy of `main` only on
+`web-production` and `app-production`, so a job naming either environment from any other ref fails before its
+first step.
 
 The `changes` job still counts `docs/**`, `shared/**`, `scripts/**`, `*.md` and the root config files as web
 changes, because the shared tokens and the contract both live outside `web/`. So a docs-only push to `main` still
