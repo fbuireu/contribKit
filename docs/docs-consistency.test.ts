@@ -1001,7 +1001,7 @@ describe("the workflows", () => {
 });
 
 const STATED_VERSION =
-	/\b(?:Node(?:\.js)?|pnpm|TypeScript|Astro|Next(?:\.js)?|React|Effect|Flutter|Dart|[Ww]rangler|Ruby|Starlight)\s+(?:v|@)?\d+(?:\.\d+)*\b/g;
+	/\b(?:Node(?:\.js)?|pnpm|TypeScript|Astro|Next(?:\.js)?|React|Effect|Flutter|Dart|[Ww]rangler|Ruby|Starlight|Tailwind(?: CSS)?)\s+(?:v|@)?\d+(?:\.\d+)*\b/g;
 const NARRATED_VERSIONS: Record<string, string[]> = { "CLAUDE.md": ["Flutter 3.47.2", "Dart 3.13.2"] };
 
 describe("stated versions", () => {
