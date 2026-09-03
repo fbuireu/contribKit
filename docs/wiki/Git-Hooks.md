@@ -30,9 +30,18 @@ pre-commit:
     sync-shared-assets:
       glob: "shared/*.json"
       run: node scripts/sync-shared-assets.mjs --stage
+
+commit-msg:
+  parallel: false
+  skip:
+    - rebase
+    - merge
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
 ```
 
-lefthook merges the `pre-commit`, `commit-msg`, and `pre-push` stages from all three files, so a single commit runs every applicable command.
+lefthook merges the `pre-commit` and `pre-push` stages from all three files, so a single commit runs every applicable command; `commit-msg` is declared once, at the root, because the message is a property of the repository rather than of either package.
 
 ```mermaid
 ---

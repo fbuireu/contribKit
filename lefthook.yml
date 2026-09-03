@@ -7,3 +7,12 @@ pre-commit:
     sync-shared-assets:
       glob: "shared/*.json"
       run: node scripts/sync-shared-assets.mjs --stage
+
+commit-msg:
+  parallel: false
+  skip:
+    - rebase
+    - merge
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}

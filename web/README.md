@@ -139,7 +139,7 @@ pnpm install
 | `pnpm test`              | Vitest unit tests                           |
 | `pnpm test:e2e`          | Playwright e2e tests                        |
 | `pnpm lint:all`          | Biome lint                                  |
-| `pnpm lint:astro`        | `astro check` (Astro diagnostics)           |
+| `pnpm check`             | `astro check` (Astro diagnostics)           |
 | `pnpm lint:ts:typecheck` | `tsc --noEmit`                              |
 | `pnpm format:all`        | Biome format (write)                        |
 | `pnpm format:check`      | Biome format check (read-only, runs in CI)  |

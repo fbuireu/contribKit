@@ -58,7 +58,8 @@ pnpm dev                         # astro dev (dev:open appends --open)
 pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
 pnpm typecheck           # wrangler types + tsc --noEmit
-pnpm verify              # format:check + typecheck + astro check + coverage: what CI and pre-push run
+pnpm check               # astro check: the only thing that typechecks .astro files
+pnpm verify              # format:check + typecheck + check + coverage: what CI and pre-push run
 pnpm lint:all                    # biome lint over web, docs and .github
 pnpm format:all                  # biome check --write, the same three
 pnpm format:check                # biome check, read-only: what CI runs

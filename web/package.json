@@ -1,5 +1,7 @@
 {
 	"name": "contribkit-web",
+	"version": "1.14.1",
+	"private": true,
 	"description": "Visualize and export your GitHub contribution calendar: web app",
 	"keywords": [
 		"github",
@@ -7,15 +9,23 @@
 		"calendar",
 		"svg",
 		"astro",
-		"android",
-		"ios",
 		"open-source",
 		"developer-tools",
-		"github-stats"
+		"github-stats",
+		"typescript",
+		"cloudflare-workers"
 	],
 	"author": "Ferran Buireu <contact@contribkit.app>",
-	"version": "1.14.1",
-	"private": true,
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fbuireu/contribKit.git",
+		"directory": "web"
+	},
+	"homepage": "https://contribkit.app",
+	"bugs": {
+		"url": "https://github.com/fbuireu/contribKit/issues"
+	},
 	"type": "module",
 	"engines": {
 		"node": "26.7.0"
@@ -32,20 +42,20 @@
 		"lint:all": "pnpm lint . ../docs ../.github",
 		"lint:all:fix": "pnpm lint:all --fix",
 		"lint:changed": "pnpm lint --write --changed",
-		"lint:astro": "pnpm types && astro check",
 		"format": "biome check --write --no-errors-on-unmatched",
 		"format:all": "pnpm format . ../docs ../.github",
 		"format:changed": "pnpm format --changed",
 		"format:check": "biome check --no-errors-on-unmatched . ../docs ../.github",
 		"typecheck": "pnpm types && tsc --project . --noEmit",
-		"test:ut": "vitest run --passWithNoTests --logHeapUsage",
-		"test:ut:watch": "vitest --passWithNoTests --logHeapUsage",
+		"test:ut": "vitest run --logHeapUsage",
+		"test:ut:watch": "vitest --logHeapUsage",
 		"test:ut:coverage": "pnpm test:ut --coverage",
 		"test:ut:changed": "pnpm test:ut --changed",
 		"test:docs": "pnpm test:ut ../docs/docs-consistency.test.ts",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "pnpm test:e2e --ui",
-		"verify": "pnpm format:check && pnpm typecheck && pnpm lint:astro && pnpm test:ut:coverage"
+		"verify": "pnpm format:check && pnpm typecheck && pnpm check && pnpm test:ut:coverage",
+		"check": "pnpm types && astro check"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "14.2.1",

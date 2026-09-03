@@ -218,7 +218,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 - **Hooks.** lefthook, composed from [`lefthook.yml`](./lefthook.yml) plus [`app/lefthook.yml`](./app/lefthook.yml) and [`web/lefthook.yml`](./web/lefthook.yml). `pre-commit`
   formats staged Dart and web files and re-stages them, runs `flutter analyze --fatal-infos`, and syncs
   `shared/*.json`; `commit-msg` runs commitlint; `pre-push` runs
-  `flutter analyze --fatal-infos` and `pnpm lint:astro`.
+  `flutter analyze --fatal-infos` and `pnpm check`.
   **The `cross-package-notice` job ignores `app/assets/`**, because the pre-commit sync stages those mirrors
   whenever `shared/*.json` changes. Without that, editing [`shared/palettes.json`](./shared/palettes.json) alongside
   [`web/src/domain/value-objects/palette.ts`](./web/src/domain/value-objects/palette.ts), the most natural shared change there is, would read as touching both

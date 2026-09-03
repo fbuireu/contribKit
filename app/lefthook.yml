@@ -11,15 +11,6 @@ pre-commit:
       glob: "*.dart"
       run: flutter analyze --fatal-infos
 
-commit-msg:
-  parallel: false
-  skip:
-    - rebase
-    - merge
-  commands:
-    commitlint:
-      run: pnpm exec commitlint --edit {1}
-
 pre-push:
   parallel: false
   commands:

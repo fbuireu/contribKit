@@ -1,35 +1,44 @@
 {
-  "name": "contribkit-monorepo",
-  "private": true,
-  "version": "0.0.0",
-  "author": "Ferran Buireu <contact@contribkit.app>",
-  "description": "Visualize and export your GitHub contribution calendar: web app, Android and iOS app",
-  "keywords": [
-    "github",
-    "contributions",
-    "calendar",
-    "svg",
-    "astro",
-    "flutter",
-    "android",
-    "ios",
-    "open-source",
-    "developer-tools",
-    "github-stats"
-  ],
-  "packageManager": "pnpm@11.21.0",
-  "engines": {
-    "node": "26.7.0"
-  },
-  "scripts": {
-    "prepare": "lefthook install",
-    "sync:assets": "node scripts/sync-shared-assets.mjs"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "21.2.2",
-    "@commitlint/config-conventional": "21.2.2",
-    "@commitlint/config-pnpm-scopes": "21.2.2",
-    "@commitlint/format": "21.2.2",
-    "lefthook": "2.1.12"
-  }
+	"name": "contribkit-monorepo",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Visualize and export your GitHub contribution calendar: web app, Android and iOS app",
+	"keywords": [
+		"github",
+		"contributions",
+		"calendar",
+		"svg",
+		"astro",
+		"flutter",
+		"android",
+		"ios",
+		"open-source",
+		"developer-tools",
+		"github-stats"
+	],
+	"author": "Ferran Buireu <contact@contribkit.app>",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fbuireu/contribKit.git"
+	},
+	"homepage": "https://contribkit.app",
+	"bugs": {
+		"url": "https://github.com/fbuireu/contribKit/issues"
+	},
+	"engines": {
+		"node": "26.7.0"
+	},
+	"packageManager": "pnpm@11.21.0",
+	"scripts": {
+		"prepare": "lefthook install",
+		"sync:assets": "node scripts/sync-shared-assets.mjs"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "21.2.2",
+		"@commitlint/config-conventional": "21.2.2",
+		"@commitlint/config-pnpm-scopes": "21.2.2",
+		"@commitlint/format": "21.2.2",
+		"lefthook": "2.1.12"
+	}
 }

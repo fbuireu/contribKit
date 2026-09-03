@@ -1,4 +1,0 @@
-{
-	"src/**/*.{ts,css,astro}": ["pnpm format:changed", "pnpm lint:changed"],
-	"src/**/*.{test,spec}.ts": ["pnpm test:changed"]
-}
