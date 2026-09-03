@@ -1000,11 +1000,53 @@ describe("the workflows", () => {
 	});
 });
 
-const STATED_VERSION =
-	/\b(?:Node(?:\.js)?|pnpm|TypeScript|Astro|Next(?:\.js)?|React|Effect|Flutter|Dart|[Ww]rangler|Ruby|Starlight|Tailwind(?: CSS)?)\s+(?:v|@)?\d+(?:\.\d+)*\b/g;
+const VERSIONED_DEPENDENCIES: Record<string, string[]> = {
+	astro: ["Astro"],
+	"@astrojs/starlight": ["Starlight"],
+	effect: ["Effect"],
+	next: ["Next", "Next.js"],
+	react: ["React"],
+	tailwindcss: ["Tailwind", "Tailwind CSS"],
+	typescript: ["TypeScript"],
+	wrangler: ["wrangler", "Wrangler"],
+};
+const escapeForRegExp = (name: string): string => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const statedVersionPattern = (names: string[]): RegExp =>
+	new RegExp(`\\b(?:${names.map(escapeForRegExp).join("|")})\\s+(?:v|@)?\\d+(?:\\.\\d+)*\\b`, "g");
+interface PolicedNamesParams {
+	readonly declared: Set<string>;
+	readonly runtimes: string[];
+}
+const policedNames = ({ declared, runtimes }: PolicedNamesParams): string[] => [
+	...runtimes,
+	...Object.entries(VERSIONED_DEPENDENCIES)
+		.filter(([dependency]) => declared.has(dependency))
+		.flatMap(([, names]) => names),
+];
+const declaredIn = (manifests: { dependencies?: object; devDependencies?: object }[]): Set<string> =>
+	new Set(manifests.flatMap((manifest) => Object.keys({ ...manifest.dependencies, ...manifest.devDependencies })));
+const POLICED_NAMES = policedNames({
+	declared: declaredIn([
+		JSON.parse(read(join(REPO, "package.json"))),
+		JSON.parse(read(join(REPO, "web/package.json"))),
+	]),
+	runtimes: [
+		"Node",
+		"Node.js",
+		"pnpm",
+		...(existsSync(join(REPO, "app/pubspec.yaml")) ? ["Flutter", "Dart"] : []),
+		...(existsSync(join(REPO, "app/android/.ruby-version")) ? ["Ruby"] : []),
+	],
+});
+const STATED_VERSION = statedVersionPattern(POLICED_NAMES);
 const NARRATED_VERSIONS: Record<string, string[]> = { "CLAUDE.md": ["Flutter 3.47.2", "Dart 3.13.2"] };
 
 describe("stated versions", () => {
+	it("polices the runtimes and every versioned dependency the manifests declare, and nothing else", () => {
+		expect(POLICED_NAMES).toEqual(expect.arrayContaining(["Node", "pnpm"]));
+		expect(POLICED_NAMES.length).toBeGreaterThan(2);
+	});
+
 	it("states the current version of nothing a bot moves, outside the ADRs", () => {
 		const documents = markdownFiles()
 			.map(relative)
