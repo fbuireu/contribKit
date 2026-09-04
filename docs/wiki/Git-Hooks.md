@@ -125,6 +125,7 @@ Runs heavier checks before pushing, so a broken branch never reaches the remote.
 |---------|---------|------|
 | `web-verify` | every push | `pnpm verify` (format check, typecheck, `astro check`, coverage) |
 | `flutter-analyze` | a pushed `*.dart`, [`pubspec.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/pubspec.yaml) or [`analysis_options.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/analysis_options.yaml) | `flutter analyze --fatal-infos` |
+| `flutter-test` | the same three | `flutter test --coverage`, then `dart run tool/check_coverage.dart` |
 
 **`flutter-analyze` carries a `glob` and `web-verify` deliberately does not.** Without one it ran on every
 push, so a change to a workflow file or a markdown page paid for a full Flutter analysis that could not

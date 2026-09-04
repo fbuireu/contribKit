@@ -96,6 +96,7 @@ pnpm verify       # format:check + typecheck + astro check + coverage: what CI a
 cd app
 flutter analyze           # must be clean; CI runs --fatal-infos
 flutter test
+flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 dart run build_runner build   # after touching any @freezed, @riverpod or DTO class
 ```
 
@@ -210,7 +211,7 @@ the index points at will not be read.
 Before you open one:
 
 1. The relevant checks pass: `pnpm verify` for the web,
-   `flutter analyze && flutter test` for the app.
+   `flutter analyze` plus `flutter test --coverage && dart run tool/check_coverage.dart` for the app.
    Both halves also run on `pre-push`, so this is a reminder rather than a manual step.
 2. `pnpm test:docs` passes, whichever client you touched.
 3. Commits follow the rules above, including the one-client rule.

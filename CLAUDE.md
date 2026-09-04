@@ -72,8 +72,16 @@ pnpm test:e2e                    # playwright
 # app/: run from app/
 flutter analyze                  # must be clean; CI runs --fatal-infos
 flutter test
+flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 dart run build_runner build      # after touching a @freezed / @riverpod / DTO class
 ```
+
+**The app carries the same coverage floor the web does, and it had none until it was written.** `flutter test`
+has no `--min-coverage`, so [`app/tool/check_coverage.dart`](./app/tool/check_coverage.dart) reads `coverage/lcov.info` and exits non-zero below the
+`minThreshold` const, which is the same 85 and the same one-declaration shape as `web/vitest.config.ts`. CI runs
+it as its own step after `flutter test --coverage`, and the `flutter-test` pre-push hook runs it too. Uploading
+to Codecov was never a gate: `fail_ci_if_error: false` means a failed upload is quiet, and Codecov's own
+statuses are `informational: true` in [`codecov.yml`](./codecov.yml). The floor is what fails a build.
 
 ## Structure
 

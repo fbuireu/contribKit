@@ -727,6 +727,7 @@ describe("the source carries no code comments", () => {
 		const offenders = [
 			...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") }),
 			...walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith(".dart") }),
+			...walk({ dir: join(REPO, "app/tool"), match: (path) => path.endsWith(".dart") }),
 		]
 			.filter((path) => !GENERATED_DART_FILE.test(path))
 			.flatMap(commentLines);

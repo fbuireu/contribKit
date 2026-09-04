@@ -7,7 +7,8 @@
 **Visualize, customize, and export your GitHub contribution calendar: custom palettes, shapes, and backgrounds. No token required. Available on the web and as an iOS & Android app, with home-screen widgets on Android.**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci.yml?style=flat-square&logo=github&label=CI)](https://github.com/fbuireu/contribkit/actions/workflows/ci.yml)
-[![Codecov](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?style=flat-square&logo=codecov)](https://codecov.io/gh/fbuireu/contribkit)
+[![Coverage (app)](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?flag=app&style=flat-square&logo=codecov&label=coverage%20app)](https://app.codecov.io/gh/fbuireu/contribkit/flags)
+[![Coverage (web)](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?flag=web&style=flat-square&logo=codecov&label=coverage%20web)](https://app.codecov.io/gh/fbuireu/contribkit/flags)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 **[Website](https://contribkit.app)** · **[Google Play](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit)** · **App Store (soon)** · **[Web docs](web/README.md)** · **[App docs](app/README.md)**

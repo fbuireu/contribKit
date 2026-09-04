@@ -27,4 +27,4 @@ pre-push:
         - "*.dart"
         - "pubspec.yaml"
         - "analysis_options.yaml"
-      run: flutter test
+      run: flutter test --coverage && dart run tool/check_coverage.dart
