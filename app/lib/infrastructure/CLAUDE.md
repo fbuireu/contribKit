@@ -206,7 +206,7 @@ non-numeric code, and Flutter raises `PlatformException(code: 'channel-error')` 
 inside `on PlatformException catch`, that `FormatException` does **not** fall into the sibling `catch (e)`; it
 escapes the layer whose first rule forbids exactly that. `isTipCancellation` parses the code itself first and
 returns false for anything non-numeric or negative, so the helper is only ever handed input it can survive. It is
-a separate module because it is the one part of this file with a seam, and it has five tests.
+a separate module because it is the one part of this file with a seam, and it carries its own tests.
 
 **`give` returns a `TipOutcome`, and the cancel arm it used to carry could never run.** `Purchases.purchase` throws
 a `PlatformException`; `PurchasesErrorCode` is a plain enum that nothing in the package ever throws, so

@@ -75,7 +75,7 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   `generateData()` when it is absent or empty; the page is never blank. **That read happens inside `initPage`,
   not at module scope.** It used to run on import, along with the first `setDays` / `setUsername`, so merely
   importing this module touched `window` and generated a grid. That is most of why the module with the real risk
-  in it had two assertions while `roving.ts` and [`url.ts`](./utils/url.ts), both trivially correct, had more test than
+  in it was barely asserted while `roving.ts` and [`url.ts`](./utils/url.ts), both trivially correct, had more test than
   implementation. **That imbalance is closed**: the four initialisers `initPage` composes are covered as well as
   the refresh — the username strip's empty-submission refusal and its lowercasing, the suggestion buttons, the
   `popstate` restore, and the URL rewrite `initUsernameState` performs when the address and the server-rendered

@@ -162,7 +162,7 @@ test helper reintroduces the same bug in the test rather than the code.
 - **`contributionDay` is the only way to make a Contribution Day, and it is what clamps.** The entity had no
   constructor, so `clampLevel` was re-applied defensively in **two** downstream places, `walkFrom` and
   `calendarLayout`, each re-validating data the type claimed to have guaranteed. Both are gone: the level is
-  bounded once, at construction. Two tests needed `as unknown as ContributionDay[]` to build a day the type
+  bounded once, at construction. Tests needed `as unknown as ContributionDay[]` to build a day the type
   forbids, which is the tell that the type was a promise nothing kept; neither cast survives.
 - **`IsoDate` is a branded string, and `date` is one.** The date was a bare `string` doing four jobs: the key of
   `byDate`, an ordered comparison with `>`, a positional `slice(5, 7)` in `monthLabelsFor`, and a template in

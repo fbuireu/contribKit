@@ -28,7 +28,7 @@ Route tests live in [`web/src/pages/_tests/`](../../web/src/pages/_tests), which
 
 The pages guide stays at `web/src/pages/CLAUDE.md`, and `AGENT_GUIDE_ROUTE` in [`web/src/middleware.ts`](../../web/src/middleware.ts) answers `404` for `/CLAUDE` before the route runs. [`astro.config.ts`](../../web/astro.config.ts) also drops it from the sitemap. The page is still built (it is markdown, and small), but it is not reachable and not advertised.
 
-Two assertions in `docs/docs-consistency.test.ts` hold the line: no `*.test.ts` under `web/src/pages` outside an underscore segment, and no markdown route there other than the guide, together with the constant that blocks it. [`web/src/middleware.test.ts`](../../web/src/middleware.test.ts) asserts the 404 itself, and that a path merely starting with the same characters still resolves.
+`docs/docs-consistency.test.ts` holds the line: no `*.test.ts` under `web/src/pages` outside an underscore segment, and no markdown route there other than the guide, together with the constant that blocks it. [`web/src/middleware.test.ts`](../../web/src/middleware.test.ts) asserts the 404 itself, and that a path merely starting with the same characters still resolves.
 
 ## Consequences
 

@@ -44,7 +44,7 @@ It is also the only entry point for HTTP traffic.
 **Everything here that is not underscore-prefixed is a public URL, `.md` included.** This file is a route:
 Astro compiled it and served it on `contribkit.app` until `AGENT_GUIDE_ROUTE` in `web/src/middleware.ts`
 started answering 404 for it, and the colocated route tests were live endpoints returning 500 with the vitest
-runtime bundled into the Worker. Two assertions in the docs contract keep both shut
+runtime bundled into the Worker. The docs contract keeps both shut
 ([ADR 0018](../../../docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)). Before adding a file
 here, decide what URL it becomes.
 
