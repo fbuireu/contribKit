@@ -37,7 +37,7 @@ GitHub doesn't always emit a `<tool-tip>` for every cell. ContribKit reports the
 This usually means GitHub is unreachable or changed the structure of its contributions page.
 
 - `Network` failure → GitHub returned a non-OK status or the fetch failed; usually transient, retry.
-- `Parse` failure → zero Contribution Days were extracted, which points at a GitHub markup change. The fix lives in one place: the regexes in [`infrastructure/github/github-html-contributions-repository.ts`](../../web/src/infrastructure/github/github-html-contributions-repository.ts). See **[HTML Parsing](HTML-Parsing)**.
+- `Parse` failure → zero Contribution Days were extracted, which points at a GitHub markup change. The fix lives in one place: the regexes in [`infrastructure/github/github-html-contributions-repository.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/infrastructure/github/github-html-contributions-repository.ts). See **[HTML Parsing](HTML-Parsing)**.
 
 5xx failures are logged to Better Stack with the username, failure kind, and endpoint.
 
@@ -51,7 +51,7 @@ A 429 means one of two different things, and the **body** is what tells them apa
 
 **`GitHub is rate-limiting this Worker`** is upstream, forwarded to you rather than disguised as an outage. It used to come back as a `502` saying GitHub was unreachable, about a service that had answered perfectly well and said *slow down*. When GitHub names a wait, that figure is passed straight through as `Retry-After`; when it names none, no header is sent, because a fabricated one is worse than none. Retrying sooner will not help either way; the whole Worker is throttled upstream, not just you.
 
-`/user/:username.svg` is never rate-limited by ContribKit ([ADR 0010](../adr/0010-rate-limit-only-the-json-api.md)), so a 429 there is always GitHub's. For README embeds this is rarely an issue thanks to caching (`max-age=3600, stale-while-revalidate=86400`).
+`/user/:username.svg` is never rate-limited by ContribKit ([ADR 0010](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0010-rate-limit-only-the-json-api.md)), so a 429 there is always GitHub's. For README embeds this is rarely an issue thanks to caching (`max-age=3600, stale-while-revalidate=86400`).
 
 ---
 
@@ -63,9 +63,9 @@ The environment is chosen at **build** time: `CLOUDFLARE_ENV=<env> astro build` 
 
 ## Mobile: palettes look stale (and shapes never change)
 
-The app uses generated copies of the design tokens in [`app/assets/`](../../app/assets). If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `ci-app.yml` does not.
+The app uses generated copies of the design tokens in [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets). If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `ci-app.yml` does not.
 
-**Syncing will never change a Cell Shape**, however. `shapes.json` is mirrored and bundled but no Dart file reads it: the app's shapes are a hardcoded `CellShape` enum ([ADR 0002](../adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)). Adding a shape there changes the web only. See **[Project Structure](Project-Structure)**.
+**Syncing will never change a Cell Shape**, however. `shapes.json` is mirrored and bundled but no Dart file reads it: the app's shapes are a hardcoded `CellShape` enum ([ADR 0002](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)). Adding a shape there changes the web only. See **[Project Structure](Project-Structure)**.
 
 ---
 

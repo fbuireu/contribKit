@@ -52,7 +52,7 @@ Errors return `text/plain` with the message:
 |--------|---------|
 | `400` | invalid username |
 | `404` | GitHub has no such user (`User not found`) |
-| `429` | GitHub is rate-limiting ContribKit. **Not** this endpoint rate-limiting you: it is never rate-limited ([ADR 0010](../adr/0010-rate-limit-only-the-json-api.md)) |
+| `429` | GitHub is rate-limiting ContribKit. **Not** this endpoint rate-limiting you: it is never rate-limited ([ADR 0010](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0010-rate-limit-only-the-json-api.md)) |
 | `502` | GitHub unreachable, or the page couldn't be parsed |
 
 ---

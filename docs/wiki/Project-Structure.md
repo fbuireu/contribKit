@@ -49,7 +49,7 @@ pages/             every non-underscore file here is a public URL, .md included
 middleware.ts      rate limiting + security headers
 ```
 
-Unit tests sit next to what they cover. The one exception is [`docs/docs-consistency.test.ts`](../docs-consistency.test.ts): its subject is the documentation, not a module, so it lives beside the documents at the repo root. It still runs from the web package: [`web/vitest.config.ts`](../../web/vitest.config.ts) adds `../docs/**/*.test.ts`, [`web/tsconfig.json`](../../web/tsconfig.json) includes it, and the biome scripts pass `../docs`.
+Unit tests sit next to what they cover. The one exception is [`docs/docs-consistency.test.ts`](https://github.com/fbuireu/contribKit/blob/main/docs/docs-consistency.test.ts): its subject is the documentation, not a module, so it lives beside the documents at the repo root. It still runs from the web package: [`web/vitest.config.ts`](https://github.com/fbuireu/contribKit/blob/main/web/vitest.config.ts) adds `../docs/**/*.test.ts`, [`web/tsconfig.json`](https://github.com/fbuireu/contribKit/blob/main/web/tsconfig.json) includes it, and the biome scripts pass `../docs`.
 
 Every layer carries a colocated `CLAUDE.md` documenting its rules, and the docs-consistency test fails if one is missing. See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
 
@@ -78,14 +78,14 @@ The single source of truth for data used by both apps:
 | `shapes.json` | 5 cell shapes |
 | `usernames.json` | Suggested usernames |
 
-> **Edit the JSON here, never the copies under [`app/assets/`](../../app/assets).**
+> **Edit the JSON here, never the copies under [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets).**
 
 - **web** imports these directly via the `@shared` alias at build time.
 - **app** (Flutter) can only bundle assets inside its own package, so it uses generated copies in `app/assets/*.json`. They are regenerated:
   - automatically on commit (lefthook `pre-commit` runs `scripts/sync-shared-assets.mjs --stage` when a `shared/*.json` is staged),
   - manually with `pnpm sync:assets`.
 
-  **CI does not regenerate them**, so the only thing standing between a stale mirror and a green CI run is that pre-commit hook (and the docs-consistency test, which compares the two directories and fails when they drift). The release workflow is the exception: [`release-app.yml`](../../.github/workflows/release-app.yml) copies `shared/*.json` into `assets/` in its `Sync shared assets` step, immediately before building the AAB, so a shipped build is never stale even when the commit is.
+  **CI does not regenerate them**, so the only thing standing between a stale mirror and a green CI run is that pre-commit hook (and the docs-consistency test, which compares the two directories and fails when they drift). The release workflow is the exception: [`release-app.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/release-app.yml) copies `shared/*.json` into `assets/` in its `Sync shared assets` step, immediately before building the AAB, so a shipped build is never stale even when the commit is.
 
 ---
 
@@ -95,7 +95,7 @@ Repo-wide Node scripts, invoked by Git hooks and CI:
 
 | Script | Purpose |
 |--------|---------|
-| [`sync-shared-assets.mjs`](../../scripts/sync-shared-assets.mjs) | Copies `shared/*.json` → `app/assets/*.json` (`--stage` re-stages them). Exposed as `pnpm sync:assets`. |
+| [`sync-shared-assets.mjs`](https://github.com/fbuireu/contribKit/blob/main/scripts/sync-shared-assets.mjs) | Copies `shared/*.json` → `app/assets/*.json` (`--stage` re-stages them). Exposed as `pnpm sync:assets`. |
 
 See **[Git Hooks](Git-Hooks)** for how these run.
 
@@ -103,8 +103,8 @@ See **[Git Hooks](Git-Hooks)** for how these run.
 
 ## Monorepo tooling
 
-- **Package manager:** pnpm workspaces ([`pnpm-workspace.yaml`](../../pnpm-workspace.yaml))
+- **Package manager:** pnpm workspaces ([`pnpm-workspace.yaml`](https://github.com/fbuireu/contribKit/blob/main/pnpm-workspace.yaml))
 - **Commits:** Conventional Commits, enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** one [`ci.yml`](../../.github/workflows/ci.yml) with no path filter. A `changes` job decides which client was touched and gates every other job on it, so nothing depends on a filter being kept in step.
+- **CI:** one [`ci.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/ci.yml) with no path filter. A `changes` job decides which client was touched and gates every other job on it, so nothing depends on a filter being kept in step.
 - **Git hooks:** lefthook (installed by the root `prepare` script on `pnpm install`) runs formatting, linting, and commit-message checks locally (see **[Git Hooks](Git-Hooks)**)

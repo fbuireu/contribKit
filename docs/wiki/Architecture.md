@@ -35,7 +35,7 @@ Each layer documents its own rules in a colocated `CLAUDE.md`.
 This page is the shape, not the rules. Every layer states its own, next to the code, and those guides are what the
 maintenance contract keeps honest. A table here was a second copy that nothing checked, and it had gone wrong in
 four places at once: the `Failure` union missing `RateLimited`, a curried use case that had been deleted, a
-hardcoded default Cell Shape that comes from [`shared/shapes.json`](../../shared/shapes.json), and a `total` rule stated backwards.
+hardcoded default Cell Shape that comes from [`shared/shapes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/shapes.json), and a `total` rule stated backwards.
 
 | Question | Guide |
 |---|---|
@@ -56,7 +56,7 @@ Two rules are worth stating here because they hold in both clients and in every 
 
 ## Shared design tokens
 
-Palettes, shapes, and suggested usernames are defined once in `shared/*.json` and consumed by both apps. The web imports them via the `@shared` alias at build time; the Flutter app bundles generated copies under [`app/assets/`](../../app/assets). See **[Project Structure](Project-Structure)**.
+Palettes, shapes, and suggested usernames are defined once in `shared/*.json` and consumed by both apps. The web imports them via the `@shared` alias at build time; the Flutter app bundles generated copies under [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets). See **[Project Structure](Project-Structure)**.
 
 ---
 

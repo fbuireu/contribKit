@@ -6,7 +6,7 @@ ContribKit uses [lefthook](https://github.com/evilmartians/lefthook) to run form
 
 ## Installation
 
-lefthook is a root devDependency and the root `prepare` script runs `lefthook install`, so `pnpm install` wires up the Git hooks on every fresh clone: there is nothing to install by hand. The build script is allow-listed in [`pnpm-workspace.yaml`](../../pnpm-workspace.yaml) (`allowBuilds.lefthook`), which the binary download needs.
+lefthook is a root devDependency and the root `prepare` script runs `lefthook install`, so `pnpm install` wires up the Git hooks on every fresh clone: there is nothing to install by hand. The build script is allow-listed in [`pnpm-workspace.yaml`](https://github.com/fbuireu/contribKit/blob/main/pnpm-workspace.yaml) (`allowBuilds.lefthook`), which the binary download needs.
 
 ```bash
 pnpm install   # hooks are wired as part of it
@@ -18,7 +18,7 @@ If the hooks ever go missing (say, after re-cloning without installing), `pnpm e
 
 ## How the config is composed
 
-The root [`lefthook.yml`](../../lefthook.yml) extends the two component configs and adds one repo-wide hook:
+The root [`lefthook.yml`](https://github.com/fbuireu/contribKit/blob/main/lefthook.yml) extends the two component configs and adds one repo-wide hook:
 
 ```yaml
 extends:
@@ -95,7 +95,7 @@ The check lives in CI now, on the pull request's combined diff, where the squash
 
 ### commitlint
 
-Configured in [`commitlint.config.cjs`](../../commitlint.config.cjs):
+Configured in [`commitlint.config.cjs`](https://github.com/fbuireu/contribKit/blob/main/commitlint.config.cjs):
 
 ```js
 module.exports = {
@@ -124,13 +124,13 @@ Runs heavier checks before pushing, so a broken branch never reaches the remote.
 | Command | Runs on | Runs |
 |---------|---------|------|
 | `web-verify` | every push | `pnpm verify` (format check, typecheck, `astro check`, coverage) |
-| `flutter-analyze` | a pushed `*.dart`, [`pubspec.yaml`](../../app/pubspec.yaml) or [`analysis_options.yaml`](../../app/analysis_options.yaml) | `flutter analyze --fatal-infos` |
+| `flutter-analyze` | a pushed `*.dart`, [`pubspec.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/pubspec.yaml) or [`analysis_options.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/analysis_options.yaml) | `flutter analyze --fatal-infos` |
 
 **`flutter-analyze` carries a `glob` and `web-verify` deliberately does not.** Without one it ran on every
 push, so a change to a workflow file or a markdown page paid for a full Flutter analysis that could not
 possibly be affected by it. `web-verify` has no equivalent filter because `pnpm verify` runs the
 docs-consistency contract, which asserts things about the whole repository and must not be gated on which
-client changed. Filtering it would need a copy of [`ci.yml`](../../.github/workflows/ci.yml)'s `WEB_PATHS`, and a second copy of that filter is
+client changed. Filtering it would need a copy of [`ci.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/ci.yml)'s `WEB_PATHS`, and a second copy of that filter is
 the mistake this repository has already made three times.
 
 ---
@@ -145,7 +145,7 @@ The Flutter app can only bundle assets inside its own package, so the shared des
 | In CI | before the release build |
 | Manually | `pnpm sync:assets` |
 
-> Always edit the source files in `shared/`, never the generated copies in [`app/assets/`](../../app/assets). See **[Project Structure](Project-Structure)**.
+> Always edit the source files in `shared/`, never the generated copies in [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets). See **[Project Structure](Project-Structure)**.
 
 ---
 

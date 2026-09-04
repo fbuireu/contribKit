@@ -1,8 +1,8 @@
 # SVG Rendering
 
-The calendar is rendered to an SVG **string** (no DOM, no canvas), so it works inside a Cloudflare Worker. The renderer is [`infrastructure/rendering/svg-string-renderer.ts`](../../web/src/infrastructure/rendering/svg-string-renderer.ts), implementing the domain `SvgRenderer` function type. Per-shape cell markup is `domain/services/cell-shapes.ts`.
+The calendar is rendered to an SVG **string** (no DOM, no canvas), so it works inside a Cloudflare Worker. The renderer is [`infrastructure/rendering/svg-string-renderer.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/infrastructure/rendering/svg-string-renderer.ts), implementing the domain `SvgRenderer` function type. Per-shape cell markup is `domain/services/cell-shapes.ts`.
 
-**The whole layout is one call.** `calendarLayout` in [`domain/services/svg-geometry.ts`](../../web/src/domain/services/svg-geometry.ts) chunks the days into weeks, sizes the document, clamps every Contribution Level and returns finished placements: `monthLabels`, `weekdayLabels` and `cells`, each already carrying its `x` and `y`. The pad, gutter and baseline constants and the per-shape radius rule are **private to that file**; `dotRadius`, `cornerRadiusFor` and `hexPoints` stay exported, because [`cell-shapes.ts`](../../web/src/domain/services/cell-shapes.ts) and the client renderer draw with them. They used to be nine exported primitives, so both renderers imported a dozen symbols each and wrote the same thirty-line walk; only the geometry was shared, and the composition was not.
+**The whole layout is one call.** `calendarLayout` in [`domain/services/svg-geometry.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/services/svg-geometry.ts) chunks the days into weeks, sizes the document, clamps every Contribution Level and returns finished placements: `monthLabels`, `weekdayLabels` and `cells`, each already carrying its `x` and `y`. The pad, gutter and baseline constants and the per-shape radius rule are **private to that file**; `dotRadius`, `cornerRadiusFor` and `hexPoints` stay exported, because [`cell-shapes.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/services/cell-shapes.ts) and the client renderer draw with them. They used to be nine exported primitives, so both renderers imported a dozen symbols each and wrote the same thirty-line walk; only the geometry was shared, and the composition was not.
 
 A second renderer (`ui/components/grid/render-svg.ts`) runs in the browser for the live preview; see [Client-side rendering](#client-side-rendering-live-preview). Both take one `calendarLayout` call and `renderCellShape`, and keep only their own string templates.
 
@@ -25,7 +25,7 @@ svgStringRenderer({ calendar, options })
 | `cellGap` | `2` | `SVG_DEFAULT_CELL_GAP`. Same |
 | `showLabels` | `true` | month + day-of-week labels. Same |
 
-The last three are declared, forwarded to `calendarLayout`, and assigned by nobody. Cell Size as a person's choice is app-only ([ADR 0016](../adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)); this is pixel geometry, and the endpoint exposes no size knob.
+The last three are declared, forwarded to `calendarLayout`, and assigned by nobody. Cell Size as a person's choice is app-only ([ADR 0016](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)); this is pixel geometry, and the endpoint exposes no size knob.
 
 ---
 
@@ -41,7 +41,7 @@ with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The gr
 
 ### Labels
 
-- **Month labels** come from `MONTH_LABELS` in [`calendar-labels.ts`](../../web/src/domain/value-objects/calendar-labels.ts) (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `calendarLayout` emits a label at the first week of each new month, but only when that week's first day falls on or before day 7, which prevents a stray label when a month barely peeks into a column. That yields exactly twelve distinct labels for every year from 2005 to 2030: the December spill at both ends never earns a thirteenth.
+- **Month labels** come from `MONTH_LABELS` in [`calendar-labels.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/value-objects/calendar-labels.ts) (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `calendarLayout` emits a label at the first week of each new month, but only when that week's first day falls on or before day 7, which prevents a stray label when a month barely peeks into a column. That yields exactly twelve distinct labels for every year from 2005 to 2030: the December spill at both ends never earns a thirteenth.
 - **Day-of-week labels** are `WEEKDAY_LABELS = ["Mon", "Wed", "Fri"]`, drawn on alternating rows (rows 1, 3, 5) so they don't overlap.
 - Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one: a known defect recorded in [`web/src/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/CLAUDE.md).
 
@@ -113,7 +113,7 @@ The server renderer above powers the `/user/:username.svg` endpoint. The **landi
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 | Per-cell | fill only | also emits `data-date`, plus `data-count` only when the count is known: cells with an unknown count omit it and the tooltip says so |
 
-[`render-svg.ts`](../../web/src/ui/components/grid/render-svg.ts) also exports `shapePreviewSVG(kind)`, the tiny 20×20 swatch drawn inside each shape-picker button, using `SHAPE_PREVIEWS` and the `--contrib-peak` CSS var.
+[`render-svg.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/components/grid/render-svg.ts) also exports `shapePreviewSVG(kind)`, the tiny 20×20 swatch drawn inside each shape-picker button, using `SHAPE_PREVIEWS` and the `--contrib-peak` CSS var.
 
 ---
 
@@ -121,7 +121,7 @@ The server renderer above powers the `/user/:username.svg` endpoint. The **landi
 
 The landing page has **no reactive framework**. The DOM itself is the source of truth, and one function re-renders everything.
 
-**1. State.** Two singletons in [`ui/utils/state.ts`](../../web/src/ui/utils/state.ts) hold the fetched data: `getDays()` / `setDays()` and the username. The active **shape** and **palette** are read straight from the DOM, from whichever control carries the `.active` class ([`ui/utils/render.ts`](../../web/src/ui/utils/render.ts)):
+**1. State.** Two singletons in [`ui/utils/state.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/state.ts) hold the fetched data: `getDays()` / `setDays()` and the username. The active **shape** and **palette** are read straight from the DOM, from whichever control carries the `.active` class ([`ui/utils/render.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/render.ts)):
 
 ```ts
 getActivePalette = () => paletteByKey($(Selector.ActivePaletteRow)?.dataset.key ?? DEFAULT_PALETTE_KEY);
@@ -130,7 +130,7 @@ getActiveShape   = () => { const k = $(Selector.ActiveShapeButton)?.dataset.key;
 ```
 
 **Both getters guard, and for the same reason.** A `data-key` is markup, so it can name a palette
-[`shared/palettes.json`](../../shared/palettes.json) does not define or a shape the `CellShape` union does not: `paletteByKey` defaults and
+[`shared/palettes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/palettes.json) does not define or a shape the `CellShape` union does not: `paletteByKey` defaults and
 `isCellShape` rejects, and neither hands a bare string on. `getActivePalette` returns a `Palette` rather than a key,
 through the same guarded lookup the SVG endpoint uses; the three callers indexed `PALETTES` directly and would have
 thrown a `TypeError` reading `.colors` of `undefined`. `getActiveShape` returns a `CellShape` rather than a
@@ -140,7 +140,7 @@ screen.
 
 **2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_GEOMETRY` 13/3, `CUSTOMIZE_GRID_GEOMETRY` 12/3, `EXPORT_GRID_GEOMETRY` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
 
-**3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in [`ui/utils/page-init.ts`](../../web/src/ui/utils/page-init.ts); their `onActivate` is `renderCustomize`:
+**3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in [`ui/utils/page-init.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/page-init.ts); their `onActivate` is `renderCustomize`:
 
 ```ts
 initRadioList("#palette-list .palette-row");  // pick palette → renderCustomize

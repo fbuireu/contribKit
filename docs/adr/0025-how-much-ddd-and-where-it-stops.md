@@ -8,7 +8,7 @@ Accepted. Sits beside [3](0003-layered-domain-architecture-in-both-clients.md), 
 
 ## Context
 
-Four documents call this project's architecture "DDD-ish": the root [`README.md`](../../README.md), [`web/README.md`](../../web/README.md), [`app/README.md`](../../app/README.md) and the wiki's [Architecture](../wiki/Architecture.md) page. None of them says what the `-ish` is doing, so the label reads as a hedge rather than a decision, and every reviewer has to re-derive the boundary from scratch.
+Four documents call this project's architecture "DDD-ish": the root [`README.md`](../../README.md), [`web/README.md`](../../web/README.md), [`app/README.md`](../../app/README.md) and the wiki's [Architecture](https://github.com/fbuireu/contribKit/wiki/Architecture) page. None of them says what the `-ish` is doing, so the label reads as a hedge rather than a decision, and every reviewer has to re-derive the boundary from scratch.
 
 That cost became concrete during a modelling audit of both clients. It produced findings that were textbook-correct and disproportionate in the same list. Some named real defects: an aggregate that could be built inconsistently, a rule living in infrastructure while the domain implemented it again, a value object downgraded to a `string` at the one boundary where the guarantee mattered most. Others prescribed machinery for surface nobody reads.
 

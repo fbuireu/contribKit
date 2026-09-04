@@ -21,12 +21,12 @@ the one command CI actually runs.
 
 | File | Route |
 |------|-------|
-| [`pages/index.astro`](../../web/src/pages/index.astro) | Landing page: SSR initial render + client interactivity |
-| [`pages/api/contributions.ts`](../../web/src/pages/api/contributions.ts) | `GET /api/contributions?user=&year=` |
-| [`pages/api/health.ts`](../../web/src/pages/api/health.ts) | `GET /api/health` |
+| [`pages/index.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/index.astro) | Landing page: SSR initial render + client interactivity |
+| [`pages/api/contributions.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/api/contributions.ts) | `GET /api/contributions?user=&year=` |
+| [`pages/api/health.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/api/health.ts) | `GET /api/health` |
 | `pages/user/[username].svg.ts` | `GET /user/:username.svg` |
-| [`pages/404.astro`](../../web/src/pages/404.astro), [`500.astro`](../../web/src/pages/500.astro) | Error pages (shared `ErrorView`) |
-| [`pages/legal-notice.astro`](../../web/src/pages/legal-notice.astro), [`privacy.astro`](../../web/src/pages/privacy.astro), [`terms.astro`](../../web/src/pages/terms.astro) | Static legal pages |
+| [`pages/404.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/404.astro), [`500.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/500.astro) | Error pages (shared `ErrorView`) |
+| [`pages/legal-notice.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/legal-notice.astro), [`privacy.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/privacy.astro), [`terms.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/terms.astro) | Static legal pages |
 
 All dynamic routes set `prerender = false`. Pages are the composition root: they instantiate infrastructure and use cases **once at module scope**, validate input with Zod + domain value objects, call the use case, and map any `Failure` to an HTTP response via `statusFor`/`messageFor`. No business logic lives in pages. See **[API Reference](API-Reference)**.
 
@@ -43,9 +43,9 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 
 ## Middleware
 
-[`src/middleware.ts`](../../web/src/middleware.ts) runs on every request and does three things:
+[`src/middleware.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/middleware.ts) runs on every request and does three things:
 
-1. **Blocking the agent guide:** `/CLAUDE` gets a bare `404` before anything else runs. Astro compiles [`src/pages/CLAUDE.md`](../../web/src/pages/CLAUDE.md) into a public page, and this is what keeps it off the web ([ADR 0018](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
+1. **Blocking the agent guide:** `/CLAUDE` gets a bare `404` before anything else runs. Astro compiles [`src/pages/CLAUDE.md`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/CLAUDE.md) into a public page, and this is what keeps it off the web ([ADR 0018](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
 2. **Rate limiting:** for `/api/*` paths, it reads the `API_RATE_LIMITER` binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. Over the limit, it returns `429` with `Retry-After: 60` (still wrapped in the security headers).
 3. **Security headers:** every response is re-wrapped with a strict header set:
 
@@ -71,7 +71,7 @@ Cross-Origin-Embedder-Policy: unsafe-none
 
 ## Environments & deploys
 
-Both deploys run from [`ci.yml`](../../.github/workflows/ci.yml), only after `Verify (web)` (`pnpm verify`: format check, typecheck, `astro check` and coverage) passes:
+Both deploys run from [`ci.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/ci.yml), only after `Verify (web)` (`pnpm verify`: format check, typecheck, `astro check` and coverage) passes:
 
 - **Production:** every push to `main` matching the workflow's path filter builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`. That filter covers `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files and the workflow's own wiring as well as `web/**`, so a documentation-only push redeploys too; see **[CI/CD](CI-CD)** for why.
 - **Development:** every PR matching the same filter builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.

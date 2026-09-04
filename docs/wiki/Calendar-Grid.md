@@ -1,6 +1,6 @@
 # Calendar Grid
 
-GitHub's contribution calendar is always a fixed **53 weeks × 7 days** grid. ContribKit builds that grid deterministically so rendering is stable regardless of which days GitHub actually returned. The logic lives in [`web/src/domain/services/calendar-grid.ts`](../../web/src/domain/services/calendar-grid.ts).
+GitHub's contribution calendar is always a fixed **53 weeks × 7 days** grid. ContribKit builds that grid deterministically so rendering is stable regardless of which days GitHub actually returned. The logic lives in [`web/src/domain/services/calendar-grid.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/services/calendar-grid.ts).
 
 ```mermaid
 ---
@@ -13,7 +13,7 @@ flowchart LR
     walk --> grid["53 weeks × 7 days<br/>= 371 cells"]
 ```
 
-`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7) = 371` cells. All three are declared in [`web/src/domain/services/dates.ts`](../../web/src/domain/services/dates.ts).
+`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7) = 371` cells. All three are declared in [`web/src/domain/services/dates.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/services/dates.ts).
 
 ---
 
@@ -61,7 +61,7 @@ For each of the 371 positions:
 - if present, use its `level` (run through `clampLevel`) and `count`,
 - if absent, emit `{ level: 0, count: null }`.
 
-This guarantees a complete, gap-free grid even when GitHub omits leading/trailing days outside the year. **An absent day is not a zero day**: it is a day with an unknown Count that happens to render like an empty one ([ADR 0019](../adr/0019-an-unknown-count-is-null-in-both-clients.md)).
+This guarantees a complete, gap-free grid even when GitHub omits leading/trailing days outside the year. **An absent day is not a zero day**: it is a day with an unknown Count that happens to render like an empty one ([ADR 0019](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)).
 
 ---
 
