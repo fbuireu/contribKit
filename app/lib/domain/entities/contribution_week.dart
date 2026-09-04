@@ -6,7 +6,7 @@ final class ContributionWeek {
 
   final List<ContributionDay> days;
 
-  bool _listEquals({
+  static bool _listEquals({
     required List<ContributionDay> left,
     required List<ContributionDay> right,
   }) {

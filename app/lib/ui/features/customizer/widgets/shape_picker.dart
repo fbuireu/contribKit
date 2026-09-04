@@ -18,10 +18,11 @@ class ShapePicker extends StatelessWidget {
     options: CellShape.values,
     selected: selected,
     onSelected: onSelected,
-    optionBuilder: (shape, isSelected, onTap) => SettingChoiceButton(
-      label: shape.label,
-      isSelected: isSelected,
-      onTap: onTap,
-    ),
+    optionBuilder: ({required option, required isSelected, required onTap}) =>
+        SettingChoiceButton(
+          label: option.label,
+          isSelected: isSelected,
+          onTap: onTap,
+        ),
   );
 }

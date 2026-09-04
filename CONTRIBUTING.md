@@ -99,6 +99,18 @@ flutter test
 dart run build_runner build   # after touching any @freezed, @riverpod or DTO class
 ```
 
+[`app/analysis_options.yaml`](./app/analysis_options.yaml) sits well above `flutter_lints`, and the rules it adds
+are the ones a reviewer would otherwise have to say out loud: `directives_ordering` and `sort_constructors_first`
+so a file's shape is not a matter of who typed it, `unawaited_futures` so a dropped `Future` is a compile-time
+complaint rather than a silent no-op, `avoid_positional_boolean_parameters` because a bare `true` at a call site
+says nothing, and `use_colored_box` / `use_decorated_box` / `sized_box_shrink_expand` / `avoid_unnecessary_containers`
+because a `Container` that only paints is a rebuild nobody asked for. Two rules are deliberately **not** on:
+`avoid_redundant_argument_values` would rewrite `DateTime(2026, 1, 1)` to `DateTime(2026)` and delete the
+`isDark: true` that records which ramp an export renders, and `discarded_futures` fires on every `onPressed` that
+starts one, which is the shape the framework asks for. `dart fix --apply` fixes most of what the rest catch, but
+read its diff: it moves a primary constructor below the factories that call it, and both value objects it touched
+had to be put back by hand.
+
 There are **no build flavors**. The stage comes from which dart-defines file you pass
 (`dart-defines.json` or `dart-defines.prod.json`); `--flavor` will fail
 ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)). Forgetting the

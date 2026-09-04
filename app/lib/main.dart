@@ -1,6 +1,6 @@
-import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
+import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/widget/home_screen_widget_refresh.dart';
@@ -10,10 +10,10 @@ import 'package:flutter/material.dart' show Material, ThemeMode;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:workmanager/workmanager.dart';
 

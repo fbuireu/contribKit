@@ -1,9 +1,6 @@
-import 'package:contribkit/ui/theme/background_presets.dart';
-import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
+import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
-import 'package:intl/intl.dart' show NumberFormat;
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:contribkit/ui/widgets/app_icons.dart';
+import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
@@ -13,18 +10,23 @@ import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
 import 'package:contribkit/ui/features/viewer/viewer_notifier.dart';
 import 'package:contribkit/ui/features/viewer/viewer_state.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
+import 'package:contribkit/ui/theme/background_presets.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:contribkit/ui/widgets/app_card.dart';
+import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_text_field.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 
 class ViewerScreen extends ConsumerStatefulWidget {
   const ViewerScreen({super.key});
@@ -425,27 +427,38 @@ class _Body extends ConsumerWidget {
         onRetry: ref.read(viewerProvider.notifier).retry,
       );
     }
-    if (state.username == null || state.calendar == null) {
-      return const _EmptyState();
+    if (state case ViewerState(
+      username: _?,
+      calendar: final calendar?,
+      stats: final stats?,
+      palette: final palette?,
+    )) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: Tokens.space4,
+        children: [
+          _CalendarCard(state: state, calendar: calendar, palette: palette),
+          StatsPanel(calendar: calendar, stats: stats),
+          _ActionRow(state: state, calendar: calendar, palette: palette),
+        ],
+      );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: Tokens.space4,
-      children: [
-        _CalendarCard(state: state),
-        StatsPanel(calendar: state.calendar!, stats: state.stats!),
-        _ActionRow(state: state),
-      ],
-    );
+    return const _EmptyState();
   }
 }
 
 final _contribFmt = NumberFormat.decimalPattern();
 
 class _CalendarCard extends ConsumerWidget {
-  const _CalendarCard({required this.state});
+  const _CalendarCard({
+    required this.state,
+    required this.calendar,
+    required this.palette,
+  });
 
   final ViewerState state;
+  final ContributionCalendar calendar;
+  final Palette palette;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -477,7 +490,7 @@ class _CalendarCard extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '${formatTotalContributions(format: _contribFmt, total: state.calendar!.totalContributions)} contributions',
+                  '${formatTotalContributions(format: _contribFmt, total: calendar.totalContributions)} contributions',
                   style: AppTextStyles.mono(
                     fontSize: Tokens.textXs,
                     color: colors.accent,
@@ -517,8 +530,8 @@ class _CalendarCard extends ConsumerWidget {
           ColoredBox(
             color: gridBg,
             child: ContributionGrid(
-              calendar: state.calendar!,
-              palette: state.palette!,
+              calendar: calendar,
+              palette: palette,
               shape: state.cellShape,
               cellSize: state.cellSize,
             ),
@@ -530,9 +543,15 @@ class _CalendarCard extends ConsumerWidget {
 }
 
 class _ActionRow extends StatelessWidget {
-  const _ActionRow({required this.state});
+  const _ActionRow({
+    required this.state,
+    required this.calendar,
+    required this.palette,
+  });
 
   final ViewerState state;
+  final ContributionCalendar calendar;
+  final Palette palette;
 
   @override
   Widget build(BuildContext context) {
@@ -557,8 +576,8 @@ class _ActionRow extends StatelessWidget {
           child: AppButton.outline(
             onPressed: () => ExportSheet.show(
               context,
-              calendar: state.calendar!,
-              palette: state.palette!,
+              calendar: calendar,
+              palette: palette,
               cellShape: state.cellShape,
               cellSize: state.cellSize,
             ),

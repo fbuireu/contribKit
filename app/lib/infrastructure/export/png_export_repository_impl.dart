@@ -1,12 +1,11 @@
 import 'dart:ui' as ui;
 
-import 'package:contribkit/domain/services/cell_geometry_service.dart';
-import 'package:contribkit/domain/value_objects/cell_figure.dart';
-import 'package:contribkit/domain/services/export_geometry_service.dart';
-
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
+import 'package:contribkit/domain/services/cell_geometry_service.dart';
+import 'package:contribkit/domain/services/export_geometry_service.dart';
+import 'package:contribkit/domain/value_objects/cell_figure.dart';
 
 final class PngExportRepository implements ExportRepository {
   @override

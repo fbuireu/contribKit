@@ -27,7 +27,7 @@ class CustomizerSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ViewerState state = ref.watch(viewerProvider);
+    final state = ref.watch(viewerProvider);
     final notifier = ref.read(viewerProvider.notifier);
 
     return AppSheet(
@@ -36,21 +36,21 @@ class CustomizerSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (state.calendar != null && state.palette != null) ...[
+          if (state case ViewerState(
+            calendar: final calendar?,
+            palette: final palette?,
+          )) ...[
             _CalendarPreview(
-              calendar: state.calendar!,
-              palette: state.palette!,
+              calendar: calendar,
+              palette: palette,
               cellShape: state.cellShape,
               cellSize: state.cellSize,
               backgroundPreset: state.backgroundPreset,
             ),
             const SizedBox(height: Tokens.space5),
           ],
-          if (state.palette != null) ...[
-            PalettePicker(
-              selected: state.palette!,
-              onSelected: notifier.setPalette,
-            ),
+          if (state.palette case final palette?) ...[
+            PalettePicker(selected: palette, onSelected: notifier.setPalette),
             const SizedBox(height: Tokens.space5),
           ],
           ShapePicker(

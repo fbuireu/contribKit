@@ -28,3 +28,25 @@ linter:
     sort_pub_dependencies: false
     prefer_const_constructors: true
     prefer_const_literals_to_create_immutables: true
+    always_declare_return_types: true
+    avoid_positional_boolean_parameters: true
+    avoid_unnecessary_containers: true
+    combinators_ordering: true
+    directives_ordering: true
+    implicit_call_tearoffs: true
+    matching_super_parameters: true
+    no_literal_bool_comparisons: true
+    null_check_on_nullable_type_parameter: true
+    omit_local_variable_types: true
+    prefer_const_declarations: true
+    sized_box_shrink_expand: true
+    sort_constructors_first: true
+    unawaited_futures: true
+    unnecessary_breaks: true
+    unnecessary_lambdas: true
+    unnecessary_parenthesis: true
+    unnecessary_underscores: true
+    use_colored_box: true
+    use_decorated_box: true
+    use_named_constants: true
+    use_string_in_part_of_directives: true

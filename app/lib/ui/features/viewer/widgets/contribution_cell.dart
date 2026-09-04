@@ -1,18 +1,16 @@
-import 'package:flutter/foundation.dart' show listEquals;
-
+import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/services/cell_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_figure.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:contribkit/ui/widgets/app_tooltip.dart';
-import 'package:contribkit/ui/theme/app_colors.dart';
-
-import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
-import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
+import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
+import 'package:contribkit/ui/widgets/app_tooltip.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/widgets.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ContributionCell extends StatelessWidget {
   const ContributionCell({

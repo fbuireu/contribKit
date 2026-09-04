@@ -1,16 +1,16 @@
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
-import 'package:contribkit/ui/features/tip/tip_jar_state.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:contribkit/ui/widgets/app_icons.dart';
-import 'package:contribkit/ui/widgets/app_sheet.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
+import 'package:contribkit/ui/features/tip/tip_jar_state.dart';
 import 'package:contribkit/ui/features/tip/tip_product_presentation.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
+import 'package:contribkit/ui/widgets/app_icons.dart';
+import 'package:contribkit/ui/widgets/app_sheet.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TipJarSheet extends ConsumerStatefulWidget {

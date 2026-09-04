@@ -19,11 +19,13 @@ void main() {
             options: const ['Square', 'Circle', 'Hex'],
             selected: 'Square',
             onSelected: (_) {},
-            optionBuilder: (option, isSelected, onTap) => SettingChoiceButton(
-              label: option,
-              isSelected: isSelected,
-              onTap: onTap,
-            ),
+            optionBuilder:
+                ({required option, required isSelected, required onTap}) =>
+                    SettingChoiceButton(
+                      label: option,
+                      isSelected: isSelected,
+                      onTap: onTap,
+                    ),
           ),
         ),
       );
@@ -46,14 +48,15 @@ void main() {
             options: const ['Square', 'Circle'],
             selected: 'Circle',
             onSelected: (_) {},
-            optionBuilder: (option, isSelected, onTap) {
-              selectedFor[option] = isSelected;
-              return SettingChoiceButton(
-                label: option,
-                isSelected: isSelected,
-                onTap: onTap,
-              );
-            },
+            optionBuilder:
+                ({required option, required isSelected, required onTap}) {
+                  selectedFor[option] = isSelected;
+                  return SettingChoiceButton(
+                    label: option,
+                    isSelected: isSelected,
+                    onTap: onTap,
+                  );
+                },
           ),
         ),
       );
@@ -71,11 +74,13 @@ void main() {
             options: const ['Square', 'Circle'],
             selected: 'Square',
             onSelected: (option) => chosen = option,
-            optionBuilder: (option, isSelected, onTap) => SettingChoiceButton(
-              label: option,
-              isSelected: isSelected,
-              onTap: onTap,
-            ),
+            optionBuilder:
+                ({required option, required isSelected, required onTap}) =>
+                    SettingChoiceButton(
+                      label: option,
+                      isSelected: isSelected,
+                      onTap: onTap,
+                    ),
           ),
         ),
       );
@@ -94,8 +99,11 @@ void main() {
           selected: 'a',
           onSelected: (_) {},
           scrollable: scrollable,
-          optionBuilder: (option, isSelected, onTap) =>
-              SettingSwatch(isSelected: isSelected, onTap: onTap, size: 14),
+          optionBuilder: ({
+            required option,
+            required isSelected,
+            required onTap,
+          }) => SettingSwatch(isSelected: isSelected, onTap: onTap, size: 14),
         ),
       );
 
@@ -118,8 +126,11 @@ void main() {
             options: const [],
             selected: 'a',
             onSelected: (_) {},
-            optionBuilder: (option, isSelected, onTap) =>
-                SettingSwatch(isSelected: isSelected, onTap: onTap, size: 14),
+            optionBuilder: ({
+              required option,
+              required isSelected,
+              required onTap,
+            }) => SettingSwatch(isSelected: isSelected, onTap: onTap, size: 14),
           ),
         ),
       );
@@ -144,7 +155,7 @@ void main() {
     });
 
     testWidgets('draws a heavier border when selected', (tester) async {
-      Future<double> borderWidthFor(bool isSelected) async {
+      Future<double> borderWidthFor({required bool isSelected}) async {
         await tester.pumpWidget(
           _host(SettingSwatch(isSelected: isSelected, onTap: () {}, size: 20)),
         );
@@ -157,8 +168,8 @@ void main() {
         return decoration.border!.top.width;
       }
 
-      final selected = await borderWidthFor(true);
-      final unselected = await borderWidthFor(false);
+      final selected = await borderWidthFor(isSelected: true);
+      final unselected = await borderWidthFor(isSelected: false);
 
       expect(selected, greaterThan(unselected));
     });

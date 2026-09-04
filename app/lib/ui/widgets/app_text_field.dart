@@ -24,9 +24,10 @@ class AppTextField extends StatelessWidget {
     return ShadInput(
       controller: controller,
       focusNode: focusNode,
-      placeholder: placeholder != null
-          ? Text(placeholder!, style: TextStyle(color: mutedColor))
-          : null,
+      placeholder: switch (placeholder) {
+        final text? => Text(text, style: TextStyle(color: mutedColor)),
+        null => null,
+      },
       onSubmitted: onSubmitted,
       enabled: enabled,
     );

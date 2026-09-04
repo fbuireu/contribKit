@@ -37,7 +37,7 @@ void main() {
     test('a polygon refuses to be mutated after it is built', () {
       final polygon = _figure(CellShape.hex) as PolygonFigure;
 
-      expect(() => polygon.vertices.clear(), throwsUnsupportedError);
+      expect(polygon.vertices.clear, throwsUnsupportedError);
     });
   });
 }

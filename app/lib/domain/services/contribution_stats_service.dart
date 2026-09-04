@@ -1,5 +1,5 @@
-import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
+import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/services/streak_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_stats.dart';
 
@@ -37,11 +37,11 @@ abstract final class ContributionStatsService {
       );
     }
 
-    int longestStreak = 0;
-    int run = 0;
-    int bestCount = 0;
+    var longestStreak = 0;
+    var run = 0;
+    var bestCount = 0;
     DateTime? bestDate;
-    int totalActive = 0;
+    var totalActive = 0;
 
     for (final day in allDays) {
       if (day.isActive) {

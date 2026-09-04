@@ -1,11 +1,13 @@
-import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/value_objects/contribution_stats.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+
+final _statsFmt = NumberFormat.decimalPattern();
 
 class StatsPanel extends StatelessWidget {
   const StatsPanel({super.key, required this.calendar, required this.stats});
@@ -16,7 +18,6 @@ class StatsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final fmt = NumberFormat.decimalPattern();
     final isCurrentYear = calendar.year.value == DateTime.now().year;
 
     return Row(
@@ -26,7 +27,7 @@ class StatsPanel extends StatelessWidget {
           child: _StatTile(
             label: 'TOTAL',
             value: formatTotalContributions(
-              format: fmt,
+              format: _statsFmt,
               total: calendar.totalContributions,
             ),
             unit: 'contributions',

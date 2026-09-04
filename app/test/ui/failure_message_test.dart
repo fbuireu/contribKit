@@ -1,6 +1,6 @@
 import 'package:contribkit/domain/failures/failure.dart';
-import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
+import 'package:contribkit/ui/failure_message.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 final _everyFailure = <Failure>[

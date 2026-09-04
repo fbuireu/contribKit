@@ -5,13 +5,6 @@ final class Color {
         'A Color is an ARGB value; anything else makes toHex emit garbage',
       );
 
-  final int argb;
-
-  int get alpha => (argb >> 24) & 0xFF;
-  int get red => (argb >> 16) & 0xFF;
-  int get green => (argb >> 8) & 0xFF;
-  int get blue => argb & 0xFF;
-
   factory Color.fromARGB({
     required int alpha,
     required int red,
@@ -39,6 +32,13 @@ final class Color {
       int.parse(cleaned.length == 6 ? 'FF$cleaned' : cleaned, radix: 16),
     );
   }
+
+  final int argb;
+
+  int get alpha => (argb >> 24) & 0xFF;
+  int get red => (argb >> 16) & 0xFF;
+  int get green => (argb >> 8) & 0xFF;
+  int get blue => argb & 0xFF;
 
   static final _hexPattern = RegExp(r'^[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$');
 

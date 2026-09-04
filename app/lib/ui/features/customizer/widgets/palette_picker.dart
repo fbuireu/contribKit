@@ -32,15 +32,17 @@ class PalettePicker extends ConsumerWidget {
             selected: selected,
             onSelected: onSelected,
             scrollable: true,
-            optionBuilder: (palette, isSelected, onTap) => AppTooltip(
-              message: Text(palette.name),
-              child: SettingSwatch(
-                isSelected: isSelected,
-                onTap: onTap,
-                padding: const EdgeInsets.all(Tokens.space1),
-                child: _PaletteRamp(palette: palette),
-              ),
-            ),
+            optionBuilder:
+                ({required option, required isSelected, required onTap}) =>
+                    AppTooltip(
+                      message: Text(option.name),
+                      child: SettingSwatch(
+                        isSelected: isSelected,
+                        onTap: onTap,
+                        padding: const EdgeInsets.all(Tokens.space1),
+                        child: _PaletteRamp(palette: option),
+                      ),
+                    ),
           ),
         );
   }

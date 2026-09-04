@@ -1,8 +1,4 @@
 final class Year {
-  const Year._(this.value);
-
-  static const minYear = 2005;
-
   factory Year(int value) {
     final maxYear = DateTime.now().year;
     if (value < Year.minYear || value > maxYear) {
@@ -10,6 +6,10 @@ final class Year {
     }
     return Year._(value);
   }
+
+  const Year._(this.value);
+
+  static const minYear = 2005;
 
   final int value;
 

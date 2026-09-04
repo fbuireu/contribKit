@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:contribkit/ui/widgets/app_icons.dart';
-import 'package:contribkit/ui/widgets/app_sheet.dart';
-
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/services/export_geometry_service.dart';
@@ -18,6 +15,8 @@ import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
+import 'package:contribkit/ui/widgets/app_icons.dart';
+import 'package:contribkit/ui/widgets/app_sheet.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -167,10 +166,10 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 onTap: () => setState(() => _selected = fmt),
               ),
             ),
-          if (_exportError != null) ...[
+          if (_exportError case final error?) ...[
             const SizedBox(height: Tokens.space2),
             Text(
-              _exportError!,
+              error,
               style: AppTextStyles.mono(
                 fontSize: Tokens.textSm,
                 color: colors.destructive,

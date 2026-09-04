@@ -3,11 +3,11 @@ import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:flutter/widgets.dart';
 
-typedef SettingOptionBuilder<T> = Widget Function(
-  T option,
-  bool isSelected,
-  VoidCallback onTap,
-);
+typedef SettingOptionBuilder<T> = Widget Function({
+  required T option,
+  required bool isSelected,
+  required VoidCallback onTap,
+});
 
 class SettingPicker<T> extends StatelessWidget {
   const SettingPicker({
@@ -31,7 +31,11 @@ class SettingPicker<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       for (final option in options)
-        optionBuilder(option, option == selected, () => onSelected(option)),
+        optionBuilder(
+          option: option,
+          isSelected: option == selected,
+          onTap: () => onSelected(option),
+        ),
     ];
 
     return Column(

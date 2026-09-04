@@ -18,10 +18,11 @@ class SizePicker extends StatelessWidget {
     options: CellSize.values,
     selected: selected,
     onSelected: onSelected,
-    optionBuilder: (size, isSelected, onTap) => SettingChoiceButton(
-      label: size.label,
-      isSelected: isSelected,
-      onTap: onTap,
-    ),
+    optionBuilder: ({required option, required isSelected, required onTap}) =>
+        SettingChoiceButton(
+          label: option.label,
+          isSelected: isSelected,
+          onTap: onTap,
+        ),
   );
 }

@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/services/palette_service.dart';
-import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';

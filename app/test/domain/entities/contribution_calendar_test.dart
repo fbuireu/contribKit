@@ -28,7 +28,7 @@ void main() {
       () {
         final calendar = _calendar();
 
-        expect(() => calendar.weeks.clear(), throwsUnsupportedError);
+        expect(calendar.weeks.clear, throwsUnsupportedError);
         expect(() => calendar.weeks.first.days.clear(), throwsUnsupportedError);
       },
     );
@@ -39,7 +39,7 @@ void main() {
         final calendar = _calendar();
         final before = calendar.hashCode;
 
-        expect(() => calendar.weeks.removeLast(), throwsUnsupportedError);
+        expect(calendar.weeks.removeLast, throwsUnsupportedError);
         expect(calendar.hashCode, before);
       },
     );
