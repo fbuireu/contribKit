@@ -291,9 +291,12 @@ screen drew a fixed `2.0`. At the `large` Cell Size that is 2.8 against 2.0: you
 the corners changed. The screen was the outlier, so the screen moved.
 
 `ContribKitWidgetProvider.kt` is the fourth copy and cannot import Dart, so it stays a deliberate mirror. If a
-constant here changes, that file changes in the same commit. And note the constants themselves do not cross:
-Kotlin spells `0.2f`, `1.4f`, `10f` and `6` as literals, so a change here produces no compile error and no failing
-test there. The pairing is prose and a code review.
+constant here changes, that file changes in the same commit. The constants themselves still do not cross, so a
+change here produces no compile error there; what it does produce is a **failing test**. The docs contract reads
+`cornerRadiusRatio`, `dotBaseRadius`, `dotReferenceCellSize` and `hexVertexCount` out of this file and asserts the
+TypeScript constants and the Kotlin literals match, the same way it already diffs the Embed contract across two
+languages. That closes the gap [ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md)
+called unclosable: the *bitmap* is unassertable, the four numbers in the source are not.
 
 **There is a fifth renderer, and it agrees now.** [`web/src/domain/services/svg-geometry.ts`](../../../web/src/domain/services/svg-geometry.ts) draws the same Cell for
 the Embed and the browser preview, and it used to hold its own numbers: a corner radius fixed at `2.5` where this

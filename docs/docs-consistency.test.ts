@@ -517,6 +517,71 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 	});
 });
 
+describe("the Cell geometry is written three times and must agree", () => {
+	const DART = join(REPO, "app/lib/domain/services/cell_geometry_service.dart");
+	const WEB = join(REPO, "web/src/domain/services/svg-geometry.ts");
+	const KOTLIN = join(REPO, "app/android/app/src/main/kotlin/com/fbuireu/contribkit/ContribKitWidgetProvider.kt");
+
+	interface NumberAfterParams {
+		body: string;
+		pattern: RegExp;
+	}
+
+	const numberAfter = ({ body, pattern }: NumberAfterParams): number => {
+		const found = pattern.exec(body)?.[1];
+		expect(found, String(pattern)).toBeDefined();
+		return Number(found);
+	};
+
+	it("reads all three spellings", () => {
+		for (const path of [DART, WEB, KOTLIN]) expect(existsSync(path), relative(path)).toBe(true);
+	});
+
+	it("rounds a Cell corner by the same ratio everywhere", () => {
+		const dart = numberAfter({ body: read(DART), pattern: /static const cornerRadiusRatio = ([\d.]+);/ });
+
+		expect(numberAfter({ body: read(WEB), pattern: /const CORNER_RADIUS_RATIO = ([\d.]+);/ })).toBe(dart);
+		expect(
+			numberAfter({
+				body: read(KOTLIN),
+				pattern: /x \+ size, y \+ size, size \* ([\d.]+)f, size \* [\d.]+f, paint/,
+			}),
+		).toBe(dart);
+	});
+
+	it("grows a Dot from the same base radius, against the same reference Cell", () => {
+		const body = read(DART);
+		const base = numberAfter({ body, pattern: /static const dotBaseRadius = ([\d.]+);/ });
+		const reference = numberAfter({ body, pattern: /static const dotReferenceCellSize = ([\d.]+);/ });
+		const web = read(WEB);
+		const kotlin = read(KOTLIN);
+
+		expect(numberAfter({ body: web, pattern: /const DOT_BASE_RADIUS = ([\d.]+);/ })).toBe(base);
+		expect(numberAfter({ body: web, pattern: /const DOT_REFERENCE_CELL_SIZE = ([\d.]+);/ })).toBe(reference);
+		expect(numberAfter({ body: kotlin, pattern: /if \(level == 0\) ([\d.]+)f else [\d.]+f \+ level/ })).toBe(base);
+		expect(numberAfter({ body: kotlin, pattern: /\(size \/ ([\d.]+)f\)/ })).toBe(reference);
+	});
+
+	it("turns a hexagon the same way, through the same number of vertices", () => {
+		const dart = read(DART);
+		const vertices = numberAfter({ body: dart, pattern: /static const hexVertexCount = (\d+);/ });
+
+		expect(dart).toContain("math.cos((math.pi / 3) * vertex + math.pi / 6)");
+		expect(read(WEB)).toContain("(Math.PI / 3) * vertex + Math.PI / 6");
+		expect(read(WEB)).toContain(`vertex < ${vertices};`);
+		expect(read(KOTLIN)).toContain("(Math.PI / 3) * i + Math.PI / 6");
+		expect(read(KOTLIN)).toContain(`0 until ${vertices}`);
+	});
+
+	it("halves the Cell for a circle in all three, so no client draws a different one", () => {
+		const WEB_SHAPES = join(REPO, "web/src/domain/services/cell-shapes.ts");
+
+		expect(read(DART)).toContain("CircleFigure(radius: cellSize / 2)");
+		expect(read(WEB_SHAPES)).toContain("r=\"${size / 2}\"");
+		expect(read(KOTLIN)).toContain("canvas.drawCircle(cx, cy, size / 2, paint)");
+	});
+});
+
 describe("the dark palette is written twice and must agree", () => {
 	const VARIABLES = join(REPO, "web/src/ui/styles/global/variables.css");
 

@@ -149,7 +149,8 @@ test helper reintroduces the same bug in the test rather than the code.
   gets 0, and `circle` / `dot` / `hex` get `size / 2`. That is what makes a rect look like a circle if it is ever
   routed through the rect renderer. Read through `calendarLayout().radius`. This file held a fixed `2.5` and an
   unscaled dot radius until that was unified; the Embed's corner moved from 2.5 to 2.0 as a result. **Change a
-  constant here and it changes in three languages**: Dart is the source, Kotlin cannot import either.
+  constant here and it changes in three languages**: Dart is the source, Kotlin cannot import either, and the
+  docs contract fails until all three agree.
 - **`dotRadius` overflows its own cell on purpose.** Level 0 is `DOT_BASE_RADIUS` (1.4) and every other level is
   `1.4 + level`, so level 4 is 5.4 against a default cell half-width of 5. It still fits the 12 px pitch that
   `SVG_DEFAULT_CELL_SIZE` (10) plus `SVG_DEFAULT_CELL_GAP` (2) gives, so dots never collide. Shrink the gap and
