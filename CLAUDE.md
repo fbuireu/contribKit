@@ -70,7 +70,7 @@ pnpm test:docs                   # the maintenance contract alone (also runs ins
 pnpm test:e2e                    # playwright
 
 # app/: run from app/
-flutter analyze                  # must be clean; CI runs --fatal-infos
+dart analyze                     # must be clean; CI runs --fatal-infos
 flutter test
 flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 dart run build_runner build      # after touching a @freezed / @riverpod / DTO class

@@ -517,6 +517,53 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 	});
 });
 
+describe("the app is analyzed by the command that loads its plugin", () => {
+	const OPTIONS = join(REPO, "app/analysis_options.yaml");
+	const PUBSPEC = join(REPO, "app/pubspec.yaml");
+	const SEARCHED = [".github", "docs", "app/lefthook.yml", "CLAUDE.md", "CONTRIBUTING.md", "ARCHITECTURE.md"];
+
+	it("declares riverpod_lint as a plugin, over a range the manifest satisfies", () => {
+		const declared = /^\s{2}riverpod_lint:\s*\^(\d+)\.(\d+)\.\d+\s*$/m.exec(read(OPTIONS));
+		const pinned = /^\s{2}riverpod_lint:\s*(\d+)\.(\d+)\.\d+\s*$/m.exec(read(PUBSPEC));
+
+		expect(declared, "analysis_options.yaml pins riverpod_lint instead of ranging it").not.toBeNull();
+		expect(pinned, "pubspec.yaml does not pin riverpod_lint").not.toBeNull();
+		expect(declared?.[1]).toBe(pinned?.[1]);
+		expect(Number(pinned?.[2])).toBeGreaterThanOrEqual(Number(declared?.[2]));
+	});
+
+	const NARRATES_THE_SWITCH = "CONTRIBUTING.md";
+
+	it("keeps its one exemption honest, so the allowance cannot become a habit", () => {
+		const body = read(join(REPO, NARRATES_THE_SWITCH));
+
+		expect(body).toContain("flutter analyze");
+		expect(
+			body,
+			`${NARRATES_THE_SWITCH} is exempt only because it explains the difference; if it stops explaining it, it stops being exempt`,
+		).toContain("does not");
+	});
+
+	it("runs dart analyze and never flutter analyze, which loads no plugin", () => {
+		const offenders = SEARCHED.flatMap((entry) => {
+			const path = join(REPO, entry);
+			if (!existsSync(path)) return [];
+			const files = statSync(path).isDirectory()
+				? walk({ dir: path, match: (file) => /\.(ya?ml|md)$/.test(file) })
+				: [path];
+			return files
+				.filter((file) => relative(file) !== NARRATES_THE_SWITCH)
+				.filter((file) => read(file).includes("flutter analyze"))
+				.map((file) => relative(file));
+		});
+
+		expect(
+			offenders,
+			"flutter analyze does not load the analysis_server_plugin riverpod_lint installs, so every one of its rules is silently off",
+		).toEqual([]);
+	});
+});
+
 describe("the Cell geometry is written three times and must agree", () => {
 	const DART = join(REPO, "app/lib/domain/services/cell_geometry_service.dart");
 	const WEB = join(REPO, "web/src/domain/services/svg-geometry.ts");

@@ -32,7 +32,7 @@
 <!-- Describe how you verified your changes -->
 
 - [ ] Web: existing unit tests pass (`pnpm test:ut` from `web/`) and the build passes (`pnpm build`)
-- [ ] App: existing tests pass (`flutter test`), `flutter analyze --fatal-infos` is clean and a debug build passes (`flutter build apk --debug`)
+- [ ] App: existing tests pass (`flutter test`), `dart analyze --fatal-infos` is clean and a debug build passes (`flutter build apk --debug`)
 - [ ] Added new tests for changes
 - [ ] Manually tested in a browser, or on a device or emulator
 

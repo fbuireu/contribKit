@@ -94,7 +94,7 @@ pnpm verify       # format:check + typecheck + astro check + coverage: what CI a
 
 ```bash
 cd app
-flutter analyze           # must be clean; CI runs --fatal-infos
+dart analyze              # must be clean; CI runs --fatal-infos
 flutter test
 flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 dart run build_runner build   # after touching any @freezed, @riverpod or DTO class
@@ -111,6 +111,15 @@ because a `Container` that only paints is a rebuild nobody asked for. Two rules 
 starts one, which is the shape the framework asks for. `dart fix --apply` fixes most of what the rest catch, but
 read its diff: it moves a primary constructor below the factories that call it, and both value objects it touched
 had to be put back by hand.
+
+**It is `dart analyze`, and it used to be `flutter analyze`, and that difference turned fifteen rules off.**
+`riverpod_lint` is installed through the `plugins:` block in [`app/analysis_options.yaml`](./app/analysis_options.yaml), which is the
+`analysis_server_plugin` mechanism its README documents. `dart analyze` loads that plugin; `flutter analyze` does
+not. A public property on a generated `Notifier`, which `avoid_public_notifier_properties` exists to catch, was
+reported by one and passed clean by the other, and CI, both hooks and every document ran the one that passed. The
+plugin's version there is a **range** (`^3.1.0`) rather than the exact pin it used to be: the exact one said
+`3.1.3` while `pubspec.yaml` resolved `3.1.8`, which is one fact written twice with two different answers and only
+one of them kept current by a bot.
 
 There are **no build flavors**. The stage comes from which dart-defines file you pass
 (`dart-defines.json` or `dart-defines.prod.json`); `--flavor` will fail
@@ -211,7 +220,7 @@ the index points at will not be read.
 Before you open one:
 
 1. The relevant checks pass: `pnpm verify` for the web,
-   `flutter analyze` plus `flutter test --coverage && dart run tool/check_coverage.dart` for the app.
+   `dart analyze --fatal-infos` plus `flutter test --coverage && dart run tool/check_coverage.dart` for the app.
    Both halves also run on `pre-push`, so this is a reminder rather than a manual step.
 2. `pnpm test:docs` passes, whichever client you touched.
 3. Commits follow the rules above, including the one-client rule.

@@ -79,7 +79,7 @@ flutter pub get
 | `flutter run --dart-define-from-file=dart-defines.json`      | Run locally                         |
 | `dart run build_runner watch`                                | Watch codegen (riverpod, freezed)   |
 | `flutter test --coverage`                                    | Run tests                           |
-| `flutter analyze`                                            | Static analysis                     |
+| `dart analyze`                                               | Static analysis                     |
 
 `REVENUECAT_KEY` is only needed to exercise the tip jar; the rest of the app runs without it.
 

@@ -77,12 +77,12 @@ config:
 ---
 flowchart LR
   docs["docs-contract (pnpm test:docs)"]
-  analyze["flutter-analyze (format + analyze --fatal-infos)"] --> build["flutter-build (debug APK)"]
+  analyze["dart-analyze (format + analyze --fatal-infos)"] --> build["flutter-build (debug APK)"]
   test["flutter-test (+ coverage → Codecov)"] --> build
 ```
 
 - **docs-contract:** installs Node and the web dependencies and runs `pnpm test:docs`. It touches no Dart, and it lives in `ci.yml` ungated rather than in either per-client workflow, because a large share of its assertions are about the Flutter side and the rest are about the repository root.
-- **flutter-analyze:** `dart format` verification + `flutter analyze --fatal-infos`.
+- **dart-analyze:** `dart format` verification + `dart analyze --fatal-infos`.
 - **flutter-test:** unit/widget tests with coverage uploaded to Codecov.
 - **flutter-build:** builds a debug APK to catch build breakages early.
 
@@ -93,7 +93,7 @@ exist in a plain Astro dev server. With `BASE_URL` unset, Playwright's `webServe
 `localhost:8787` instead, so `pnpm test:e2e` works on a laptop. That fallback used to be declared in `baseURL` and
 wired to nothing, so a local run pointed at an empty port.
 
-Both `flutter analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
+Both `dart analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
 
 Coverage thresholds live in [`.github/codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/codecov.yml): the project status allows a 1% drop against the base, and a patch must reach 80%. That file used to declare `ignore` and nothing else, so enforcement rested on Codecov's undeclared defaults and the bar could be moved from a web UI without leaving a trace in the tree.
 

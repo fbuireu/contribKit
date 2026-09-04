@@ -53,13 +53,13 @@ flowchart TD
     pc --> sync["sync-shared-assets (shared/*.json)"]
     pc --> webfmt["web-format: biome check --write"]
     pc --> dartfmt["flutter-format: dart format"]
-    pc --> analyze["flutter-analyze: flutter analyze --fatal-infos"]
+    pc --> analyze["dart-analyze: dart analyze --fatal-infos"]
     sync & webfmt & dartfmt & analyze --> cm["commit-msg"]
     cm --> lint["commitlint --edit"]
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
     pp --> webcheck["web-verify: pnpm verify + astro check"]
-    pp --> dartcheck["flutter-analyze --fatal-infos (only if Dart changed)"]
+    pp --> dartcheck["dart-analyze --fatal-infos (only if Dart changed)"]
 ```
 
 ---
@@ -73,7 +73,7 @@ Runs on staged files only, before the commit is created.
 | `sync-shared-assets` | `shared/*.json` | `node scripts/sync-shared-assets.mjs --stage` | Regenerates `app/assets/*.json` from `shared/` and re-stages them |
 | `web-format` | `web/**/*.{ts,astro,css,json}` | `biome check --write` on staged files | `stage_fixed: true`, so fixes are auto-restaged |
 | `flutter-format` | `app/**/*.dart` | `dart format` on staged files | runs in parallel; `stage_fixed: true` |
-| `flutter-analyze` | `app/**/*.dart` | `flutter analyze --fatal-infos` | runs in parallel; fails on any info/warning |
+| `dart-analyze` | `app/**/*.dart` | `dart analyze --fatal-infos` | runs in parallel; fails on any info/warning |
 
 Because `web-format` and `flutter-format` use `stage_fixed: true`, autofixes are folded back into the same commit, so you don't need to re-`git add` them.
 
@@ -124,10 +124,10 @@ Runs heavier checks before pushing, so a broken branch never reaches the remote.
 | Command | Runs on | Runs |
 |---------|---------|------|
 | `web-verify` | every push | `pnpm verify` (format check, typecheck, `astro check`, coverage) |
-| `flutter-analyze` | a pushed `*.dart`, [`pubspec.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/pubspec.yaml) or [`analysis_options.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/analysis_options.yaml) | `flutter analyze --fatal-infos` |
+| `dart-analyze` | a pushed `*.dart`, [`pubspec.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/pubspec.yaml) or [`analysis_options.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/analysis_options.yaml) | `dart analyze --fatal-infos` |
 | `flutter-test` | the same three | `flutter test --coverage`, then `dart run tool/check_coverage.dart` |
 
-**`flutter-analyze` carries a `glob` and `web-verify` deliberately does not.** Without one it ran on every
+**`dart-analyze` carries a `glob` and `web-verify` deliberately does not.** Without one it ran on every
 push, so a change to a workflow file or a markdown page paid for a full Flutter analysis that could not
 possibly be affected by it. `web-verify` has no equivalent filter because `pnpm verify` runs the
 docs-consistency contract, which asserts things about the whole repository and must not be gated on which

@@ -6,21 +6,21 @@ pre-commit:
       glob: "*.dart"
       run: dart format {staged_files}
       stage_fixed: true
-    flutter-analyze:
+    dart-analyze:
       root: "app/"
       glob: "*.dart"
-      run: flutter analyze --fatal-infos
+      run: dart analyze --fatal-infos
 
 pre-push:
   parallel: false
   commands:
-    flutter-analyze:
+    dart-analyze:
       root: "app/"
       glob:
         - "*.dart"
         - "pubspec.yaml"
         - "analysis_options.yaml"
-      run: flutter analyze --fatal-infos
+      run: dart analyze --fatal-infos
     flutter-test:
       root: "app/"
       glob:
