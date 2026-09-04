@@ -31,7 +31,6 @@ dependencies:
   # Home screen widget + background refresh
   home_widget: 0.9.3
   workmanager: 0.10.9
-  path_provider: 2.1.6
 
   # UI primitives
   shadcn_ui: 0.56.2
@@ -40,9 +39,8 @@ dependencies:
   # Splash screen
   flutter_native_splash: 2.4.8
 
-  # In-app purchases
+  # Tips
   purchases_flutter: 10.8.0
-  purchases_ui_flutter: 10.8.0
 
   # Fonts
   google_fonts: 8.2.1

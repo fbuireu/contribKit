@@ -517,6 +517,17 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 	});
 });
 
+describe("a Tip unlocks nothing, down to what the app ships", () => {
+	const PUBSPEC = join(REPO, "app/pubspec.yaml");
+
+	it("ships no paywall SDK, which is ADR 0009 stated as a dependency", () => {
+		expect(
+			read(PUBSPEC),
+			"purchases_ui_flutter is RevenueCat's Paywall builder; app/README.md says this app does not use one, and a dependency nobody imports is still a dependency the APK carries",
+		).not.toContain("purchases_ui_flutter");
+	});
+});
+
 describe("the app is analyzed by the command that loads its plugin", () => {
 	const OPTIONS = join(REPO, "app/analysis_options.yaml");
 	const PUBSPEC = join(REPO, "app/pubspec.yaml");

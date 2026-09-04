@@ -718,7 +718,7 @@ packages:
     source: hosted
     version: "1.1.0"
   path_provider:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: path_provider
       sha256: a7f4874f987173da295a61c181b8ee71dab59b332a486b391babf26a1b884825
@@ -826,14 +826,6 @@ packages:
     description:
       name: purchases_flutter
       sha256: dd2edfbdcb28154f3b73d7376ab7b9ebf9dbcf93c08bca0096cc50ae8fe75802
-      url: "https://pub.dev"
-    source: hosted
-    version: "10.8.0"
-  purchases_ui_flutter:
-    dependency: "direct main"
-    description:
-      name: purchases_ui_flutter
-      sha256: f09d1c595750302db6567b6bb9d92e54f184d6bc97703cdfc33bc01d29af016c
       url: "https://pub.dev"
     source: hosted
     version: "10.8.0"

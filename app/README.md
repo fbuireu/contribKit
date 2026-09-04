@@ -102,7 +102,7 @@ Widgets render with whatever palette you set in the app and refresh once a day i
 
 ## In-App Purchases
 
-A simple **tip jar** ($1 / $5 / $10) built with the RevenueCat SDK and a custom Flutter UI (no RevenueCat Paywall builder). Tips are one-time, unlock nothing, and the app is fully functional without them.
+A simple **tip jar** ($1 / $5 / $10) built with the RevenueCat SDK and a custom Flutter UI (no RevenueCat Paywall builder, and `purchases_ui_flutter` is not a dependency: the docs contract asserts it stays out). Tips are one-time, unlock nothing, and the app is fully functional without them.
 
 ---
 
