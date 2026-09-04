@@ -47,7 +47,6 @@ lefthook merges the `pre-commit` and `pre-push` stages from all three files, so 
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart TD
     commit(["git commit"]) --> pc["pre-commit"]

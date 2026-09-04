@@ -31,7 +31,6 @@ CI is one workflow with **no path filter**, and a `changes` job that gates each 
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart LR
   check["verify-web (pnpm verify)"] --> prod["deploy-production"]
@@ -75,7 +74,6 @@ Runs on every `app/**` change:
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart LR
   docs["docs-contract (pnpm test:docs)"]
@@ -114,7 +112,6 @@ The fancy part. Triggered manually with a **track** choice (`internal` / `alpha`
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart TD
   dispatch(["workflow_dispatch (track)"]) --> release["release: semantic-release (app)"]

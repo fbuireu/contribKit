@@ -6,7 +6,6 @@ Both the web and mobile apps follow the same DDD-ish layered architecture. The `
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart RL
     application --> domain

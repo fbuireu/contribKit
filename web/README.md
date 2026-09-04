@@ -80,7 +80,6 @@ Unknown values silently fall back to the default, so the image never breaks.
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart TD
     request(["Request"])
@@ -95,15 +94,15 @@ flowchart TD
 
     request --> middleware --> validate --> usecase --> scrape --> parse --> grid --> render --> respond
 
-    style request fill:#e1f5ff,stroke:#01579b,stroke-width:2px
-    style middleware fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style validate fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style usecase fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    style scrape fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    style parse fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    style grid fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
-    style render fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
-    style respond fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    style request stroke:#1565c0,stroke-width:3px
+    style middleware stroke:#e65100,stroke-width:3px
+    style validate stroke:#e65100,stroke-width:3px
+    style usecase stroke:#7b1fa2,stroke-width:3px
+    style scrape stroke:#7b1fa2,stroke-width:3px
+    style parse stroke:#7b1fa2,stroke-width:3px
+    style grid stroke:#2e7d32,stroke-width:3px
+    style render stroke:#2e7d32,stroke-width:3px
+    style respond stroke:#c2185b,stroke-width:3px
 ```
 
 ContribKit reads GitHub's **public** contributions page: no API token, no OAuth scopes, no private data. Errors are typed domain `Failure`s mapped to HTTP statuses at the boundary; nothing throws across layers.

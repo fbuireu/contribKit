@@ -17,7 +17,6 @@ the web does?" stays a cheap question to answer.
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart TD
     gh["github.com/users/:login/contributions<br/>public HTML, no token"]
@@ -35,8 +34,8 @@ flowchart TD
     app --> widget["home-screen widget"]
     app --> export["PNG · SVG · Markdown"]
 
-    classDef pure fill:#8a6a0f,stroke:#dfb317,stroke-width:2px,color:#fff
-    classDef shell fill:#9b2530,stroke:#d73a49,stroke-width:2px,color:#fff
+    classDef pure stroke:#dfb317,stroke-width:3px
+    classDef shell stroke:#d73a49,stroke-width:3px
     class tokens,assets pure
     class web,app,gh shell
 ```
@@ -70,7 +69,6 @@ shell that owns the side effects.
 ---
 config:
   look: handDrawn
-  theme: neutral
 ---
 flowchart TD
     subgraph W["web/src: TypeScript"]
@@ -89,8 +87,8 @@ flowchart TD
         ainfra --> adom
     end
 
-    classDef pure fill:#8a6a0f,stroke:#dfb317,stroke-width:2px,color:#fff
-    classDef shell fill:#9b2530,stroke:#d73a49,stroke-width:2px,color:#fff
+    classDef pure stroke:#dfb317,stroke-width:3px
+    classDef shell stroke:#d73a49,stroke-width:3px
     class wdom,wapp,adom,aapp pure
     class wpages,wui,winfra,aui,ainfra shell
 ```
