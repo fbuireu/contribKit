@@ -27,6 +27,7 @@ class AppSheet extends StatelessWidget {
     context: context,
     side: ShadSheetSide.bottom,
     barrierColor: AppColors.scrim,
+    barrierLabel: 'Dismiss',
     animateIn: const [
       SlideEffect(
         begin: Offset(0, 1),
@@ -97,11 +98,12 @@ class _SheetCloseButton extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     label: 'Close',
     button: true,
+    onTap: () => Navigator.of(context).pop(),
     excludeSemantics: true,
     child: ShadIconButton.ghost(
       icon: const Icon(LucideIcons.x, size: Tokens.iconSm),
-      width: Tokens.iconMd,
-      height: Tokens.iconMd,
+      width: Tokens.minTapTarget,
+      height: Tokens.minTapTarget,
       padding: EdgeInsets.zero,
       onPressed: () => Navigator.of(context).pop(),
     ),

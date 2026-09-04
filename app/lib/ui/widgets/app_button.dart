@@ -1,3 +1,4 @@
+import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -19,6 +20,7 @@ class AppButton extends StatelessWidget {
     this.size,
     this.enabled = true,
     this.semanticLabel,
+    this.iconOnly = false,
   }) : _variant = ShadButtonVariant.primary;
 
   const AppButton.outline({
@@ -28,6 +30,7 @@ class AppButton extends StatelessWidget {
     this.size,
     this.enabled = true,
     this.semanticLabel,
+    this.iconOnly = false,
   }) : _variant = ShadButtonVariant.outline;
 
   const AppButton.ghost({
@@ -37,6 +40,7 @@ class AppButton extends StatelessWidget {
     this.size,
     this.enabled = true,
     this.semanticLabel,
+    this.iconOnly = false,
   }) : _variant = ShadButtonVariant.ghost;
 
   final VoidCallback? onPressed;
@@ -44,6 +48,7 @@ class AppButton extends StatelessWidget {
   final AppButtonSize? size;
   final bool enabled;
   final String? semanticLabel;
+  final bool iconOnly;
   final ShadButtonVariant _variant;
 
   String? get _announcedLabel {
@@ -58,6 +63,9 @@ class AppButton extends StatelessWidget {
     final button = ShadButton.raw(
       variant: _variant,
       size: size?._shadSize,
+      width: iconOnly ? Tokens.minTapTarget : null,
+      height: iconOnly ? Tokens.minTapTarget : null,
+      padding: iconOnly ? EdgeInsets.zero : null,
       enabled: isEnabled,
       onPressed: onPressed,
       child: child,
@@ -68,6 +76,7 @@ class AppButton extends StatelessWidget {
         label: label,
         button: true,
         enabled: isEnabled,
+        onTap: isEnabled ? onPressed : null,
         excludeSemantics: true,
         child: button,
       ),

@@ -117,6 +117,7 @@ class SettingSwatch extends StatelessWidget {
       label: label,
       button: true,
       selected: isSelected,
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,

@@ -338,6 +338,7 @@ class _FormatTile extends StatelessWidget {
       label: '${fmt.label} export, $_detail',
       button: true,
       selected: isSelected,
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,

@@ -42,6 +42,8 @@ abstract final class Tokens {
   static const double swatchGap = 2;
 
   static const double iconXs = 14;
+  static const double minTapTarget = 48;
+
   static const double iconSm = 16;
   static const double iconMd = 18;
   static const double iconLg = 20;

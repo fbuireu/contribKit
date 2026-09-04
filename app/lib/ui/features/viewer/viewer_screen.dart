@@ -161,6 +161,7 @@ class _Header extends ConsumerWidget {
             onPressed: () => TipJarSheet.show(context),
             size: AppButtonSize.sm,
             semanticLabel: 'Support ContribKit',
+            iconOnly: true,
             child: Icon(
               LucideIcons.heart,
               size: Tokens.iconSm,
@@ -173,6 +174,7 @@ class _Header extends ConsumerWidget {
             semanticLabel: themeMode == ThemeMode.light
                 ? 'Switch to the dark theme'
                 : 'Switch to the light theme',
+            iconOnly: true,
             child: Icon(icon, size: Tokens.iconSm),
           ),
         ],
@@ -221,6 +223,7 @@ class _UsernameInput extends StatelessWidget {
               onPressed: isLoading ? null : () => onSubmit(controller.text),
               size: AppButtonSize.sm,
               semanticLabel: 'Show contributions',
+              iconOnly: true,
               child: isLoading
                   ? const _PulsingDots(dotSize: 5)
                   : Icon(
@@ -319,6 +322,7 @@ class _SuggestionChipState extends State<_SuggestionChip> {
       label: widget.name,
       button: true,
       enabled: widget.enabled,
+      onTap: widget.enabled ? widget.onTap : null,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: widget.enabled ? widget.onTap : null,
@@ -401,6 +405,7 @@ class _YearPill extends StatelessWidget {
       label: 'Year $year',
       button: true,
       selected: isSelected,
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -541,6 +546,7 @@ class _CalendarCard extends ConsumerWidget {
                             .refreshContributions(),
                   size: AppButtonSize.sm,
                   semanticLabel: 'Refresh the calendar',
+                  iconOnly: true,
                   child: const Icon(LucideIcons.refreshCw, size: Tokens.iconXs),
                 ),
               ],

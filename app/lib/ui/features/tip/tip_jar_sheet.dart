@@ -181,6 +181,7 @@ class _TierCard extends StatelessWidget {
       button: true,
       enabled: !disabled,
       selected: isGiven,
+      onTap: disabled ? null : onTap,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: disabled ? null : onTap,

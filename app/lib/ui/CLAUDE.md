@@ -157,9 +157,24 @@ it is in, because that is what a person needs to hear before pressing it.
 button, so `AppSheet` supplies a labelled one through `closeIcon:`, which is the seam shadcn offers for exactly
 this.
 
+**A labelled button a screen reader cannot press is not fixed.** `excludeSemantics: true` replaces the child's
+whole semantics subtree, and that includes the `tap` *action* the `GestureDetector` contributed. The first version
+of this change produced nodes that announced themselves correctly and exposed no action, which is worse than
+before because it reads as a working control. Every one of them passes `onTap:` now.
+
+That mistake is also why `androidTapTargetGuideline` appeared to pass on the first run: the guideline only
+measures nodes that carry a tap action, and none of them did. With the actions back, three ghost icon buttons
+measured 40x36 against a 48dp floor, so `AppButton` takes an `iconOnly` flag that sizes the button to
+`Tokens.minTapTarget`. A ghost button paints no background at rest, so nothing moved on screen and the hit area
+grew by 8 logical pixels in each direction.
+
 [`accessibility_test.dart`](../../test/ui/accessibility_test.dart) walks the semantics tree and asserts that **no button anywhere carries an empty
-label**, on all four surfaces. That assertion is what found the text-button hole after the five hand-written
+label**, on all four surfaces, and runs Flutter's own `androidTapTargetGuideline`, `iOSTapTargetGuideline` and
+`textContrastGuideline` beside it. That assertion is what found the text-button hole after the five hand-written
 controls were already fixed, and it is what will find the next icon-only button somebody adds.
+`labeledTapTargetGuideline` runs on the Viewer only: on a sheet it flags `ShadSheet`'s modal scrim, a vendor node
+that carries `dismiss` and is not a control anyone needs announced by name. Setting `barrierLabel` does not reach
+it.
 
 ## `AppSheet` decides what a bottom sheet is
 

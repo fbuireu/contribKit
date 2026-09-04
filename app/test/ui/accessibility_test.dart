@@ -61,6 +61,12 @@ void _expectEveryButtonAnnounced(WidgetTester tester) {
   );
 }
 
+Future<void> _expectMeetsGuidelines(WidgetTester tester) async {
+  await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+  await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+  await expectLater(tester, meetsGuideline(textContrastGuideline));
+}
+
 Future<void> _withSemantics(
   WidgetTester tester,
   Future<void> Function() body,
@@ -109,6 +115,8 @@ void main() {
         expect(labels, contains('Switch to the light theme'));
         expect(labels, contains('Show contributions'));
         _expectEveryButtonAnnounced(tester);
+        await _expectMeetsGuidelines(tester);
+        await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
       });
     });
 
@@ -149,6 +157,7 @@ void main() {
         expect(labels, containsAll(CellSize.values.map((size) => size.label)));
         expect(labels, containsAll(['Apply', 'Close']));
         _expectEveryButtonAnnounced(tester);
+        await _expectMeetsGuidelines(tester);
       });
     });
 
@@ -177,6 +186,7 @@ void main() {
           );
         }
         _expectEveryButtonAnnounced(tester);
+        await _expectMeetsGuidelines(tester);
       });
     });
 
@@ -192,6 +202,7 @@ void main() {
 
         expect(_buttonLabels(tester), contains(r'Coffee, $1.00'));
         _expectEveryButtonAnnounced(tester);
+        await _expectMeetsGuidelines(tester);
       });
     });
   });
