@@ -24,10 +24,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
 
+Duration? _neverRetry(int retryCount, Object error) => null;
+
 @riverpod
 PaletteRepository paletteRepository(Ref ref) => AssetPaletteRepository();
 
-@riverpod
+@Riverpod(retry: _neverRetry)
 Future<List<Palette>> palettes(Ref ref) =>
     ref.watch(paletteRepositoryProvider).loadAll();
 
@@ -35,7 +37,7 @@ Future<List<Palette>> palettes(Ref ref) =>
 SuggestedUsernameRepository suggestedUsernameRepository(Ref ref) =>
     AssetSuggestedUsernameRepository();
 
-@riverpod
+@Riverpod(retry: _neverRetry)
 Future<List<String>> suggestedUsernames(Ref ref) =>
     ref.watch(suggestedUsernameRepositoryProvider).loadAll();
 

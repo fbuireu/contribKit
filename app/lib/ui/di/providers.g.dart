@@ -71,7 +71,7 @@ final class PalettesProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: _neverRetry,
         name: r'palettesProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -93,7 +93,7 @@ final class PalettesProvider
   }
 }
 
-String _$palettesHash() => r'5c1d8546050d32d64065c0ac6bd3eced1f5d7c15';
+String _$palettesHash() => r'fcc5c51a4cb1352cb89104eadfec933e7e282dcd';
 
 @ProviderFor(suggestedUsernameRepository)
 final suggestedUsernameRepositoryProvider =
@@ -159,7 +159,7 @@ final class SuggestedUsernamesProvider
     : super(
         from: null,
         argument: null,
-        retry: null,
+        retry: _neverRetry,
         name: r'suggestedUsernamesProvider',
         isAutoDispose: true,
         dependencies: null,
@@ -182,7 +182,7 @@ final class SuggestedUsernamesProvider
 }
 
 String _$suggestedUsernamesHash() =>
-    r'8cd0577ae742835a2089269eeacc59846e42fc7d';
+    r'bdc852aee843de2bdc0a4bd5fabef11c4e2edc50';
 
 @ProviderFor(contributionRepository)
 final contributionRepositoryProvider = ContributionRepositoryProvider._();

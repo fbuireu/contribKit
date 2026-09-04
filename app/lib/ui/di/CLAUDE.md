@@ -37,7 +37,19 @@ Three tiers, in dependency order, plus one notifier that does not fit them:
    and `exportCalendar`, which takes an `ExportFormat` and is therefore one provider rather than one per format.
    There is a provider for every use case, which is what stops `ui/` naming a repository directly.
 3. **Async data providers**: `palettes`, `suggestedUsernames`, which await a repository's load and are consumed as
-   an `AsyncValue`.
+   an `AsyncValue`. Both carry `@Riverpod(retry: _neverRetry)`, and that annotation is load-bearing.
+
+**Riverpod 3 retries a failed async provider by default, and it hid both error states for about forty seconds.**
+`ProviderContainer.defaultRetry` re-runs anything that throws an `Exception` up to ten times, doubling the delay
+from 200ms to a 6.4s ceiling, and reports `AsyncLoading` the whole time. The two providers here read a **bundled
+asset**: if `assets/palettes.json` is unreadable on the first attempt it is unreadable on the tenth, so every one of
+those retries was delay bought with nothing. Worse, `PalettePicker` and the Viewer's suggestion row render *nothing*
+while loading and their message only on error, so the failure paths this repository added on purpose, and that
+[`ui/CLAUDE.md`](../CLAUDE.md) describes, were unreachable for the length of the backoff: a Customizer with a
+silently missing Palette section, which is the exact defect they were written to fix. Nothing caught it because
+neither path had a test. Keep `retry` off for anything asset-backed, and think before turning it on for something
+else: the contributions fetch does not go through a provider at all, so there is currently nothing here that a
+retry would help.
 
 **`ThemeModeNotifier` also lives here, and it is the one thing in this file that holds state.** It belongs beside a
 feature by the rule below; it is here because the theme is app-wide chrome that [`main.dart`](../../main.dart) watches before any
