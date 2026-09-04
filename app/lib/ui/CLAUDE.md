@@ -176,6 +176,30 @@ controls were already fixed, and it is what will find the next icon-only button 
 that carries `dismiss` and is not a control anyone needs announced by name. Setting `barrierLabel` does not reach
 it.
 
+## The system font can be four times its size, and the app used to break at two
+
+**Nothing here was tested against a system font setting.** Android's largest non-accessibility size is 1.3, its
+accessibility sizes reach 2.0, and iOS's AX5 is a little over 3. At **2.0 on a 360-pixel phone** the Viewer's
+header overflowed by 133 pixels, the Tip Jar's buttons by 6, and a loaded Viewer by 169, 148 and 66 across three
+rows at once. Every one of those is a yellow-and-black striped bar over the interface on a real device.
+
+**Three fixes, and only one of them is at a call site.** `AppButton` wraps its child in a `Flexible` and a
+`DefaultTextStyle` carrying `maxLines: 1` and `TextOverflow.ellipsis`, which is what makes *every* button in the
+app shrink rather than overflow, including the two whose child is a `Row` of icon and text. The header's title is
+`Expanded` instead of followed by a `Spacer`, so the two icon buttons keep their place and the word ellipsises.
+Two labels that sit beside something else in a row are `Flexible`: the Total on the calendar card, and the format
+name on an Export tile.
+
+Nothing is clamped. A `MediaQuery` that caps `textScaler` would have fixed all of it in one line and is what a
+dense interface is tempted to do; it also overrides a setting somebody chose deliberately, which is the whole
+point of the setting.
+
+[`text_scaling_test.dart`](../../test/ui/text_scaling_test.dart) pumps all four surfaces at 1.0, 1.3, 2.0 and 3.0 on a 320 and a 360 wide screen
+and asserts no exception came out, because a `RenderFlex` overflow is one. The `reason` names the scale and the
+screen, so a failure says which combination broke rather than that something did. **Verified by removing the
+header's `Expanded` again**: it reported a 3-pixel overflow at 1.0x on the 320 screen, which is the smallest case
+in the matrix and the one that would otherwise be found by a person with a small phone.
+
 ## `AppSheet` decides what a bottom sheet is
 
 There were two sheet implementations. `TipJarSheet` and `ExportSheet` went through `AppSheet`, which forwarded

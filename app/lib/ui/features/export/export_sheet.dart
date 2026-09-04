@@ -383,12 +383,16 @@ class _FormatTile extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: Tokens.space2),
-                        Text(
-                          fmt.label,
-                          style: TextStyle(
-                            fontSize: Tokens.textBase,
-                            fontWeight: FontWeight.w600,
-                            color: colors.foreground,
+                        Flexible(
+                          child: Text(
+                            fmt.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: Tokens.textBase,
+                              fontWeight: FontWeight.w600,
+                              color: colors.foreground,
+                            ),
                           ),
                         ),
                       ],

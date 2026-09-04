@@ -68,7 +68,15 @@ class AppButton extends StatelessWidget {
       padding: iconOnly ? EdgeInsets.zero : null,
       enabled: isEnabled,
       onPressed: onPressed,
-      child: child,
+      child: iconOnly
+          ? child
+          : Flexible(
+              child: DefaultTextStyle.merge(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                child: child,
+              ),
+            ),
     );
 
     return switch (_announcedLabel) {

@@ -147,16 +147,19 @@ class _Header extends ConsumerWidget {
             excludeFromSemantics: true,
           ),
           const SizedBox(width: Tokens.space2),
-          Text(
-            'ContribKit',
-            style: TextStyle(
-              fontSize: Tokens.textLg,
-              fontWeight: FontWeight.w600,
-              color: colors.foreground,
-              letterSpacing: -0.5,
+          Expanded(
+            child: Text(
+              'ContribKit',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: Tokens.textLg,
+                fontWeight: FontWeight.w600,
+                color: colors.foreground,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
-          const Spacer(),
           AppButton.ghost(
             onPressed: () => TipJarSheet.show(context),
             size: AppButtonSize.sm,
@@ -512,11 +515,15 @@ class _CalendarCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                Text(
-                  '${formatTotalContributions(format: _contribFmt, total: calendar.totalContributions)} contributions',
-                  style: AppTextStyles.mono(
-                    fontSize: Tokens.textXs,
-                    color: colors.accent,
+                Flexible(
+                  child: Text(
+                    '${formatTotalContributions(format: _contribFmt, total: calendar.totalContributions)} contributions',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.mono(
+                      fontSize: Tokens.textXs,
+                      color: colors.accent,
+                    ),
                   ),
                 ),
                 if (state.fromCache) ...[
