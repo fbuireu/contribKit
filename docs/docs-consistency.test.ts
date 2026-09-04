@@ -635,7 +635,7 @@ describe("the Cell geometry is written three times and must agree", () => {
 		const WEB_SHAPES = join(REPO, "web/src/domain/services/cell-shapes.ts");
 
 		expect(read(DART)).toContain("CircleFigure(radius: cellSize / 2)");
-		expect(read(WEB_SHAPES)).toContain("r=\"${size / 2}\"");
+		expect(read(WEB_SHAPES)).toMatch(/r="\$\{size \/ 2\}"/);
 		expect(read(KOTLIN)).toContain("canvas.drawCircle(cx, cy, size / 2, paint)");
 	});
 });
