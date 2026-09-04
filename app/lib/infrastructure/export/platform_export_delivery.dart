@@ -20,6 +20,7 @@ final class PlatformExportDelivery implements ExportDeliveryRepository {
             mimeType: mimeType,
           ),
         ],
+        fileNameOverrides: [fileName],
       ),
     );
   }

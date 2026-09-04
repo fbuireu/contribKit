@@ -31,7 +31,7 @@ Flutter widgets, and must never import from `ui/`.
 | [`github/dtos/`](./github/dtos) | JSON transfer objects for the cache, converted before leaving the layer |
 | `persistence/` | `HiveSettingsRepository`: every stored setting |
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
-| `export/` | One repository per Export Format: PNG, SVG, Markdown |
+| `export/` | One repository per Export Format: PNG, SVG, Markdown, plus `PlatformExportDelivery`, the only file that names `share_plus` or `Clipboard` |
 | `tip/` | The RevenueCat implementation of `TipRepository` |
 
 ## `github/`: the second scraper
@@ -176,9 +176,10 @@ renderer that emits `2061x267`. The test asserts the two **agree**; the formula 
 [`export_geometry_service_test.dart`](../../test/domain/services/export_geometry_service_test.dart), because a test that reads the same function it is checking can only catch a
 divergence, not a wrong number.
 
-`MarkdownExportRepository` no longer composes anything. It builds an **Embed URL** and needs no renderer at all. `PngExportRepository` paints on a `dart:ui` canvas: reachable under `flutter test` via the Skia software
-path, but its assertions would be PNG header and pixel probes, and its `byteData == null` arm cannot be reached
-from outside at all.
+`MarkdownExportRepository` no longer composes anything. It builds an **Embed URL** and needs no renderer at all. `PngExportRepository` paints on a `dart:ui` canvas, which `flutter test` reaches through the Skia software
+path; [`png_export_repository_impl_test.dart`](../../test/infrastructure/export/png_export_repository_impl_test.dart) decodes what it emits and checks the PNG signature, the pixel size against
+`ExportGeometryService`, and that no Cell Shape quietly renders as another. Its `byteData == null` arm still
+cannot be reached from outside, and is the one line here nothing covers.
 
 **The Markdown Export is an Embed, and used to be a lie.** It emitted `![alt](data:image/svg+xml;base64,…)`, and
 the format tile calls it a "README embed snippet". But GitHub proxies every README image through Camo and does
@@ -186,6 +187,19 @@ not render a `data:` URI in Markdown, so the one place it was labelled for was t
 emits `https://contribkit.app/user/<name>.svg` now, through `Embed.urlFor`, omitting a Palette or Cell Shape that
 is already the default. That also makes it match the glossary: an Embed re-renders with current data, and a
 `data:` URI was a fixed copy wearing an Embed's name. The web has always built its snippet this way.
+
+**`PlatformExportDelivery` is where the Export stops being ours, and it shipped the wrong filename for as long as
+it existed.** `ExportSheet` used to call `SharePlus.instance` and `Clipboard.setData` from inside `setState`, which
+is a widget doing platform I/O and, because `SharePlus.instance` is a `static final` memoised from
+`SharePlatform.instance`, a call no test could stand in front of. It goes through `ExportDeliveryRepository` now,
+two methods wide, and `exportDeliveryProvider` is what a test overrides.
+
+Standing a test in front of it found the bug immediately: **`XFile.fromData(name: …)` does not name the file.** On
+the io implementation `XFile.name` is a getter over `_file.path`, and a data-backed `XFile` has no path, so
+`share_plus` saw an empty name and fell back to a UUID. Every Export a person shared arrived as
+`883-11f1-ba24-97c6491b8c85.png` while `ExportFormat.fileNameFor` sat computing `octocat_2024.png` for nobody.
+`ShareParams.fileNameOverrides` is the field that carries it, and the test asserts the path the share channel is
+handed ends with the name we meant.
 
 PNG carries an `on ExportFailure { rethrow; }` arm ahead of its catch-all, so a failure that is already typed
 keeps its own message instead of being wrapped twice. It composes nothing (it paints straight onto a `dart:ui` canvas) but throws
