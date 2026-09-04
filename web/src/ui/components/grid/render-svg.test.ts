@@ -1,7 +1,7 @@
 import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
 import { isFailure } from "@domain/failures/failure";
-import { CellShape } from "@domain/value-objects/cell-shape";
+import { CELL_SHAPES, CellShape } from "@domain/value-objects/cell-shape";
 import { colorOrThrow } from "@domain/value-objects/color";
 import type { PaletteColors } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
@@ -55,5 +55,16 @@ describe("shapePreviewSVG", () => {
 		expect(shapePreviewSVG(CellShape.Circle)).toContain("<circle");
 		expect(shapePreviewSVG(CellShape.Hex)).toContain("<polygon");
 		expect(shapePreviewSVG(CellShape.Square)).toContain("<rect");
+		expect(shapePreviewSVG(CellShape.Rounded)).toContain("<rect");
+	});
+
+	it("draws every shipped Cell Shape, so a new one cannot ship without a swatch", () => {
+		for (const shape of CELL_SHAPES) {
+			expect(shapePreviewSVG(shape), shape).toMatch(/^<svg [^>]*><(rect|circle|polygon)/);
+		}
+	});
+
+	it("tells the rounded swatch apart from the square one", () => {
+		expect(shapePreviewSVG(CellShape.Rounded)).not.toBe(shapePreviewSVG(CellShape.Square));
 	});
 });

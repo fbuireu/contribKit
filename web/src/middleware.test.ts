@@ -12,13 +12,15 @@ import { onRequest } from "./middleware";
 interface RunParams {
 	path: string;
 	next: () => Promise<Response>;
-	ip?: string;
+	ip?: string | null;
 }
 
 const run = ({ path, next, ip = "1.2.3.4" }: RunParams): Promise<Response> =>
 	(onRequest as unknown as (ctx: unknown, next: () => Promise<Response>) => Promise<Response>)(
 		{
-			request: new Request(`https://contribkit.app${path}`, { headers: { "CF-Connecting-IP": ip } }),
+			request: new Request(`https://contribkit.app${path}`, {
+				headers: ip === null ? {} : { "CF-Connecting-IP": ip },
+			}),
 			url: new URL(`https://contribkit.app${path}`),
 		},
 		next,
@@ -99,6 +101,15 @@ describe("api rate limiting", () => {
 		expect(limit).toHaveBeenCalledWith({ key: "9.9.9.9" });
 		expect(response.status).toBe(200);
 		expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+	});
+
+	it("keys a request that arrives without a client IP, rather than throwing on one", async () => {
+		const limit = vi.fn(() => Promise.resolve({ success: true }));
+		env.API_RATE_LIMITER = { limit };
+
+		await run({ path: "/api/health", next: ok, ip: null });
+
+		expect(limit).toHaveBeenCalledWith({ key: "unknown" });
 	});
 
 	it("skips rate limiting when the binding is absent", async () => {

@@ -109,4 +109,29 @@ describe("GET /user/[username].svg", () => {
 
 		expect(await res.text()).toContain("<polygon");
 	});
+
+	it("falls back to the default Cell Shape rather than failing on a shape nobody ships", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(HTML, { status: 200 })),
+		);
+
+		const [named, unnamed] = await Promise.all([
+			call({ username: "torvalds", query: "?shape=triangle" }).then((res) => res.text()),
+			call({ username: "torvalds" }).then((res) => res.text()),
+		]);
+
+		expect(named).toBe(unnamed);
+	});
+
+	it("refuses a route reached with no username segment at all", async () => {
+		const res = await GET({
+			params: {},
+			url: new URL("https://contribkit.app/user/.svg"),
+			locals: {},
+		} as never);
+
+		expect(res.status).toBe(400);
+		expect(res.headers.get("Content-Type")).toBe("text/plain");
+	});
 });
