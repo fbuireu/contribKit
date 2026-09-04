@@ -90,6 +90,7 @@ class SettingChoiceButton extends StatelessWidget {
 class SettingSwatch extends StatelessWidget {
   const SettingSwatch({
     super.key,
+    required this.label,
     required this.isSelected,
     required this.onTap,
     this.child,
@@ -99,6 +100,7 @@ class SettingSwatch extends StatelessWidget {
     this.borderRadius,
   });
 
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
   final Widget? child;
@@ -111,24 +113,32 @@ class SettingSwatch extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Tokens.durationFast,
-        width: size,
-        height: size,
-        padding: padding,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(borderRadius ?? Tokens.radiusMd),
-          border: Border.all(
-            color: isSelected ? colors.accent : colors.border,
-            width: isSelected
-                ? Tokens.swatchBorderSelected
-                : Tokens.swatchBorderDefault,
+    return Semantics(
+      label: label,
+      button: true,
+      selected: isSelected,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Tokens.durationFast,
+          width: size,
+          height: size,
+          padding: padding,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(
+              borderRadius ?? Tokens.radiusMd,
+            ),
+            border: Border.all(
+              color: isSelected ? colors.accent : colors.border,
+              width: isSelected
+                  ? Tokens.swatchBorderSelected
+                  : Tokens.swatchBorderDefault,
+            ),
           ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }

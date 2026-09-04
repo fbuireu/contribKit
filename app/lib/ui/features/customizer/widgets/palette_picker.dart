@@ -37,6 +37,7 @@ class PalettePicker extends ConsumerWidget {
                     AppTooltip(
                       message: Text(option.name),
                       child: SettingSwatch(
+                        label: option.name,
                         isSelected: isSelected,
                         onTap: onTap,
                         padding: const EdgeInsets.all(Tokens.space1),

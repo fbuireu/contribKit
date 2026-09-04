@@ -176,6 +176,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
               Expanded(
                 child: AppButton(
                   onPressed: _exporting ? null : _save,
+                  semanticLabel: _actionLabel,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
@@ -333,71 +334,77 @@ class _FormatTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = colors.accent;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Tokens.durationFast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: Tokens.space4,
-          vertical: Tokens.space4,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.muted : colors.card,
-          borderRadius: BorderRadius.circular(Tokens.radiusMd),
-          border: Border.all(
-            color: isSelected ? accent.withValues(alpha: 0.5) : colors.border,
-            width: isSelected
-                ? Tokens.tileBorderEmphasis
-                : Tokens.tileBorderDefault,
+    return Semantics(
+      label: '${fmt.label} export, $_detail',
+      button: true,
+      selected: isSelected,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Tokens.durationFast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: Tokens.space4,
+            vertical: Tokens.space4,
           ),
-        ),
-        child: Row(
-          children: [
-            _FmtIcon(
-              fmt: fmt,
-              isSelected: isSelected,
-              accent: accent,
-              colors: colors,
+          decoration: BoxDecoration(
+            color: isSelected ? colors.muted : colors.card,
+            borderRadius: BorderRadius.circular(Tokens.radiusMd),
+            border: Border.all(
+              color: isSelected ? accent.withValues(alpha: 0.5) : colors.border,
+              width: isSelected
+                  ? Tokens.tileBorderEmphasis
+                  : Tokens.tileBorderDefault,
             ),
-            const SizedBox(width: Tokens.space4),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '.${fmt.suffix}',
-                        style: AppTextStyles.mono(
-                          fontSize: Tokens.textSm,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? accent : colors.mutedForeground,
-                        ),
-                      ),
-                      const SizedBox(width: Tokens.space2),
-                      Text(
-                        fmt.label,
-                        style: TextStyle(
-                          fontSize: Tokens.textBase,
-                          fontWeight: FontWeight.w600,
-                          color: colors.foreground,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: Tokens.hairlineGap),
-                  Text(
-                    _detail,
-                    style: TextStyle(
-                      fontSize: Tokens.textXs,
-                      color: colors.mutedForeground,
-                    ),
-                  ),
-                ],
+          ),
+          child: Row(
+            children: [
+              _FmtIcon(
+                fmt: fmt,
+                isSelected: isSelected,
+                accent: accent,
+                colors: colors,
               ),
-            ),
-          ],
+              const SizedBox(width: Tokens.space4),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '.${fmt.suffix}',
+                          style: AppTextStyles.mono(
+                            fontSize: Tokens.textSm,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? accent : colors.mutedForeground,
+                          ),
+                        ),
+                        const SizedBox(width: Tokens.space2),
+                        Text(
+                          fmt.label,
+                          style: TextStyle(
+                            fontSize: Tokens.textBase,
+                            fontWeight: FontWeight.w600,
+                            color: colors.foreground,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: Tokens.hairlineGap),
+                    Text(
+                      _detail,
+                      style: TextStyle(
+                        fontSize: Tokens.textXs,
+                        color: colors.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

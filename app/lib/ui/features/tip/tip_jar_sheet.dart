@@ -176,85 +176,92 @@ class _TierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: disabled ? null : onTap,
-      child: AnimatedContainer(
-        duration: Tokens.durationBase,
-        padding: const EdgeInsets.symmetric(
-          horizontal: Tokens.space4,
-          vertical: Tokens.space4,
-        ),
-        decoration: BoxDecoration(
-          color: isGiven ? colors.muted : colors.card,
-          border: Border.all(
-            color: hasFailed
-                ? colors.destructive
-                : isGiven
-                ? colors.ring
-                : colors.border,
-            width: (isGiven || hasFailed)
-                ? Tokens.tileBorderEmphasis
-                : Tokens.tileBorderDefault,
+    return Semantics(
+      label: '${look.label}, ${product.priceString}',
+      button: true,
+      enabled: !disabled,
+      selected: isGiven,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: disabled ? null : onTap,
+        child: AnimatedContainer(
+          duration: Tokens.durationBase,
+          padding: const EdgeInsets.symmetric(
+            horizontal: Tokens.space4,
+            vertical: Tokens.space4,
           ),
-          borderRadius: BorderRadius.circular(Tokens.radiusMd),
-        ),
-        child: Row(
-          children: [
-            Text(
-              look.emoji,
-              style: const TextStyle(fontSize: Tokens.emojiSize, height: 1),
+          decoration: BoxDecoration(
+            color: isGiven ? colors.muted : colors.card,
+            border: Border.all(
+              color: hasFailed
+                  ? colors.destructive
+                  : isGiven
+                  ? colors.ring
+                  : colors.border,
+              width: (isGiven || hasFailed)
+                  ? Tokens.tileBorderEmphasis
+                  : Tokens.tileBorderDefault,
             ),
-            const SizedBox(width: Tokens.space2),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    look.label,
-                    style: TextStyle(
-                      fontSize: Tokens.textBase,
-                      fontWeight: FontWeight.w500,
-                      color: colors.foreground,
+            borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          ),
+          child: Row(
+            children: [
+              Text(
+                look.emoji,
+                style: const TextStyle(fontSize: Tokens.emojiSize, height: 1),
+              ),
+              const SizedBox(width: Tokens.space2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      look.label,
+                      style: TextStyle(
+                        fontSize: Tokens.textBase,
+                        fontWeight: FontWeight.w500,
+                        color: colors.foreground,
+                      ),
                     ),
-                  ),
-                  Text(
-                    product.priceString,
-                    style: TextStyle(
-                      fontSize: Tokens.textSm,
+                    Text(
+                      product.priceString,
+                      style: TextStyle(
+                        fontSize: Tokens.textSm,
+                        color: colors.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isGiving)
+                Icon(
+                      LucideIcons.loader2,
+                      size: Tokens.iconMd,
                       color: colors.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isGiving)
-              Icon(
-                    LucideIcons.loader2,
-                    size: Tokens.iconMd,
-                    color: colors.mutedForeground,
-                  )
-                  .animate(onPlay: (c) => c.repeat())
-                  .rotate(duration: Tokens.durationSpin, curve: Curves.linear)
-            else if (isGiven)
-              Icon(
-                LucideIcons.check,
-                size: Tokens.iconMd,
-                color: colors.foreground,
-              )
-            else if (hasFailed)
-              Icon(
-                LucideIcons.alertCircle,
-                size: Tokens.iconMd,
-                color: colors.destructive,
-              )
-            else
-              Icon(
-                LucideIcons.chevronRight,
-                size: Tokens.iconSm,
-                color: colors.mutedForeground,
-              ),
-          ],
+                    )
+                    .animate(onPlay: (c) => c.repeat())
+                    .rotate(duration: Tokens.durationSpin, curve: Curves.linear)
+              else if (isGiven)
+                Icon(
+                  LucideIcons.check,
+                  size: Tokens.iconMd,
+                  color: colors.foreground,
+                )
+              else if (hasFailed)
+                Icon(
+                  LucideIcons.alertCircle,
+                  size: Tokens.iconMd,
+                  color: colors.destructive,
+                )
+              else
+                Icon(
+                  LucideIcons.chevronRight,
+                  size: Tokens.iconSm,
+                  color: colors.mutedForeground,
+                ),
+            ],
+          ),
         ),
       ),
     );

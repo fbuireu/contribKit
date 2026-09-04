@@ -144,6 +144,7 @@ class _Header extends ConsumerWidget {
             'assets/images/logo.png',
             height: Tokens.logoSize,
             width: Tokens.logoSize,
+            excludeFromSemantics: true,
           ),
           const SizedBox(width: Tokens.space2),
           Text(
@@ -159,6 +160,7 @@ class _Header extends ConsumerWidget {
           AppButton.ghost(
             onPressed: () => TipJarSheet.show(context),
             size: AppButtonSize.sm,
+            semanticLabel: 'Support ContribKit',
             child: Icon(
               LucideIcons.heart,
               size: Tokens.iconSm,
@@ -168,6 +170,9 @@ class _Header extends ConsumerWidget {
           AppButton.ghost(
             onPressed: () => ref.read(themeModeProvider.notifier).cycle(),
             size: AppButtonSize.sm,
+            semanticLabel: themeMode == ThemeMode.light
+                ? 'Switch to the dark theme'
+                : 'Switch to the light theme',
             child: Icon(icon, size: Tokens.iconSm),
           ),
         ],
@@ -215,6 +220,7 @@ class _UsernameInput extends StatelessWidget {
               enabled: !isLoading,
               onPressed: isLoading ? null : () => onSubmit(controller.text),
               size: AppButtonSize.sm,
+              semanticLabel: 'Show contributions',
               child: isLoading
                   ? const _PulsingDots(dotSize: 5)
                   : Icon(
@@ -309,26 +315,32 @@ class _SuggestionChipState extends State<_SuggestionChip> {
   @override
   Widget build(BuildContext context) {
     final active = widget.enabled && !_pressed;
-    return GestureDetector(
-      onTap: widget.enabled ? widget.onTap : null,
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: Tokens.durationFast,
-        padding: Tokens.badgePadding,
-        decoration: BoxDecoration(
-          color: _pressed ? widget.colors.border : widget.colors.muted,
-          border: Border.all(color: widget.colors.border),
-          borderRadius: BorderRadius.circular(Tokens.radiusFull),
-        ),
-        child: Text(
-          widget.name,
-          style: AppTextStyles.mono(
-            fontSize: Tokens.textXs,
-            color: active
-                ? widget.colors.foreground
-                : widget.colors.mutedForeground,
+    return Semantics(
+      label: widget.name,
+      button: true,
+      enabled: widget.enabled,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: widget.enabled ? widget.onTap : null,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedContainer(
+          duration: Tokens.durationFast,
+          padding: Tokens.badgePadding,
+          decoration: BoxDecoration(
+            color: _pressed ? widget.colors.border : widget.colors.muted,
+            border: Border.all(color: widget.colors.border),
+            borderRadius: BorderRadius.circular(Tokens.radiusFull),
+          ),
+          child: Text(
+            widget.name,
+            style: AppTextStyles.mono(
+              fontSize: Tokens.textXs,
+              color: active
+                  ? widget.colors.foreground
+                  : widget.colors.mutedForeground,
+            ),
           ),
         ),
       ),
@@ -385,25 +397,31 @@ class _YearPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Tokens.durationFast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: Tokens.space3,
-          vertical: Tokens.space2,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? colors.muted : AppColors.transparent,
-          borderRadius: BorderRadius.circular(Tokens.radiusFull),
-          border: Border.all(color: colors.border),
-        ),
-        child: Text(
-          year.toString(),
-          style: AppTextStyles.mono(
-            fontSize: Tokens.textSm,
-            fontWeight: FontWeight.w500,
-            color: isSelected ? colors.foreground : colors.mutedForeground,
+    return Semantics(
+      label: 'Year $year',
+      button: true,
+      selected: isSelected,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Tokens.durationFast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: Tokens.space3,
+            vertical: Tokens.space2,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected ? colors.muted : AppColors.transparent,
+            borderRadius: BorderRadius.circular(Tokens.radiusFull),
+            border: Border.all(color: colors.border),
+          ),
+          child: Text(
+            year.toString(),
+            style: AppTextStyles.mono(
+              fontSize: Tokens.textSm,
+              fontWeight: FontWeight.w500,
+              color: isSelected ? colors.foreground : colors.mutedForeground,
+            ),
           ),
         ),
       ),
@@ -522,6 +540,7 @@ class _CalendarCard extends ConsumerWidget {
                             .read(viewerProvider.notifier)
                             .refreshContributions(),
                   size: AppButtonSize.sm,
+                  semanticLabel: 'Refresh the calendar',
                   child: const Icon(LucideIcons.refreshCw, size: Tokens.iconXs),
                 ),
               ],
@@ -561,6 +580,7 @@ class _ActionRow extends StatelessWidget {
         Expanded(
           child: AppButton(
             onPressed: () => CustomizerSheet.show(context),
+            semanticLabel: 'Customize',
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -581,6 +601,7 @@ class _ActionRow extends StatelessWidget {
               cellShape: state.cellShape,
               cellSize: state.cellSize,
             ),
+            semanticLabel: 'Export',
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,

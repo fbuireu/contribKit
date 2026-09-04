@@ -99,11 +99,14 @@ void main() {
           selected: 'a',
           onSelected: (_) {},
           scrollable: scrollable,
-          optionBuilder: ({
-            required option,
-            required isSelected,
-            required onTap,
-          }) => SettingSwatch(isSelected: isSelected, onTap: onTap, size: 14),
+          optionBuilder:
+              ({required option, required isSelected, required onTap}) =>
+                  SettingSwatch(
+                    label: option,
+                    isSelected: isSelected,
+                    onTap: onTap,
+                    size: 14,
+                  ),
         ),
       );
 
@@ -126,11 +129,14 @@ void main() {
             options: const [],
             selected: 'a',
             onSelected: (_) {},
-            optionBuilder: ({
-              required option,
-              required isSelected,
-              required onTap,
-            }) => SettingSwatch(isSelected: isSelected, onTap: onTap, size: 14),
+            optionBuilder:
+                ({required option, required isSelected, required onTap}) =>
+                    SettingSwatch(
+                      label: option,
+                      isSelected: isSelected,
+                      onTap: onTap,
+                      size: 14,
+                    ),
           ),
         ),
       );
@@ -145,7 +151,14 @@ void main() {
       var taps = 0;
 
       await tester.pumpWidget(
-        _host(SettingSwatch(isSelected: false, onTap: () => taps++, size: 20)),
+        _host(
+          SettingSwatch(
+            label: 'a swatch',
+            isSelected: false,
+            onTap: () => taps++,
+            size: 20,
+          ),
+        ),
       );
 
       await tester.tap(find.byType(SettingSwatch));
@@ -157,7 +170,14 @@ void main() {
     testWidgets('draws a heavier border when selected', (tester) async {
       Future<double> borderWidthFor({required bool isSelected}) async {
         await tester.pumpWidget(
-          _host(SettingSwatch(isSelected: isSelected, onTap: () {}, size: 20)),
+          _host(
+            SettingSwatch(
+              label: 'a swatch',
+              isSelected: isSelected,
+              onTap: () {},
+              size: 20,
+            ),
+          ),
         );
         await tester.pumpAndSettle();
 

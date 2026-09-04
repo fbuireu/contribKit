@@ -84,9 +84,28 @@ class AppSheet extends StatelessWidget {
         ],
       ),
       description: description,
+      closeIcon: const _SheetCloseButton(),
       child: child,
     );
   }
+}
+
+class _SheetCloseButton extends StatelessWidget {
+  const _SheetCloseButton();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'Close',
+    button: true,
+    excludeSemantics: true,
+    child: ShadIconButton.ghost(
+      icon: const Icon(LucideIcons.x, size: Tokens.iconSm),
+      width: Tokens.iconMd,
+      height: Tokens.iconMd,
+      padding: EdgeInsets.zero,
+      onPressed: () => Navigator.of(context).pop(),
+    ),
+  );
 }
 
 class _DragHandle extends StatelessWidget {
