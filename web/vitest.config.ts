@@ -4,6 +4,8 @@ import { configDefaults, defineConfig } from "vitest/config";
 
 const resolvePath = (path: string): string => fileURLToPath(new URL(path, import.meta.url));
 
+const MIN_THRESHOLD = 85;
+
 const summaryLabel = {
 	onTestRunEnd() {
 		if (!process.env.GITHUB_STEP_SUMMARY) return;
@@ -27,9 +29,15 @@ export default defineConfig({
 		exclude: [...configDefaults.exclude, "e2e/**"],
 		coverage: {
 			provider: "istanbul",
-			reporter: ["lcov"],
+			reporter: ["text", "lcov"],
 			include: ["src/**/*.ts"],
 			exclude: ["src/**/*.d.ts", "src/env.d.ts", "**/types.ts", "**/*.astro"],
+			thresholds: {
+				lines: MIN_THRESHOLD,
+				functions: MIN_THRESHOLD,
+				branches: MIN_THRESHOLD,
+				statements: MIN_THRESHOLD,
+			},
 		},
 	},
 });
