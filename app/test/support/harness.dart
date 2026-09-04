@@ -1,9 +1,13 @@
+import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material, ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+
+import 'fakes.dart';
 
 Widget host({
   required Widget child,
@@ -41,7 +45,12 @@ Future<void> pumpSheet(
   WidgetTester tester, {
   required WidgetBuilder builder,
   List<Override> overrides = const [],
+  Size surfaceSize = const Size(800, 2400),
+  bool settle = true,
 }) async {
+  await tester.binding.setSurfaceSize(surfaceSize);
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+
   await tester.pumpWidget(
     host(
       overrides: overrides,
@@ -60,5 +69,42 @@ Future<void> pumpSheet(
     ),
   );
   await tester.tap(find.byKey(const Key('open-sheet')));
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump(Tokens.durationSlow);
+    await tester.pump(Tokens.durationSlow);
+  }
 }
+
+List<Override> appOverrides({
+  FakeSettingsRepository? settings,
+  FakePaletteRepository? palettes,
+  FakeContributionRepository? contributions,
+  FakeSuggestedUsernameRepository? usernames,
+  FakeTipRepository? tips,
+  FakeExportDelivery? delivery,
+  FakeExportRepository? svg,
+  FakeExportRepository? png,
+  FakeExportRepository? markdown,
+}) => [
+  settingsRepositoryProvider.overrideWithValue(
+    settings ?? FakeSettingsRepository(),
+  ),
+  paletteRepositoryProvider.overrideWithValue(
+    palettes ?? FakePaletteRepository(),
+  ),
+  contributionRepositoryProvider.overrideWithValue(
+    contributions ?? FakeContributionRepository(),
+  ),
+  suggestedUsernameRepositoryProvider.overrideWithValue(
+    usernames ?? FakeSuggestedUsernameRepository(),
+  ),
+  tipRepositoryProvider.overrideWithValue(tips ?? FakeTipRepository()),
+  exportDeliveryProvider.overrideWithValue(delivery ?? FakeExportDelivery()),
+  svgExportRepositoryProvider.overrideWithValue(svg ?? FakeExportRepository()),
+  pngExportRepositoryProvider.overrideWithValue(png ?? FakeExportRepository()),
+  markdownExportRepositoryProvider.overrideWithValue(
+    markdown ?? FakeExportRepository(),
+  ),
+];

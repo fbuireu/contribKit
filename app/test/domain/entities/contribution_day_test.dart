@@ -54,7 +54,7 @@ void main() {
     test('refuses to be mutated after it is built', () {
       final week = ContributionWeek(days: [_day()]);
 
-      expect(() => week.days.clear(), throwsUnsupportedError);
+      expect(week.days.clear, throwsUnsupportedError);
     });
 
     test('two weeks with the same days in the same order are equal', () {

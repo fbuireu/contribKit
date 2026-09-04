@@ -17,10 +17,8 @@ import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
 import 'package:contribkit/ui/widgets/app_icons.dart';
 import 'package:contribkit/ui/widgets/app_sheet.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 
 class ExportSheet extends ConsumerStatefulWidget {
   const ExportSheet({
@@ -107,23 +105,18 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
         options: _options,
       );
 
+      final delivery = ref.read(exportDeliveryProvider);
       if (_selected.isCopiedAsText) {
-        await Clipboard.setData(ClipboardData(text: utf8.decode(bytes)));
+        await delivery.copyText(utf8.decode(bytes));
         if (mounted) _showCopied();
       } else {
-        await SharePlus.instance.share(
-          ShareParams(
-            files: [
-              XFile.fromData(
-                Uint8List.fromList(bytes),
-                name: _selected.fileNameFor(
-                  username: widget.calendar.username,
-                  year: widget.calendar.year,
-                ),
-                mimeType: _selected.mimeType,
-              ),
-            ],
+        await delivery.shareFile(
+          bytes: bytes,
+          fileName: _selected.fileNameFor(
+            username: widget.calendar.username,
+            year: widget.calendar.year,
           ),
+          mimeType: _selected.mimeType,
         );
       }
     } catch (error) {

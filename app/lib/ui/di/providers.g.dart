@@ -549,6 +549,53 @@ final class MarkdownExportRepositoryProvider
 String _$markdownExportRepositoryHash() =>
     r'4b88fd3b84b80a1d1ecd5b4abc2eeb8eb61778d6';
 
+@ProviderFor(exportDelivery)
+final exportDeliveryProvider = ExportDeliveryProvider._();
+
+final class ExportDeliveryProvider
+    extends
+        $FunctionalProvider<
+          ExportDeliveryRepository,
+          ExportDeliveryRepository,
+          ExportDeliveryRepository
+        >
+    with $Provider<ExportDeliveryRepository> {
+  ExportDeliveryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'exportDeliveryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$exportDeliveryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ExportDeliveryRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ExportDeliveryRepository create(Ref ref) {
+    return exportDelivery(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ExportDeliveryRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ExportDeliveryRepository>(value),
+    );
+  }
+}
+
+String _$exportDeliveryHash() => r'ad45bf221ab70d10e2e3b472ce63ca39359e839f';
+
 @ProviderFor(fetchContributions)
 final fetchContributionsProvider = FetchContributionsProvider._();
 

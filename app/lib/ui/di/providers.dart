@@ -4,6 +4,7 @@ import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
 import 'package:contribkit/application/use_cases/give_tip.dart';
 import 'package:contribkit/application/use_cases/invalidate_contribution_cache.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
+import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
@@ -14,6 +15,7 @@ import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/assets/asset_suggested_username_repository.dart';
 import 'package:contribkit/infrastructure/export/markdown_export_repository_impl.dart';
+import 'package:contribkit/infrastructure/export/platform_export_delivery.dart';
 import 'package:contribkit/infrastructure/export/png_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/export/svg_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
@@ -71,6 +73,10 @@ ExportRepository pngExportRepository(Ref ref) => PngExportRepository();
 @riverpod
 ExportRepository markdownExportRepository(Ref ref) =>
     const MarkdownExportRepository();
+
+@riverpod
+ExportDeliveryRepository exportDelivery(Ref ref) =>
+    const PlatformExportDelivery();
 
 @riverpod
 FetchContributions fetchContributions(Ref ref) =>
