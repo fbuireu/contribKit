@@ -79,4 +79,43 @@ void main() {
       },
     );
   });
+
+  group('a Color prints itself the way each surface needs it', () {
+    test('toHex drops the alpha, because CSS and SVG want six digits', () {
+      expect(const Color(0x8039D353).toHex(), '#39D353');
+    });
+
+    test(
+      'toHexARGB keeps the alpha, because the Home Screen Widget needs it',
+      () {
+        expect(const Color(0x8039D353).toHexARGB(), '#8039D353');
+        expect(const Color(0x00000000).toHexARGB(), '#00000000');
+      },
+    );
+
+    test('toString is the six-digit form, so a log reads like the token', () {
+      expect(const Color(0xFF39D353).toString(), '#39D353');
+    });
+
+    test('equal Colors hash alike, so a set of them collapses', () {
+      final copy = Color.fromARGB(
+        alpha: 0xFF,
+        red: 0x39,
+        green: 0xD3,
+        blue: 0x53,
+      );
+
+      expect(copy.hashCode, const Color(0xFF39D353).hashCode);
+      expect({const Color(0xFF39D353), copy}, hasLength(1));
+    });
+
+    test('is not equal to something that merely looks like one', () {
+      expect(const Color(0xFF39D353), isNot('#39D353'));
+    });
+
+    test('refuses an ARGB value no colour could have', () {
+      expect(() => Color(-1), throwsA(isA<AssertionError>()));
+      expect(() => Color(0x1FFFFFFFF), throwsA(isA<AssertionError>()));
+    });
+  });
 }

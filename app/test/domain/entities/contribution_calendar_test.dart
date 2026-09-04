@@ -52,4 +52,50 @@ void main() {
       expect(() => week.days.add(_day(2)), throwsUnsupportedError);
     });
   });
+
+  group('what makes two Contribution Calendars the same one', () {
+    test(
+      'a different week in the same position makes it a different calendar',
+      () {
+        final left = _calendar();
+        final right = ContributionCalendar(
+          username: left.username,
+          year: left.year,
+          totalContributions: left.totalContributions,
+          weeks: [
+            ContributionWeek(
+              days: [
+                ContributionDay(
+                  date: DateTime.utc(2024, 1, 1),
+                  count: 99,
+                  level: ContributionLevel.veryHigh,
+                ),
+              ],
+            ),
+            ...left.weeks.skip(1),
+          ],
+        );
+
+        expect(right, isNot(left));
+      },
+    );
+
+    test('a different number of weeks makes it a different calendar', () {
+      final left = _calendar();
+
+      expect(
+        ContributionCalendar(
+          username: left.username,
+          year: left.year,
+          totalContributions: left.totalContributions,
+          weeks: const <ContributionWeek>[],
+        ),
+        isNot(left),
+      );
+    });
+
+    test('is not equal to something that merely looks like one', () {
+      expect(_calendar(), isNot('octocat'));
+    });
+  });
 }

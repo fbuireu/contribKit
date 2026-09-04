@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/username.dart';
+import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -148,5 +152,69 @@ void main() {
         expect(settings.cellSize, CellSize.large);
       },
     );
+  });
+
+  group('every setting survives a round trip', () {
+    test('the last Username and Year come back as they went in', () async {
+      await repository.saveLastUsername(Username('octocat'));
+      await repository.saveLastYear(Year(2021));
+
+      final settings = await repository.load();
+
+      expect(settings.lastUsername, Username('octocat'));
+      expect(settings.lastYear, Year(2021));
+      expect(settings.year, Year(2021));
+    });
+
+    test('the Cell Shape and Cell Size come back as themselves', () async {
+      await repository.saveCellShape(CellShape.hex);
+      await repository.saveCellSize(CellSize.large);
+
+      final settings = await repository.load();
+
+      expect(settings.cellShape, CellShape.hex);
+      expect(settings.cellSize, CellSize.large);
+    });
+
+    test('the theme mode comes back as itself', () async {
+      await repository.saveThemeMode(AppThemeMode.light);
+
+      expect((await repository.load()).themeMode, AppThemeMode.light);
+    });
+
+    test(
+      'an unset Year falls back to the current one, never to a stored zero',
+      () async {
+        final settings = await repository.load();
+
+        expect(settings.lastYear, isNull);
+        expect(settings.year, Year.current);
+      },
+    );
+  });
+
+  group('a box that will not open', () {
+    test('reports a CacheFailure rather than whatever Hive threw', () async {
+      await Hive.close();
+      final blocker = File('${hiveDir.path}${Platform.pathSeparator}blocker')
+        ..createSync();
+      Hive.init(blocker.path);
+
+      Object? caught;
+      await runZonedGuarded(() async {
+        try {
+          await repository.saveCellShape(CellShape.circle);
+        } catch (error) {
+          caught = error;
+        }
+      }, (_, _) {});
+
+      expect(caught, isA<CacheFailure>());
+      expect(
+        (caught! as CacheFailure).message,
+        contains('blocker'),
+        reason: 'the storage error is repeated, not swallowed',
+      );
+    });
   });
 }

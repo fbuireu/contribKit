@@ -76,12 +76,19 @@ flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI an
 dart run build_runner build      # after touching a @freezed / @riverpod / DTO class
 ```
 
-**The app carries the same coverage floor the web does, and it had none until it was written.** `flutter test`
-has no `--min-coverage`, so [`app/tool/check_coverage.dart`](./app/tool/check_coverage.dart) reads `coverage/lcov.info` and exits non-zero below the
-`minThreshold` const, which is the same 85 and the same one-declaration shape as `web/vitest.config.ts`. CI runs
-it as its own step after `flutter test --coverage`, and the `flutter-test` pre-push hook runs it too. Uploading
-to Codecov was never a gate: `fail_ci_if_error: false` means a failed upload is quiet, and Codecov's own
-statuses are `informational: true` in [`codecov.yml`](./codecov.yml). The floor is what fails a build.
+**The app carries a coverage floor too, and it had none until it was written.** `flutter test` has no
+`--min-coverage`, so [`app/tool/check_coverage.dart`](./app/tool/check_coverage.dart) reads `coverage/lcov.info` and exits non-zero below the
+`minThreshold` const: the same one-declaration shape as `web/vitest.config.ts`, and its own number. The web's is
+the figure every sibling repository uses and stays there; the app's is higher because nothing outside this
+repository constrains it and a floor ten points under the real figure catches nothing. CI runs it as its own step
+after `flutter test --coverage`, and the `flutter-test` pre-push hook runs it too. Uploading to Codecov was never
+a gate: `fail_ci_if_error: false` means a failed upload is quiet, and Codecov's own statuses are
+`informational: true` in [`codecov.yml`](./codecov.yml). The floor is what fails a build.
+
+**What the app floor does not cover is [`main.dart`](./app/lib/main.dart)'s bootstrap, on purpose.** `main` and `callbackDispatcher` reach
+`Hive.initFlutter`, `SystemChrome`, `FlutterNativeSplash`, `Purchases` and WorkManager's Pigeon API in six lines,
+and a test of them asserts that six mocks were called. Every piece they assemble is covered on its own, and
+`ContribKitApp` is covered by `widget_test.dart`.
 
 ## Structure
 

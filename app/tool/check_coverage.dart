@@ -1,6 +1,6 @@
 import 'dart:io';
 
-const minThreshold = 85;
+const minThreshold = 90;
 
 const _report = 'coverage/lcov.info';
 

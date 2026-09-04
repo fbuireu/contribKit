@@ -206,6 +206,13 @@ keeps its own message instead of being wrapped twice. It composes nothing (it pa
 `ExportFailure` *itself* mid-method when the encode returns no bytes, and the arm is what stops its own throw from
 being re-wrapped as `PNG render failed: ExportFailure: …`. The SVG repository has neither situation and has no arm.
 
+**A test that breaks Hive has to swallow one stray error.** `_write` converts anything the box throws into a
+`CacheFailure`, and the only way to make an open fail from outside is to point `Hive.init` at a path that is a
+file. Hive caches the failing open future inside `HiveImpl` and nothing ever awaits that copy, so the exception is
+also reported to the zone as unhandled and fails the test beside the assertion that just passed.
+[`settings_repository_impl_test.dart`](../../test/infrastructure/persistence/settings_repository_impl_test.dart) wraps that one case in `runZonedGuarded` for exactly that reason, and
+for no other.
+
 ## `tip/`
 
 `RevenueCatTipRepository`, mapping every SDK error to `TipFailure`. **It exposes Tip Products and a `give` call, and
