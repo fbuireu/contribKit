@@ -61,4 +61,56 @@ void main() {
       );
     });
   });
+
+  group('two ContributionStats are equal when every fact in them is', () {
+    ContributionStats full({
+      int currentStreak = 3,
+      int longestStreak = 9,
+      int totalDaysActive = 40,
+      double? weeklyAverage = 7.5,
+      int? bestMonth = 6,
+      int? bestMonthContributions = 100,
+    }) => ContributionStats(
+      currentStreak: currentStreak,
+      longestStreak: longestStreak,
+      bestDayCount: 40,
+      bestDayDate: DateTime.utc(2024, 6, 15),
+      totalDaysActive: totalDaysActive,
+      weeklyAverage: weeklyAverage,
+      bestMonthContributions: bestMonthContributions,
+      bestMonth: bestMonth,
+    );
+
+    test('the same numbers compare equal and hash alike', () {
+      expect(full(), full());
+      expect(full().hashCode, full().hashCode);
+      expect(full(), full());
+    });
+
+    test('every field is part of the answer', () {
+      expect(full(currentStreak: 4), isNot(full()));
+      expect(full(longestStreak: 10), isNot(full()));
+      expect(full(totalDaysActive: 41), isNot(full()));
+      expect(full(weeklyAverage: 7.6), isNot(full()));
+      expect(full(weeklyAverage: null), isNot(full()));
+      expect(
+        full(bestMonth: null, bestMonthContributions: null),
+        isNot(full()),
+      );
+      expect(full(bestMonth: 7), isNot(full()));
+      expect(full(bestMonthContributions: 101), isNot(full()));
+      expect(
+        _stats(bestDayCount: 41, bestDayDate: DateTime.utc(2024, 6, 15)),
+        isNot(_stats(bestDayCount: 40, bestDayDate: DateTime.utc(2024, 6, 15))),
+      );
+      expect(
+        _stats(bestDayCount: 40, bestDayDate: DateTime.utc(2024, 6, 16)),
+        isNot(_stats(bestDayCount: 40, bestDayDate: DateTime.utc(2024, 6, 15))),
+      );
+    });
+
+    test('is not equal to something that merely looks like one', () {
+      expect(full(), isNot('stats'));
+    });
+  });
 }
