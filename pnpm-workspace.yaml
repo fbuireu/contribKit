@@ -14,5 +14,5 @@ allowBuilds:
 minimumReleaseAgeExclude:
   # Renovate security update: pnpm@11.8.0
   - pnpm@11.8.0
-  # Renovate security update: astro@7.1.0
-  - astro@7.1.0
+  # Renovate security update: astro@7.1.0 || 7.2.8
+  - astro@7.1.0 || 7.2.8
