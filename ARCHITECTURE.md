@@ -128,11 +128,11 @@ in [§7](#7-where-things-live).
 | 3 | `githubHtmlContributionsRepository.fetch(...)` fetches and parses | infrastructure | Regexes over the rendered page: there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
 | 4 | `querySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
 | 5 | `buildRollingGrid(...)` then `svgStringRenderer({ calendar, options })` | domain → infrastructure | The lattice first, then string concatenation: no DOM |
-| 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Two routes differ: `/api/health` is `no-store`, and the landing page is `private` either way (one hour once a visitor has asked for someone, `no-store` for the default view) |
+| 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Elsewhere it differs: `/api/health` is `no-store`, and the landing page is `private` either way (one hour once a visitor has asked for someone, `no-store` for the default view) |
 
 Any failure short-circuits: `isFailure` guards the result and `statusFor` / `messageFor` in
 [`web/src/application/http/failure-http.ts`](./web/src/application/http/failure-http.ts) turn it into a response. Anything at or above `SERVER_ERROR_STATUS` is
-also reported to Better Stack with the username, kind and endpoint (from all three data consumers, the landing
+also reported to Better Stack with the username, kind and endpoint (from every data consumer, the landing
 page included). That reporting is one call to `logContributionsFailure` in [`web/src/application/http/failure-log.ts`](./web/src/application/http/failure-log.ts),
 which owns the threshold and the port it logs through, rather than a condition each route repeats. This endpoint is deliberately **not** rate-limited. README embeds arrive
 through GitHub's shared image proxy, so a per-IP limit would throttle every reader at once
@@ -152,9 +152,9 @@ through GitHub's shared image proxy, so a per-IP limit would throttle every read
 Separately, `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart) runs every 24 hours under WorkManager to refresh the
 home-screen widget. It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
 hand. But it reads settings through `SettingsRepository` like everything else, so a renamed key breaks it
-at compile time. It read the box by string literal until that changed, which is the first of the three traps named in
+at compile time. It read the box by string literal until that changed, which is one of the traps named in
 [CLAUDE.md](./CLAUDE.md#maintenance-contract). What it then does with them is `HomeScreenWidgetRefresh`, the same
-module the foreground writes through: the seven-step sequence used to be spelled out in both places, so the isolate
+module the foreground writes through: the refresh sequence used to be spelled out in both places, so the isolate
 could drift from the app without anything failing.
 
 ## 4. Failures

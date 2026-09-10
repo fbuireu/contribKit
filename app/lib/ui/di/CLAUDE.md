@@ -41,7 +41,7 @@ Three tiers, in dependency order, plus one notifier that does not fit them:
 
 **Riverpod 3 retries a failed async provider by default, and it hid both error states for about forty seconds.**
 `ProviderContainer.defaultRetry` re-runs anything that throws an `Exception` up to ten times, doubling the delay
-from 200ms to a 6.4s ceiling, and reports `AsyncLoading` the whole time. The two providers here read a **bundled
+from 200ms to a 6.4s ceiling, and reports `AsyncLoading` the whole time. Both providers here read a **bundled
 asset**: if `assets/palettes.json` is unreadable on the first attempt it is unreadable on the tenth, so every one of
 those retries was delay bought with nothing. Worse, `PalettePicker` and the Viewer's suggestion row render *nothing*
 while loading and their message only on error, so the failure paths this repository added on purpose, and that

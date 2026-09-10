@@ -1,6 +1,6 @@
 # app/lib/infrastructure
 
-Concrete implementations of the six `domain/` repository interfaces. May depend on pub packages; must not depend on
+Concrete implementations of the `domain/` repository interfaces. May depend on pub packages; must not depend on
 Flutter widgets, and must never import from `ui/`.
 
 ## Invariants & rules
@@ -165,8 +165,8 @@ One repository per Export Format, each returning bytes and each converting its o
 behind a `Future`, and its test pins the document size (including the trailing gap the width subtracts and the web
 does not), the `<title>`, one Cell per Contribution Day, `isDark: true` keeping `noneLight` out of an Export
 ([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the `unknown` wording for a Count
-nobody measured ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)), all five Cell
-Shapes, and that the corner radius and dot radius come from `CellGeometryService` rather than a local number.
+nobody measured ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)), every Cell
+Shape, and that the corner radius and dot radius come from `CellGeometryService` rather than a local number.
 **Both Exports take their size from `ExportGeometryService.logicalSizeFor`, and the SVG one used not to.**
 `_buildSvg` computed `weeks.length * step - gap` and `7 * step - gap` inline, with a literal `7` where
 `ContributionGridService.daysPerWeek` exists, while the PNG repository and the Export sheet's format tile both

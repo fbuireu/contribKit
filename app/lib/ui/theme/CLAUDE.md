@@ -41,7 +41,7 @@ They were two hand-maintained `const Map`s reached as `labels[preset]!`, and tha
 to the enum and not to the map took down the Customizer the first time it rendered.
 
 - **`color` is `null` for `system` on purpose**: that is what makes "system" follow the light/dark toggle instead
-  of pinning a shade. **Read it through `colorOr(fallback)`**, never the raw getter: three call sites each
+  of pinning a shade. **Read it through `colorOr(fallback)`**, never the raw getter: the call sites each
   re-decided the `?? colors.card` / `?? systemColor` fallback, and one of them could have forgotten.
 - **`BackgroundPreset.byName` returns `null` for an unknown name**, and the caller pairs it with
   `BackgroundPreset.fallback`. It used to coerce silently to `system`, which is the same answer but hides from the
@@ -58,7 +58,7 @@ to the enum and not to the map took down the Customizer the first time it render
 - **`AppTextStyles` builds through `google_fonts`,** so a style is a function call rather than a `const`. It cannot
   be used where a `const` is required, which is why callers take the builder rather than a stored constant.
 - **It covers only the monospace face, and the widget tree does not honour the "no inline `TextStyle`" rule.**
-  `mono` is the sole builder, and two dozen call sites under [`app/lib/ui`](..) still construct a `TextStyle` directly:
+  `mono` is the sole builder, and call sites under [`app/lib/ui`](..) still construct a `TextStyle` directly:
   the proportional text mostly rides on `ShadTheme`'s own text theme instead. Treat the rule as the target, not as a
   description of the code, and do not cite this file as proof that no widget does it. (Count it with
   `grep -rn "TextStyle(" app/lib/ui` rather than trusting a number written here.)

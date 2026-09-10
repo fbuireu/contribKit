@@ -10,7 +10,7 @@ The mobile component (`app/`) is a single Flutter codebase shipping native iOS &
 ## Features
 
 - **Native iOS & Android** from one Flutter codebase; home-screen widgets are Android-only, as [`app/ios`](https://github.com/fbuireu/contribKit/tree/main/app/ios) carries no WidgetKit extension
-- **All 11 palettes & 5 shapes:** the palettes are the web's own design tokens, mirrored from [`shared/palettes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/palettes.json). **The shapes are not**: `CellShape` is a hardcoded Dart enum, and [`shapes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/shapes.json) is bundled but has no Dart reader ([ADR 0002](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
+- **Every palette and shape:** the palettes are the web's own design tokens, mirrored from [`shared/palettes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/palettes.json). **The shapes are not**: `CellShape` is a hardcoded Dart enum, and [`shapes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/shapes.json) is bundled but has no Dart reader ([ADR 0002](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
 - **Daily background refresh:** fetches once a day, easy on the battery
 - **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
@@ -30,7 +30,7 @@ app/lib/
 └── ui/              features (viewer, customizer, export, tip), widgets, theme, DI (Riverpod)
 ```
 
-The customizer offers palette, shape, **size** and background pickers: **Cell Size is app-only**, the web has no user-facing size at all ([ADR 0016](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)). All four go through one `SettingPicker` (`palette_picker`, `shape_picker`, `size_picker`, `background_picker`). The viewer renders the contribution grid with a stats panel. State is held in `viewer_notifier` (Riverpod) over an immutable `viewer_state` (freezed).
+The customizer offers palette, shape, **size** and background pickers: **Cell Size is app-only**, the web has no user-facing size at all ([ADR 0016](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)). Each of them goes through one `SettingPicker` (`palette_picker`, `shape_picker`, `size_picker`, `background_picker`). The viewer renders the contribution grid with a stats panel. State is held in `viewer_notifier` (Riverpod) over an immutable `viewer_state` (freezed).
 
 ### Contribution stats
 

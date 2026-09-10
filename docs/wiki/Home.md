@@ -9,9 +9,9 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 ## What It Does
 
 - Reads GitHub's **public** contributions page for any username, with no API token, OAuth, or private data
-- Parses it into a `date` / `level` / `count` model and builds a 53×7 calendar grid
+- Parses it into a `date` / `level` / `count` model and builds a Sunday-aligned calendar grid
 - Renders a customizable calendar as **SVG** (web/API), **PNG**, or **Markdown** (app)
-- Offers **11 color palettes**, **5 cell shapes**, and configurable backgrounds
+- Offers **every shipped color palette**, **every cell shape**, and configurable backgrounds
 - Exposes a **live SVG endpoint** you can drop straight into a README
 - Ships a **mobile app** with daily-refreshed home-screen widgets on Android
 
@@ -30,7 +30,7 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 | **[Mobile App](Mobile-App)** | Flutter app, home-screen widgets, the Tip Jar |
 | **[Fetching Contributions](Fetching-Contributions)** | The GitHub HTML scraping repository |
 | **[HTML Parsing](HTML-Parsing)** | Regex extraction of Contribution Days and tooltips |
-| **[Calendar Grid](Calendar-Grid)** | Building the deterministic 53×7 grid |
+| **[Calendar Grid](Calendar-Grid)** | Building the deterministic Sunday-aligned grid |
 | **[SVG Rendering](SVG-Rendering)** | Geometry, shapes, and the string renderer |
 | **[Deterministic Randomness](Mulberry32)** | The Mulberry32 PRNG used for placeholder grids |
 | **[Git Hooks](Git-Hooks)** | lefthook, commitlint, asset sync |
@@ -43,8 +43,8 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 
 ### Customization
 
-- **11 palettes:** GitHub, Catppuccin, Nord, Dracula, Gruvbox, Sunset, Tokyo Night, One Dark, Rosé Pine, Solarized, Monokai
-- **5 cell shapes:** rounded, square, circle, dot, hex
+- **Palettes:** GitHub, Catppuccin, Nord, Dracula, Gruvbox, Sunset, Tokyo Night, One Dark, Rosé Pine, Solarized, Monokai
+- **Cell shapes:** rounded, square, circle, dot, hex
 - **Backgrounds:** transparent, any hex color, or a CSS color name
 - **Year selector:** any year back to 2005
 

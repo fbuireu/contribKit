@@ -24,7 +24,7 @@ The reason is the surface, not the model. A labelled grid needs room for a twelv
 
 - **The Viewer** scrolls the grid horizontally on a phone. A month strip pinned above a scrolling lattice is a different widget with its own synchronisation, not a label.
 - **The Home Screen Widget** is about four centimetres wide and already merges weeks into as many columns as fit, so a month has no stable column to sit above.
-- **The two Exports** are deliberately the cell lattice and nothing else. `ExportGeometryService` sizes the document as exactly `weeks x step` by `7 x step`; adding label strips changes every exported dimension and every pixel assertion that pins them.
+- **The Exports** are deliberately the cell lattice and nothing else. `ExportGeometryService` sizes the document as exactly `weeks x step` by `7 x step`; adding label strips changes every exported dimension and every pixel assertion that pins them.
 
 Adding `MONTH_LABELS` and `WEEKDAY_LABELS` to `app/lib/domain/` without a renderer that reads them would create a token nothing consumes, which the root [`CLAUDE.md`](../../CLAUDE.md) names as a trap this repository has already fallen into once.
 

@@ -37,7 +37,7 @@ It is also the only entry point for HTTP traffic.
 | [`api/health.ts`](./api/health.ts) | `GET /api/health` | Configuration presence check |
 | [`404.astro`](./404.astro), [`500.astro`](./500.astro) | `/404`, `/500` | Both render the shared `ErrorView`, **and both are reachable by hand** |
 | [`legal-notice.astro`](./legal-notice.astro), [`privacy.astro`](./privacy.astro), [`terms.astro`](./terms.astro) | - | Static legal pages |
-| `_contributions.ts` | - | Not a route: the shared composition all three data consumers import |
+| `_contributions.ts` | - | Not a route: the shared composition every data consumer imports |
 | `_tests/` | - | Not routes: the three route tests, kept out of the namespace by the underscore |
 | `CLAUDE.md` | `/CLAUDE`, 404'd | This file. Astro routes markdown too: see below |
 
@@ -175,8 +175,8 @@ nothing else, so the calendar embeds outside GitHub
 - **The terminal block on the error pages is decoration, and must not read as data.** It once printed a fixed
   `trace: 8f3c1a`, an identifier that corresponded to nothing and that a user could reasonably have quoted in a bug
   report. Keep those lines free of anything that looks like a real identifier.
-- **`/api/health` returns 503, not 200, when anything is missing.** It checks four keys (the analytics ID, both
-  Better Stack variables and the `API_RATE_LIMITER` binding) and reports `"ok"` only when all four are present. A
+- **`/api/health` returns 503, not 200, when anything is missing.** It checks the analytics ID, both
+  Better Stack variables and the `API_RATE_LIMITER` binding, and reports `"ok"` only when every one of them is present. A
   local run or a preview deployment is expected to fail it.
 - **The landing page distinguishes an asked-for user from the default, and `resolveViewerIdentity` decides it.**
   `?user=` wins, then the `USERNAME_COOKIE`, then `DEFAULT_USERNAME`; `isExplicit` is true only for the first two,

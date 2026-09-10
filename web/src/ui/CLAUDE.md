@@ -122,7 +122,7 @@ The status → human sentence map, in lowercase, prefixed with `↳` by `formatH
 | 502 | `could not reach github, try again in a moment` |
 | anything else | `something went wrong` |
 
-**The 429 wording is deliberately neutral, because the status has two sources.** On `/api/contributions` it is
+**The 429 wording is deliberately neutral, because the status has more than one source.** On `/api/contributions` it is
 either this site's own per-IP limit (the middleware, with `Retry-After: 60`) or GitHub rate-limiting the Worker
 (a `RateLimited` failure, without one). This table is keyed on status alone, so a sentence naming GitHub would be
 wrong half the time: the same class of mistake as the 502 that said "could not reach github" about a service

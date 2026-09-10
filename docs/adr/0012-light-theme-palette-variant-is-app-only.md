@@ -21,5 +21,5 @@ Giving the endpoint an explicit theme parameter is the alternative that was not 
 ## Consequences
 
 - **The gap is only closable where the theme is actually known**, which is the client-rendered previews on the site itself. Doing that means threading the active theme into the renderers and repainting the grid when the theme toggle flips: real work, worth doing on its own rather than bundled into an unrelated fix.
-- Until then a shared token is consumed by one client and ignored by the other. Anyone reading `shared/palettes.json` and expecting six colours everywhere should read this first.
-- The glossary's **Palette** entry describes all six colours, because the domain has six. The web's five-colour type is the thing that is behind, not the glossary.
+- Until then a shared token is consumed by one client and ignored by the other. Anyone reading `shared/palettes.json` and expecting every colour to be honoured everywhere should read this first.
+- The glossary's **Palette** entry describes every colour, `noneLight` included, because the domain has it. The web's narrower type is the thing that is behind, not the glossary.

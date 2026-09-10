@@ -18,13 +18,13 @@ Applied uniformly, the textbook answer would have added a nested value object fo
 
 The strategic half is not negotiable, and [3](0003-layered-domain-architecture-in-both-clients.md) already fixed it: the ubiquitous language of [`CONTEXT.md`](../../CONTEXT.md), the layer boundaries, the dependency direction, the pure domain, repositories as ports, and the sealed `Failure` set of [4](0004-typed-failures-instead-of-thrown-exceptions.md).
 
-The tactical half is applied where it pays, and the test is **three questions asked in order**:
+The tactical half is applied where it pays, and the test is **a short list of questions asked in order**:
 
 1. **Can the illegal state actually be reached?** A shape the type permits but no code path produces is a guard, not a bug. Guard it in the cheapest way that makes it a compile error or a debug failure, and say in the commit that it is a guard.
 2. **Does anything read it?** Modelling a concept nothing consumes invents a type whose only reader is its own test. The root [`CLAUDE.md`](../../CLAUDE.md) already names the shared-token-nothing-reads trap; a value object nothing reads is the same trap wearing a pattern's name.
 3. **Does it cross a boundary?** A concept that leaves the domain, reaches a public payload, is persisted, or is spelled in both languages earns a real type. One that lives inside a single function does not.
 
-A "no" to all three means write the rule down instead of encoding it: an assert, a doc line, or an ADR. **A divergence or a rule that is named is finished work.** That is why [24](0024-calendar-labels-are-a-web-only-surface.md) is an ADR and not a feature.
+A "no" to every one of them means write the rule down instead of encoding it: an assert, a doc line, or an ADR. **A divergence or a rule that is named is finished work.** That is why [24](0024-calendar-labels-are-a-web-only-surface.md) is an ADR and not a feature.
 
 ## Consequences
 

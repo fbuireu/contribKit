@@ -29,7 +29,7 @@ be constructible and testable with `const FetchContributions(repository: fake)` 
 that the repository below it had an unreachable cancel arm. A store sheet the person backs out of is an ordinary
 outcome, not an error and not a success, and it is a value now.
 
-All five are one-line delegations today, and that is fine. They exist so `ui/` depends on `application/` rather than
+Every one of them is a one-line delegation today, and that is fine. They exist so `ui/` depends on `application/` rather than
 on a repository interface it would also have to call, and so a rule belonging between the widget and the repository
 has an obvious home. Do not inline them into the notifiers.
 

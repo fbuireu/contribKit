@@ -8,7 +8,7 @@ must never be referenced from `application/` or `ui/`.
 
 ## Invariants & rules
 
-- **These types carry the cache schema in both directions.** All three are `@JsonSerializable()` with a `toJson`,
+- **These types carry the cache schema in both directions.** Every one of them is `@JsonSerializable()` with a `toJson`,
   so codegen produces the read *and* the write. They used to be `createToJson: false`.
 - **`dart run build_runner build` after any change**, or [`contribution_calendar_dto.g.dart`](./contribution_calendar_dto.g.dart) and the class disagree.
   The generated file is committed.

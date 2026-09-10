@@ -40,7 +40,7 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 | `ContributionLevel` | `clampLevel` forces any number into `0–4` | never fails: it clamps, rounds, and answers `0` for `NaN` |
 | `Palette` / `CellShape` | looked up by key; an unknown key falls back to `DEFAULT_PALETTE_KEY` (`github`) / `DEFAULT_CELL_SHAPE` (first in `shapes.json`) | never fails: it defaults |
 
-`MIN_YEAR` is **2005**, which is a product floor, not GitHub's launch year. GitHub launched in 2008; four
+`MIN_YEAR` is **2005**, which is a product floor, not GitHub's launch year. GitHub launched in 2008; the
 documents once said 2005 and were wrong for a different reason. Do not "correct" the constant to 2008. The floor
 is deliberate.
 
@@ -99,7 +99,7 @@ test helper reintroduces the same bug in the test rather than the code.
 
 ## Gotchas
 
-- **`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7)`**, all three declared in [`services/dates.ts`](./services/dates.ts).
+- **`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7)`**, every one of them declared in [`services/dates.ts`](./services/dates.ts).
   `buildGridFromApi` walks those 371 days from the Sunday on or before January 1st, so the grid always starts
   between December 26th of the previous year and January 1st, and always ends between December 30th and January
   6th of the next. Days outside the requested year are simply absent from the map and emerge as
@@ -122,9 +122,9 @@ test helper reintroduces the same bug in the test rather than the code.
   `??` back.
 - **`clampLevel` lives in [`value-objects/contribution-level.ts`](./value-objects/contribution-level.ts), not in `services/`.** It is a value-object
   constructor that happens to be total.
-- **A `Palette` here is five colours, not six.** [`shared/palettes.json`](../../../shared/palettes.json) defines a sixth, `noneLight`, and this
+- **A `Palette` here drops one of the shared colours.** [`shared/palettes.json`](../../../shared/palettes.json) defines `noneLight`, and this
   layer deliberately drops it when building `PaletteColors`, because an embedded SVG cannot know the viewer's
-  theme ([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)). The app reads all six.
+  theme ([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)). The app reads every one of them.
 - **A shape needs two edits, not one.** `CELL_SHAPES` is built from `shared/shapes.json` *filtered through the
   hand-written `CellShape` union*, so a token added to the JSON alone is dropped everywhere: it never reaches the
   customizer, the endpoint or `renderCellShape`. Before that filter existed the JSON key was cast into the union,
@@ -149,8 +149,8 @@ test helper reintroduces the same bug in the test rather than the code.
   gets 0, and `circle` / `dot` / `hex` get `size / 2`. That is what makes a rect look like a circle if it is ever
   routed through the rect renderer. Read through `calendarLayout().radius`. This file held a fixed `2.5` and an
   unscaled dot radius until that was unified; the Embed's corner moved from 2.5 to 2.0 as a result. **Change a
-  constant here and it changes in three languages**: Dart is the source, Kotlin cannot import either, and the
-  docs contract fails until all three agree.
+  constant here and it changes in every language the geometry is written in**: Dart is the source, Kotlin cannot import either, and the
+  docs contract fails until they agree.
 - **`dotRadius` overflows its own cell on purpose.** Level 0 is `DOT_BASE_RADIUS` (1.4) and every other level is
   `1.4 + level`, so level 4 is 5.4 against a default cell half-width of 5. It still fits the 12 px pitch that
   `SVG_DEFAULT_CELL_SIZE` (10) plus `SVG_DEFAULT_CELL_GAP` (2) gives, so dots never collide. Shrink the gap and
@@ -267,4 +267,4 @@ test helper reintroduces the same bug in the test rather than the code.
 - `MONTH_LABELS` is built once from `Intl.DateTimeFormat("en", …)` against year 2024, which is arbitrary and only there
   to name months. A month is labelled at the first week whose first day falls in that month's first seven days,
   which yields exactly twelve distinct labels for every year from 2005 to 2030. The December spill at both ends
-  never earns a thirteenth. `WEEKDAY_LABELS` is `["Mon", "Wed", "Fri"]`: three labels for seven rows, drawn on alternate rows.
+  never earns a thirteenth. `WEEKDAY_LABELS` is `["Mon", "Wed", "Fri"]`, drawn on alternate rows.

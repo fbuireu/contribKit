@@ -45,7 +45,7 @@ This usually means GitHub is unreachable or changed the structure of its contrib
 
 ## Rate limited (HTTP 429)
 
-A 429 means one of two different things, and the **body** is what tells them apart: the headers look the same either way.
+A 429 does not always mean the same thing, and the **body** is what tells the cases apart: the headers look the same either way.
 
 **`{"error":"Too many requests"}`** is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute**, refused by the middleware before the route runs, with a fixed `Retry-After: 60`. Back off and retry.
 

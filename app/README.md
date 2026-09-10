@@ -30,7 +30,7 @@
 ## Features
 
 - 📱 **Native iOS & Android:** one Flutter codebase; home-screen widgets on Android only
-- 🎨 **All 11 palettes & 5 shapes:** palettes are loaded from [`shared/`](../shared); the shapes are a hardcoded `CellShape` enum, because nothing in Dart reads `shapes.json` ([ADR 0002](../docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
+- 🎨 **Every palette and shape:** palettes are loaded from [`shared/`](../shared); the shapes are a hardcoded `CellShape` enum, because nothing in Dart reads `shapes.json` ([ADR 0002](../docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - 🧿 **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
 - 🔋 **Daily background refresh:** fetches once a day, easy on the battery
 - 📤 **Export & share:** PNG, SVG, or Markdown straight into the system share sheet

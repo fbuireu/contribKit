@@ -135,11 +135,22 @@ custom properties to the red ramp), so a new tone is a class and a token block, 
 - **`shapePreviewSVG` draws its own miniatures** rather than reusing `renderCellShape`, at a 20×20 viewBox with
   hand-tuned radii, because a 10 px cell scaled up reads as a blur. Its table is keyed on `CellShape`, so adding a
   member fails to compile here, which is the intended reminder.
-- **Three string contracts cross into the `is:inline` head scripts, and all three go through `define:vars`.**
+- **The header's "get app" is an anchor, and it was a `<button>` that went nowhere.** It carried
+  `type="button"`, no handler and no `href`, so the only call to action in the nav did nothing, while the hero
+  and the footer both linked `PLAY_STORE_URL` correctly. The mobile rule `.nav-links a:not(.nav-cta)` is the
+  tell: it was written for an anchor that had stopped being one, so it hid the section links and exempted
+  nothing. A nav call to action is a link to somewhere; if it ever needs script, it still needs the `href`
+  underneath it.
+- **"get app" means the Android app, and any web-install affordance would be a second, different thing.**
+  `<install>` was tried here and removed: it installs the **web** app this page's manifest describes, so putting
+  it behind the same label offered two artefacts under one button depending on the browser. It also ships behind
+  a time-boxed origin trial, which is a poor foundation for a nav control. If a PWA install is ever wanted, give
+  it its own label rather than overloading this one.
+- **The string contracts that cross into the `is:inline` head scripts all go through `define:vars`.**
   An `is:inline` script cannot import, so the values are read in the frontmatter and injected: `BaseLayout` takes
   `COLOR_SCHEME_KEY`, `COLOR_SCHEME_META_SELECTOR` and `ThemeClass` from [`header/theme-toggle.ts`](./core/header/theme-toggle.ts), and `Analytics`
-  takes `CONSENT_COOKIE_NAME` and `ANALYTICS_CATEGORY` from [`cookie-consent/config.ts`](./core/cookie-consent/config.ts). Each was spelled twice
-  before, in two files with nothing tying them: the FOUC bootstrap and the toggle both hardcoded
+  takes `CONSENT_COOKIE_NAME` and `ANALYTICS_CATEGORY` from [`cookie-consent/config.ts`](./core/cookie-consent/config.ts). Each was spelled more than once
+  before, in files with nothing tying them: the FOUC bootstrap and the toggle both hardcoded
   `'color-scheme'` and `theme-${scheme}`, and the analytics gate matched `/(^| )cc_cookie=([^;]+)/` against a name
   the consent config declared separately. **Renaming either used to leave a script silently reading nothing**.
   For the consent one that means falling through to `'denied'`, which fails safe, while the theme one flashes

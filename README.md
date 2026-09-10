@@ -48,7 +48,7 @@ Type a GitHub username and get a fully customizable contribution calendar you ca
 
 - 🎨 **11 color palettes:** GitHub, Catppuccin, Nord, Dracula, Gruvbox, Sunset, Tokyo Night, One Dark, Rosé Pine, Solarized, Monokai
 - 🔷 **5 cell shapes:** rounded, square, circle, dot, hex
-- 📤 **3 export formats:** PNG for the readme, SVG for the portfolio, Markdown for the bio
+- 📤 **Export formats:** PNG for the readme, SVG for the portfolio, Markdown for the bio
 - 🔓 **No token required:** only public contribution data; no OAuth, no PAT
 - 📱 **Home-screen widgets:** small (streak counter) and medium (grid, streak and total); Android only, refreshed daily
 - 🗓️ **Year selector:** any year back to 2005
@@ -147,7 +147,7 @@ The user-facing guides are published as the repository wiki:
 | **[Project Structure](../../wiki/Project-Structure)** | Where every directory lives and what owns it |
 | **[Fetching Contributions](../../wiki/Fetching-Contributions)** | How the public page is requested, and what can go wrong |
 | **[HTML Parsing](../../wiki/HTML-Parsing)** | The regexes, and why there is no DOM parser |
-| **[Calendar Grid](../../wiki/Calendar-Grid)** | Building the fixed 53×7 grid deterministically |
+| **[Calendar Grid](../../wiki/Calendar-Grid)** | Building the Sunday-aligned grid deterministically |
 | **[SVG Rendering](../../wiki/SVG-Rendering)** | Geometry, labels, shapes, and the emitted attributes |
 | **[Deterministic Randomness](../../wiki/Mulberry32)** | The seeded PRNG behind the placeholder grids |
 | **[CI/CD](../../wiki/CI-CD)** | Both pipelines, environments, and Play delivery |

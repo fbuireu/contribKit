@@ -3,6 +3,7 @@ import "./header.css";
 import Download from "@ui/components/icons/Download.astro";
 import Moon from "@ui/components/icons/Moon.astro";
 import Sun from "@ui/components/icons/Sun.astro";
+import { PLAY_STORE_URL } from "@ui/utils/app-links";
 import { ElementId } from "@ui/utils/dom-contract";
 
 const base = Astro.url.pathname === "/" ? "" : "/";
@@ -30,10 +31,10 @@ const base = Astro.url.pathname === "/" ? "" : "/";
         <Sun class="ti sun" />
         <Moon class="ti moon" />
       </button>
-      <button type="button" class="nav-cta">
+      <a class="nav-cta" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
         <Download />
         get app
-      </button>
+      </a>
     </div>
   </div>
 </nav>

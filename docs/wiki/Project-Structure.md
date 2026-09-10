@@ -74,8 +74,8 @@ The single source of truth for data used by both apps:
 
 | File | Contents |
 |------|----------|
-| `palettes.json` | 11 color palettes (5 levels each) |
-| `shapes.json` | 5 cell shapes |
+| `palettes.json` | Every color palette, one color per Contribution Level plus the light-theme `none` |
+| `shapes.json` | Every cell shape |
 | `usernames.json` | Suggested usernames |
 
 > **Edit the JSON here, never the copies under [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets).**

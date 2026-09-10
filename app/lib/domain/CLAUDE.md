@@ -77,10 +77,10 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `AppSettings` | everything the app remembers, already defaulted. `SettingsRepository.load()` returns one, and `year` is `lastYear ?? Year.current` so no caller re-decides that. **No `==`**: nothing compares one, so it would be surface with no reader |
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | - |
 
-`Year.minYear` is **2005**, a product floor rather than GitHub's launch year: GitHub launched in 2008, and four
+`Year.minYear` is **2005**, a product floor rather than GitHub's launch year: GitHub launched in 2008, and the
 documents once justified the 2005 by calling it the launch year. Do not "correct" it.
 
-**`ExportFormat` is the one value object with no web counterpart.** The web offers the same three Export Formats
+**`ExportFormat` is the one value object with no web counterpart.** The web offers the same Export Formats
 from [`ui/components/export/export-formats.ts`](../../../web/src/ui/components/export/export-formats.ts), because there the choice never leaves the browser; here it crosses
 from a widget through a provider to a repository, and it used to cross as a private enum each surface declared for
 itself. The glossary named it long before any module did.
@@ -156,7 +156,7 @@ person writes by hand may carry one; what no client does is *build* one.
   circuiting to `low`. **GitHub does not publish its bucketing algorithm; this matches observed behaviour and is a
   guess.** It is only ever a fallback: the parser reads `data-level` and this runs solely when that attribute is
   missing. The web has no equivalent, because it drops such a day and lets the grid backfill it.
-  The `yearMax == 0` arm is unreachable from both call sites: it sits after the `count == 0` check, and both
+  The `yearMax == 0` arm is unreachable from its call sites: it sits after the `count == 0` check, and they all
   derive `yearMax` as the maximum over the counts, so a positive count implies a positive maximum. It is kept as a
   total function's answer for an input the callers happen not to produce, not as a live branch.
 - **`ContributionGridService.buildFor`** turns a flat list of Contribution Days into a lattice of whole
@@ -196,9 +196,9 @@ person writes by hand may carry one; what no client does is *build* one.
   a compile error instead, and catches a computed one in debug. No production path can reach it today, because
   `fromHex` parses at most eight hex digits, so this is a guard rather than a bug fix.
 - **Every `CellFigure` compares by value, and a polygon's vertices are unmodifiable.** The guide called it a value
-  object and none of the four declared `==`, so two identical figures were unequal. `_PolygonPainter.shouldRepaint`
+  object and none of them declared `==`, so two identical figures were unequal. `_PolygonPainter.shouldRepaint`
   had to hand-roll `listEquals` over the vertices in `ui/`, doing in a widget what the value object should do, on a
-  path that runs for every one of 371 cells per rebuild. Note the trap this hid behind: a test written with `const`
+  path that runs for every cell in the grid on every rebuild. Note the trap this hid behind: a test written with `const`
   figures **passes without the fix**, because Dart canonicalises const instances and identity equality succeeds.
   `CellGeometryService.figureFor` allocates fresh ones, so the test builds through it.
 - **`BackgroundPreset` is a domain value object, and the Flutter colour is an adapter.** Background is a glossary
@@ -282,10 +282,10 @@ none of those belongs in `domain/`. Kotlin still spells its own mapping, for the
 [ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) gives.
 
 The maths a Cell Shape is drawn with lives here, not in whichever renderer needs it: `cornerRadiusFor`,
-`dotRadiusFor` and `hexVerticesFor`. **No renderer calls them any more**: all three go through `figureFor`, which
+`dotRadiusFor` and `hexVerticesFor`. **No renderer calls them any more**: they go through `figureFor`, which
 is the only caller left outside the tests.
 
-**It exists because the four copies had drifted.** The dot radius and the hex vertices agreed everywhere, but the
+**It exists because the copies had drifted.** The dot radius and the hex vertices agreed everywhere, but the
 rounded corner did not: the exports and the Android widget scaled it with the Cell Size (`cell * 0.2`) while the
 screen drew a fixed `2.0`. At the `large` Cell Size that is 2.8 against 2.0: you chose a look, exported it, and
 the corners changed. The screen was the outlier, so the screen moved.
@@ -306,7 +306,7 @@ service returns `cell * 0.2`, and a dot radius of `1.4 + level` unscaled where t
 
 It carries `CORNER_RADIUS_RATIO = 0.2`, `DOT_BASE_RADIUS = 1.4` and `DOT_REFERENCE_CELL_SIZE = 10` now, and its
 `cornerRadiusFor` / `dotRadius` are this service's formulas in TypeScript. The published Embed's rounded corner
-therefore moved from `2.5` to `2.0`: the visible cost of one rule instead of two, taken deliberately.
+therefore moved from `2.5` to `2.0`: the visible cost of a single shared rule, taken deliberately.
 
 This does **not** contradict
 [ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md): that
