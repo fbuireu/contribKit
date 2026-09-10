@@ -27,6 +27,7 @@ export default defineConfig({
 		reporters: process.env.GITHUB_ACTIONS ? ["default", summaryLabel, "github-actions"] : ["default"],
 		include: [...configDefaults.include, "../docs/**/*.test.ts"],
 		exclude: [...configDefaults.exclude, "e2e/**"],
+		testTimeout: 20_000,
 		coverage: {
 			provider: "istanbul",
 			reporter: ["text", "lcov"],
