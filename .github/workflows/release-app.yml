@@ -83,7 +83,7 @@ jobs:
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git "$MAJOR_VERSION" --force
 
   deliver:
-    name: Ship ${{ needs.release.outputs.version }} to Google Play and Sentry
+    name: Deliver ${{ needs.release.outputs.version }} to Google Play
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [release]

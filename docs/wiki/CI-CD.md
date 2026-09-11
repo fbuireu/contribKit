@@ -116,7 +116,7 @@ flowchart TD
   dispatch(["workflow_dispatch (track)"]) --> release["release: semantic-release (app)"]
   release -->|published?| gate{"new version?"}
   gate -->|no| stop(["nothing to ship"])
-  gate -->|yes| deliver["deliver: build, upload symbols, ship to Google Play"]
+  gate -->|yes| deliver["deliver: Deliver to Google Play"]
   deliver --> sign["decode keystore + signing config"]
   deliver --> notes["generate Play notes from CHANGELOG"]
   deliver --> aab["flutter build appbundle --release"]
