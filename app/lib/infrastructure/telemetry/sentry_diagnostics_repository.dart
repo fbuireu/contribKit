@@ -86,18 +86,14 @@ final class SentryDiagnosticsRepository implements DiagnosticsRepository {
   SentryEvent? _scrub(SentryEvent event, Hint hint) {
     if (!_started) return null;
 
-    final scrubbed = event.copyWith(
-      breadcrumbs: const [],
-      exceptions: event.exceptions
-          ?.map(
-            (exception) => exception.copyWith(value: redactedDiagnosticValue),
-          )
-          .toList(),
-    );
+    event.breadcrumbs = const [];
+    for (final exception in event.exceptions ?? const <SentryException>[]) {
+      exception.value = redactedDiagnosticValue;
+    }
+    if (event.message != null) {
+      event.message = SentryMessage(redactedDiagnosticValue);
+    }
 
-    if (event.message == null) return scrubbed;
-    return scrubbed.copyWith(
-      message: const SentryMessage(redactedDiagnosticValue),
-    );
+    return event;
   }
 }

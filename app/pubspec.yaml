@@ -43,7 +43,7 @@ dependencies:
   purchases_flutter: 10.8.0
 
   # Telemetry
-  sentry_flutter: 8.14.2
+  sentry_flutter: 9.30.0
   posthog_flutter: 5.40.0
 
   # Fonts

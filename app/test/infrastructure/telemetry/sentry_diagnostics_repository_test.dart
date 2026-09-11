@@ -123,7 +123,7 @@ void main() {
       'replaces every exception message, which is where a Username hides',
       () async {
         final event = SentryEvent(
-          exceptions: const [
+          exceptions: [
             SentryException(
               type: 'NotFoundFailure',
               value: 'NotFoundFailure: user "octocat" not found',
@@ -148,7 +148,7 @@ void main() {
       'keeps the exception type, which is the whole diagnostic value',
       () async {
         final event = SentryEvent(
-          exceptions: const [
+          exceptions: [
             SentryException(
               type: 'NetworkFailure',
               value: 'https://github.com/users/octocat',
@@ -174,7 +174,7 @@ void main() {
 
     test('replaces a message when there is one, and invents none when there is not', () async {
       final withMessage = await scrub(
-        SentryEvent(message: const SentryMessage('looking up octocat')),
+        SentryEvent(message: SentryMessage('looking up octocat')),
       );
       final without = await scrub(SentryEvent());
 

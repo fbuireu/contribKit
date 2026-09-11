@@ -50,26 +50,6 @@ jobs:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: pnpm run release
 
-      - name: Update major version tag
-        if: steps.release.outputs.published == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 --match 'app-v*' 2>/dev/null || true)
-          if [ -z "$LATEST_TAG" ]; then
-            echo "No app tag found; skipping major tag update."
-            exit 0
-          fi
-
-          MAJOR_VERSION=$(echo "$LATEST_TAG" | sed -E 's/^(app-v[0-9]+).*/\1/')
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git tag -fa "$MAJOR_VERSION" -m "Update $MAJOR_VERSION to $LATEST_TAG"
-
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git "$MAJOR_VERSION" --force
-
   deliver:
     name: Deliver ${{ needs.release.outputs.version }} to Google Play
     runs-on: ubuntu-latest
