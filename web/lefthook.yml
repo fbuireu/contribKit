@@ -10,4 +10,4 @@ pre-push:
   commands:
     web-verify:
       root: "web/"
-      run: pnpm verify
+      run: pnpm verify:changed

@@ -59,7 +59,9 @@ pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
 pnpm typecheck           # wrangler types + tsc --noEmit
 pnpm check               # astro check: the only thing that typechecks .astro files
-pnpm verify              # format:check + typecheck + check + coverage: what CI and pre-push run
+pnpm verify              # format:check + typecheck + check + coverage: what CI runs
+pnpm verify:changed      # the same with test:ut:changed in place of coverage: what pre-push runs
+pnpm since               # prints the push target the :changed variants diff against
 
 `verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference — `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
 pnpm lint:all                    # biome lint over web, docs and .github
@@ -75,6 +77,10 @@ flutter test
 flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 dart run build_runner build      # after touching a @freezed / @riverpod / DTO class
 ```
+
+**`web-verify` runs `verify:changed`, and the coverage floor is why it cannot run `verify`.** `web/vitest.config.ts` sets `coverage.include` over all of `web/src`, which is what makes the provider report a file no test loaded as zero, so a changed-only subset drags the global average under the floor and fails on a clean tree: a scoped run and the threshold cannot both hold. Coverage is therefore a CI concern, which costs nothing because CI runs the full `pnpm verify` on the pushed sha. The `app` half of the hook needed none of this: its commands are already glob-gated, so `flutter-test` fires only when a `*.dart`, `pubspec.yaml` or `analysis_options.yaml` file is in the push, while `web-verify` carries no glob and ran the whole web gate whatever had changed.
+
+**`pnpm since` is where the `:changed` variants get their base.** It resolves `@{push}`, the ref the current branch would push to, and falls back to `origin/main` when the branch has no upstream. Neither tool's default was right here: Biome's `--changed` diffs against `vcs.defaultBranch`, which is `main`, so on `main` it selected nothing at all and `pnpm format:changed` reported *Checked 0 files* however much had changed, and Vitest's `--changed` carried no ref, which means uncommitted work only and is empty at push time. Both are a green check that checked nothing. Note that lefthook cannot help here: it consumes git's pre-push stdin and forwards none of it, so the remote sha git computes is not reachable from a command, which is why the base is resolved from git rather than taken from the hook.
 
 **The app carries a coverage floor too, and it had none until it was written.** `flutter test` has no
 `--min-coverage`, so [`app/tool/check_coverage.dart`](./app/tool/check_coverage.dart) reads `coverage/lcov.info` and exits non-zero below the
