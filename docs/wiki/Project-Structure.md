@@ -34,7 +34,7 @@ application/
 infrastructure/
   github/          githubHtmlContributionsRepository (HTML scraping)
   rendering/       svgStringRenderer
-  logging/         better-stack-logger (the client and nothing else)
+  logging/         the log contract and the console writer Cloudflare exports
 ui/
   components/      Astro components (core/, grid/, error/, icons/, features…)
   utils/           page-init, render/state, roving, url/cookie, mulberry, …

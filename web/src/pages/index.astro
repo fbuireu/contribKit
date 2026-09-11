@@ -7,7 +7,7 @@ import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import { toIsoDate } from "@domain/services/dates";
 import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
-import { loggerFor } from "@infrastructure/logging/better-stack-logger";
+import { logger } from "@infrastructure/logging/logger";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import Customize from "@ui/components/customize/Customize.astro";
@@ -72,7 +72,7 @@ const resolvedYear = initial.ok ? initial.data.year : currentYear;
 
 if (!initial.ok) {
 	logContributionsFailure({
-		logger: loggerFor(Astro.locals),
+		logger,
 		username,
 		kind: initial.kind,
 		reason: initial.message,

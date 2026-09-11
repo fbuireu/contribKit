@@ -1,6 +1,6 @@
 ---
 import { logServerError } from "@application/http/failure-log";
-import { loggerFor } from "@infrastructure/logging/better-stack-logger";
+import { logger } from "@infrastructure/logging/logger";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import ErrorView from "@ui/components/error/ErrorView.astro";
@@ -15,7 +15,7 @@ const metadata: Metadata = {
 };
 
 const error = (Astro.props as { error?: unknown }).error;
-logServerError({ logger: loggerFor(Astro.locals), error, path });
+logServerError({ logger, error, path });
 
 const terminal: TerminalLine[] = [
 	{ kind: TerminalLineKind.Command, text: `contribkit render ${path}` },

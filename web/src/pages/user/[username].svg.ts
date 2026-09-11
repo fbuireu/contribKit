@@ -13,7 +13,7 @@ import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-o
 import { DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EmbedParam } from "@domain/value-objects/embed";
 import { paletteByKey } from "@domain/value-objects/palette";
 import { parseUsername } from "@domain/value-objects/username";
-import { loggerFor } from "@infrastructure/logging/better-stack-logger";
+import { logger } from "@infrastructure/logging/logger";
 import { svgStringRenderer } from "@infrastructure/rendering/svg-string-renderer";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
@@ -40,7 +40,7 @@ const handle: APIRoute = async ({ params, url, locals }) => {
 	if (isFailure(calendar)) {
 		const status = statusFor(calendar);
 		logContributionsFailure({
-			logger: loggerFor(locals),
+			logger,
 			username: username.value,
 			kind: calendar.kind,
 			reason: messageFor(calendar),
@@ -74,7 +74,7 @@ export const GET: APIRoute = async (context) => {
 	try {
 		return await handle(context);
 	} catch (error) {
-		logServerError({ logger: loggerFor(context.locals), error, path: context.url.pathname });
+		logServerError({ logger, error, path: context.url.pathname });
 		return new Response(SERVER_ERROR_MESSAGE, {
 			status: SERVER_ERROR_STATUS,
 			headers: { "Content-Type": "text/plain", "Cache-Control": NOT_CACHEABLE },

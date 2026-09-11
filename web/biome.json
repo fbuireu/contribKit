@@ -48,6 +48,16 @@
 			}
 		},
 		{
+			"includes": ["**/src/infrastructure/logging/logger.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noConsole": "off"
+					}
+				}
+			}
+		},
+		{
 			"includes": ["**/src/ui/utils/cookie.ts"],
 			"linter": {
 				"rules": {

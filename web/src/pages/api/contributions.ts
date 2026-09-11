@@ -10,7 +10,7 @@ import {
 import { isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
-import { loggerFor } from "@infrastructure/logging/better-stack-logger";
+import { logger } from "@infrastructure/logging/logger";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
 import { loadContributions } from "../_contributions";
@@ -51,7 +51,7 @@ const handle: APIRoute = async ({ url, locals }) => {
 	if (isFailure(result)) {
 		const status = statusFor(result);
 		logContributionsFailure({
-			logger: loggerFor(locals),
+			logger,
 			username: username.value,
 			kind: result.kind,
 			reason: messageFor(result),
@@ -85,7 +85,7 @@ export const GET: APIRoute = async (context) => {
 	try {
 		return await handle(context);
 	} catch (error) {
-		logServerError({ logger: loggerFor(context.locals), error, path: context.url.pathname });
+		logServerError({ logger, error, path: context.url.pathname });
 		return Response.json(
 			{ error: SERVER_ERROR_MESSAGE },
 			{ status: SERVER_ERROR_STATUS, headers: { "Cache-Control": NOT_CACHEABLE } },

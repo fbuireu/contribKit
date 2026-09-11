@@ -25,18 +25,18 @@ simple = { limit = 100, period = 60 }
 
 [env.production.observability]
 enabled = true
+redact_query_string = true
 
 [env.production.observability.logs]
 enabled = true
 invocation_logs = true
 head_sampling_rate = 0.2
+destinations = ["betterstack-logs"]
 
 [env.production.observability.traces]
 enabled = true
 head_sampling_rate = 0.2
-
-[[env.production.tail_consumers]]
-service = "contribkit-tail"
+destinations = ["betterstack-traces"]
 
 [env.production.placement]
 mode = "smart"
@@ -51,18 +51,18 @@ simple = { limit = 100, period = 60 }
 
 [env.development.observability]
 enabled = true
+redact_query_string = true
 
 [env.development.observability.logs]
 enabled = true
 invocation_logs = true
 head_sampling_rate = 0.2
+destinations = ["betterstack-logs"]
 
 [env.development.observability.traces]
 enabled = true
 head_sampling_rate = 0.2
-
-[[env.development.tail_consumers]]
-service = "contribkit-tail"
+destinations = ["betterstack-traces"]
 
 [env.development.placement]
 mode = "smart"

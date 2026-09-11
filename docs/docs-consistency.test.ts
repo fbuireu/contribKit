@@ -686,22 +686,38 @@ describe("the dark palette is written twice and must agree", () => {
 	});
 });
 
-describe("the tail consumer names a Worker that declares that name", () => {
+describe("every observability block names where it exports", () => {
+	interface DeclaresParams {
+		readonly stage: string;
+		readonly signal: string;
+	}
+
 	const SITE = join(REPO, "web/wrangler.toml");
-	const TAIL = join(REPO, "web/workers/tail/wrangler.toml");
 
-	const declaredName = (): string | undefined => /^name\s*=\s*"([^"]+)"/m.exec(read(TAIL))?.[1];
+	const stages = (): string[] => [...read(SITE).matchAll(/^\[env\.([a-z]+)\.observability\]$/gm)].map((m) => m[1]);
 
-	const consumers = (): string[] =>
-		[...read(SITE).matchAll(/tail_consumers\]\]\s*service\s*=\s*"([^"]+)"/g)].map((match) => match[1]);
+	const declares = ({ stage, signal }: DeclaresParams): boolean =>
+		new RegExp(`\\[env\\.${stage}\\.observability\\.${signal}\\][^[]*destinations\\s*=\\s*\\[`).test(read(SITE));
 
-	it("finds a tail Worker and at least one consumer pointing somewhere", () => {
-		expect(declaredName()).toBeTruthy();
-		expect(consumers().length).toBeGreaterThan(0);
+	it("configures observability for every stage the file defines", () => {
+		expect(stages().sort()).toEqual(["development", "production"]);
 	});
 
-	it("points every consumer at that Worker, or log forwarding stops with no error", () => {
-		expect([...new Set(consumers())]).toEqual([declaredName()]);
+	it("gives logs and traces a destination, or they reach the dashboard and nothing else", () => {
+		const missing = stages().flatMap((stage) =>
+			["logs", "traces"].filter((signal) => !declares({ stage, signal })).map((signal) => `${stage}.${signal}`),
+		);
+		expect(missing).toEqual([]);
+	});
+
+	it("redacts the query string, which is where a Username travels", () => {
+		const redacting = [...read(SITE).matchAll(/^redact_query_string\s*=\s*true$/gm)];
+		expect(redacting.length).toBe(stages().length);
+	});
+
+	it("keeps no tail consumer, because the Worker one would name is gone", () => {
+		expect(read(SITE)).not.toMatch(/tail_consumers/);
+		expect(existsSync(join(REPO, "web/workers"))).toBe(false);
 	});
 });
 
@@ -815,7 +831,6 @@ describe("nested guides name real files", () => {
 			[
 				...walk({ dir: join(REPO, "web/src"), match: () => true }),
 				...walk({ dir: join(REPO, "web/e2e"), match: () => true }),
-				...walk({ dir: join(REPO, "web/workers"), match: () => true }),
 				...walk({ dir: join(REPO, "app/lib"), match: () => true }),
 				...walk({ dir: join(REPO, "app/test"), match: () => true }),
 			].map((path) => path.split(PATH_SEPARATOR).at(-1) ?? path),
@@ -872,7 +887,6 @@ describe("the source carries no code comments", () => {
 		const offenders = [
 			...walk({ dir: join(REPO, "web/src"), match: (path) => WEB_SOURCE_FILE.test(path) }),
 			...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }),
-			...walk({ dir: join(REPO, "web/workers"), match: (path) => path.endsWith(".ts") }),
 			...walk({ dir: join(REPO, "docs"), match: (path) => path.endsWith(".ts") }),
 			...configs,
 		].flatMap(commentLines);

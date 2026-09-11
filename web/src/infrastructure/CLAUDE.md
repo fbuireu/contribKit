@@ -116,23 +116,35 @@ and now identical *positions*, because neither computes any. What is left here i
 
 ## `logging/`
 
-`better-stack-logger` memoises a single `Logtail` client in a module-level variable that is **`undefined` before
-first resolution and `null` when unconfigured**: the three-state check is deliberate, so a missing token is
-resolved once rather than on every call. When either `PUBLIC_BETTER_STACK_SOURCE_TOKEN` or
-`PUBLIC_BETTER_STACK_INGESTING_URL` is absent, **every log call silently no-ops.** Local development is always in
-that state; do not read "no logs" as "no errors".
+`logger` is a module-level object with `info`, `warn` and `error`, and it sends nothing anywhere. Each call writes
+**one `JSON.stringify` line to `console`**, and Cloudflare's own observability exports it to Better Stack over
+OTLP, named as a `destinations` entry in [`wrangler.toml`](../../wrangler.toml)
+([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). A `@logtail/edge`
+client used to post the lines from inside the Worker, memoised in a three-state variable so a missing token was
+resolved once; there is no token here to miss any more, and no client to memoise.
 
-`getLogger(executionContext)` binds the client to the Worker's `ExecutionContext` when one is passed. Without it the
-writes are still issued but are not tied to the request's lifetime, so a Worker can be torn down before they flush.
-Callers reach it through **`loggerFor(locals)`**, which performs the `Astro.locals.cfContext` cast (where
-`@astrojs/cloudflare` puts the context) in the one place that should know about it. The old `locals.runtime.*`
-accessors are still defined, as getters that throw: `runtime.ctx` tells you to use `cfContext`, and `runtime.env`
-tells you to `import { env } from "cloudflare:workers"`. That is exactly what [`middleware.ts`](../middleware.ts) does for the rate
-limiter binding. Both data routes, the landing page and the 500 page go through `loggerFor`; keep doing that
-rather than casting `locals` again. `/api/health` is the one route without a logger, because it has nothing to
-report.
+**`service`, `level` and `message` are spread after the caller's context, not before.** A caller handing
+`{ context: { level: "info" } }` to `logger.error` cannot relabel its own line, which is the whole reason the sink
+can be queried on those three fields. `logger.test.ts` pins the order.
 
-**This folder holds the client and nothing else.** Turning something that went wrong into a log line is
+**There is no `ExecutionContext` in this any more, and callers import `logger` directly.** `getLogger(ctx)` and
+`loggerFor(locals)` existed because a network write had to be tied to the request's lifetime or be torn down before
+it flushed; a `console` call has nothing to flush. The `Astro.locals.cfContext` cast that `loggerFor` performed is
+therefore gone from this layer entirely. The `locals.runtime.*` accessors are still defined as getters that throw:
+`runtime.ctx` tells you to use `cfContext`, and `runtime.env` tells you to
+`import { env } from "cloudflare:workers"`, which is what [`middleware.ts`](../middleware.ts) does for the rate
+limiter binding. Both data routes, the landing page and the 500 page import `logger`; `/api/health` is the one
+route without one, because it has nothing to report.
+
+**Local development exports nothing, and that is not silence.** `wrangler dev` prints the lines to the terminal and
+ships them nowhere, so "no logs in Better Stack" while developing means the destination is not involved, never that
+nothing went wrong.
+
+**`console` is a lint error everywhere else in this repository.** [`web/biome.json`](../../biome.json) turns
+`noConsole` off for [`logger.ts`](./logging/logger.ts) and for nothing else, the same way it exempts `cookie.ts` from
+`noDocumentCookie`. That exemption is what keeps this file the only writer.
+
+**This folder holds the writer and nothing else.** Turning something that went wrong into a log line is
 [`failure-log.ts`](../application/http/failure-log.ts) in [`application/http/`](../application/CLAUDE.md): it takes a logger as a parameter rather than
 reaching for one, and it declares the port it takes. That port and the two helpers were three files in two layers
 before, two of them declaring **character-for-character identical** one-method interfaces (`ServerErrorLogger` here

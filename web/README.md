@@ -179,7 +179,6 @@ Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bind
 
 ## Observability
 
-- **Server logs:** Better Stack via [`better-stack-logger`](src/infrastructure/logging/better-stack-logger.ts) (5xx failures and unhandled 500s).
-- **Worker telemetry:** Cloudflare observability (logs + traces, 20% head sampling) configured per env in [`wrangler.toml`](wrangler.toml).
-- **Tail worker:** [`workers/tail`](workers/tail/index.ts) forwards Worker logs and exceptions to Better Stack. It is **deployed by hand**, from its own directory: no workflow and no `pnpm` script builds it. The service name in its `wrangler.toml` is what both `[[tail_consumers]]` blocks in [`wrangler.toml`](wrangler.toml) point at, and the docs contract asserts the three agree, because a rename would stop log forwarding without failing anything.
+- **Server logs:** [`logger`](src/infrastructure/logging/logger.ts) writes one JSON line per 5xx failure and unhandled 500 through `console`. It sends nothing itself; Cloudflare exports it.
+- **Worker telemetry:** Cloudflare observability, configured per env in [`wrangler.toml`](wrangler.toml): logs and traces at 20% head sampling, query strings redacted, both exported over OTLP to the `betterstack-logs` and `betterstack-traces` destinations. Traces instrument handlers, outbound `fetch` and bindings with no code, and the exported log records carry the trace id, so a log line and its span are one query ([ADR 0026](../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). The destinations themselves live in the Cloudflare dashboard, not in this repository: nothing here fails if one is renamed.
 - **Browser RUM + analytics:** Better Stack telemetry and GA4, loaded only after cookie consent.
