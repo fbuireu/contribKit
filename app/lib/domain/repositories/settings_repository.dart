@@ -1,6 +1,7 @@
 import 'package:contribkit/domain/value_objects/app_settings.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 
@@ -17,4 +18,5 @@ abstract interface class SettingsRepository {
   Future<void> saveCellSize(CellSize size);
   Future<void> saveBackgroundPreset(String presetName);
   Future<void> saveThemeMode(AppThemeMode mode);
+  Future<void> saveTelemetryConsent(TelemetryConsent consent);
 }

@@ -42,6 +42,10 @@ dependencies:
   # Tips
   purchases_flutter: 10.8.0
 
+  # Telemetry
+  sentry_flutter: 8.14.2
+  posthog_flutter: 5.40.0
+
   # Fonts
   google_fonts: 8.2.1
 

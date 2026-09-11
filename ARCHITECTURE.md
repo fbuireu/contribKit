@@ -298,6 +298,8 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0024](./docs/adr/0024-calendar-labels-are-a-web-only-surface.md) | Calendar Labels are a web-only surface |
 | [0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md) | How much DDD, and where it stops |
 | [0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md) | Observability is Cloudflare's, exported to Better Stack |
+| [0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) | The app sends Telemetry through two ports with no failure channel |
+| [0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) | Telemetry Consent is asked twice and answered asymmetrically |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |

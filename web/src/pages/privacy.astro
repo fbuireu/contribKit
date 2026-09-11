@@ -4,7 +4,7 @@ import type { Metadata } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
 
 const TITLE = "Privacy Policy: ContribKit";
-const EFFECTIVE_DATE = "2026-06-04";
+const EFFECTIVE_DATE = "2026-09-11";
 
 const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
 ---
@@ -29,7 +29,15 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
           <li><strong>GitHub</strong>: the app requests the public contribution page at <code>github.com/users/&#123;username&#125;/contributions</code> using only the username you enter. As with any web request, GitHub receives your device's IP address and standard request metadata. No GitHub login or token is involved.</li>
           <li><strong>Google Fonts</strong>: on first launch the app downloads its typefaces (Inter, JetBrains Mono) from Google's servers, which receive your IP address; the fonts are then cached on your device. This is subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.</li>
         </ul>
-        <p>The app contains no advertising and bundles no analytics or crash-reporting SDKs. We do not track you across other apps or websites, and we do not use advertising identifiers (such as Apple's IDFA or the Android Advertising ID).</p>
+        <p>The app contains no advertising. We do not track you across other apps or websites, and we do not use advertising identifiers (such as Apple's IDFA or the Android Advertising ID).</p>
+
+        <h3>Crash reports and usage events (in the app)</h3>
+        <p>The app can report defects and record which of its screens are used. Both are optional, both are controlled from the <strong>Privacy</strong> sheet in the app, and both are processed in the European Union.</p>
+        <ul>
+          <li><strong>Crash reports</strong>, via <a href="https://sentry.io/privacy/" target="_blank" rel="noopener">Sentry</a>. Sent unless you turn them off. A report contains the <em>type</em> of the error and the point in our code where it happened, plus your device model and OS version. It never contains the error's message, the username you looked up, or any calendar data: the message is replaced before the report leaves your device.</li>
+          <li><strong>Usage events</strong>, via <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog</a>. Off until you turn them on. An event is a single name from a fixed list, such as "the Customizer was opened". It carries no properties, no identifiers and no calendar data. No user profile is created, and no session is recorded or replayed.</li>
+        </ul>
+        <p>Neither is linked to an identity, neither is used for advertising, and neither is shared with anyone. You can change either choice at any time; turning one off stops it immediately.</p>
 
         <h2>This website</h2>
         <p>The ContribKit website (<code>contribkit.app</code>) uses the following services to understand traffic and improve the site. The analytics services below are loaded only after you give explicit consent via the cookie banner.</p>
@@ -51,10 +59,10 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
         <p>To deliver and restore purchases, the app uses RevenueCat (RevenueCat, Inc.) as its purchase-infrastructure provider. RevenueCat assigns an anonymous, randomly generated app user ID and receives device and transaction information (device model, OS version, IP address, and purchase history) solely to provide this functionality. It is not used for advertising or cross-app tracking. See <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat's Privacy Policy</a>. You can request deletion of your RevenueCat data by contacting us.</p>
 
         <h2>Data retention</h2>
-        <p>App preferences remain on your device until you clear the app's data or uninstall it. Google Analytics data is retained for 14 months, after which it is automatically deleted. Better Stack telemetry is retained for 30 days. RevenueCat retains purchase records for as long as needed to provide and restore purchases. We retain no other personal data.</p>
+        <p>App preferences remain on your device until you clear the app's data or uninstall it. Google Analytics data is retained for 14 months, after which it is automatically deleted. Better Stack telemetry is retained for 30 days. Sentry crash reports and PostHog usage events are retained according to each provider's project settings and are deleted on request. RevenueCat retains purchase records for as long as needed to provide and restore purchases. We retain no other personal data.</p>
 
         <h2>Your rights</h2>
-        <p>If you are in the European Economic Area or the United Kingdom, you have the right to access, rectify, erase, restrict, or object to the processing of your personal data, and to data portability. Because the app keeps your preferences only on your device, you can exercise most of these directly by clearing the app's data or uninstalling it. For website analytics or RevenueCat data, email <a href="mailto:contact@contribkit.app">contact@contribkit.app</a>.</p>
+        <p>If you are in the European Economic Area or the United Kingdom, you have the right to access, rectify, erase, restrict, or object to the processing of your personal data, and to data portability. Because the app keeps your preferences only on your device, you can exercise most of these directly by clearing the app's data or uninstalling it. For website analytics, crash reports, usage events or RevenueCat data, email <a href="mailto:contact@contribkit.app">contact@contribkit.app</a>.</p>
         <p>The data controller is the owner identified in the <a href="/legal-notice">Legal Notice</a>. You also have the right to lodge a complaint with your supervisory authority. In Spain, the Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">AEPD</a>).</p>
 
         <h2>Children</h2>

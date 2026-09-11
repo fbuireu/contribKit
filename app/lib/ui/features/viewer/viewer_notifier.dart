@@ -7,6 +7,7 @@ import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
@@ -104,6 +105,7 @@ class ViewerNotifier extends _$ViewerNotifier {
       );
       await _remember(username: username, year: year);
 
+      _record(UsageEvent.calendarViewed);
       _updateWidget();
     } on Failure catch (f) {
       if (_stillOurs(generation)) state = state.copyWith(error: f);
@@ -116,6 +118,10 @@ class ViewerNotifier extends _$ViewerNotifier {
         state = state.copyWith(isLoadingCalendar: false);
       }
     }
+  }
+
+  void _record(UsageEvent event) {
+    ref.read(usageEventRepositoryProvider).record(event);
   }
 
   bool _stillOurs(int generation) => generation == _generation && ref.mounted;
@@ -161,23 +167,27 @@ class ViewerNotifier extends _$ViewerNotifier {
   void setPalette(Palette palette) {
     state = state.copyWith(palette: palette);
     _persist((repository) => repository.savePaletteKey(palette.key));
+    _record(UsageEvent.paletteChosen);
     _updateWidget();
   }
 
   void setCellShape(CellShape shape) {
     state = state.copyWith(cellShape: shape);
     _persist((repository) => repository.saveCellShape(shape));
+    _record(UsageEvent.cellShapeChosen);
     _updateWidget();
   }
 
   void setCellSize(CellSize size) {
     state = state.copyWith(cellSize: size);
     _persist((repository) => repository.saveCellSize(size));
+    _record(UsageEvent.cellSizeChosen);
   }
 
   void setBackgroundPreset(BackgroundPreset bg) {
     state = state.copyWith(backgroundPreset: bg);
     _persist((repository) => repository.saveBackgroundPreset(bg.name));
+    _record(UsageEvent.backgroundChosen);
   }
 
   void setYear(Year year) {

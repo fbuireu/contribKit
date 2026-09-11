@@ -33,8 +33,19 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   production caller at all while the unvalidated copy was the only one running.
 - **Errors are `Failure` subclasses**, never a raw `Exception` or a `String`, with the one documented exception
   below.
-- **Repositories are `abstract interface class` only.** Six of them live here; every implementation is in
-  `infrastructure/`.
+- **Repositories are `abstract interface class` only**, and every implementation is in `infrastructure/`. Most
+  model storage or a service the app reads from. The Telemetry ports, `DiagnosticsRepository` and
+  `UsageEventRepository`, only write, and they are **the one place in this layer with no `Failure` channel at
+  all**: a method on either catches everything and returns, because telemetry that breaks the
+  app is worse than no telemetry and no caller could act on the failure anyway
+  ([ADR 0027](../../../docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
+- **`UsageEvent` is an enum and must stay one.** `record` takes a `UsageEvent`, never a string with a properties
+  map, so there is no parameter through which a Username could reach an analytics vendor. That is the guarantee,
+  and widening the signature deletes it. `TelemetryConsent` beside it holds two `ConsentChoice` values read
+  asymmetrically: `mayReportDiagnostics` is `!= denied` and `mayRecordUsageEvents` is `== granted`, so unasked
+  means yes for one and no for the other
+  ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). Never
+  compare either field to `granted` directly, or the asymmetry quietly becomes symmetric.
 
 ## Two error channels, and the difference matters
 

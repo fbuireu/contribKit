@@ -5,7 +5,11 @@ Flutter widgets, and must never import from `ui/`.
 
 ## Invariants & rules
 
-- **Every infrastructure exception is caught here and rethrown as a `Failure`.** A raw `PlatformException`,
+- **`telemetry/` is the documented exception to the rule below.** Both adapters swallow every error they meet and
+  return, and neither raises a `Failure`
+  ([ADR 0027](../../../docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)). Do not
+  "fix" this into a conversion.
+- **Every other infrastructure exception is caught here and rethrown as a `Failure`.** A raw `PlatformException`,
   `HiveError`, `SocketException` or `FormatException` must not reach `application/` or `ui/`
   ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). This is the rule the layer
   keeps drifting from: the two asset repositories had no error handling at all (a missing or malformed bundled
@@ -33,6 +37,7 @@ Flutter widgets, and must never import from `ui/`.
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown, plus `PlatformExportDelivery`, the only file that names `share_plus` or `Clipboard` |
 | `tip/` | The RevenueCat implementation of `TipRepository` |
+| `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read |
 
 ## `github/`: the second scraper
 

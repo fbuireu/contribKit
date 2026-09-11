@@ -16,6 +16,7 @@ import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
+import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
@@ -43,6 +44,9 @@ final class _SlowSettingsRepository implements SettingsRepository {
   Future<void> saveThemeMode(AppThemeMode mode) async {
     written = mode;
   }
+
+  @override
+  Future<void> saveTelemetryConsent(TelemetryConsent consent) async {}
 
   @override
   Future<void> saveLastUsername(Username username) async {}

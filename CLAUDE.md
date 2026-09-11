@@ -86,9 +86,9 @@ a gate: `fail_ci_if_error: false` means a failed upload is quiet, and Codecov's 
 `informational: true` in [`codecov.yml`](./codecov.yml). The floor is what fails a build.
 
 **What the app floor does not cover is [`main.dart`](./app/lib/main.dart)'s bootstrap, on purpose.** `main` and `callbackDispatcher` reach
-`Hive.initFlutter`, `SystemChrome`, `FlutterNativeSplash`, `Purchases` and WorkManager's Pigeon API in six lines,
-and a test of them asserts that six mocks were called. Every piece they assemble is covered on its own, and
-`ContribKitApp` is covered by `widget_test.dart`.
+`Hive.initFlutter`, `SystemChrome`, `FlutterNativeSplash`, `Purchases`, Sentry and WorkManager's Pigeon API in a
+handful of lines, and a test of them asserts that a handful of mocks were called. Every piece they assemble is
+covered on its own, and `ContribKitApp` is covered by `widget_test.dart`.
 
 ## Structure
 
@@ -134,6 +134,10 @@ Both clients use the same layered architecture with a strict inward dependency d
   folder's guide, never inline ([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)).
 - **Errors are a sealed, typed set.** Returned as values on the web, thrown and matched without a wildcard in the app ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). Never widen a match with `_` to silence the compiler.
 - **Never invent data for the user.** An unknown Count is not zero, and must not be estimated, summed, or displayed as exact.
+- **Telemetry carries no Username, ever.** A Usage Event is an enum case and has no payload; a Diagnostic Report
+  carries the error's type and stack and never its message, because half the app's `Failure` messages interpolate a
+  Username or a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
+  Widening either signature deletes the guarantee.
 - **Edit `shared/`, never `app/assets/`.** The copies are generated.
 - **Conventional commits** (commitlint + lefthook). semantic-release owns versioning. Do NOT add a Co-Authored-By / Claude trailer to commits or PRs.
 
@@ -178,6 +182,7 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |
 | A `Failure` kind | the exhaustive match that renders it, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
 | A stored Hive key | add a legacy fallback and a migration test, or users silently lose the setting |
+| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** both store declarations ([`docs/plans/0002-telemetry-store-declarations.md`](./docs/plans/0002-telemetry-store-declarations.md)). The policy names the processors and the region, so a changed host is a policy change |
 | A decision an ADR records | that ADR: amend it, or supersede it and say so in both `## Status` blocks |
 | The layer map, a run end to end, or the release pipeline | [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
 | A claim the docs-consistency test asserts, on purpose | the doc first; the test only when the claim itself changed |

@@ -32,7 +32,12 @@ Hive in a `finally`.
 Three tiers, in dependency order, plus one notifier that does not fit them:
 
 1. **Repository providers**: `paletteRepository`, `suggestedUsernameRepository`, `contributionRepository`,
-   `tipRepository`, `settingsRepository`, and one export repository per format.
+   `tipRepository`, `settingsRepository`, and one export repository per format. **Three are `keepAlive` and the rest
+   are not**: `telemetryConfig`, `diagnosticsRepository` and `usageEventRepository` hold SDK state that must survive
+   a sheet closing, and a `keepAlive` provider may only read other `keepAlive` ones, which `riverpod_lint` enforces.
+   Reading `settingsRepositoryProvider` from one of them is therefore a lint error, and that is why
+   `TelemetryConsentNotifier` is **not** `keepAlive`: it reads settings, so it stays auto-dispose and is held alive
+   instead by `ContribKitApp` watching it, the same way it watches the theme.
 2. **Use-case providers**: `fetchTipProducts`, `giveTip`, `fetchContributions`, `invalidateContributionCache`,
    and `exportCalendar`, which takes an `ExportFormat` and is therefore one provider rather than one per format.
    There is a provider for every use case, which is what stops `ui/` naming a repository directly.

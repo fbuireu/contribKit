@@ -10,6 +10,7 @@ import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
@@ -64,6 +65,11 @@ final class FakeSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveThemeMode(AppThemeMode mode) async {
     writes['themeMode'] = mode;
+  }
+
+  @override
+  Future<void> saveTelemetryConsent(TelemetryConsent consent) async {
+    writes['telemetryConsent'] = consent;
   }
 }
 

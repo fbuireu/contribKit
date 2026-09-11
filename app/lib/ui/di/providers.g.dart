@@ -408,6 +408,144 @@ final class SettingsRepositoryProvider
 String _$settingsRepositoryHash() =>
     r'b8e323aee5b4426edbac0e1ac573ba54c1edefe8';
 
+@ProviderFor(telemetryConfig)
+final telemetryConfigProvider = TelemetryConfigProvider._();
+
+final class TelemetryConfigProvider
+    extends
+        $FunctionalProvider<TelemetryConfig, TelemetryConfig, TelemetryConfig>
+    with $Provider<TelemetryConfig> {
+  TelemetryConfigProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'telemetryConfigProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$telemetryConfigHash();
+
+  @$internal
+  @override
+  $ProviderElement<TelemetryConfig> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  TelemetryConfig create(Ref ref) {
+    return telemetryConfig(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TelemetryConfig value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TelemetryConfig>(value),
+    );
+  }
+}
+
+String _$telemetryConfigHash() => r'81a46a7430db6f719743b9c72f8202e51c144069';
+
+@ProviderFor(diagnosticsRepository)
+final diagnosticsRepositoryProvider = DiagnosticsRepositoryProvider._();
+
+final class DiagnosticsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          DiagnosticsRepository,
+          DiagnosticsRepository,
+          DiagnosticsRepository
+        >
+    with $Provider<DiagnosticsRepository> {
+  DiagnosticsRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'diagnosticsRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$diagnosticsRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<DiagnosticsRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DiagnosticsRepository create(Ref ref) {
+    return diagnosticsRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DiagnosticsRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DiagnosticsRepository>(value),
+    );
+  }
+}
+
+String _$diagnosticsRepositoryHash() =>
+    r'9d85ae6128af07c51fd0453e1c0848c9e7cad079';
+
+@ProviderFor(usageEventRepository)
+final usageEventRepositoryProvider = UsageEventRepositoryProvider._();
+
+final class UsageEventRepositoryProvider
+    extends
+        $FunctionalProvider<
+          UsageEventRepository,
+          UsageEventRepository,
+          UsageEventRepository
+        >
+    with $Provider<UsageEventRepository> {
+  UsageEventRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'usageEventRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$usageEventRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<UsageEventRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UsageEventRepository create(Ref ref) {
+    return usageEventRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UsageEventRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UsageEventRepository>(value),
+    );
+  }
+}
+
+String _$usageEventRepositoryHash() =>
+    r'e21eba777fa8a552ff58bf7245ffabcea899aee0';
+
 @ProviderFor(svgExportRepository)
 final svgExportRepositoryProvider = SvgExportRepositoryProvider._();
 

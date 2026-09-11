@@ -13,6 +13,7 @@ import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
@@ -146,6 +147,9 @@ final class _FakeSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> saveThemeMode(AppThemeMode mode) async {}
+
+  @override
+  Future<void> saveTelemetryConsent(TelemetryConsent consent) async {}
 }
 
 ProviderContainer _container({

@@ -1,12 +1,14 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
+import 'package:contribkit/ui/features/privacy/privacy_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
 import 'package:contribkit/ui/features/viewer/viewer_notifier.dart';
 import 'package:contribkit/ui/features/viewer/viewer_state.dart';
@@ -161,7 +163,23 @@ class _Header extends ConsumerWidget {
             ),
           ),
           AppButton.ghost(
-            onPressed: () => TipJarSheet.show(context),
+            onPressed: () => PrivacySheet.show(context),
+            size: AppButtonSize.sm,
+            semanticLabel: 'Privacy settings',
+            iconOnly: true,
+            child: Icon(
+              LucideIcons.shield,
+              size: Tokens.iconSm,
+              color: colors.mutedForeground,
+            ),
+          ),
+          AppButton.ghost(
+            onPressed: () {
+              ref
+                  .read(usageEventRepositoryProvider)
+                  .record(UsageEvent.tipJarOpened);
+              TipJarSheet.show(context);
+            },
             size: AppButtonSize.sm,
             semanticLabel: 'Support ContribKit',
             iconOnly: true,
@@ -574,7 +592,7 @@ class _CalendarCard extends ConsumerWidget {
   }
 }
 
-class _ActionRow extends StatelessWidget {
+class _ActionRow extends ConsumerWidget {
   const _ActionRow({
     required this.state,
     required this.calendar,
@@ -586,13 +604,18 @@ class _ActionRow extends StatelessWidget {
   final Palette palette;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       spacing: Tokens.space2,
       children: [
         Expanded(
           child: AppButton(
-            onPressed: () => CustomizerSheet.show(context),
+            onPressed: () {
+              ref
+                  .read(usageEventRepositoryProvider)
+                  .record(UsageEvent.customizerOpened);
+              CustomizerSheet.show(context);
+            },
             semanticLabel: 'Customize',
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,

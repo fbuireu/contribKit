@@ -152,8 +152,21 @@ jobs:
       - name: Build release AAB
         env:
           REVENUECAT_KEY: ${{ secrets.REVENUECAT_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
+          TELEMETRY_ENVIRONMENT: ${{ vars.TELEMETRY_ENVIRONMENT }}
+          APP_RELEASE: contribkit@${{ needs.release.outputs.version }}
         run: |
-          printf '{"REVENUECAT_KEY":"%s"}' "$REVENUECAT_KEY" > dart-defines.json
+          node -e "
+          const defines = {
+            REVENUECAT_KEY: process.env.REVENUECAT_KEY ?? '',
+            SENTRY_DSN: process.env.SENTRY_DSN ?? '',
+            POSTHOG_PROJECT_TOKEN: process.env.POSTHOG_PROJECT_TOKEN ?? '',
+            TELEMETRY_ENVIRONMENT: process.env.TELEMETRY_ENVIRONMENT || 'production',
+            APP_RELEASE: process.env.APP_RELEASE ?? '',
+          };
+          require('node:fs').writeFileSync('dart-defines.json', JSON.stringify(defines), { mode: 0o600 });
+          "
           flutter build appbundle --release --dart-define-from-file=dart-defines.json
 
       - name: Generate Play release notes from changelog

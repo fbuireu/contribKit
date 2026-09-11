@@ -123,6 +123,24 @@ _Avoid_: link, badge, hotlink, remote image
 The small always-visible surface on a phone's home screen showing a user's calendar or streak without opening the app. Always qualified: never bare "widget", which means a unit of UI construction.
 _Avoid_: widget, applet, tile, glance
 
+## Observability
+
+**Telemetry**:
+Everything the product sends off a person's device about how it is running, rather than about what it renders. It is exactly two things: Diagnostic Reports and Usage Events.
+_Avoid_: tracking, monitoring, instrumentation
+
+**Diagnostic Report**:
+A record that something failed at runtime, carrying the error's type and where in the code it happened, sent so the defect can be fixed. Never carries a message, a Username, or any Contribution Data.
+_Avoid_: crash log, error event, exception report, bug report
+
+**Usage Event**:
+A named record that a person reached one point in the product, chosen from a fixed set. It carries the name and nothing else: no free text, no properties, and therefore no personal data.
+_Avoid_: analytics event, metric, hit, action log
+
+**Telemetry Consent**:
+A person's recorded answer to whether Telemetry may leave their device, held separately for Diagnostic Reports and for Usage Events, and revocable at any time.
+_Avoid_: opt-in, tracking consent, telemetry permission
+
 ## Support
 
 **Tip**:

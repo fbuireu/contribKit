@@ -2,6 +2,7 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -16,6 +17,8 @@ const _keyCellSize = 'cellSize';
 const _keyBackgroundPreset = 'backgroundPreset';
 const _keyLegacyCardBackground = 'cardBackground';
 const _keyThemeMode = 'themeMode';
+const _keyDiagnosticsConsent = 'telemetryDiagnosticReports';
+const _keyUsageEventsConsent = 'telemetryUsageEvents';
 
 final class HiveSettingsRepository implements SettingsRepository {
   Future<Box<dynamic>> get _box => Hive.openBox<dynamic>(_settingsBoxName);
@@ -109,6 +112,26 @@ final class HiveSettingsRepository implements SettingsRepository {
             () => _enumByName(box, _keyThemeMode, AppThemeMode.values),
           ) ??
           AppThemeMode.system,
+      telemetryConsent: TelemetryConsent(
+        diagnosticReports:
+            _tolerating(
+              () => _enumByName(
+                box,
+                _keyDiagnosticsConsent,
+                ConsentChoice.values,
+              ),
+            ) ??
+            ConsentChoice.unasked,
+        usageEvents:
+            _tolerating(
+              () => _enumByName(
+                box,
+                _keyUsageEventsConsent,
+                ConsentChoice.values,
+              ),
+            ) ??
+            ConsentChoice.unasked,
+      ),
     );
   }
 
@@ -151,4 +174,11 @@ final class HiveSettingsRepository implements SettingsRepository {
   @override
   Future<void> saveThemeMode(AppThemeMode mode) =>
       _write((box) => box.put(_keyThemeMode, mode.name));
+
+  @override
+  Future<void> saveTelemetryConsent(TelemetryConsent consent) =>
+      _write((box) async {
+        await box.put(_keyDiagnosticsConsent, consent.diagnosticReports.name);
+        await box.put(_keyUsageEventsConsent, consent.usageEvents.name);
+      });
 }

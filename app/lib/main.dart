@@ -1,7 +1,11 @@
+import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
+import 'package:contribkit/infrastructure/telemetry/sentry_diagnostics_repository.dart';
+import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/features/privacy/telemetry_consent_notifier.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/widget/home_screen_widget_refresh.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
@@ -27,15 +31,24 @@ void callbackDispatcher() {
     WidgetsFlutterBinding.ensureInitialized();
 
     final contributions = GitHubContributionRepository();
+    final diagnostics = SentryDiagnosticsRepository(
+      config: const TelemetryConfig.fromEnvironment(),
+    );
     try {
       await Hive.initFlutter();
 
+      final settings = HiveSettingsRepository();
+      if ((await settings.load()).telemetryConsent.mayReportDiagnostics) {
+        await diagnostics.start();
+      }
+
       await HomeScreenWidgetRefresh(
-        settings: HiveSettingsRepository(),
+        settings: settings,
         palettes: AssetPaletteRepository(),
         contributions: contributions,
       )();
-    } catch (_) {
+    } catch (error, stackTrace) {
+      await diagnostics.report(error: error, stackTrace: stackTrace);
       return false;
     } finally {
       contributions.close();
@@ -56,7 +69,32 @@ Future<void> main() async {
   await _bestEffort(_scheduleWidgetRefresh);
   await _bestEffort(_initRevenueCat);
 
-  runApp(const ProviderScope(child: ContribKitApp()));
+  await _runGuardedByConsent();
+}
+
+Future<void> _runGuardedByConsent() async {
+  const app = ProviderScope(child: ContribKitApp());
+  final consent = await _telemetryConsent();
+
+  final diagnostics = SentryDiagnosticsRepository(
+    config: const TelemetryConfig.fromEnvironment(),
+  );
+
+  if (!consent.mayReportDiagnostics) {
+    runApp(app);
+    return;
+  }
+
+  await _bestEffort(diagnostics.start);
+  runApp(app);
+}
+
+Future<TelemetryConsent> _telemetryConsent() async {
+  try {
+    return (await HiveSettingsRepository().load()).telemetryConsent;
+  } catch (_) {
+    return const TelemetryConsent();
+  }
 }
 
 Future<void> _bestEffort(Future<void> Function() step) async {
@@ -95,6 +133,7 @@ class ContribKitApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final googleFontTextTheme = ShadTextTheme.fromGoogleFont(GoogleFonts.inter);
     final themeMode = ref.watch(themeModeProvider);
+    ref.watch(telemetryConsentProvider);
 
     return ShadApp(
       title: 'ContribKit',
