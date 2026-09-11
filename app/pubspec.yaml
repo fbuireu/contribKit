@@ -94,3 +94,4 @@ flutter:
 sentry:
   upload_debug_symbols: true
   upload_sources: true
+  symbols_path: build/symbols

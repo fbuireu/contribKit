@@ -167,7 +167,10 @@ jobs:
           };
           require('node:fs').writeFileSync('dart-defines.json', JSON.stringify(defines), { mode: 0o600 });
           "
-          flutter build appbundle --release --dart-define-from-file=dart-defines.json
+          flutter build appbundle --release \
+            --dart-define-from-file=dart-defines.json \
+            --obfuscate \
+            --split-debug-info=build/symbols
 
       - name: Upload debug symbols to Sentry
         working-directory: app
@@ -178,8 +181,8 @@ jobs:
           SENTRY_RELEASE: contribkit@${{ needs.release.outputs.version }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo '::warning::SENTRY_AUTH_TOKEN is not set, so native debug symbols were not uploaded.'
-            exit 0
+            echo '::error::SENTRY_AUTH_TOKEN is not set. The build is obfuscated, so shipping it without symbols would make every crash report unreadable.'
+            exit 1
           fi
           dart run sentry_dart_plugin
 
