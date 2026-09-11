@@ -1,3 +1,10 @@
+# [contribkit-app-v1.5.1](https://github.com/fbuireu/contribKit/compare/app-v1.5.0...app-v1.5.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* **contribkit-app:** build against sentry_flutter 9, and let the release version stay plain ([0974823](https://github.com/fbuireu/contribKit/commit/0974823ead9662c9ff524cdf5335b84cc961569f))
+
 # [contribkit-app-v1.5.0](https://github.com/fbuireu/contribKit/compare/app-v1.4.0...app-v1.5.0) (2026-09-11)
 
 
