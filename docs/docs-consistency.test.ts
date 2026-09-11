@@ -1186,3 +1186,51 @@ describe("stated versions", () => {
 		expect(stated).toEqual([]);
 	});
 });
+
+const RELEASE_PRESET = "conventionalcommits";
+const PRESET_PACKAGE = `conventional-changelog-${RELEASE_PRESET}`;
+const COMMIT_PARSING_PLUGINS = ["@semantic-release/commit-analyzer", "@semantic-release/release-notes-generator"];
+const RELEASE_CONFIG = /[/\\](\.releaserc(\.\w+)?|release\.config\.\w+)$/;
+
+type ReleasePlugin = string | [string, Record<string, unknown>?];
+
+interface PresetOfParams {
+	plugins: ReleasePlugin[];
+	name: string;
+}
+
+const presetOf = ({ plugins, name }: PresetOfParams): unknown => {
+	const entry = plugins.find((plugin) => (Array.isArray(plugin) ? plugin[0] : plugin) === name);
+
+	return Array.isArray(entry) ? entry[1]?.preset : undefined;
+};
+
+describe("the release configs parse the commit grammar commitlint accepts", () => {
+	const configs = walk({ dir: REPO, match: (path) => RELEASE_CONFIG.test(path) });
+
+	it("names a preset on every plugin that parses a commit message, and the same one in both components", () => {
+		const unnamed = configs.flatMap((file) => {
+			const { plugins } = JSON.parse(read(file)) as { plugins: ReleasePlugin[] };
+
+			return COMMIT_PARSING_PLUGINS.filter((name) => presetOf({ plugins, name }) !== RELEASE_PRESET).map(
+				(name) => `${file.slice(REPO.length + 1)}: ${name} declares ${String(presetOf({ plugins, name }))}`,
+			);
+		});
+
+		expect(configs.length).toBeGreaterThan(1);
+		expect(unnamed).toEqual([]);
+	});
+
+	it("declares the preset package beside each config rather than borrowing commitlint's copy", () => {
+		const undeclared = configs
+			.map((file) => join(dirname(file), "package.json"))
+			.filter((manifest) => {
+				const { devDependencies } = json<{ devDependencies?: Record<string, string> }>(manifest.slice(REPO.length + 1));
+
+				return !(PRESET_PACKAGE in (devDependencies ?? {}));
+			})
+			.map((manifest) => manifest.slice(REPO.length + 1));
+
+		expect(undeclared).toEqual([]);
+	});
+});
