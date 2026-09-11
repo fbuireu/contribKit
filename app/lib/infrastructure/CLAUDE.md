@@ -37,7 +37,7 @@ Flutter widgets, and must never import from `ui/`.
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown, plus `PlatformExportDelivery`, the only file that names `share_plus` or `Clipboard` |
 | `tip/` | The RevenueCat implementation of `TipRepository` |
-| `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read |
+| `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read. **Both SDKs are configured in Dart and never from the platform manifests**: PostHog would otherwise initialise itself from `onAttachedToEngine`, ahead of the consent gate ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)) |
 
 ## `github/`: the second scraper
 

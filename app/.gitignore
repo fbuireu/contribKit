@@ -20,3 +20,5 @@ coverage/
 
 # Secrets
 dart-defines*.json
+
+sentry.properties

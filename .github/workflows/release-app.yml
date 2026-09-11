@@ -154,7 +154,7 @@ jobs:
           REVENUECAT_KEY: ${{ secrets.REVENUECAT_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
-          TELEMETRY_ENVIRONMENT: ${{ vars.TELEMETRY_ENVIRONMENT }}
+          TELEMETRY_ENVIRONMENT: ${{ inputs.track == 'production' && 'production' || 'development' }}
           APP_RELEASE: contribkit@${{ needs.release.outputs.version }}
         run: |
           node -e "
@@ -162,12 +162,24 @@ jobs:
             REVENUECAT_KEY: process.env.REVENUECAT_KEY ?? '',
             SENTRY_DSN: process.env.SENTRY_DSN ?? '',
             POSTHOG_PROJECT_TOKEN: process.env.POSTHOG_PROJECT_TOKEN ?? '',
-            TELEMETRY_ENVIRONMENT: process.env.TELEMETRY_ENVIRONMENT || 'production',
+            TELEMETRY_ENVIRONMENT: process.env.TELEMETRY_ENVIRONMENT || 'development',
             APP_RELEASE: process.env.APP_RELEASE ?? '',
           };
           require('node:fs').writeFileSync('dart-defines.json', JSON.stringify(defines), { mode: 0o600 });
           "
           flutter build appbundle --release --dart-define-from-file=dart-defines.json
+
+      - name: Upload debug symbols to Sentry
+        working-directory: app
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE: contribkit@${{ needs.release.outputs.version }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo '::warning::SENTRY_AUTH_TOKEN is not set, so native debug symbols were not uploaded.'
+            exit 0
+          fi
+          dart run sentry_dart_plugin
 
       - name: Generate Play release notes from changelog
         env:

@@ -65,6 +65,9 @@ dev_dependencies:
   freezed: 4.0.0
   json_serializable: 6.14.1
 
+  # Debug symbol upload
+  sentry_dart_plugin: 3.4.0
+
   # Linting
   flutter_lints: 6.0.0
   riverpod_lint: 3.1.8
@@ -87,3 +90,9 @@ flutter:
     - assets/palettes.json
     - assets/shapes.json
     - assets/usernames.json
+
+sentry:
+  upload_debug_symbols: true
+  upload_sources: true
+  project: contribkit
+  org: fbc-org
