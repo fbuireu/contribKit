@@ -201,7 +201,7 @@ final class ContributionRepositoryProvider
         argument: null,
         retry: null,
         name: r'contributionRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -230,7 +230,7 @@ final class ContributionRepositoryProvider
 }
 
 String _$contributionRepositoryHash() =>
-    r'946511336466063d32ed261f9493122938db6690';
+    r'd92cbf55c7e69c567ed748d019c91494b149b2fb';
 
 @ProviderFor(tipRepository)
 final tipRepositoryProvider = TipRepositoryProvider._();

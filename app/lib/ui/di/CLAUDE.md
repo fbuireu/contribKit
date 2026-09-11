@@ -6,14 +6,17 @@ Dependency wiring: the one place that knows how to construct the full object gra
 It instantiates concrete repositories, passes them into use cases, and exposes the results as `@riverpod` providers
 for widgets and notifiers to watch. Everything else in `ui/` sees a provider, never a constructor.
 
-**A provider that builds a closeable thing closes it.** Every generated provider here is auto-dispose, and
-`contributionRepositoryProvider` is only ever reached with `ref.read` from `ViewerNotifier`, never watched by a
-widget, so nothing holds it alive between calls: it is torn down after each read. `GitHubContributionRepository`
-builds an `http.Client` when it is not given one, and that client used to go with it unclosed, leaking its
-keep-alive connections once per fetch. The provider registers `ref.onDispose(repository.close)` now, and `close`
-shuts the client **only when the repository built it**, so an injected client stays the caller's to close. The
-background isolate in [`main.dart`](../../main.dart) constructs its own repository outside any `ProviderScope`, so it closes it and
-Hive in a `finally`.
+**`contributionRepositoryProvider` is `keepAlive`, and the reason is a production defect.** It was auto-dispose,
+reached only with `ref.read` from `ViewerNotifier`, and a `ref.read` adds no listener: Riverpod tore the provider
+down at the end of the frame, while the request to GitHub was still in flight. That was harmless until a fix for
+a leaked `http.Client` added `ref.onDispose(repository.close)`, at which point every fetch died with
+`Client is already closed` and the Viewer showed a network error instead of a calendar. The unit tests inject a
+client, so `close` was a no-op for them and none of them saw it; the first build to carry the change was the one
+in the store. The repository now lives as long as the app and owns one client for that lifetime, which is also
+the only way to have neither a leak per fetch nor a close mid-request. `providers_test.dart` reads the provider
+twice across a turn of the event loop and asserts the same instance comes back, which fails on the auto-dispose
+version. The background isolate in [`main.dart`](../../main.dart) constructs its own repository outside any
+`ProviderScope`, so it closes it and Hive in a `finally`.
 
 ## Invariants & rules
 

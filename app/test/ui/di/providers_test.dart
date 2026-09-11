@@ -68,6 +68,21 @@ final class _SlowSettingsRepository implements SettingsRepository {
 }
 
 void main() {
+  test(
+    'keeps one contribution repository alive across the frame a fetch spans',
+    () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final first = container.read(contributionRepositoryProvider);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      final second = container.read(contributionRepositoryProvider);
+
+      expect(identical(first, second), isTrue);
+    },
+  );
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ThemeModeNotifier', () {
