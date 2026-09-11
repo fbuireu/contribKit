@@ -94,5 +94,3 @@ flutter:
 sentry:
   upload_debug_symbols: true
   upload_sources: true
-  project: contribkit
-  org: fbc-org

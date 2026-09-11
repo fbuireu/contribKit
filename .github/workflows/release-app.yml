@@ -173,6 +173,8 @@ jobs:
         working-directory: app
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           SENTRY_RELEASE: contribkit@${{ needs.release.outputs.version }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
