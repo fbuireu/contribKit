@@ -1,3 +1,19 @@
+# [contribkit-web-v1.15.0](https://github.com/fbuireu/contribKit/compare/web-v1.14.2...web-v1.15.0) (2026-09-11)
+
+
+### Bug Fixes
+
+* **contribkit-web:** give each stage its own export destinations ([a1958d1](https://github.com/fbuireu/contribKit/commit/a1958d123196fdcb5cf4264161a33d168fc4c9cd))
+* **contribkit-web:** load the Better Stack tag that exists ([f416cb1](https://github.com/fbuireu/contribKit/commit/f416cb152185eaf54458cb60fae0da61143b6667))
+* stop the :changed scripts shelling out for their base ([da8366f](https://github.com/fbuireu/contribKit/commit/da8366fc88bddd2c88b53aeaa557182447001a56))
+* teach the release parsers the ! grammar without a preset ([57e9031](https://github.com/fbuireu/contribKit/commit/57e9031f5298a322ccfd35bc4bed9233b95315cf))
+
+
+### Features
+
+* **contribkit-app:** send crash reports and usage events, behind consent ([47a2241](https://github.com/fbuireu/contribKit/commit/47a2241d42c1982b2fb355ea8b598ccd1018ff45))
+* **contribkit-web:** export logs and traces through Cloudflare ([9ededad](https://github.com/fbuireu/contribKit/commit/9ededad43a52085feadf48ee53eb8bfe8ef930e8))
+
 # [contribkit-web-v1.14.2](https://github.com/fbuireu/contribKit/compare/web-v1.14.1...web-v1.14.2) (2026-09-09)
 
 
