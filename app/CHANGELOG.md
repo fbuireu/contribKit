@@ -1,3 +1,11 @@
+# [contribkit-app-v1.5.2](https://github.com/fbuireu/contribKit/compare/app-v1.5.1...app-v1.5.2) (2026-09-11)
+
+
+### Bug Fixes
+
+* **contribkit-app:** close the Privacy sheet on Accept all and Reject all ([3f73a36](https://github.com/fbuireu/contribKit/commit/3f73a3680ab87abd54c5e0b86be3996463381e61))
+* **contribkit-app:** stop closing the GitHub client under an in-flight fetch ([6c5f4dd](https://github.com/fbuireu/contribKit/commit/6c5f4dd893c28cb09095cd63e75aa8272befa79d))
+
 # [contribkit-app-v1.5.1](https://github.com/fbuireu/contribKit/compare/app-v1.5.0...app-v1.5.1) (2026-09-11)
 
 
