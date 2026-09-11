@@ -266,16 +266,12 @@ Playwright exiting 1 on an empty set is the only thing keeping the tag honest.
 because CI runs Vitest twice: its *Vitest Test Report* heading is a constant inside Vitest's `github-actions`
 reporter with no rename option, so one heading could not say which block was which. `summaryLabel` is declared
 and exported by [`web/vitest.config.ts`](./web/vitest.config.ts), which names its own run, and
-[`vitest.docs.config.ts`](./vitest.docs.config.ts) imports it and names the contract run the *Docs Contract*
-job drives. The contract config sits at the repository root because what it tests, `docs/`, belongs to the
-repository rather than to a package; the helper sits in `web/` because Vitest is a dependency of that package
-alone, so a root module importing `vitest/config` resolves at run time through the `web` binary but cannot be
-type-checked from the root, and hoisting `vite` and `@types/node` up there for a reporter buys nothing. The
-import therefore points root-to-package rather than the other way round, which is where this diverges from
-forever-pto, whose root is itself a package with a suite and a Vitest of its own. The contract config also
-pins `test.root` to its own directory, because Vitest resolves `root` from `process.cwd()` and the job runs
-from `web/`; without the pin the suite looks for `docs/` under `web/` and finds nothing. forever-pto and
-biancafiore label theirs the same way, each shaped to its own config.
+[`web/vitest.docs.config.ts`](./web/vitest.docs.config.ts) imports it and names the contract run the
+*Docs Contract* job drives. Both configs live under `web/` rather than at the repository root, which is where
+forever-pto keeps its copy: Vitest is a dependency of the `web` package alone, and a root config importing
+`vitest/config` type-checks only if the root can resolve Vitest and its peers, which would mean hoisting
+`vite` and `@types/node` up there for a reporter. forever-pto and biancafiore label theirs the same way, each
+shaped to its own config.
 
 **A failed smoke run rolls production back.** Withholding the tag leaves a version that does not answer serving
 traffic, so `rollback` runs `wrangler rollback --env production --yes` from `web/` when `deploy-production`
