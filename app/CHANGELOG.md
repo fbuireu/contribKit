@@ -1,3 +1,35 @@
+# [contribkit-app-v1.4.0](https://github.com/fbuireu/contribKit/compare/app-v1.3.2...app-v1.4.0) (2026-09-11)
+
+
+### Bug Fixes
+
+* cache the origin fetch and close the client the repository builds ([09b80ef](https://github.com/fbuireu/contribKit/commit/09b80ef765f7c40b672e884ac93fca611cb9387c))
+* **ci:** run the tail deploy from web, and scope the release commit to its package ([d6700f2](https://github.com/fbuireu/contribKit/commit/d6700f2f343c391b65b0abffc8dc11fa88018751))
+* **contribkit-app:** bound the Dart constraint to the minor instead of the major ([ac29d96](https://github.com/fbuireu/contribKit/commit/ac29d9619de0fc3d28dee63ef41584830425111d)), closes [#130](https://github.com/fbuireu/contribKit/issues/130) [#132](https://github.com/fbuireu/contribKit/issues/132) [#133](https://github.com/fbuireu/contribKit/issues/133)
+* **contribkit-app:** cover the whole Year in the grid, which 2028 needs 54 weeks for ([d59e031](https://github.com/fbuireu/contribKit/commit/d59e0316722ac5b387b4eab64ddd72cd8aa19a22))
+* **contribkit-app:** freeze the lists that equality and every rebuild ride on ([f041a97](https://github.com/fbuireu/contribKit/commit/f041a97073f8689f7ec7f5bbf9f0c848ad48fb2c))
+* **contribkit-app:** give a shared Export back the filename it computed ([8a8241e](https://github.com/fbuireu/contribKit/commit/8a8241ee236f8b5ee880fdc5bbafb93e5b394ca9))
+* **contribkit-app:** give CellFigure value equality and Color a range it cannot leave ([0493e1c](https://github.com/fbuireu/contribKit/commit/0493e1c88b841048751020883c44f3c036a06b03)), closes [#0000-1](https://github.com/fbuireu/contribKit/issues/0000-1)
+* **contribkit-app:** give every labelled control back the tap action, and a 48dp target ([b16bffe](https://github.com/fbuireu/contribKit/commit/b16bffe248fc0c795ca9677b1626d0f6f0a8c101))
+* **contribkit-app:** let the Dart constraint follow Flutter instead of pinning it ([ef62e58](https://github.com/fbuireu/contribKit/commit/ef62e5873acef6108094492365227c2ada7f9d8e)), closes [#130](https://github.com/fbuireu/contribKit/issues/130)
+* **contribkit-app:** make the two vendor seams true instead of merely green ([c9fa6d6](https://github.com/fbuireu/contribKit/commit/c9fa6d697c6992fc75f74f5f4adaeed5c095dd74))
+* **contribkit-app:** stop Riverpod retrying the two asset reads, which hid both error states ([122ad5e](https://github.com/fbuireu/contribKit/commit/122ad5ecb821fdfe826b275a703442843c3314c0))
+* **contribkit-app:** stop the interface overflowing when the system font grows ([b60c1ea](https://github.com/fbuireu/contribKit/commit/b60c1eac688eedf61c38928aed8495fbc6cc2b2e))
+* **contribkit-app:** stop the Viewer swallowing failures and calling contributions commits ([66689ef](https://github.com/fbuireu/contribKit/commit/66689efcff886a302cdbc577bbe1c493a05f437d))
+* **contribkit-app:** take the clock out of the domain and keep the Username typed ([fad08a1](https://github.com/fbuireu/contribKit/commit/fad08a16e765a6a3ad326583f4112b6eaaddc765))
+* **contribkit-app:** update dependency shadcn_ui to v0.56.2 ([#137](https://github.com/fbuireu/contribKit/issues/137)) ([2f88a74](https://github.com/fbuireu/contribKit/commit/2f88a7403211addb0aa034ada476bc8754cf9715))
+* **contribkit-app:** update dependency workmanager to v0.10.9 ([#141](https://github.com/fbuireu/contribKit/issues/141)) ([65bd48b](https://github.com/fbuireu/contribKit/commit/65bd48bf4c78ecf31ecf4e67ff86a0ce51c2da67))
+* give the public routes a failure boundary and the app a test gate ([58e1fba](https://github.com/fbuireu/contribKit/commit/58e1fba6c00777d60c24b8c43ff1a1f0d8ac7b69))
+* make both parsers read the same HTML the same way ([7d9817b](https://github.com/fbuireu/contribKit/commit/7d9817b21e18aad081f0cf63eeb09c58b0cef089))
+* put the value objects in charge of what belongs to them ([f2c4b87](https://github.com/fbuireu/contribKit/commit/f2c4b871939f3e137db1330d22eb2cbf6f726d1b))
+* teach the release parsers the ! grammar without a preset ([57e9031](https://github.com/fbuireu/contribKit/commit/57e9031f5298a322ccfd35bc4bed9233b95315cf))
+
+
+### Features
+
+* **contribkit-app:** make every control announce itself to a screen reader ([dd18919](https://github.com/fbuireu/contribKit/commit/dd18919d325afa5bf0078ff1aa016b1f9e6d0fc3))
+* say which parameter a 400 rejected, and pair the stats facts that travel together ([6764313](https://github.com/fbuireu/contribKit/commit/67643132909a70870ce06688544a2fed74549ba0))
+
 # [contribkit-app-v1.3.2](https://github.com/fbuireu/contribKit/compare/app-v1.3.1...app-v1.3.2) (2026-08-16)
 
 
