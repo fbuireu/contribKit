@@ -59,8 +59,9 @@ pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
 pnpm typecheck           # wrangler types + tsc --noEmit
 pnpm check               # astro check: the only thing that typechecks .astro files
-pnpm verify              # format:check + typecheck + check + coverage: what CI runs
-pnpm verify:changed      # the same with test:ut:changed in place of coverage: what pre-push runs
+pnpm verify:static       # format:check + typecheck + check: everything verify does but the suite
+pnpm verify              # verify:static + coverage: what CI runs
+pnpm verify:changed      # verify:static + test:ut:changed: what pre-push runs
 pnpm since               # prints the push target the :changed variants diff against
 
 `verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference — `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
