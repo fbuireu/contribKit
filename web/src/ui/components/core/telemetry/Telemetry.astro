@@ -29,14 +29,14 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 
 <script>
   import { acceptedService } from "vanilla-cookieconsent";
-  import { getAnalytics } from "@ui/components/core/analytics/analytics";
+  import { getTelemetry } from "@ui/components/core/telemetry/telemetry";
 
   function applyConsent() {
-    const analytics = getAnalytics();
+    const telemetry = getTelemetry();
     const googleGranted = acceptedService("ga4", "analytics");
-    analytics.syncGoogleConsent(googleGranted);
-    if (googleGranted) analytics.loadGoogleAnalytics();
-    if (acceptedService("betterstack", "analytics")) analytics.loadBetterStack();
+    telemetry.syncGoogleConsent(googleGranted);
+    if (googleGranted) telemetry.loadGoogleAnalytics();
+    if (acceptedService("betterstack", "analytics")) telemetry.loadBetterStack();
   }
 
   applyConsent();

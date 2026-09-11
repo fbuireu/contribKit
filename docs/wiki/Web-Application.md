@@ -51,10 +51,10 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
-  https://www.googletagmanager.com https://cdn.betterstack.com; style-src 'self'
+  https://www.googletagmanager.com https://betterstack.net; style-src 'self'
   'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:; connect-src 'self' https://www.google-analytics.com
-  https://analytics.google.com https://cdn.betterstack.com; frame-ancestors 'none';
+  https://analytics.google.com https://betterstack.net; frame-ancestors 'none';
   base-uri 'self'; form-action 'self'
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
@@ -89,8 +89,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined).
 | Variable | Type | Used by |
 |----------|------|---------|
 | `PUBLIC_GOOGLE_ANALYTICS_ID` | build-time | GA (browser) |
-| `PUBLIC_BETTER_STACK_SOURCE_TOKEN` | build-time | BetterStack RUM (browser) + logger (server) |
-| `PUBLIC_BETTER_STACK_INGESTING_URL` | build-time | BetterStack logger endpoint (server) |
+| `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time | Better Stack browser tag (RUM), from the app's Frontend tab |
 | `API_RATE_LIMITER` | runtime binding | rate limiter |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker has (presence only, never values).

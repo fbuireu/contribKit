@@ -6,7 +6,7 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 
 | Directory | Role |
 |---|---|
-| `core/` | App shell and head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `analytics/`, `cookie-consent/`. |
+| `core/` | App shell and head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `telemetry/`, `cookie-consent/`. |
 | `hero/` · `customize/` · `export/` · `how-it-works/` · `widget/` | Home-page feature sections: one folder each (`.astro` + `.css` + any local logic). |
 | `grid/` | The contribution graph: `CellTooltip` plus its rendering utilities (`calendar`, `render-svg`, `mini-grid`, `contribution`, `grid-geometry`). |
 | `error/` | The 404/500 UI: `ErrorView` + `ContributionCode` + `glyph-utils`, generic over code and tone. |
@@ -29,7 +29,7 @@ The layer's rules (props in / markup out, colocated CSS, Palette colours and Cel
   function the SSR page and the client renderer call. It prints `unknown` for a `null` total. Never interpolate
   `stats.totalContributions` directly.
 - `core/` renders on every page; `BaseLayout` composes `header` + `footer` + the head integrations (`seo`,
-  `analytics`, `cookie-consent`).
+  `telemetry`, `cookie-consent`).
 
 ## `grid/`: the client renderer, and how it differs from the server's
 
@@ -148,7 +148,7 @@ custom properties to the red ramp), so a new tone is a class and a token block, 
   it its own label rather than overloading this one.
 - **The string contracts that cross into the `is:inline` head scripts all go through `define:vars`.**
   An `is:inline` script cannot import, so the values are read in the frontmatter and injected: `BaseLayout` takes
-  `COLOR_SCHEME_KEY`, `COLOR_SCHEME_META_SELECTOR` and `ThemeClass` from [`header/theme-toggle.ts`](./core/header/theme-toggle.ts), and `Analytics`
+  `COLOR_SCHEME_KEY`, `COLOR_SCHEME_META_SELECTOR` and `ThemeClass` from [`header/theme-toggle.ts`](./core/header/theme-toggle.ts), and `Telemetry`
   takes `CONSENT_COOKIE_NAME` and `ANALYTICS_CATEGORY` from [`cookie-consent/config.ts`](./core/cookie-consent/config.ts). Each was spelled more than once
   before, in files with nothing tying them: the FOUC bootstrap and the toggle both hardcoded
   `'color-scheme'` and `theme-${scheme}`, and the analytics gate matched `/(^| )cc_cookie=([^;]+)/` against a name

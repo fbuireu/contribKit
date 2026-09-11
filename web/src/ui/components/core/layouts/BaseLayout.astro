@@ -1,13 +1,13 @@
 ---
 import "@ui/styles/index.css";
 import Font from "astro/components/Font.astro";
-import Analytics from "../analytics/Analytics.astro";
 import CookieConsent from "../cookie-consent/CookieConsent.astro";
 import Footer from "../footer/Footer.astro";
 import Header from "../header/Header.astro";
 import { COLOR_SCHEME_KEY, COLOR_SCHEME_META_SELECTOR, ThemeClass } from "../header/theme-toggle";
 import SEO from "../seo/SEO.astro";
 import type { Metadata } from "../seo/types";
+import Telemetry from "../telemetry/Telemetry.astro";
 
 interface Props {
 	metadata: Metadata;
@@ -33,7 +33,7 @@ const { metadata } = Astro.props;
       }
     </script>
     <SEO metadata={metadata} />
-    <Analytics />
+    <Telemetry />
     <Font cssVariable="--font-inter" preload />
     <Font cssVariable="--font-jetbrains-mono" />
     <link rel="sitemap" href="/sitemap-index.xml" />

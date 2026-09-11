@@ -122,8 +122,7 @@ Reports whether the deployed worker was built/configured with each expected vari
   "status": "ok",
   "env": {
     "PUBLIC_GOOGLE_ANALYTICS_ID": true,
-    "PUBLIC_BETTER_STACK_SOURCE_TOKEN": true,
-    "PUBLIC_BETTER_STACK_INGESTING_URL": true,
+    "PUBLIC_BETTER_STACK_TRACKING_TOKEN": true,
     "API_RATE_LIMITER": true
   },
   "timestamp": "2026-01-01T00:00:00.000Z"

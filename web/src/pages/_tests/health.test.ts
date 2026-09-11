@@ -4,11 +4,7 @@ vi.mock("cloudflare:workers", () => ({ env: { API_RATE_LIMITER: { limit: vi.fn()
 
 import { GET } from "../api/health";
 
-const PUBLIC_VARS = [
-	"PUBLIC_GOOGLE_ANALYTICS_ID",
-	"PUBLIC_BETTER_STACK_SOURCE_TOKEN",
-	"PUBLIC_BETTER_STACK_INGESTING_URL",
-] as const;
+const PUBLIC_VARS = ["PUBLIC_GOOGLE_ANALYTICS_ID", "PUBLIC_BETTER_STACK_TRACKING_TOKEN"] as const;
 
 describe("GET /api/health", () => {
 	afterEach(() => vi.unstubAllEnvs());
@@ -26,8 +22,7 @@ describe("GET /api/health", () => {
 
 	it("503 misconfigured when a var is missing", async () => {
 		vi.stubEnv("PUBLIC_GOOGLE_ANALYTICS_ID", "");
-		vi.stubEnv("PUBLIC_BETTER_STACK_SOURCE_TOKEN", "set");
-		vi.stubEnv("PUBLIC_BETTER_STACK_INGESTING_URL", "set");
+		vi.stubEnv("PUBLIC_BETTER_STACK_TRACKING_TOKEN", "set");
 
 		const res = GET({} as never) as Response;
 

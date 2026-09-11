@@ -169,8 +169,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined). The Be
 | Variable                            | Type            | Used by                                     | Where it lives                  |
 | ----------------------------------- | --------------- | -------------------------------------------- | ------------------------------- |
 | `PUBLIC_GOOGLE_ANALYTICS_ID`        | build-time      | GA (browser)                                 | GitHub Environment **variable** |
-| `PUBLIC_BETTER_STACK_SOURCE_TOKEN`  | build-time      | BetterStack RUM (browser) + logger (server)  | GitHub Environment **variable** |
-| `PUBLIC_BETTER_STACK_INGESTING_URL` | build-time      | BetterStack logger endpoint (server)         | GitHub Environment **variable** |
+| `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time     | Better Stack browser tag (RUM), from the app's **Frontend** tab | GitHub Environment **variable** |
 | `API_RATE_LIMITER`                  | runtime binding | rate limiter                                 | `wrangler.toml` per env         |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker was built/configured with (presence only, never values).

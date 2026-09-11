@@ -49,8 +49,7 @@ export default defineConfig({
 				default: SITE,
 			}),
 			PUBLIC_GOOGLE_ANALYTICS_ID: envField.string({ context: "client", access: "public" }),
-			PUBLIC_BETTER_STACK_SOURCE_TOKEN: envField.string({ context: "client", access: "public" }),
-			PUBLIC_BETTER_STACK_INGESTING_URL: envField.string({ context: "client", access: "public" }),
+			PUBLIC_BETTER_STACK_TRACKING_TOKEN: envField.string({ context: "client", access: "public", optional: true }),
 		},
 	},
 	vite: {

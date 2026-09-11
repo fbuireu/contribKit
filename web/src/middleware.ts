@@ -12,11 +12,11 @@ const SECURITY_HEADERS: Record<string, string> = {
 	"Cross-Origin-Embedder-Policy": "unsafe-none",
 	"Content-Security-Policy": [
 		"default-src 'self'",
-		"script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.betterstack.com",
+		"script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://betterstack.net",
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' https://fonts.gstatic.com",
 		"img-src 'self' data:",
-		"connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://cdn.betterstack.com",
+		"connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://betterstack.net",
 		"frame-ancestors 'none'",
 		"base-uri 'self'",
 		"form-action 'self'",

@@ -1,11 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const CHECKED_KEYS = [
-	"PUBLIC_GOOGLE_ANALYTICS_ID",
-	"PUBLIC_BETTER_STACK_SOURCE_TOKEN",
-	"PUBLIC_BETTER_STACK_INGESTING_URL",
-	"API_RATE_LIMITER",
-];
+const CHECKED_KEYS = ["PUBLIC_GOOGLE_ANALYTICS_ID", "PUBLIC_BETTER_STACK_TRACKING_TOKEN", "API_RATE_LIMITER"];
 
 interface HealthBody {
 	status: string;
