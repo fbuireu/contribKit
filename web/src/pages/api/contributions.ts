@@ -22,7 +22,7 @@ const querySchema = z.object({
 	year: z.string().optional(),
 });
 
-const handle: APIRoute = async ({ url, locals }) => {
+const handle: APIRoute = async ({ url }) => {
 	const data = querySchema.safeParse(Object.fromEntries(url.searchParams));
 	if (!data.success) {
 		return Response.json(

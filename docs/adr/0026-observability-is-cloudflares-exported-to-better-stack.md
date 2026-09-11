@@ -24,7 +24,9 @@ The alternatives were:
 
 ## Decision
 
-Both signals leave through Cloudflare. [`web/wrangler.toml`](../../web/wrangler.toml) names `betterstack-logs` and `betterstack-traces` as `destinations` on `observability.logs` and `observability.traces` in both stages, sets `redact_query_string = true`, and keeps `head_sampling_rate` at the 0.2 it already declared.
+Both signals leave through Cloudflare. [`web/wrangler.toml`](../../web/wrangler.toml) names `destinations` on `observability.logs` and `observability.traces` in both stages, sets `redact_query_string = true`, and keeps `head_sampling_rate` at the 0.2 it already declared.
+
+**Each stage exports to destinations of its own**, named `contribkit-<component>-<stage>-<signal>` so that the `<component>-<stage>` half is the one [ADR 0001](0001-monorepo-with-independently-released-components.md) already uses for GitHub Environments, and landing on a separate Better Stack source per stage. Destinations are an **account-level** namespace rather than a per-Worker one, so the names carry the project as a prefix: every Worker in the account draws from the same list, and forever-pto lives there too. Pointing development at the production pair would put the preview Worker of every pull request, driven by the E2E suite at the same sampling rate, into the source that production alerts from and into the same event budget. The docs contract asserts the two stages name different destinations, because copying the production block is the obvious way to undo this.
 
 `main` is untouched: it stays the adapter's own entrypoint, so nothing here depends on the shape of what Astro's build emits.
 
@@ -34,7 +36,7 @@ The rejected alternatives are the half-move, which produces spans nothing can be
 
 ## Consequences
 
-- **The destinations live in the Cloudflare dashboard, not in this repository.** `destinations = ["betterstack-logs"]` is a name resolved at deploy time against configuration no file here contains. A destination renamed or deleted in the dashboard stops the export, and nothing in a build or a test will say so. This is the one thing this decision makes *worse* than the tail consumer, which at least had its endpoint in a workflow. The docs contract asserts that every `observability` block names a destination; it cannot assert that the destination exists.
+- **The destinations live in the Cloudflare dashboard, not in this repository.** `destinations = ["contribkit-web-production-logs"]` is a name resolved at deploy time against configuration no file here contains. A destination renamed or deleted in the dashboard stops the export, and nothing in a build or a test will say so. This is the one thing this decision makes *worse* than the tail consumer, which at least had its endpoint in a workflow. The docs contract asserts that every `observability` block names a destination; it cannot assert that the destination exists.
 - **`console` is how the Worker logs now, and the lint rule that banned it is lifted in exactly one file.** `noConsole` stays an error everywhere else; [`web/biome.json`](../../web/biome.json) turns it off for `logger.ts` alone, the same way it already exempts `cookie.ts` from `noDocumentCookie`. A `console.log` anywhere else is still a lint failure, which is what keeps the seam a seam.
 - **Structured context is now serialized by us and parsed by the sink.** `@logtail/edge` took an object and sent it as fields. The logger writes `JSON.stringify` of one object, and whether Better Stack indexes those keys as fields depends on the sink, not on this code. The context keys cannot be overwritten by a caller: `service`, `level` and `message` are spread last, and `logger.test.ts` pins that.
 - **`PUBLIC_BETTER_STACK_SOURCE_TOKEN` and `PUBLIC_BETTER_STACK_INGESTING_URL` no longer reach the Worker at all.** Nothing in `web/` reads them server-side. They remain declared because the browser tag still does, and that is a separate problem recorded separately.

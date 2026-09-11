@@ -31,12 +31,12 @@ redact_query_string = true
 enabled = true
 invocation_logs = true
 head_sampling_rate = 0.2
-destinations = ["betterstack-logs"]
+destinations = ["contribkit-web-production-logs"]
 
 [env.production.observability.traces]
 enabled = true
 head_sampling_rate = 0.2
-destinations = ["betterstack-traces"]
+destinations = ["contribkit-web-production-traces"]
 
 [env.production.placement]
 mode = "smart"
@@ -57,12 +57,12 @@ redact_query_string = true
 enabled = true
 invocation_logs = true
 head_sampling_rate = 0.2
-destinations = ["betterstack-logs"]
+destinations = ["contribkit-web-development-logs"]
 
 [env.development.observability.traces]
 enabled = true
 head_sampling_rate = 0.2
-destinations = ["betterstack-traces"]
+destinations = ["contribkit-web-development-traces"]
 
 [env.development.placement]
 mode = "smart"

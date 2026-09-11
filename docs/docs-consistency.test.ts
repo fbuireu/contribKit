@@ -696,8 +696,14 @@ describe("every observability block names where it exports", () => {
 
 	const stages = (): string[] => [...read(SITE).matchAll(/^\[env\.([a-z]+)\.observability\]$/gm)].map((m) => m[1]);
 
-	const declares = ({ stage, signal }: DeclaresParams): boolean =>
-		new RegExp(`\\[env\\.${stage}\\.observability\\.${signal}\\][^[]*destinations\\s*=\\s*\\[`).test(read(SITE));
+	const destinationsOf = ({ stage, signal }: DeclaresParams): string[] => {
+		const block = new RegExp(
+			`\\[env\\.${stage}\\.observability\\.${signal}\\][^[]*destinations\\s*=\\s*\\[([^\\]]*)\\]`,
+		).exec(read(SITE));
+		return [...(block?.[1] ?? "").matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+	};
+
+	const declares = (params: DeclaresParams): boolean => destinationsOf(params).length > 0;
 
 	it("configures observability for every stage the file defines", () => {
 		expect(stages().sort()).toEqual(["development", "production"]);
@@ -713,6 +719,16 @@ describe("every observability block names where it exports", () => {
 	it("redacts the query string, which is where a Username travels", () => {
 		const redacting = [...read(SITE).matchAll(/^redact_query_string\s*=\s*true$/gm)];
 		expect(redacting.length).toBe(stages().length);
+	});
+
+	it("sends each stage somewhere of its own, so preview traffic stays out of the production source", () => {
+		const shared = ["logs", "traces"].filter((signal) => {
+			const [production, development] = ["production", "development"].map((stage) =>
+				destinationsOf({ stage, signal }).join(),
+			);
+			return production === development;
+		});
+		expect(shared).toEqual([]);
 	});
 
 	it("keeps no tail consumer, because the Worker one would name is gone", () => {
