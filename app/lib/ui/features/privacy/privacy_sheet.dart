@@ -55,14 +55,20 @@ class PrivacySheet extends ConsumerWidget {
             children: [
               Expanded(
                 child: AppButton.outline(
-                  onPressed: notifier.rejectAll,
+                  onPressed: () {
+                    notifier.rejectAll();
+                    Navigator.of(context).pop();
+                  },
                   child: const Text('Reject all'),
                 ),
               ),
               const SizedBox(width: Tokens.space3),
               Expanded(
                 child: AppButton(
-                  onPressed: notifier.acceptAll,
+                  onPressed: () {
+                    notifier.acceptAll();
+                    Navigator.of(context).pop();
+                  },
                   child: const Text('Accept all'),
                 ),
               ),
