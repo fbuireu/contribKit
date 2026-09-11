@@ -262,16 +262,10 @@ Playwright exiting 1 on an empty set is the only thing keeping the tag honest.
 **The smoke job labels its own report.** Playwright's `github` reporter annotates every run with the same
 `🎭 Playwright Run Summary`, whichever suite produced it, so a step writes a *Production smoke tests* heading to
 `$GITHUB_STEP_SUMMARY` first, naming the address it ran against and the sha it followed. The artifact is
-`playwright-smoke-report` for the same reason. The Vitest block gets the same treatment, and it has to,
-because CI runs Vitest twice: its *Vitest Test Report* heading is a constant inside Vitest's `github-actions`
-reporter with no rename option, so one heading could not say which block was which. `summaryLabel` is declared
-and exported by [`web/vitest.config.ts`](./web/vitest.config.ts), which names its own run, and
-[`web/vitest.docs.config.ts`](./web/vitest.docs.config.ts) imports it and names the contract run the
-*Docs Contract* job drives. Both configs live under `web/` rather than at the repository root, which is where
-forever-pto keeps its copy: Vitest is a dependency of the `web` package alone, and a root config importing
-`vitest/config` type-checks only if the root can resolve Vitest and its peers, which would mean hoisting
-`vite` and `@types/node` up there for a reporter. forever-pto and biancafiore label theirs the same way, each
-shaped to its own config.
+`playwright-smoke-report` for the same reason. The Vitest block gets the same treatment: its
+*Vitest Test Report* heading is a constant inside Vitest's `github-actions` reporter with no rename option,
+so `web/vitest.config.ts` registers `summaryLabel`, a reporter that writes the suite's own heading above the
+block, on CI only. forever-pto and biancafiore label theirs the same way, each shaped to its own config.
 
 **A failed smoke run rolls production back.** Withholding the tag leaves a version that does not answer serving
 traffic, so `rollback` runs `wrangler rollback --env production --yes` from `web/` when `deploy-production`
