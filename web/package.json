@@ -51,7 +51,7 @@
 		"test:ut:watch": "vitest --logHeapUsage",
 		"test:ut:coverage": "pnpm test:ut --coverage",
 		"test:ut:changed": "pnpm test:ut --changed",
-		"test:docs": "vitest run --logHeapUsage --config vitest.docs.config.ts",
+		"test:docs": "vitest run --logHeapUsage --config ../vitest.docs.config.ts",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "pnpm test:e2e --ui",
 		"verify": "pnpm format:check && pnpm typecheck && pnpm check && pnpm test:ut:coverage",
