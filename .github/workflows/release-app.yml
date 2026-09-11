@@ -83,7 +83,7 @@ jobs:
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git "$MAJOR_VERSION" --force
 
   deliver:
-    name: Deliver ${{ needs.release.outputs.version }} to Google Play
+    name: Ship ${{ needs.release.outputs.version }} to Google Play and Sentry
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [release]
@@ -173,7 +173,6 @@ jobs:
             --split-debug-info=build/symbols
 
       - name: Upload debug symbols to Sentry
-        working-directory: app
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
