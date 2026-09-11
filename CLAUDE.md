@@ -59,7 +59,9 @@ pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
 pnpm typecheck           # wrangler types + tsc --noEmit
 pnpm check               # astro check: the only thing that typechecks .astro files
-pnpm verify              # format:check + typecheck + check + coverage: what CI and pre-push run
+pnpm verify:static       # format:check + typecheck + check: everything verify does but the suite
+pnpm verify              # verify:static + coverage: what CI runs
+pnpm verify:changed      # verify:static + test:ut:changed: what pre-push runs
 
 `verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference — `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
 pnpm lint:all                    # biome lint over web, docs and .github
@@ -75,6 +77,10 @@ flutter test
 flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 dart run build_runner build      # after touching a @freezed / @riverpod / DTO class
 ```
+
+**`web-verify` runs `verify:changed`, and the coverage floor is why it cannot run `verify`.** `web/vitest.config.ts` sets `coverage.include` over all of `web/src`, which is what makes the provider report a file no test loaded as zero, so a changed-only subset drags the global average under the floor and fails on a clean tree: a scoped run and the threshold cannot both hold. Coverage is therefore a CI concern, which costs nothing because CI runs the full `pnpm verify` on the pushed sha. The `app` half of the hook needed none of this: its commands are already glob-gated, so `flutter-test` fires only when a `*.dart`, `pubspec.yaml` or `analysis_options.yaml` file is in the push, while `web-verify` carries no glob and ran the whole web gate whatever had changed.
+
+**A `:changed` variant names a literal base, and computing one is what it must not do.** A `package.json` script runs under `cmd` on Windows, where `$(...)` is not substituted but passed through as literal argv, so a script that resolved the branch's push target broke every push from a Windows checkout. `test:ut:changed` therefore takes `origin/main` outright, which is wider than the push needs on a branch and never narrower, so it errs safe. It used to carry no ref at all, meaning uncommitted work only, which is empty at push time and made the command a green check that checked nothing. Reading the base off the hook is not an option either: lefthook consumes git's pre-push stdin and forwards none of it, so the remote sha git computes is unreachable from a command. Biome's `--changed` is left alone: it diffs against `vcs.defaultBranch`, which is `main`, so on `main` it selects nothing, and `format:all` reads web, docs and .github in under a second.
 
 **The app carries a coverage floor too, and it had none until it was written.** `flutter test` has no
 `--min-coverage`, so [`app/tool/check_coverage.dart`](./app/tool/check_coverage.dart) reads `coverage/lcov.info` and exits non-zero below the
@@ -215,6 +221,7 @@ Traps worth naming, because every one of them has already happened here:
 
 ## Gotchas
 
+- **The release config teaches its parsers the `!` grammar, and a bare config silently drops every breaking change.** `@semantic-release/commit-analyzer` falls back to `conventional-changelog-angular`, whose `headerPattern` is `/^(\w*)(?:\((.*)\))?: (.*)$/`: it wants the colon straight after the scope, so `feat(x)!: …` does not match, the commit is analysed with no type at all and the analyser answers *no release*. The job ends green and publishes nothing, which is the failure mode that matters. Nothing warns you, because `@commitlint/config-conventional` accepts the `!` that the spec defines, so the pull-request title check passes and only the release quietly does nothing. The fix is `parserOpts` on **both** parsing plugins, adding `!?` to the header pattern and a `breakingHeaderPattern`; the `preset` route looks tidier and does not work here, because `conventional-changelog-conventionalcommits@10` needs `conventional-changelog-writer@9` while `@semantic-release/release-notes-generator` pins `^8.0.0`, so the notes step dies on *Missing helper*, and pinning an older preset does not help either: the analyser resolves a preset by name from its own directory first, where pnpm's hidden `node_modules/.pnpm/node_modules` hoist exposes whichever copy commitlint installed. `docs/docs-consistency.test.ts` asserts both plugins carry the same `parserOpts`. Note that `!` then means major on **any** type, exactly as a `BREAKING CHANGE:` footer already did.
 - **Levels come from GitHub, not from us.** Both parsers read `data-level` as authoritative. Only the app derives a level from the count when the attribute is missing; the web drops the day and lets the grid backfill it.
 - **The app's grid covers the year, which is 53 weeks or, twice this century, 54.** Dates outside the requested year are padded as empty days. A leap year opening on a Saturday needs 372 cells and 53×7 is 371, so 2028 and 2056 take a 54th week; `ContributionGridService.weeksFor` is the only answer, and nothing may assume a constant ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
 - **The cache is versioned.** Changing what a cached calendar means requires bumping `_cacheBoxName`; past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)).

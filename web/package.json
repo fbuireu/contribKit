@@ -50,11 +50,13 @@
 		"test:ut": "vitest run --logHeapUsage",
 		"test:ut:watch": "vitest --logHeapUsage",
 		"test:ut:coverage": "pnpm test:ut --coverage",
-		"test:ut:changed": "pnpm test:ut --changed",
+		"test:ut:changed": "pnpm test:ut --changed origin/main",
 		"test:docs": "pnpm test:ut ../docs/docs-consistency.test.ts",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "pnpm test:e2e --ui",
-		"verify": "pnpm format:check && pnpm typecheck && pnpm check && pnpm test:ut:coverage",
+		"verify:static": "pnpm format:check && pnpm typecheck && pnpm check",
+		"verify": "pnpm verify:static && pnpm test:ut:coverage",
+		"verify:changed": "pnpm verify:static && pnpm test:ut:changed",
 		"check": "pnpm types && astro check"
 	},
 	"dependencies": {
