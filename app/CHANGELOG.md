@@ -1,3 +1,17 @@
+# [contribkit-app-v1.5.0](https://github.com/fbuireu/contribKit/compare/app-v1.4.0...app-v1.5.0) (2026-09-11)
+
+
+### Bug Fixes
+
+* **contribkit-app:** let semantic-release say whether it published ([5ff7ec4](https://github.com/fbuireu/contribKit/commit/5ff7ec43b1ce10fc1182373b2b7197353cd349ca))
+* **contribkit-app:** stop the platform starting PostHog before consent ([afb7b16](https://github.com/fbuireu/contribKit/commit/afb7b1656b438b7902368d4c7e0f5685fb001f01))
+
+
+### Features
+
+* **contribkit-app:** obfuscate the release build and require the symbols ([ed7b34a](https://github.com/fbuireu/contribKit/commit/ed7b34ab679c27465298af6242fe28e865f86e10))
+* **contribkit-app:** send crash reports and usage events, behind consent ([47a2241](https://github.com/fbuireu/contribKit/commit/47a2241d42c1982b2fb355ea8b598ccd1018ff45))
+
 # [contribkit-app-v1.4.0](https://github.com/fbuireu/contribKit/compare/app-v1.3.2...app-v1.4.0) (2026-09-11)
 
 
