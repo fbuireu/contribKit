@@ -1187,50 +1187,39 @@ describe("stated versions", () => {
 	});
 });
 
-const RELEASE_PRESET = "conventionalcommits";
-const PRESET_PACKAGE = `conventional-changelog-${RELEASE_PRESET}`;
+const BREAKING_PARSER_OPTS = {
+	headerPattern: "^(\\w*)(?:\\((.*)\\))?!?: (.*)$",
+	breakingHeaderPattern: "^(\\w*)(?:\\((.*)\\))?!: (.*)$",
+};
 const COMMIT_PARSING_PLUGINS = ["@semantic-release/commit-analyzer", "@semantic-release/release-notes-generator"];
 const RELEASE_CONFIG = /[/\\](\.releaserc(\.\w+)?|release\.config\.\w+)$/;
 
 type ReleasePlugin = string | [string, Record<string, unknown>?];
 
-interface PresetOfParams {
+interface ParserOptsOfParams {
 	plugins: ReleasePlugin[];
 	name: string;
 }
 
-const presetOf = ({ plugins, name }: PresetOfParams): unknown => {
+const parserOptsOf = ({ plugins, name }: ParserOptsOfParams): unknown => {
 	const entry = plugins.find((plugin) => (Array.isArray(plugin) ? plugin[0] : plugin) === name);
 
-	return Array.isArray(entry) ? entry[1]?.preset : undefined;
+	return Array.isArray(entry) ? entry[1]?.parserOpts : undefined;
 };
 
 describe("the release configs parse the commit grammar commitlint accepts", () => {
 	const configs = walk({ dir: REPO, match: (path) => RELEASE_CONFIG.test(path) });
 
-	it("names a preset on every plugin that parses a commit message, and the same one in both components", () => {
-		const unnamed = configs.flatMap((file) => {
+	it("teaches every plugin that parses a commit message the same header grammar, in both components", () => {
+		const wrong = configs.flatMap((file) => {
 			const { plugins } = JSON.parse(read(file)) as { plugins: ReleasePlugin[] };
 
-			return COMMIT_PARSING_PLUGINS.filter((name) => presetOf({ plugins, name }) !== RELEASE_PRESET).map(
-				(name) => `${file.slice(REPO.length + 1)}: ${name} declares ${String(presetOf({ plugins, name }))}`,
-			);
+			return COMMIT_PARSING_PLUGINS.filter(
+				(name) => JSON.stringify(parserOptsOf({ plugins, name })) !== JSON.stringify(BREAKING_PARSER_OPTS),
+			).map((name) => `${file.slice(REPO.length + 1)}: ${name}`);
 		});
 
 		expect(configs.length).toBeGreaterThan(1);
-		expect(unnamed).toEqual([]);
-	});
-
-	it("declares the preset package beside each config rather than borrowing commitlint's copy", () => {
-		const undeclared = configs
-			.map((file) => join(dirname(file), "package.json"))
-			.filter((manifest) => {
-				const { devDependencies } = json<{ devDependencies?: Record<string, string> }>(manifest.slice(REPO.length + 1));
-
-				return !(PRESET_PACKAGE in (devDependencies ?? {}));
-			})
-			.map((manifest) => manifest.slice(REPO.length + 1));
-
-		expect(undeclared).toEqual([]);
+		expect(wrong).toEqual([]);
 	});
 });
