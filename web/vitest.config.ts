@@ -6,12 +6,13 @@ const resolvePath = (path: string): string => fileURLToPath(new URL(path, import
 
 const MIN_THRESHOLD = 85;
 
-const summaryLabel = {
+export const summaryLabel = (label: string) => ({
 	onTestRunEnd() {
-		if (!process.env.GITHUB_STEP_SUMMARY) return;
-		appendFileSync(process.env.GITHUB_STEP_SUMMARY, "\n## Vitest run: unit + docs contract (web)\n");
+		if (process.env.GITHUB_STEP_SUMMARY) {
+			appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\n## ${label}\n`);
+		}
 	},
-};
+});
 
 export default defineConfig({
 	resolve: {
@@ -24,7 +25,9 @@ export default defineConfig({
 		},
 	},
 	test: {
-		reporters: process.env.GITHUB_ACTIONS ? ["default", summaryLabel, "github-actions"] : ["default"],
+		reporters: process.env.GITHUB_ACTIONS
+			? ["default", summaryLabel("Unit suite + docs contract (contribkit-web)"), "github-actions"]
+			: ["default"],
 		include: [...configDefaults.include, "../docs/**/*.test.ts"],
 		exclude: [...configDefaults.exclude, "e2e/**"],
 		testTimeout: 20_000,
