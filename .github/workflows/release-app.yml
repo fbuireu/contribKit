@@ -30,8 +30,8 @@ jobs:
       issues: write
       pull-requests: write
     outputs:
-      published: ${{ steps.detect.outputs.published }}
-      version: ${{ steps.detect.outputs.version }}
+      published: ${{ steps.release.outputs.published }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -43,27 +43,15 @@ jobs:
       - uses: ./.github/actions/prepare-env
 
       - name: Semantic Release
+        id: release
         working-directory: app
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: pnpm run release
 
-      - name: Detect release
-        id: detect
-        run: |
-          if git log -1 --pretty=%s | grep -q '^chore(release): app'; then
-            VERSION=$(grep '^version:' app/pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/\+.*//')
-            echo "published=true" >> "$GITHUB_OUTPUT"
-            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "Released app v$VERSION"
-          else
-            echo "published=false" >> "$GITHUB_OUTPUT"
-            echo "No releasable changes, nothing to publish."
-          fi
-
       - name: Update major version tag
-        if: steps.detect.outputs.published == 'true'
+        if: steps.release.outputs.published == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |

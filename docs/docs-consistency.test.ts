@@ -1152,6 +1152,15 @@ describe("the workflows", () => {
 			]),
 		);
 	});
+
+	it("lets semantic-release say whether it published, rather than grepping the commit it wrote", () => {
+		const workflow = read(join(WORKFLOWS, "release-app.yml"));
+		const releaserc = read(join(REPO, "app/.releaserc.json"));
+
+		expect(workflow).not.toMatch(/chore\(/);
+		expect(workflow).not.toMatch(/git log -1/);
+		expect(releaserc).toMatch(/"successCmd": ".*GITHUB_OUTPUT/);
+	});
 });
 
 const VERSIONED_DEPENDENCIES: Record<string, string[]> = {
