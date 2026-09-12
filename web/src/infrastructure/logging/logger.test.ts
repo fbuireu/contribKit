@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { LOG_LEVEL, type LogLevel } from "./contract";
 import { logger } from "./logger";
 
 const spies = () => ({
@@ -12,17 +13,19 @@ afterEach(() => {
 });
 
 describe("the Worker logger", () => {
-	it("sends each level to the matching console method, which is what Cloudflare exports", () => {
-		const console = spies();
+	it.each(Object.values(LOG_LEVEL))(
+		"emits %s through the console method of its own name and no other, which is what Cloudflare exports",
+		(level) => {
+			const console = spies();
 
-		logger.info({ message: "hello" });
-		logger.warn({ message: "careful" });
-		logger.error({ message: "boom" });
+			logger[level as LogLevel]({ message: "hello" });
 
-		expect(console.info).toHaveBeenCalledOnce();
-		expect(console.warn).toHaveBeenCalledOnce();
-		expect(console.error).toHaveBeenCalledOnce();
-	});
+			expect(console[level as LogLevel]).toHaveBeenCalledOnce();
+			for (const other of Object.values(LOG_LEVEL)) {
+				if (other !== level) expect(console[other as LogLevel]).not.toHaveBeenCalled();
+			}
+		},
+	);
 
 	it("writes one JSON line per call, tagged with the service and the level", () => {
 		const console = spies();
@@ -60,5 +63,25 @@ describe("the Worker logger", () => {
 			level: "warn",
 			message: "careful",
 		});
+	});
+});
+
+describe("a log never fails its caller", () => {
+	it("drops a context that cannot be serialised rather than throwing from the route that logged it", () => {
+		const console = spies();
+		const circular: Record<string, unknown> = {};
+		circular.self = circular;
+
+		expect(() => logger.info({ message: "round trip", context: circular })).not.toThrow();
+		expect(console.info).not.toHaveBeenCalled();
+	});
+
+	it("swallows a console that throws synchronously", () => {
+		const console = spies();
+		console.error.mockImplementationOnce(() => {
+			throw new Error("sink down");
+		});
+
+		expect(() => logger.error({ message: "still fine" })).not.toThrow();
 	});
 });

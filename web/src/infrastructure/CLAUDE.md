@@ -127,6 +127,14 @@ resolved once; there is no token here to miss any more, and no client to memoise
 `{ context: { level: "info" } }` to `logger.error` cannot relabel its own line, which is the whole reason the sink
 can be queried on those three fields. `logger.test.ts` pins the order.
 
+**The line goes to `console[level]`, indexed by the contract's own union, inside a `try` that returns.** Indexing
+rather than branching is what makes a level added to `LOG_LEVEL` that `console` has no method for fail to
+compile here instead of falling through to `console.error`; `logger.test.ts` iterates the contract and asserts
+each level reaches the method of its own name and no other. The `try` is the other half of *a log call cannot
+fail its caller*: `JSON.stringify` throws on a circular reference or a `BigInt`, and a route that was logging a
+failure must not fail again on the log. A context that will not serialise loses the line, silently, which is the
+same trade forever-pto's logger makes and records in its ADR 0018.
+
 **There is no `ExecutionContext` in this any more, and callers import `logger` directly.** `getLogger(ctx)` and
 `loggerFor(locals)` existed because a network write had to be tied to the request's lifetime or be torn down before
 it flushed; a `console` call has nothing to flush. The `Astro.locals.cfContext` cast that `loggerFor` performed is

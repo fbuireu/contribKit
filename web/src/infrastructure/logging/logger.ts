@@ -18,11 +18,11 @@ export interface Logger {
 }
 
 const write = ({ level, message, context }: WriteParams): void => {
-	const line = JSON.stringify({ ...context, service: LOG_SERVICE, level, message });
-
-	if (level === LOG_LEVEL.INFO) console.info(line);
-	else if (level === LOG_LEVEL.WARN) console.warn(line);
-	else console.error(line);
+	try {
+		console[level](JSON.stringify({ ...context, service: LOG_SERVICE, level, message }));
+	} catch {
+		return;
+	}
 };
 
 export const logger: Logger = {
