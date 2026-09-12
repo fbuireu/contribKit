@@ -77,7 +77,7 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   importing this module touched `window` and generated a grid. That is most of why the module with the real risk
   in it was barely asserted while `roving.ts` and [`url.ts`](./utils/url.ts), both trivially correct, had more test than
   implementation. **That imbalance is closed**: the four initialisers `initPage` composes are covered as well as
-  the refresh — the username strip's empty-submission refusal and its lowercasing, the suggestion buttons, the
+  the refresh: the username strip's empty-submission refusal and its lowercasing, the suggestion buttons, the
   `popstate` restore, and the URL rewrite `initUsernameState` performs when the address and the server-rendered
   field disagree. The one worth naming is the cookie: [`page-init.test.ts`](./utils/page-init.test.ts) doubles
   [`cookie.ts`](./utils/cookie.ts) and asserts `writeUsernameCookie` is reached on the success branch and on

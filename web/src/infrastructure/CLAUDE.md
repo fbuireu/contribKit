@@ -89,7 +89,7 @@ no activity, which is a lie the reader cannot detect
 **`total` is `null` the moment a Contribution Day at level 1 or above has an unknown Count.** It is not GitHub's own
 headline figure (nothing here reads that), so it is only as complete as the tool-tip pass, and a partial pass
 cannot be reported as a measurement. A level-0 day with no Count does **not** void it, because GitHub's level 0 is
-zero. That is the same rule `computeContributionStats` applies in the domain and the same one the app's `_totalFor`
+zero. That is the same rule `computeContributionStats` applies in the domain and the same one the app's `ContributionStatsService.totalFor`
 applies, and this file did not follow it: it summed `count ?? 0` whenever *any* tool-tip parsed, so a page whose
 `<td>`s parsed and whose tool-tips half failed produced an **understated total presented as exact**.
 `statsWithScrapedTotal` then let that beat the domain function that had correctly refused to guess. It only degraded

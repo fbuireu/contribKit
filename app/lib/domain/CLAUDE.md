@@ -131,7 +131,7 @@ named is what let the grid drop 31 December 2028 in silence. Divide by `weeks.le
 **Every figure derived from Counts is nullable, and `null` means "not knowable" rather than zero.** `weeklyAverage`
 is `null` when Total Contributions is; `bestDayCount` and `bestMonthContributions` are `null` the moment any active
 day has an unknown Count, because the largest Count *seen* is a lower bound and reporting it as the best day is the
-same lie `_totalFor` refuses to tell. `currentStreak`, `longestStreak` and `totalDaysActive` stay
+same lie `totalFor` refuses to tell. `currentStreak`, `longestStreak` and `totalDaysActive` stay
 non-nullable: they count *days*, which the Contribution Level answers on its own. `bestMonth` does not count days
 (it names the month with the highest summed Count), so it is nulled by the same rule as `bestMonthContributions`,
 and it is an `int?`.

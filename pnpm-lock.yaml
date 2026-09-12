@@ -1,104 +1,3 @@
----
-lockfileVersion: '9.0'
-
-importers:
-
-  .:
-    configDependencies: {}
-    packageManagerDependencies:
-      pnpm:
-        specifier: 12.3.4
-        version: 12.3.4
-
-packages:
-
-  '@pnpm/exe.darwin-arm64@12.3.4':
-    resolution: {integrity: sha512-PAyUol8T1+/+ViOiXAt51ECA+QnfXCqz6foL4bW+LsoX0NcVd5XVEM2mRQu+LV4oc7uRz9zf9U0P+XFfuQeDAw==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@pnpm/exe.darwin-x64@12.3.4':
-    resolution: {integrity: sha512-fxP9JCk0Cdye+ePuj+GJJLMUMTqHGWRdb1dtv4How876uQ2ehxvenpgiYAir/ceO9PsYUZkFTtyZdx+rRu5QOA==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@pnpm/exe.linux-arm64-musl@12.3.4':
-    resolution: {integrity: sha512-FBOt0/7ye6O6q4AllVV5QMviB6qE6fqkeczV/+MDWQsmo+QJrlfsh6X7CpH/tClVpBZEyIbjpUoT8bNhCYBxEg==}
-    cpu: [arm64]
-    os: [linux]
-    libc: [musl]
-
-  '@pnpm/exe.linux-arm64@12.3.4':
-    resolution: {integrity: sha512-t71AVA7LRqiKTyZ5xMYaZc2n5DfdpMbfokZuiIOXHBOM03ECnF0t4iYwaBDqJgVjlKYUOwaF/bRQajGNA4cJ4w==}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
-  '@pnpm/exe.linux-x64-musl@12.3.4':
-    resolution: {integrity: sha512-RPmk7Jb/aYaFvL2iyDN/AtMY+hUEsue732WmXpcuQ9tBpMnGyA5py7Z3+e+qmQaJ0zY/4ni9jJiyPBQHujmv6w==}
-    cpu: [x64]
-    os: [linux]
-    libc: [musl]
-
-  '@pnpm/exe.linux-x64@12.3.4':
-    resolution: {integrity: sha512-2ZqOlSPkfwX1h5cR+FPiWf8+F+2hZT/3TvhUK5sigHqwaQCIiq8R7CGxhndKs63JtcLi2a1Qpo+wX/EoyfjyJQ==}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
-  '@pnpm/exe.win32-arm64@12.3.4':
-    resolution: {integrity: sha512-ANyrHqyqco6SXBysUTRF74itDyyraea7IbFsKFdNXTjcFnfycTDx37EwuhdpPYFNSIh2JhUG4fByclsRfiHX7w==}
-    cpu: [arm64]
-    os: [win32]
-
-  '@pnpm/exe.win32-x64@12.3.4':
-    resolution: {integrity: sha512-WH/KqBPY/hq2Tb7SgQltEZytimcjgKRaCRL/aM9CI0c67iKc5TVmHUhIiL3Ux9FB4bWn36i6XewUcScQI+zG8w==}
-    cpu: [x64]
-    os: [win32]
-
-  pnpm@12.3.4:
-    resolution: {integrity: sha512-lhqkH7B32joEpEHZ+OFevAyW2o73ELLrZ7+e58sGEOq9SPH9hfUc/+c4RnhfoPh8VqOocqHYk/hEZ0G1zORUVw==}
-    engines: {node: '>=18.*'}
-    hasBin: true
-
-snapshots:
-
-  '@pnpm/exe.darwin-arm64@12.3.4':
-    optional: true
-
-  '@pnpm/exe.darwin-x64@12.3.4':
-    optional: true
-
-  '@pnpm/exe.linux-arm64-musl@12.3.4':
-    optional: true
-
-  '@pnpm/exe.linux-arm64@12.3.4':
-    optional: true
-
-  '@pnpm/exe.linux-x64-musl@12.3.4':
-    optional: true
-
-  '@pnpm/exe.linux-x64@12.3.4':
-    optional: true
-
-  '@pnpm/exe.win32-arm64@12.3.4':
-    optional: true
-
-  '@pnpm/exe.win32-x64@12.3.4':
-    optional: true
-
-  pnpm@12.3.4:
-    optionalDependencies:
-      '@pnpm/exe.darwin-arm64': 12.3.4
-      '@pnpm/exe.darwin-x64': 12.3.4
-      '@pnpm/exe.linux-arm64': 12.3.4
-      '@pnpm/exe.linux-arm64-musl': 12.3.4
-      '@pnpm/exe.linux-x64': 12.3.4
-      '@pnpm/exe.linux-x64-musl': 12.3.4
-      '@pnpm/exe.win32-arm64': 12.3.4
-      '@pnpm/exe.win32-x64': 12.3.4
-
----
 lockfileVersion: '9.0'
 
 settings:
@@ -129,22 +28,22 @@ importers:
     devDependencies:
       '@semantic-release/changelog':
         specifier: 7.0.0
-        version: 7.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))
+        version: 7.0.0(semantic-release@25.0.9(typescript@7.0.2))
       '@semantic-release/exec':
         specifier: 7.1.0
-        version: 7.1.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)
+        version: 7.1.0(semantic-release@25.0.9(typescript@7.0.2))
       '@semantic-release/git':
         specifier: 11.0.1
-        version: 11.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)
+        version: 11.0.1(semantic-release@25.0.9(typescript@7.0.2))
       '@semantic-release/github':
         specifier: 12.0.9
-        version: 12.0.9(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)
+        version: 12.0.9(semantic-release@25.0.9(typescript@7.0.2))
       semantic-release:
         specifier: 25.0.9
-        version: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+        version: 25.0.9(typescript@7.0.2)
       semantic-release-monorepo:
         specifier: 8.0.2
-        version: 8.0.2(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)
+        version: 8.0.2(semantic-release@25.0.9(typescript@7.0.2))
 
   web:
     dependencies:
@@ -166,7 +65,7 @@ importers:
         version: 0.9.10(prettier@3.9.0)(typescript@6.0.3)
       '@astrojs/ts-plugin':
         specifier: 1.10.11
-        version: 1.10.11(typescript@6.0.3)
+        version: 1.10.11
       '@biomejs/biome':
         specifier: 2.5.12
         version: 2.5.12
@@ -175,16 +74,16 @@ importers:
         version: 1.63.0
       '@semantic-release/changelog':
         specifier: 7.0.0
-        version: 7.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))
+        version: 7.0.0(semantic-release@25.0.9(typescript@6.0.3))
       '@semantic-release/git':
         specifier: 11.0.1
-        version: 11.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
+        version: 11.0.1(semantic-release@25.0.9(typescript@6.0.3))
       '@semantic-release/github':
         specifier: 12.0.9
-        version: 12.0.9(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
+        version: 12.0.9(semantic-release@25.0.9(typescript@6.0.3))
       '@semantic-release/npm':
         specifier: 13.1.5
-        version: 13.1.5
+        version: 13.1.5(semantic-release@25.0.9(typescript@6.0.3))
       '@types/node':
         specifier: 26.2.0
         version: 26.2.0
@@ -196,10 +95,10 @@ importers:
         version: 20.14.0
       semantic-release:
         specifier: 25.0.9
-        version: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+        version: 25.0.9(typescript@6.0.3)
       semantic-release-monorepo:
         specifier: 8.0.2
-        version: 8.0.2(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
+        version: 8.0.2(semantic-release@25.0.9(typescript@6.0.3))
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -1799,30 +1698,15 @@ packages:
 
   '@volar/language-server@2.4.28':
     resolution: {integrity: sha512-NqcLnE5gERKuS4PUFwlhMxf6vqYo7hXtbMFbViXcbVkbZ905AIVWhnSo0ZNBC2V127H1/2zP7RvVOVnyITFfBw==}
-    peerDependencies:
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@volar/language-service@2.4.28':
     resolution: {integrity: sha512-Rh/wYCZJrI5vCwMk9xyw/Z+MsWxlJY1rmMZPsxUoJKfzIRjS/NF1NmnuEcrMbEVGja00aVpCsInJfixQTMdvLw==}
-    peerDependencies:
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@volar/source-map@2.4.28':
     resolution: {integrity: sha512-yX2BDBqJkRXfKw8my8VarTyjv48QwxdJtvRgUpNE5erCsgEUdI2DsLbpa+rOQVAJYshY99szEcRDmyHbF10ggQ==}
 
   '@volar/typescript@2.4.28':
     resolution: {integrity: sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw==}
-    peerDependencies:
-      typescript: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@vscode/emmet-helper@2.11.0':
     resolution: {integrity: sha512-QLxjQR3imPZPQltfbWRnHU6JecWTF1QSWhx3GAKQpslx7y3Dp6sIIXhKjiUJ/BR9FX8PVthjr9PD6pNwOJfAzw==}
@@ -4193,22 +4077,16 @@ packages:
     resolution: {integrity: sha512-IdD13Z9N2Bu8EM6CM0fDV1E69olEYGHDU25X51YXmq8Y0CmJ2LNj6gOiBJgpS5JGUqFzECVhMNBW7R0sPdRTMQ==}
     peerDependencies:
       '@volar/language-service': ~2.4.0
-      typescript: '*'
     peerDependenciesMeta:
       '@volar/language-service':
-        optional: true
-      typescript:
         optional: true
 
   volar-service-typescript@0.0.70:
     resolution: {integrity: sha512-l46Bx4cokkUedTd74ojO5H/zqHZJ8SUuyZ0IB8JN4jfRqUM3bQFBHoOwlZCyZmOeO0A3RQNkMnFclxO4c++gsg==}
     peerDependencies:
       '@volar/language-service': ~2.4.0
-      typescript: '*'
     peerDependenciesMeta:
       '@volar/language-service':
-        optional: true
-      typescript:
         optional: true
 
   volar-service-yaml@0.0.70:
@@ -4534,17 +4412,17 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
       '@volar/kit': 2.4.28(typescript@6.0.3)
       '@volar/language-core': 2.4.28
-      '@volar/language-server': 2.4.28(typescript@6.0.3)
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
+      '@volar/language-server': 2.4.28
+      '@volar/language-service': 2.4.28
       muggle-string: 0.4.1
       tinyglobby: 0.2.17
-      volar-service-css: 0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))
-      volar-service-emmet: 0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))
-      volar-service-html: 0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))
-      volar-service-prettier: 0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))(prettier@3.9.0)
-      volar-service-typescript: 0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))(typescript@6.0.3)
-      volar-service-typescript-twoslash-queries: 0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))(typescript@6.0.3)
-      volar-service-yaml: 0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))
+      volar-service-css: 0.0.70(@volar/language-service@2.4.28)
+      volar-service-emmet: 0.0.70(@volar/language-service@2.4.28)
+      volar-service-html: 0.0.70(@volar/language-service@2.4.28)
+      volar-service-prettier: 0.0.70(@volar/language-service@2.4.28)(prettier@3.9.0)
+      volar-service-typescript: 0.0.70(@volar/language-service@2.4.28)
+      volar-service-typescript-twoslash-queries: 0.0.70(@volar/language-service@2.4.28)
+      volar-service-yaml: 0.0.70(@volar/language-service@2.4.28)
       vscode-html-languageservice: 5.6.2
       vscode-uri: 3.1.0
     optionalDependencies:
@@ -4575,17 +4453,15 @@ snapshots:
       is-docker: 4.0.0
       package-manager-detector: 1.6.0
 
-  '@astrojs/ts-plugin@1.10.11(typescript@6.0.3)':
+  '@astrojs/ts-plugin@1.10.11':
     dependencies:
       '@astrojs/compiler': 2.13.1
       '@astrojs/yaml2ts': 0.2.4
       '@jridgewell/sourcemap-codec': 1.5.5
       '@volar/language-core': 2.4.28
-      '@volar/typescript': 2.4.28(typescript@6.0.3)
+      '@volar/typescript': 2.4.28
       semver: 7.8.5
       vscode-languageserver-textdocument: 1.0.12
-    transitivePeerDependencies:
-      - typescript
 
   '@astrojs/underscore-redirects@1.0.4': {}
 
@@ -5530,91 +5406,91 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@semantic-release/changelog@7.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))':
+  '@semantic-release/changelog@7.0.0(semantic-release@25.0.9(typescript@6.0.3))':
     dependencies:
       '@semantic-release/error': 4.0.0
       aggregate-error: 5.0.0
       lodash-es: 4.18.1
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+      semantic-release: 25.0.9(typescript@6.0.3)
 
-  '@semantic-release/changelog@7.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))':
+  '@semantic-release/changelog@7.0.0(semantic-release@25.0.9(typescript@7.0.2))':
     dependencies:
       '@semantic-release/error': 4.0.0
       aggregate-error: 5.0.0
       lodash-es: 4.18.1
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
 
-  '@semantic-release/commit-analyzer@13.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)':
+  '@semantic-release/commit-analyzer@13.0.1(semantic-release@25.0.9(typescript@6.0.3))':
     dependencies:
       conventional-changelog-angular: 8.3.1
       conventional-changelog-writer: 8.4.0
       conventional-commits-filter: 5.0.0
       conventional-commits-parser: 6.4.0
-      debug: 4.4.3(supports-color@10.2.2)
-      import-from-esm: 2.0.0(supports-color@10.2.2)
+      debug: 4.4.3
+      import-from-esm: 2.0.0
       lodash-es: 4.18.1
       micromatch: 4.0.8
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+      semantic-release: 25.0.9(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
 
-  '@semantic-release/commit-analyzer@13.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)':
+  '@semantic-release/commit-analyzer@13.0.1(semantic-release@25.0.9(typescript@7.0.2))':
     dependencies:
       conventional-changelog-angular: 8.3.1
       conventional-changelog-writer: 8.4.0
       conventional-commits-filter: 5.0.0
       conventional-commits-parser: 6.4.0
-      debug: 4.4.3(supports-color@10.2.2)
-      import-from-esm: 2.0.0(supports-color@10.2.2)
+      debug: 4.4.3
+      import-from-esm: 2.0.0
       lodash-es: 4.18.1
       micromatch: 4.0.8
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
     transitivePeerDependencies:
       - supports-color
 
   '@semantic-release/error@4.0.0': {}
 
-  '@semantic-release/exec@7.1.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)':
+  '@semantic-release/exec@7.1.0(semantic-release@25.0.9(typescript@7.0.2))':
     dependencies:
       '@semantic-release/error': 4.0.0
       aggregate-error: 3.1.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       execa: 9.6.1
       lodash-es: 4.18.1
       parse-json: 8.3.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@semantic-release/git@11.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)':
+  '@semantic-release/git@11.0.1(semantic-release@25.0.9(typescript@6.0.3))':
     dependencies:
       '@semantic-release/error': 4.0.0
       aggregate-error: 5.0.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       dir-glob: 3.0.1
       execa: 10.0.1
       lodash-es: 4.18.1
       micromatch: 4.0.8
       p-reduce: 3.0.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+      semantic-release: 25.0.9(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
 
-  '@semantic-release/git@11.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)':
+  '@semantic-release/git@11.0.1(semantic-release@25.0.9(typescript@7.0.2))':
     dependencies:
       '@semantic-release/error': 4.0.0
       aggregate-error: 5.0.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       dir-glob: 3.0.1
       execa: 10.0.1
       lodash-es: 4.18.1
       micromatch: 4.0.8
       p-reduce: 3.0.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@semantic-release/github@12.0.9(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)':
+  '@semantic-release/github@12.0.9(semantic-release@25.0.9(typescript@6.0.3))':
     dependencies:
       '@octokit/core': 7.0.6
       '@octokit/plugin-paginate-rest': 14.0.0(@octokit/core@7.0.6)
@@ -5622,15 +5498,15 @@ snapshots:
       '@octokit/plugin-throttling': 11.0.3(@octokit/core@7.0.6)
       '@semantic-release/error': 4.0.0
       aggregate-error: 5.0.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       dir-glob: 3.0.1
-      http-proxy-agent: 9.1.0(supports-color@10.2.2)
-      https-proxy-agent: 9.1.0(supports-color@10.2.2)
+      http-proxy-agent: 9.1.0
+      https-proxy-agent: 9.1.0
       issue-parser: 7.0.2
       lodash-es: 4.18.1
       mime: 4.1.0
       p-filter: 4.1.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+      semantic-release: 25.0.9(typescript@6.0.3)
       tinyglobby: 0.2.17
       undici: 7.28.0
       url-join: 5.0.0
@@ -5638,7 +5514,7 @@ snapshots:
       - kerberos
       - supports-color
 
-  '@semantic-release/github@12.0.9(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)':
+  '@semantic-release/github@12.0.9(semantic-release@25.0.9(typescript@7.0.2))':
     dependencies:
       '@octokit/core': 7.0.6
       '@octokit/plugin-paginate-rest': 14.0.0(@octokit/core@7.0.6)
@@ -5646,15 +5522,15 @@ snapshots:
       '@octokit/plugin-throttling': 11.0.3(@octokit/core@7.0.6)
       '@semantic-release/error': 4.0.0
       aggregate-error: 5.0.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       dir-glob: 3.0.1
-      http-proxy-agent: 9.1.0(supports-color@10.2.2)
-      https-proxy-agent: 9.1.0(supports-color@10.2.2)
+      http-proxy-agent: 9.1.0
+      https-proxy-agent: 9.1.0
       issue-parser: 7.0.2
       lodash-es: 4.18.1
       mime: 4.1.0
       p-filter: 4.1.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
       tinyglobby: 0.2.17
       undici: 7.28.0
       url-join: 5.0.0
@@ -5662,7 +5538,7 @@ snapshots:
       - kerberos
       - supports-color
 
-  '@semantic-release/npm@13.1.5(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))':
+  '@semantic-release/npm@13.1.5(semantic-release@25.0.9(typescript@6.0.3))':
     dependencies:
       '@actions/core': 3.0.1
       '@semantic-release/error': 4.0.0
@@ -5677,11 +5553,11 @@ snapshots:
       rc: 1.2.8
       read-pkg: 10.1.0
       registry-auth-token: 5.1.1
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+      semantic-release: 25.0.9(typescript@6.0.3)
       semver: 7.8.5
       tempy: 3.2.0
 
-  '@semantic-release/npm@13.1.5(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))':
+  '@semantic-release/npm@13.1.5(semantic-release@25.0.9(typescript@7.0.2))':
     dependencies:
       '@actions/core': 3.0.1
       '@semantic-release/error': 4.0.0
@@ -5696,35 +5572,35 @@ snapshots:
       rc: 1.2.8
       read-pkg: 10.1.0
       registry-auth-token: 5.1.1
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
       semver: 7.8.5
       tempy: 3.2.0
 
-  '@semantic-release/release-notes-generator@14.1.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)':
+  '@semantic-release/release-notes-generator@14.1.1(semantic-release@25.0.9(typescript@6.0.3))':
     dependencies:
       conventional-changelog-angular: 8.3.1
       conventional-changelog-writer: 8.4.0
       conventional-commits-filter: 5.0.0
       conventional-commits-parser: 6.4.0
-      debug: 4.4.3(supports-color@10.2.2)
-      import-from-esm: 2.0.0(supports-color@10.2.2)
+      debug: 4.4.3
+      import-from-esm: 2.0.0
       lodash-es: 4.18.1
       read-package-up: 11.0.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+      semantic-release: 25.0.9(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
 
-  '@semantic-release/release-notes-generator@14.1.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)':
+  '@semantic-release/release-notes-generator@14.1.1(semantic-release@25.0.9(typescript@7.0.2))':
     dependencies:
       conventional-changelog-angular: 8.3.1
       conventional-changelog-writer: 8.4.0
       conventional-commits-filter: 5.0.0
       conventional-commits-parser: 6.4.0
-      debug: 4.4.3(supports-color@10.2.2)
-      import-from-esm: 2.0.0(supports-color@10.2.2)
+      debug: 4.4.3
+      import-from-esm: 2.0.0
       lodash-es: 4.18.1
       read-package-up: 11.0.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -5948,8 +5824,8 @@ snapshots:
 
   '@volar/kit@2.4.28(typescript@6.0.3)':
     dependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
-      '@volar/typescript': 2.4.28(typescript@6.0.3)
+      '@volar/language-service': 2.4.28
+      '@volar/typescript': 2.4.28
       typesafe-path: 0.2.2
       typescript: 6.0.3
       vscode-languageserver-textdocument: 1.0.12
@@ -5959,38 +5835,32 @@ snapshots:
     dependencies:
       '@volar/source-map': 2.4.28
 
-  '@volar/language-server@2.4.28(typescript@6.0.3)':
+  '@volar/language-server@2.4.28':
     dependencies:
       '@volar/language-core': 2.4.28
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
-      '@volar/typescript': 2.4.28(typescript@6.0.3)
+      '@volar/language-service': 2.4.28
+      '@volar/typescript': 2.4.28
       path-browserify: 1.0.1
       request-light: 0.7.0
       vscode-languageserver: 9.0.1
       vscode-languageserver-protocol: 3.18.1
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
-    optionalDependencies:
-      typescript: 6.0.3
 
-  '@volar/language-service@2.4.28(typescript@6.0.3)':
+  '@volar/language-service@2.4.28':
     dependencies:
       '@volar/language-core': 2.4.28
       vscode-languageserver-protocol: 3.18.1
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
-    optionalDependencies:
-      typescript: 6.0.3
 
   '@volar/source-map@2.4.28': {}
 
-  '@volar/typescript@2.4.28(typescript@6.0.3)':
+  '@volar/typescript@2.4.28':
     dependencies:
       '@volar/language-core': 2.4.28
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
-    optionalDependencies:
-      typescript: 6.0.3
 
   '@vscode/emmet-helper@2.11.0':
     dependencies:
@@ -6411,11 +6281,9 @@ snapshots:
     dependencies:
       css-tree: 2.2.1
 
-  debug@4.4.3(supports-color@10.2.2):
+  debug@4.4.3:
     dependencies:
       ms: 2.1.3
-    optionalDependencies:
-      supports-color: 10.2.2
 
   deep-extend@0.6.0: {}
 
@@ -6849,19 +6717,19 @@ snapshots:
 
   http-cache-semantics@4.2.0: {}
 
-  http-proxy-agent@9.1.0(supports-color@10.2.2):
+  http-proxy-agent@9.1.0:
     dependencies:
       agent-base: 9.0.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       proxy-agent-negotiate: 1.1.0
     transitivePeerDependencies:
       - kerberos
       - supports-color
 
-  https-proxy-agent@9.1.0(supports-color@10.2.2):
+  https-proxy-agent@9.1.0:
     dependencies:
       agent-base: 9.0.0
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       proxy-agent-negotiate: 1.1.0
     transitivePeerDependencies:
       - kerberos
@@ -6880,9 +6748,9 @@ snapshots:
       parent-module: 1.0.1
       resolve-from: 4.0.0
 
-  import-from-esm@2.0.0(supports-color@10.2.2):
+  import-from-esm@2.0.0:
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       import-meta-resolve: 4.2.0
     transitivePeerDependencies:
       - supports-color
@@ -7672,9 +7540,9 @@ snapshots:
 
   sax@1.6.0: {}
 
-  semantic-release-monorepo@8.0.2(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2):
+  semantic-release-monorepo@8.0.2(semantic-release@25.0.9(typescript@6.0.3)):
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       execa: 5.1.1
       file-url: 3.0.0
       fs-extra: 10.1.0
@@ -7685,15 +7553,15 @@ snapshots:
       pkg-up: 3.1.0
       ramda: 0.27.2
       read-pkg: 5.2.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
-      semantic-release-plugin-decorators: 4.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))
+      semantic-release: 25.0.9(typescript@6.0.3)
+      semantic-release-plugin-decorators: 4.0.0(semantic-release@25.0.9(typescript@6.0.3))
       tempy: 1.0.1
     transitivePeerDependencies:
       - supports-color
 
-  semantic-release-monorepo@8.0.2(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2):
+  semantic-release-monorepo@8.0.2(semantic-release@25.0.9(typescript@7.0.2)):
     dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       execa: 5.1.1
       file-url: 3.0.0
       fs-extra: 10.1.0
@@ -7704,30 +7572,30 @@ snapshots:
       pkg-up: 3.1.0
       ramda: 0.27.2
       read-pkg: 5.2.0
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
-      semantic-release-plugin-decorators: 4.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))
+      semantic-release: 25.0.9(typescript@7.0.2)
+      semantic-release-plugin-decorators: 4.0.0(semantic-release@25.0.9(typescript@7.0.2))
       tempy: 1.0.1
     transitivePeerDependencies:
       - supports-color
 
-  semantic-release-plugin-decorators@4.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3)):
+  semantic-release-plugin-decorators@4.0.0(semantic-release@25.0.9(typescript@6.0.3)):
     dependencies:
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
+      semantic-release: 25.0.9(typescript@6.0.3)
 
-  semantic-release-plugin-decorators@4.0.0(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2)):
+  semantic-release-plugin-decorators@4.0.0(semantic-release@25.0.9(typescript@7.0.2)):
     dependencies:
-      semantic-release: 25.0.9(supports-color@10.2.2)(typescript@7.0.2)
+      semantic-release: 25.0.9(typescript@7.0.2)
 
-  semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3):
+  semantic-release@25.0.9(typescript@6.0.3):
     dependencies:
-      '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
+      '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.9(typescript@6.0.3))
       '@semantic-release/error': 4.0.0
-      '@semantic-release/github': 12.0.9(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
-      '@semantic-release/npm': 13.1.5(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))
-      '@semantic-release/release-notes-generator': 14.1.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
+      '@semantic-release/github': 12.0.9(semantic-release@25.0.9(typescript@6.0.3))
+      '@semantic-release/npm': 13.1.5(semantic-release@25.0.9(typescript@6.0.3))
+      '@semantic-release/release-notes-generator': 14.1.1(semantic-release@25.0.9(typescript@6.0.3))
       aggregate-error: 5.0.0
       cosmiconfig: 9.0.2(typescript@6.0.3)
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       env-ci: 11.2.0
       execa: 9.6.1
       figures: 6.1.0
@@ -7736,7 +7604,7 @@ snapshots:
       git-log-parser: 1.2.1
       hook-std: 4.0.0
       hosted-git-info: 9.0.3
-      import-from-esm: 2.0.0(supports-color@10.2.2)
+      import-from-esm: 2.0.0
       lodash-es: 4.18.1
       marked: 15.0.12
       marked-terminal: 7.3.0(marked@15.0.12)
@@ -7753,16 +7621,16 @@ snapshots:
       - supports-color
       - typescript
 
-  semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2):
+  semantic-release@25.0.9(typescript@7.0.2):
     dependencies:
-      '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)
+      '@semantic-release/commit-analyzer': 13.0.1(semantic-release@25.0.9(typescript@7.0.2))
       '@semantic-release/error': 4.0.0
-      '@semantic-release/github': 12.0.9(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)
-      '@semantic-release/npm': 13.1.5(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))
-      '@semantic-release/release-notes-generator': 14.1.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@7.0.2))(supports-color@10.2.2)
+      '@semantic-release/github': 12.0.9(semantic-release@25.0.9(typescript@7.0.2))
+      '@semantic-release/npm': 13.1.5(semantic-release@25.0.9(typescript@7.0.2))
+      '@semantic-release/release-notes-generator': 14.1.1(semantic-release@25.0.9(typescript@7.0.2))
       aggregate-error: 5.0.0
       cosmiconfig: 9.0.2(typescript@7.0.2)
-      debug: 4.4.3(supports-color@10.2.2)
+      debug: 4.4.3
       env-ci: 11.2.0
       execa: 9.6.1
       figures: 6.1.0
@@ -7771,7 +7639,7 @@ snapshots:
       git-log-parser: 1.2.1
       hook-std: 4.0.0
       hosted-git-info: 9.0.3
-      import-from-esm: 2.0.0(supports-color@10.2.2)
+      import-from-esm: 2.0.0
       lodash-es: 4.18.1
       marked: 15.0.12
       marked-terminal: 7.3.0(marked@15.0.12)
@@ -8301,46 +8169,45 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  volar-service-css@0.0.70(@volar/language-service@2.4.28(typescript@6.0.3)):
+  volar-service-css@0.0.70(@volar/language-service@2.4.28):
     dependencies:
       vscode-css-languageservice: 6.3.10
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
     optionalDependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
+      '@volar/language-service': 2.4.28
 
-  volar-service-emmet@0.0.70(@volar/language-service@2.4.28(typescript@6.0.3)):
+  volar-service-emmet@0.0.70(@volar/language-service@2.4.28):
     dependencies:
       '@emmetio/css-parser': 0.4.1
       '@emmetio/html-matcher': 1.3.0
       '@vscode/emmet-helper': 2.11.0
       vscode-uri: 3.1.0
     optionalDependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
+      '@volar/language-service': 2.4.28
 
-  volar-service-html@0.0.70(@volar/language-service@2.4.28(typescript@6.0.3)):
+  volar-service-html@0.0.70(@volar/language-service@2.4.28):
     dependencies:
       vscode-html-languageservice: 5.6.2
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
     optionalDependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
+      '@volar/language-service': 2.4.28
 
-  volar-service-prettier@0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))(prettier@3.9.0):
+  volar-service-prettier@0.0.70(@volar/language-service@2.4.28)(prettier@3.9.0):
     dependencies:
       vscode-uri: 3.1.0
     optionalDependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
+      '@volar/language-service': 2.4.28
       prettier: 3.9.0
 
-  volar-service-typescript-twoslash-queries@0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))(typescript@6.0.3):
+  volar-service-typescript-twoslash-queries@0.0.70(@volar/language-service@2.4.28):
     dependencies:
       vscode-uri: 3.1.0
     optionalDependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
-      typescript: 6.0.3
+      '@volar/language-service': 2.4.28
 
-  volar-service-typescript@0.0.70(@volar/language-service@2.4.28(typescript@6.0.3))(typescript@6.0.3):
+  volar-service-typescript@0.0.70(@volar/language-service@2.4.28):
     dependencies:
       path-browserify: 1.0.1
       semver: 7.8.5
@@ -8349,15 +8216,14 @@ snapshots:
       vscode-nls: 5.2.0
       vscode-uri: 3.1.0
     optionalDependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
-      typescript: 6.0.3
+      '@volar/language-service': 2.4.28
 
-  volar-service-yaml@0.0.70(@volar/language-service@2.4.28(typescript@6.0.3)):
+  volar-service-yaml@0.0.70(@volar/language-service@2.4.28):
     dependencies:
       vscode-uri: 3.1.0
       yaml-language-server: 1.20.0
     optionalDependencies:
-      '@volar/language-service': 2.4.28(typescript@6.0.3)
+      '@volar/language-service': 2.4.28
 
   vscode-css-languageservice@6.3.10:
     dependencies:
