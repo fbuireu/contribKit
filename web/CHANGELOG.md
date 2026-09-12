@@ -1,3 +1,10 @@
+# [contribkit-web-v1.16.1](https://github.com/fbuireu/contribKit/compare/web-v1.16.0...web-v1.16.1) (2026-09-12)
+
+
+### Bug Fixes
+
+* **contribkit-web:** let the browser tag reach its ingest host ([c50e449](https://github.com/fbuireu/contribKit/commit/c50e449afc37cf8311378297e375cff8049d8822))
+
 # [contribkit-web-v1.16.0](https://github.com/fbuireu/contribKit/compare/web-v1.15.0...web-v1.16.0) (2026-09-12)
 
 
