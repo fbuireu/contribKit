@@ -16,7 +16,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' https://fonts.gstatic.com",
 		"img-src 'self' data:",
-		"connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://betterstack.net https://*.betterstackdata.com",
+		"connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://betterstack.net https://*.betterstackdata.com",
 		"frame-ancestors 'none'",
 		"base-uri 'self'",
 		"form-action 'self'",
