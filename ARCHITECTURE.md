@@ -255,6 +255,16 @@ ran, and neither spelling can be required without leaving half the pull requests
 will publish. `Check` needs every gated job, runs under `always()`, and fails if any of them failed or was
 cancelled.
 
+**The gate on `changes` is declared once per chain, not once per job, and that is deliberate.** A job whose
+dependency was skipped is skipped too, so `smoke` inherits the gate from `deploy-production` and `comment`
+and `e2e` inherit it from `deploy-development`; those three name neither `changes` in their `needs` nor
+`needs.changes.outputs.web` in their `if`. They did until 2026-09-12, and the extra clause was a third copy of
+a condition that was already true by the time the job could run: verified against `push`, `pull_request` and
+`workflow_dispatch` alike, where the fallback in `changes` sets `web=true` anyway. Restoring it adds a
+condition that can only ever drift out of step with the one upstream. The jobs that do name `changes` are the
+ones that read it first-hand: `app-ci`, `verify-web`, both deploys, `release`, `cross-package-notice` and
+`Check`. forever-pto's `ci.yml` is shaped the same way, job for job.
+
 The ruleset requires `Check`, `Lint the pull request title`, `Dependency Review` and `zizmor`, the same four
 as every sibling repository. `Docs Contract` is reached through `Check` and needs no row of its own. The
 other three come from workflows of their own and `Check` cannot see them; `zizmor` is the check run the
