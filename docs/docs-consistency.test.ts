@@ -95,6 +95,8 @@ const withoutCode = (text: string): string => text.replace(FENCED_CODE_BLOCK, ""
 
 const relative = (path: string): string => path.slice(REPO.length + 1).replaceAll("\\", "/");
 
+const CONTRIBUTOR_GUIDE = ".github/CONTRIBUTING.md";
+
 const markdownFiles = (): string[] => walk({ dir: REPO, match: (path) => path.endsWith(".md") });
 
 const isWiki = (path: string): boolean => relative(path).startsWith("docs/wiki/");
@@ -385,7 +387,7 @@ describe("layer documentation", () => {
 
 describe("the guides match the manifests", () => {
 	const guide = read(join(REPO, "CLAUDE.md"));
-	const contributing = read(join(REPO, "CONTRIBUTING.md"));
+	const contributing = read(join(REPO, CONTRIBUTOR_GUIDE));
 	const rootPackage = json<{ packageManager: string; engines: { node: string }; scripts: Record<string, string> }>(
 		"package.json",
 	);
@@ -423,7 +425,7 @@ describe("the guides match the manifests", () => {
 		const unnamed = RUNTIMES.flatMap((runtime) =>
 			[
 				["CLAUDE.md", guide],
-				["CONTRIBUTING.md", contributing],
+				[CONTRIBUTOR_GUIDE, contributing],
 			]
 				.filter(([, body]) => !body.includes(runtime))
 				.map(([doc]) => `${doc} does not name ${runtime}`),
@@ -471,7 +473,7 @@ describe("the guides match the manifests", () => {
 		const declared = new Set([...Object.keys(rootPackage.scripts), ...Object.keys(webPackage.scripts)]);
 		const invented = [
 			["CLAUDE.md", guide],
-			["CONTRIBUTING.md", contributing],
+			[CONTRIBUTOR_GUIDE, contributing],
 		].flatMap(([doc, body]) =>
 			[...codeOnly(body).matchAll(DOCUMENTED_PNPM_SCRIPT)]
 				.map(([, script]) => script)
@@ -531,7 +533,7 @@ describe("a Tip unlocks nothing, down to what the app ships", () => {
 describe("the app is analyzed by the command that loads its plugin", () => {
 	const OPTIONS = join(REPO, "app/analysis_options.yaml");
 	const PUBSPEC = join(REPO, "app/pubspec.yaml");
-	const SEARCHED = [".github", "docs", "app/lefthook.yml", "CLAUDE.md", "CONTRIBUTING.md", "ARCHITECTURE.md"];
+	const SEARCHED = [".github", "docs", "app/lefthook.yml", "CLAUDE.md", "ARCHITECTURE.md"];
 
 	it("declares riverpod_lint as a plugin, over a range the manifest satisfies", () => {
 		const declared = /^\s{2}riverpod_lint:\s*\^(\d+)\.(\d+)\.\d+\s*$/m.exec(read(OPTIONS));
@@ -543,7 +545,7 @@ describe("the app is analyzed by the command that loads its plugin", () => {
 		expect(Number(pinned?.[2])).toBeGreaterThanOrEqual(Number(declared?.[2]));
 	});
 
-	const NARRATES_THE_SWITCH = "CONTRIBUTING.md";
+	const NARRATES_THE_SWITCH = CONTRIBUTOR_GUIDE;
 
 	it("keeps its one exemption honest, so the allowance cannot become a habit", () => {
 		const body = read(join(REPO, NARRATES_THE_SWITCH));

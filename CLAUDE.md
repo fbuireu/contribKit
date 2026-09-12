@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [CONTEXT.md](./CONTEXT.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./CONTRIBUTING.md).
+Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [CONTEXT.md](./CONTEXT.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 ## What this is
 
@@ -101,7 +101,7 @@ covered on its own, and `ContribKitApp` is covered by `widget_test.dart`.
 ```
 CONTEXT.md          domain glossary: the single vocabulary both clients obey
 ARCHITECTURE.md     the big picture, and the only ADR index
-CONTRIBUTING.md     setup, checks, commit rules, release trains
+.github/            CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md, the templates and the workflows
 docs/docs-consistency.test.ts  the repo-wide contract: the one test that lives with its subject, not with the code
 docs/adr/           decisions (0001…), sequentially numbered
 docs/plans/         deferred work, kept because the decision to defer is recorded

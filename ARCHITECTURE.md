@@ -4,7 +4,7 @@ How ContribKit is built, for contributors. What it does and how to use it is the
 user guides in [docs/wiki/](./docs/wiki/), in particular [How It Works](../../wiki/How-It-Works) and
 [Project Structure](../../wiki/Project-Structure); this document does not restate them. Conventions and the
 maintenance contract are [CLAUDE.md](./CLAUDE.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to
-work on the repo is [CONTRIBUTING.md](./CONTRIBUTING.md).
+work on the repo is [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 The thing to understand before anything else: **the same domain is implemented twice**, in TypeScript and in Dart,
 deliberately ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). The layering is heavier
@@ -328,7 +328,7 @@ and it needs a link from somewhere other than this index: an ADR only the index 
 | --- | --- |
 | [CLAUDE.md](./CLAUDE.md) | Commands, conventions, the maintenance contract; loaded into every agent session |
 | [CONTEXT.md](./CONTEXT.md) | The domain glossary both clients obey, and the words to avoid |
-| [CONTRIBUTING.md](./CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
+| [CONTRIBUTING.md](./.github/CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
 | [web/src/domain/CLAUDE.md](./web/src/domain/CLAUDE.md) | Purity rules, value objects, failures, services |
 | [web/src/application/CLAUDE.md](./web/src/application/CLAUDE.md) | Curried use cases, `Failure` → HTTP mapping |
 | [web/src/infrastructure/CLAUDE.md](./web/src/infrastructure/CLAUDE.md) | GitHub scraping, the SVG renderer, logging |

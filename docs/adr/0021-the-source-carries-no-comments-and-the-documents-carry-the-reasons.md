@@ -31,4 +31,4 @@ The rejected alternative is the ordinary one: allow doc comments, ban the rest. 
 - **No published API documentation can be generated from this source.** `dart doc` and TypeDoc produce nothing useful. Neither is published, and adopting either means reopening this decision rather than adding comments quietly.
 - **Commented-out code has nowhere to live.** Deleting it is the only option, which is the intent: git holds it.
 - **A `// @TODO` is a build failure, not a note.** Deferred work goes in [`docs/plans/`](../plans) with the reason it was deferred, or it goes nowhere.
-- Where it bites: the **Conventions** list in [`CLAUDE.md`](../../CLAUDE.md), the maintenance-contract table beneath it, and [`CONTRIBUTING.md`](../../CONTRIBUTING.md) under "Improving documentation".
+- Where it bites: the **Conventions** list in [`CLAUDE.md`](../../CLAUDE.md), the maintenance-contract table beneath it, and [`CONTRIBUTING.md`](../../.github/CONTRIBUTING.md) under "Improving documentation".
