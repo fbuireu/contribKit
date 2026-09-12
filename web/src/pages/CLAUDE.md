@@ -38,7 +38,7 @@ It is also the only entry point for HTTP traffic.
 | [`404.astro`](./404.astro), [`500.astro`](./500.astro) | `/404`, `/500` | Both render the shared `ErrorView`, **and both are reachable by hand** |
 | [`legal-notice.astro`](./legal-notice.astro), [`privacy.astro`](./privacy.astro), [`terms.astro`](./terms.astro) | - | Static legal pages |
 | `_contributions.ts` | - | Not a route: the shared composition every data consumer imports |
-| `_tests/` | - | Not routes: the three route tests, kept out of the namespace by the underscore |
+| `_tests/` | - | Not routes: the three route tests plus the failure boundary's, kept out of the namespace by the underscore |
 | `CLAUDE.md` | `/CLAUDE`, 404'd | This file. Astro routes markdown too: see below |
 
 **Everything here that is not underscore-prefixed is a public URL, `.md` included.** This file is a route:

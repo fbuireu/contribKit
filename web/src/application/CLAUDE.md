@@ -10,8 +10,8 @@ Cloudflare or `fetch`: everything reaches it through a closure. Stateless: state
   one call that takes both, and do not build the repository inside an `.astro` frontmatter: frontmatter is
   per-request code, so the landing page used to rebuild its infrastructure on every visit until that composition
   moved into a module. **The dependency is the repository's own method type**, not a use case wrapping it:
-  [`_contributions.ts`](../pages/_contributions.ts) wraps `githubHtmlContributionsRepository.fetch` in a one-line arrow typed
-  `ContributionsRepository["fetch"]` and hands that to `loadInitialContributions`: the arrow keeps the reference
+  [`_contributions.ts`](../pages/_contributions.ts) wraps `githubHtmlContributionRepository.fetchCalendar` in a one-line arrow typed
+  `ContributionRepository["fetchCalendar"]` and hands that to `loadInitialContributions`: the arrow keeps the reference
   attached to its object, and adds nothing else.
 - **Never throw.** Every use case returns `T | Failure`, or the `LoadContributionsResult` union described below.
 - **Two arguments means one destructured object.** `logContributionsFailure` and `loadInitialContributions` both
@@ -32,15 +32,15 @@ That is the whole point, since the frontmatter that used to hold these rules is 
 
 **Two identity use cases used to sit beside it, and neither does now.** `renderCalendarSvg` was
 `renderer => params => renderer(params)` and went first; `fetchContributions` was `repository => params =>
-repository.fetch(params)` and went for the same reason, one pass later. Its stated justification ("it exists so a
+repository.fetchCalendar(params)` and went for the same reason, one pass later. Its stated justification ("it exists so a
 route can depend on `@application/*` alone") was an import path, not a behaviour, and its own test asserted only
 that JavaScript forwards arguments. It was also laundering a type: `loadInitialContributions` named its dependency
-`ReturnType<typeof fetchContributions>`, which is `ContributionsRepository["fetch"]` spelled the long way, and now
-says so directly.
+`ReturnType<typeof fetchContributions>`, which is `ContributionRepository["fetchCalendar"]` spelled the long way,
+and now says so directly.
 
 The guide claimed these thin use cases were the place a cross-cutting concern would go if one appeared. One
 appeared (reporting a failed fetch), and it went to `http/failure-log.ts` instead, beside the port it takes.
-There is exactly one `ContributionsRepository` and no test substitutes it, so that seam was hypothetical rather
+There is exactly one `ContributionRepository` and no test substitutes it, so that seam was hypothetical rather
 than real. Re-adding a use case is cheap if a second repository ever appears.
 
 ## `loadInitialContributions`, in order
@@ -56,7 +56,7 @@ than real. Re-adding a use case is cheap if a second repository ever appears.
 
 ## The two error shapes, and why there are two
 
-`ContributionsRepository.fetch` returns a domain `Failure`. `loadInitialContributions` returns
+`ContributionRepository.fetchCalendar` returns a domain `Failure`. `loadInitialContributions` returns
 `{ ok: false, kind, status, message }`, already mapped through `statusFor` / `messageFor`, with the failure's own
 `kind` carried alongside. The mapped pair exists because the caller is a page that renders HTML and needs a status
 and a sentence, not a discriminated union it would have to re-map itself. **`kind` is there for one reason: so the
@@ -88,8 +88,9 @@ one; it now sits with the code that applies it.
 
 ## `http/failure-http.ts`
 
-The single mapping from a domain `Failure` to HTTP. Never inline either function, and never write a `switch` over
-`failure.kind` anywhere else.
+The single mapping from a domain `Failure` to HTTP: `statusFor`, `messageFor`, `fieldFor` (the `InvalidInput`
+field name, for the API's error body) and `retryAfterHeader`. Never inline one of them, and never write a
+`switch` over `failure.kind` anywhere else.
 
 | Kind | Status | Message |
 | --- | --- | --- |
@@ -111,7 +112,8 @@ The single mapping from a domain `Failure` to HTTP. Never inline either function
   carries `retryAfterSeconds`, and `retryAfterHeader` is what turns it back into a `Retry-After` on the way out:
   both data routes spread it into their error response, so the wait GitHub named survives the round trip instead of
   being parsed and dropped. It answers `{}` for every other kind and for a 429 that named no wait, because a
-  fabricated `Retry-After` is worse than none. **Zero is not the same as none**: `retryAfterFrom` clamps an
+  fabricated `Retry-After` is worse than none. **Zero is not the same as none**: `retryAfterFrom`, which
+is the scraper's in `infrastructure/github/` rather than anything here, clamps an
 HTTP-date already in the past to `0`, and that goes out as `Retry-After: 0`, which is the honest answer to "how
 long must I wait" when the answer is "no longer". Only `null` means we were not told.
 - **`SERVER_ERROR_STATUS` no longer lives here.** It is a logging threshold, and it moved to `http/failure-log.ts`

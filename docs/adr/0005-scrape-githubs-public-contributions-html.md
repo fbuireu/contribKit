@@ -22,7 +22,7 @@ The GraphQL API is the rejected alternative, and it is rejected on product groun
 
 ## Consequences
 
-- **The parser is coupled to GitHub's markup and will break when it changes.** It is deliberately confined to one place per client so there is exactly one thing to fix: `githubHtmlContributionsRepository` on the web, `GitHubContributionRepository` in the app.
+- **The parser is coupled to GitHub's markup and will break when it changes.** It is deliberately confined to one place per client so there is exactly one thing to fix: `githubHtmlContributionRepository` on the web, `GitHubContributionRepository` in the app.
 - The page exposes a day's level as an attribute but its exact count only inside a linked tooltip element, so a Count can legitimately be unknown while its level is known. That asymmetry is where the domain's "unknown is not zero" rule comes from.
 - A parse yielding zero days reports a `Parse` failure rather than an empty calendar, which would render as a plausible-looking year of no activity. Distinguishing that from a missing user is why the app needed `ParseFailure`. See [4](0004-typed-failures-instead-of-thrown-exceptions.md).
 - Only public data is ever read. There is no private-contribution story and cannot be one without reversing this.

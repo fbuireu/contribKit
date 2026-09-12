@@ -25,7 +25,7 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   error at every exhaustive site, which is the point
   ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). `isFailure` is structural
   (an object whose `kind` is one of the five), so it does not depend on the constructors having been used.
-- **Repositories are interfaces only.** `ContributionsRepository` lives here; every implementation lives in
+- **Repositories are interfaces only.** `ContributionRepository` lives here; every implementation lives in
   `infrastructure/`.
 - **Never invent a Count.** An unknown Count is `null`, and `null` is not `0`. The one place that has to reconcile
   the two is `computeContributionStats`, and it refuses to guess: see the gotcha below before adding anything that

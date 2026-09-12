@@ -125,7 +125,7 @@ in [§7](#7-where-things-live).
 | --- | --- | --- | --- |
 | 1 | `parseUsername(params.username)` | domain | Returns a `Username` or an `InvalidInput` failure; nothing downstream sees an unvalidated handle |
 | 2 | `loadContributions({ username, year: null })` | pages | Bound once in [`web/src/pages/_contributions.ts`](./web/src/pages/_contributions.ts), which every data route imports: the repository method is captured at module load, the call takes the request |
-| 3 | `githubHtmlContributionsRepository.fetch(...)` fetches and parses | infrastructure | Regexes over the rendered page: there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
+| 3 | `githubHtmlContributionRepository.fetchCalendar(...)` fetches and parses | infrastructure | Regexes over the rendered page: there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
 | 4 | `querySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
 | 5 | `buildRollingGrid(...)` then `svgStringRenderer({ calendar, options })` | domain → infrastructure | The lattice first, then string concatenation: no DOM |
 | 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Elsewhere it differs: `/api/health` is `no-store`, and the landing page is `private` either way (one hour once a visitor has asked for someone, `no-store` for the default view) |

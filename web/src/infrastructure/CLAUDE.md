@@ -26,7 +26,7 @@ directive, because it is load-bearing and invisible in the response.
 
 ## `github/`: scraping the contributions page
 
-`githubHtmlContributionsRepository` is a module-level singleton, imported directly by
+`githubHtmlContributionRepository` is a module-level singleton, imported directly by
 [`pages/_contributions.ts`](../pages/_contributions.ts). A factory used to wrap it (a function returning a constant, with a test asserting that
 its `fetch` was a function), and it was deleted: it constructed nothing, and a second adapter would be a new
 export here rather than a new branch inside a factory.
