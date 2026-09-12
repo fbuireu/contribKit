@@ -1,3 +1,10 @@
+# [contribkit-web-v1.16.0](https://github.com/fbuireu/contribKit/compare/web-v1.15.0...web-v1.16.0) (2026-09-12)
+
+
+### Features
+
+* **contribkit-web:** sample every log line and every span ([d51b45c](https://github.com/fbuireu/contribKit/commit/d51b45c6723b89b906c91ce6738c72b696cd1437))
+
 # [contribkit-web-v1.15.0](https://github.com/fbuireu/contribKit/compare/web-v1.14.2...web-v1.15.0) (2026-09-11)
 
 
