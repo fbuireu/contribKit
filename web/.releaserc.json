@@ -23,10 +23,9 @@
 		],
 		"@semantic-release/changelog",
 		[
-			"@semantic-release/exec",
+			"@semantic-release/npm",
 			{
-				"prepareCmd": "npm version --no-git-tag-version --allow-same-version ${nextRelease.version}",
-				"successCmd": "echo new_release_published=true >> $GITHUB_OUTPUT && echo new_release_version=${nextRelease.version} >> $GITHUB_OUTPUT"
+				"npmPublish": false
 			}
 		],
 		[

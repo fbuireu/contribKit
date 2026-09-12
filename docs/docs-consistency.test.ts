@@ -1292,4 +1292,32 @@ describe("the release configs parse the commit grammar commitlint accepts", () =
 		expect(configs.length).toBeGreaterThan(1);
 		expect(wrong).toEqual([]);
 	});
+
+	it("commits each release under its own package's scope, and tells CI to leave it alone", () => {
+		const wrong = configs.flatMap((file) => {
+			const { plugins } = JSON.parse(read(file)) as { plugins: ReleasePlugin[] };
+			const entry = plugins.find((plugin) => (Array.isArray(plugin) ? plugin[0] : plugin) === "@semantic-release/git");
+			const message = Array.isArray(entry) ? String(entry[1]?.message) : "";
+			const scope = json<{ name: string }>(
+				`${file.slice(REPO.length + 1).replace(RELEASE_CONFIG, "")}/package.json`,
+			).name;
+
+			return message.startsWith(`chore(${scope}): release \${nextRelease.version}`) && message.includes("[skip ci]")
+				? []
+				: [`${file.slice(REPO.length + 1)}: ${message}`];
+		});
+
+		expect(wrong).toEqual([]);
+	});
+
+	it("serialises every job that pushes a release commit into one concurrency group", () => {
+		const groups = ["ci.yml", "release-app.yml"].flatMap((workflow) =>
+			[...read(join(REPO, ".github/workflows", workflow)).matchAll(/^\s*group:\s*(\S.*)$/gm)].map(([, group]) =>
+				group.trim(),
+			),
+		);
+
+		expect(groups).toContain("release");
+		expect(groups.filter((group) => group.startsWith("release"))).toEqual(["release", "release"]);
+	});
 });
