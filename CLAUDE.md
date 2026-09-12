@@ -239,15 +239,24 @@ Traps worth naming, because every one of them has already happened here:
 ## Deploy
 
 **The deploy names its wrangler environment, and for a long time it did not.** `web/wrangler.toml` keeps
-everything but the assets binding under `[env.production]` and `[env.development]`: the two custom domains,
-the `API_RATE_LIMITER` rate limit, observability with its export destinations, and smart placement.
-`_deploy.yml` derives the stage from the GitHub Environment and passed it to the **build** as
-`CLOUDFLARE_ENV` and to nothing else, so `wrangler deploy` ran with no environment selected and shipped the
-bare top level. Everything in those two blocks was configuration that never reached a Worker, and the
+the bindings under `[env.production]` and `[env.development]`: the two custom domains and the
+`API_RATE_LIMITER` rate limit, which wrangler never inherits into a named environment. `_deploy.yml` derives
+the stage from the GitHub Environment and passed it to the **build** as `CLOUDFLARE_ENV` and to nothing else,
+so `wrangler deploy` ran with no environment selected and shipped the bare top level. Everything in those two
+blocks was configuration that never reached a Worker, and the
 [API rate limit](./docs/adr/0010-rate-limit-only-the-json-api.md) in particular existed only in the file:
 `env.API_RATE_LIMITER` was `undefined` in production and the middleware skipped it. The deploy passes
 `--env` now. `CLOUDFLARE_ENV` on the build step stays, because that is Astro's build-time switch, not
 wrangler's.
+
+**The top level mirrors production's observability, and declares placement once.** The top-level `name` is
+the production Worker's, so a hand-run `wrangler deploy` with no `--env` lands on production, and wrangler
+disables observability on any deploy whose selected config omits it (`observability: worker.observability ??
+{ enabled: false }`, with a comment saying it removes the setting on purpose). A bare top level therefore
+switched production's export off on the way to breaking its routes. The `[observability]` blocks at the top
+level are production's, destinations included, and each named environment restates its own; `[placement]`
+is inheritable and stage-independent, so it is written once and nowhere else. This is the shape
+forever-pto's `wrangler.toml` has and asserts, and `docs/docs-consistency.test.ts` asserts it here too.
 
 **`smoke` is the only job that ever touches production, and until it existed nothing did.** `E2E (preview)`
 needs `deploy-development`, which runs on `pull_request` only, so a push to `main` deployed production, cut a

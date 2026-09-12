@@ -66,7 +66,7 @@ for a whole `Failure` after calling this is a sign the wrong use case was picked
 
 ## `http/failure-log.ts`: one file, the whole logging obligation
 
-It declares `FailureLogger` (one `error` method, structurally satisfied by the Better Stack logger, rather than
+It declares `FailureLogger` (`error` and `logError`, structurally satisfied by the Worker logger, rather than
 importing a port from `infrastructure/`, which is the direction the layer map forbids), both helpers that use it,
 and `SERVER_ERROR_STATUS`, the threshold above which a failure is worth logging.
 
@@ -81,10 +81,10 @@ one; it now sits with the code that applies it.
   [`500.astro`](../pages/500.astro) is also the public URL `/500`. Every hand-typed visit used to write a fabricated incident with
   `reason: "unknown"`, unthrottled, and the e2e suite wrote six per run. "Was I invoked as an error handler?" is
   the helper's decision, the same way the threshold is.
-  Its `describeError` handles `Error`, falsy, object and everything else, and **the object branch is wrapped in a
-  `try`**: `JSON.stringify` throws on a circular reference and on a `BigInt`-valued property, and this runs in
-  frontmatter, so an unserialisable throwable would have turned the error page itself into a throw. It falls back
-  to `String(error)`.
+  It hands the throwable to `logger.logError`, which serialises `message`, `name`, `stack` and the error's own
+  fields into the line and survives one it cannot serialise; the `describeError` that used to do a smaller
+  version of that here went with it. What stays here is the *decision*: whether to log, and under which
+  message and path.
 
 ## `http/failure-http.ts`
 

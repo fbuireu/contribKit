@@ -2,7 +2,7 @@ import { FailureKind } from "@domain/failures/failure";
 import { describe, expect, it, vi } from "vitest";
 import { ContributionsEndpoint, logContributionsFailure, logServerError, SERVER_ERROR_STATUS } from "./failure-log";
 
-const loggerSpy = () => ({ error: vi.fn() });
+const loggerSpy = () => ({ error: vi.fn(), logError: vi.fn() });
 
 const params = {
 	username: "torvalds",
@@ -67,25 +67,25 @@ describe("logContributionsFailure", () => {
 });
 
 describe("logServerError", () => {
-	it("logs the 500 message with the Error message as reason", () => {
+	it("hands the throwable to logError with the path, so the writer serialises it the same way everywhere", () => {
 		const logger = loggerSpy();
+		const error = new Error("kaboom");
 
-		logServerError({ logger, error: new Error("kaboom"), path: "/oops" });
+		logServerError({ logger, error, path: "/oops" });
 
-		expect(logger.error).toHaveBeenCalledWith({
+		expect(logger.logError).toHaveBeenCalledWith({
 			message: "Unhandled server error (500)",
-			context: { path: "/oops", reason: "kaboom" },
+			error,
+			context: { path: "/oops" },
 		});
 	});
 
-	it("stringifies non-Error values", () => {
+	it("passes a non-Error value through untouched, since describing it is the writer's job", () => {
 		const logger = loggerSpy();
 
 		logServerError({ logger, error: "boom string", path: "/x" });
 
-		expect(logger.error).toHaveBeenCalledWith(
-			expect.objectContaining({ context: { path: "/x", reason: "boom string" } }),
-		);
+		expect(logger.logError).toHaveBeenCalledWith(expect.objectContaining({ error: "boom string" }));
 	});
 
 	it("says nothing when Astro handed it no throwable, so visiting /500 by hand reports no incident", () => {
@@ -93,7 +93,7 @@ describe("logServerError", () => {
 
 		logServerError({ logger, error: undefined, path: "/500" });
 
-		expect(logger.error).not.toHaveBeenCalled();
+		expect(logger.logError).not.toHaveBeenCalled();
 	});
 
 	it("still reports a thrown null, which is a real render failure", () => {
@@ -101,16 +101,6 @@ describe("logServerError", () => {
 
 		logServerError({ logger, error: null, path: "/y" });
 
-		expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({ context: { path: "/y", reason: "unknown" } }));
-	});
-
-	it("survives a throwable it cannot serialise", () => {
-		const logger = loggerSpy();
-		const circular: Record<string, unknown> = {};
-		circular.self = circular;
-
-		expect(() => logServerError({ logger, error: circular, path: "/z" })).not.toThrow();
-		expect(() => logServerError({ logger, error: { size: 1n }, path: "/z" })).not.toThrow();
-		expect(logger.error).toHaveBeenCalledTimes(2);
+		expect(logger.logError).toHaveBeenCalledWith(expect.objectContaining({ error: null, context: { path: "/y" } }));
 	});
 });

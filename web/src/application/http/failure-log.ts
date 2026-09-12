@@ -6,6 +6,7 @@ export const SERVER_ERROR_MESSAGE = "Something went wrong. Please try again.";
 
 export interface FailureLogger {
 	error(params: { message: string; context?: Record<string, unknown> }): void;
+	logError(params: { message: string; error: unknown; context?: Record<string, unknown> }): void;
 }
 
 export const ContributionsEndpoint = {
@@ -47,24 +48,8 @@ export interface LogServerErrorParams {
 	path: string;
 }
 
-const describeError = (error: unknown): string => {
-	if (error instanceof Error) return error.message;
-	if (!error) return "unknown";
-	if (typeof error === "object") {
-		try {
-			return JSON.stringify(error);
-		} catch {
-			return String(error);
-		}
-	}
-	return String(error);
-};
-
 export const logServerError = ({ logger, error, path }: LogServerErrorParams): void => {
 	if (error === undefined) return;
 
-	logger.error({
-		message: "Unhandled server error (500)",
-		context: { path, reason: describeError(error) },
-	});
+	logger.logError({ message: "Unhandled server error (500)", error, context: { path } });
 };

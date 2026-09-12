@@ -716,9 +716,9 @@ describe("every observability block names where it exports", () => {
 		expect(missing).toEqual([]);
 	});
 
-	it("redacts the query string, which is where a Username travels", () => {
+	it("redacts the query string in every block, the top level's included, which is where a Username travels", () => {
 		const redacting = [...read(SITE).matchAll(/^redact_query_string\s*=\s*true$/gm)];
-		expect(redacting.length).toBe(stages().length);
+		expect(redacting.length).toBe(stages().length + 1);
 	});
 
 	it("sends each stage somewhere of its own, so preview traffic stays out of the production source", () => {
@@ -734,6 +734,37 @@ describe("every observability block names where it exports", () => {
 	it("keeps no tail consumer, because the Worker one would name is gone", () => {
 		expect(read(SITE)).not.toMatch(/tail_consumers/);
 		expect(existsSync(join(REPO, "web/workers"))).toBe(false);
+	});
+
+	const topLevelDestinationsOf = (signal: string): string[] => {
+		const block = new RegExp(`^\\[observability\\.${signal}\\][^[]*destinations\\s*=\\s*\\[([^\\]]*)\\]`, "m").exec(
+			read(SITE),
+		);
+		return [...(block?.[1] ?? "").matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+	};
+
+	it("points the top level at production's destinations, so a bare deploy cannot switch production's export off", () => {
+		for (const signal of ["logs", "traces"]) {
+			expect(topLevelDestinationsOf(signal)).toEqual(destinationsOf({ stage: "production", signal }));
+		}
+	});
+
+	it("restates the same observability settings in every block that carries them, destinations aside", () => {
+		const blocks = [
+			...read(SITE).matchAll(/^\[(?:env\.[a-z]+\.)?observability(?:\.[a-z]+)?\]\n((?:[a-z_]+ = .*\n)+)/gm),
+		].map(([, body]) =>
+			body
+				.split("\n")
+				.filter((line) => line && !line.startsWith("destinations"))
+				.join("\n"),
+		);
+		expect(blocks.length).toBe(3 * (stages().length + 1));
+		expect(new Set(blocks).size).toBe(3);
+	});
+
+	it("declares [placement] once, at the top level, and lets inheritance carry it", () => {
+		expect([...read(SITE).matchAll(/^\[placement\]$/gm)].length).toBe(1);
+		expect(read(SITE)).not.toMatch(/^\[env\.[a-z]+\.placement\]$/m);
 	});
 });
 

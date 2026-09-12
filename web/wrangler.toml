@@ -7,6 +7,24 @@ compatibility_date = "2026-05-31"
 directory = "dist"
 binding = "ASSETS"
 
+[observability]
+enabled = true
+redact_query_string = true
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+head_sampling_rate = 1
+destinations = ["contribkit-web-production-logs"]
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1
+destinations = ["contribkit-web-production-traces"]
+
+[placement]
+mode = "smart"
+
 [env.production]
 name = "contribkit"
 
@@ -38,9 +56,6 @@ enabled = true
 head_sampling_rate = 1
 destinations = ["contribkit-web-production-traces"]
 
-[env.production.placement]
-mode = "smart"
-
 [env.development]
 name = "contribkit-development"
 
@@ -63,6 +78,3 @@ destinations = ["contribkit-web-development-logs"]
 enabled = true
 head_sampling_rate = 1
 destinations = ["contribkit-web-development-traces"]
-
-[env.development.placement]
-mode = "smart"

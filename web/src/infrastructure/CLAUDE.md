@@ -116,12 +116,16 @@ and now identical *positions*, because neither computes any. What is left here i
 
 ## `logging/`
 
-`logger` is a module-level object with `info`, `warn` and `error`, and it sends nothing anywhere. Each call writes
-**one `JSON.stringify` line to `console`**, and Cloudflare's own observability exports it to Better Stack over
+`logger` is a module-level object with `info`, `warn`, `error` and `logError`, each taking one
+`{ message, context }` object (`logError` adds `error`), and it sends nothing anywhere. Each call writes **one
+`JSON.stringify` line to `console[level]`**, and Cloudflare's own observability exports it to Better Stack over
 OTLP, named as a `destinations` entry in [`wrangler.toml`](../../wrangler.toml)
 ([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). A `@logtail/edge`
 client used to post the lines from inside the Worker, memoised in a three-state variable so a missing token was
-resolved once; there is no token here to miss any more, and no client to memoise.
+resolved once; there is no token here to miss any more, and no client to memoise. [`logger.ts`](./logging/logger.ts)
+and [`contract.ts`](./logging/contract.ts) are byte for byte the files forever-pto carries at the same path,
+apart from `LOG_SERVICE`, so a reader who knows one logger knows the other and the two sinks answer the same
+queries. A change to one is a change to both.
 
 **`service`, `level` and `message` are spread after the caller's context, not before.** A caller handing
 `{ context: { level: "info" } }` to `logger.error` cannot relabel its own line, which is the whole reason the sink
@@ -134,6 +138,19 @@ each level reaches the method of its own name and no other. The `try` is the oth
 fail its caller*: `JSON.stringify` throws on a circular reference or a `BigInt`, and a route that was logging a
 failure must not fail again on the log. A context that will not serialise loses the line, silently, which is the
 same trade forever-pto's logger makes and records in its ADR 0018.
+
+**`logError` is how a throwable becomes a line.** It serialises `message`, `name`, `stack` and the error's own
+enumerable fields into an `error` field beside the caller's context, and a non-`Error` value becomes
+`{ message: String(value), name: "UnknownError" }`. `logServerError` in `application/http/` hands its throwable
+here rather than describing it itself, so a 500's line carries a stack, and so it reads the same as the one
+forever-pto's payment handlers write.
+
+**A `url` field in a context never carries its query string.** `write` runs `stripQuery` from the contract over
+a string `url` on every line, whichever method emitted it. Nothing here puts a secret on a query string today;
+the rule is shared with forever-pto, where Stripe does, so that a `url` field means the same thing in both
+sinks and a caller who genuinely wants a query string has to name the field something else. Cloudflare's
+`redact_query_string = true` in `wrangler.toml` is a different guarantee: it redacts the **request** URL the
+platform records, not a field a caller passes.
 
 **There is no `ExecutionContext` in this any more, and callers import `logger` directly.** `getLogger(ctx)` and
 `loggerFor(locals)` existed because a network write had to be tied to the request's lifetime or be torn down before
@@ -152,7 +169,8 @@ nothing went wrong.
 `noConsole` off for [`logger.ts`](./logging/logger.ts) and for nothing else, the same way it exempts `cookie.ts` from
 `noDocumentCookie`. That exemption is what keeps this file the only writer.
 
-**This folder holds the writer and nothing else.** Turning something that went wrong into a log line is
+**This folder holds the writer, and the decisions stay one layer up.** Whether something that went wrong is worth a
+line, under which message, and above which status, is
 [`failure-log.ts`](../application/http/failure-log.ts) in [`application/http/`](../application/CLAUDE.md): it takes a logger as a parameter rather than
 reaching for one, and it declares the port it takes. That port and the two helpers were three files in two layers
 before, two of them declaring **character-for-character identical** one-method interfaces (`ServerErrorLogger` here
