@@ -29,6 +29,10 @@ Check the existing issues first, then use the [bug report template](ISSUE_TEMPLA
 - **The username and year** you were looking at, if the bug involves real contribution data.
 - **Environment**: browser and OS for the web; device, OS version and app version for the app.
 
+**A mistake in the text is a content issue, not a bug.** The web app's copy lives under `web/src` and the
+mobile app's under `app/lib`, so a pull request can fix either; if you would rather not open one, use the
+[content issue template](ISSUE_TEMPLATE/content_issue.yml) and say which client it is in.
+
 Security issues go through the [Security Policy](./SECURITY.md), never a public issue.
 
 ### Suggesting features
@@ -78,18 +82,16 @@ pnpm install
 cd app && flutter pub get            # only if you are touching the app
 ```
 
-### Working on the web
+**Working on the web**, from `web/`:
 
 ```bash
-cd web
 pnpm dev                  # astro dev (dev:open appends --open)
 pnpm wrangler:dev         # build + wrangler dev, against the real Workers runtime
 ```
 
-### Working on the app
+**Working on the app**, from `app/`:
 
 ```bash
-cd app
 dart run build_runner build   # after touching any @freezed, @riverpod or DTO class
 ```
 
@@ -99,9 +101,7 @@ or `dart-defines.prod.json`); `--flavor` will fail
 Forgetting the flag is not an error either: `REVENUECAT_KEY` comes back empty and the Tip Jar renders as
 unavailable.
 
-### Working on the shared tokens
-
-Edit `shared/*.json`, and never `app/assets/*.json`, which is a generated copy
+**Working on the shared tokens.** Edit `shared/*.json`, and never `app/assets/*.json`, which is a generated copy
 ([ADR 0002](../docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)). Run
 `pnpm sync:assets` from the root, or just commit: a pre-commit hook syncs and stages them for you. Anything
 you add also has to be advertised in the README's feature list, and the docs test will tell you if you
@@ -200,9 +200,7 @@ request title on every open and edit, because that title is what semantic-releas
 version and which component's changelog the entry goes in. That is how `ci(web):` reached `main` twice while
 this document said it was rejected. Title the pull request the way you would title a commit.
 
-### One pull request, one client, usually
-
-`semantic-release-monorepo` files a commit in the changelog of every package whose files it touched, and
+**One pull request, one client, usually.** `semantic-release-monorepo` files a commit in the changelog of every package whose files it touched, and
 `main` takes squash merges, so a pull request spanning `app/` and `web/` lands as one commit in both
 changelogs and can cut both releases. Keep a pull request to one client where you can. **This is a notice,
 not a gate.** The `cross-package-notice` job in [`ci.yml`](./workflows/ci.yml) comments on the pull request

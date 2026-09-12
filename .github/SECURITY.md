@@ -6,11 +6,11 @@ ContribKit is delivered as a continuously deployed web app and public API, and
 a mobile app released to the stores. Only the latest of each is supported:
 security fixes land on `main` and roll out from there.
 
-| Component            | Supported         |
-| -------------------- | ----------------- |
-| Web app & public API | The latest deploy |
-| Mobile app           | The latest release |
-| Older versions       | No                |
+| Component | Supported |
+| --- | --- |
+| The web app and public API, `contribkit.app` | The latest deploy from `main` |
+| The mobile app | The latest store release |
+| Anything older | No |
 
 ## Scope
 
@@ -36,12 +36,30 @@ page. That shapes what is interesting to report.
 - Vulnerabilities in the platforms and services the clients are built on:
   Cloudflare, GitHub, RevenueCat, Google Play, Astro, Flutter. Report those to
   them.
-- The SVG endpoint having no rate limit. That is deliberate, because README
-  embeds arrive through GitHub's shared image proxy and a per-IP limit would
-  throttle everyone at once.
 - Rate limiting, quota exhaustion or cost caused by ordinary use of the
   public routes, unless it bypasses the limiter that is in place on the JSON
   API.
+
+### Documented trade-offs, not vulnerabilities
+
+Some behaviour that looks reportable is a documented, deliberate decision.
+Please check these before reporting:
+
+- **The SVG endpoint has no rate limit.** README embeds arrive through
+  GitHub's shared image proxy, so a per-IP limit would throttle everyone at
+  once; only the JSON API is limited. See
+  [ADR 0010](../docs/adr/0010-rate-limit-only-the-json-api.md).
+- **The SVG endpoint is exempt from `Cross-Origin-Resource-Policy:
+  same-origin`.** An embed has to be loadable from any origin; the exemption
+  matches `/user/<segment>.svg` and nothing else. See
+  [ADR 0017](../docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md).
+- **`/api/health` answers `403` to some automated clients.** Nothing in this
+  tree returns a 403 for that path; that answer comes from a zone rule at the
+  edge, and a browser gets the JSON. It is a Cloudflare setting, not a
+  finding against the Worker.
+
+A report that one of these exposes something *beyond* its documented scope is
+very much welcome.
 
 ## Reporting a Vulnerability
 

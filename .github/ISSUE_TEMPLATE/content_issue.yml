@@ -1,0 +1,35 @@
+name: Content Issue
+description: Report a typo, a broken link or a mistake in the web app's or the mobile app's copy
+title: '[Content]: '
+labels: ['content', 'triage']
+assignees: ['fbuireu']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The web app's copy lives under `web/src` and the mobile app's under `app/lib`, so a mistake in either can be fixed by a pull request. Report it here if you would rather not open one, and say which client it is in. The store listings are not in this repository; report a mistake there the same way and it will be corrected in the store console.
+  - type: input
+    id: url
+    attributes:
+      label: Location
+      description: The page URL, or where the text appears
+      placeholder: https://contribkit.app/... or the app screen
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: What it says now
+      description: Quote the text with the problem
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: What it should say
+      description: Your suggested correction, if you have one
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Anything else that helps locate or understand the issue
