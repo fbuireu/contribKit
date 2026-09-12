@@ -1,3 +1,10 @@
+# [contribkit-web-v1.16.2](https://github.com/fbuireu/contribKit/compare/web-v1.16.1...web-v1.16.2) (2026-09-12)
+
+
+### Bug Fixes
+
+* **contribkit-web:** let GA4 reach its regional collect endpoint ([d92da6f](https://github.com/fbuireu/contribKit/commit/d92da6fe0cd3963cb32c50ace45460f14b8892cc))
+
 # [contribkit-web-v1.16.1](https://github.com/fbuireu/contribKit/compare/web-v1.16.0...web-v1.16.1) (2026-09-12)
 
 
