@@ -38,6 +38,15 @@ describe("security headers", () => {
 		expect(response.headers.get("Cross-Origin-Opener-Policy")).toBe("same-origin");
 	});
 
+	it("lets the Better Stack tag reach both the script host and the ingest host, which are not the same host", async () => {
+		env.API_RATE_LIMITER = undefined;
+		const csp = await run({ path: "/", next: ok }).then((response) => response.headers.get("Content-Security-Policy"));
+		const directive = (name: string) => csp?.split("; ").find((part) => part.startsWith(`${name} `)) ?? "";
+
+		expect(directive("script-src")).toContain("https://betterstack.net");
+		expect(directive("connect-src")).toContain("https://*.betterstackdata.com");
+	});
+
 	it("keep the resource policy at same-origin everywhere but the SVG route", async () => {
 		env.API_RATE_LIMITER = undefined;
 		for (const path of ["/", "/api/health", "/user/torvalds.svg/extra", "/user/torvalds.png"]) {
