@@ -59,7 +59,7 @@ wrapper re-spawns wrangler through a shell that splits a message on its spaces.
 
 Concurrency cancels in-progress runs for pull requests only.
 
-> **The path filter is wider than `web/**` on purpose.** `shared/**`, `docs/**` and `*.md` are in the trigger list because the documentation-consistency contract runs inside `web-check`, and a guard that never fires on documentation changes is not a guard. The cost is that `deploy-production` sits behind the same filter, so **a documentation-only push to `main` redeploys the Worker**. That is accepted: the deploy is idempotent, and the alternative is a silently disabled contract. Removing any of those three patterns disables it.
+> **The web set is wider than `web/**` on purpose.** `shared/`, `docs/`, `scripts/` and any root `*.md` count as web changes in the `changes` job, so **a documentation-only push to `main` redeploys the Worker**, since `deploy-production` reads the same output. That is accepted: the deploy is idempotent. What no longer depends on the width of that set is the contract itself, which runs in its own ungated `Docs Contract` job.
 
 ---
 
