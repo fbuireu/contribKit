@@ -1,16 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@logtail/edge", () => ({
-	Logtail: vi.fn(() => ({
-		info: vi.fn(),
-		warn: vi.fn(),
-		error: vi.fn(),
-		withExecutionContext() {
-			return this;
-		},
-	})),
-}));
-
 import { GET } from "../api/contributions";
 
 const HTML = `<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="c1"></td><tool-tip for="c1">5 contributions</tool-tip>`;

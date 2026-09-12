@@ -1,16 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@logtail/edge", () => ({
-	Logtail: vi.fn(() => ({
-		info: vi.fn(),
-		warn: vi.fn(),
-		error: vi.fn(),
-		withExecutionContext() {
-			return this;
-		},
-	})),
-}));
-
 const boom = new Error("the renderer exploded");
 
 vi.mock("../_contributions", () => ({
