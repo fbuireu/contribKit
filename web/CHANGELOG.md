@@ -1,3 +1,10 @@
+# [contribkit-web-v1.16.3](https://github.com/fbuireu/contribKit/compare/web-v1.16.2...web-v1.16.3) (2026-09-12)
+
+
+### Bug Fixes
+
+* **contribkit-web:** name worker-src, and admit the Cloudflare beacon ([2089148](https://github.com/fbuireu/contribKit/commit/2089148011b320e54a5fc761fcc675adacc6da53))
+
 # [contribkit-web-v1.16.2](https://github.com/fbuireu/contribKit/compare/web-v1.16.1...web-v1.16.2) (2026-09-12)
 
 
