@@ -30,12 +30,12 @@ redact_query_string = true
 [env.production.observability.logs]
 enabled = true
 invocation_logs = true
-head_sampling_rate = 0.2
+head_sampling_rate = 1
 destinations = ["contribkit-web-production-logs"]
 
 [env.production.observability.traces]
 enabled = true
-head_sampling_rate = 0.2
+head_sampling_rate = 1
 destinations = ["contribkit-web-production-traces"]
 
 [env.production.placement]
@@ -56,12 +56,12 @@ redact_query_string = true
 [env.development.observability.logs]
 enabled = true
 invocation_logs = true
-head_sampling_rate = 0.2
+head_sampling_rate = 1
 destinations = ["contribkit-web-development-logs"]
 
 [env.development.observability.traces]
 enabled = true
-head_sampling_rate = 0.2
+head_sampling_rate = 1
 destinations = ["contribkit-web-development-traces"]
 
 [env.development.placement]

@@ -99,7 +99,7 @@ Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bind
 ## Observability
 
 - **Server logs:** `logger` writes one JSON line per 5xx failure and unhandled 500 through `console`; Cloudflare exports it.
-- **Worker telemetry:** Cloudflare observability (logs + traces, 20% head sampling), per env in `wrangler.toml`.
+- **Worker telemetry:** Cloudflare observability (logs + traces, full head sampling), per env in `wrangler.toml`.
 - **Export:** Cloudflare ships both logs and traces to Better Stack over OTLP, named as `destinations` in `wrangler.toml`.
 - **Browser RUM + analytics:** Better Stack telemetry and GA4, loaded only after cookie consent.
 
