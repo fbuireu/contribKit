@@ -51,12 +51,13 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
-  https://www.googletagmanager.com https://betterstack.net; style-src 'self'
+  https://www.googletagmanager.com https://betterstack.net
+  https://static.cloudflareinsights.com; style-src 'self'
   'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:; connect-src 'self' https://*.google-analytics.com
   https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com
-  https://betterstack.net https://*.betterstackdata.com; frame-ancestors 'none';
-  base-uri 'self'; form-action 'self'
+  https://betterstack.net https://*.betterstackdata.com https://cloudflareinsights.com;
+  worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin

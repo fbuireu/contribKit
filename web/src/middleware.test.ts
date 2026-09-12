@@ -38,15 +38,24 @@ describe("security headers", () => {
 		expect(response.headers.get("Cross-Origin-Opener-Policy")).toBe("same-origin");
 	});
 
-	it("lets each analytics vendor reach the host it sends to, which is never the host it loads from", async () => {
+	const cspDirective = async (name: string) => {
 		env.API_RATE_LIMITER = undefined;
 		const csp = await run({ path: "/", next: ok }).then((response) => response.headers.get("Content-Security-Policy"));
-		const directive = (name: string) => csp?.split("; ").find((part) => part.startsWith(`${name} `)) ?? "";
 
-		expect(directive("script-src")).toContain("https://betterstack.net");
-		expect(directive("connect-src")).toContain("https://*.betterstackdata.com");
-		expect(directive("script-src")).toContain("https://www.googletagmanager.com");
-		expect(directive("connect-src")).toContain("https://*.google-analytics.com");
+		return csp?.split("; ").find((part) => part.startsWith(`${name} `)) ?? "";
+	};
+
+	it.each([
+		["Better Stack", "https://betterstack.net", "https://*.betterstackdata.com"],
+		["Google Analytics", "https://www.googletagmanager.com", "https://*.google-analytics.com"],
+		["Cloudflare Web Analytics", "https://static.cloudflareinsights.com", "https://cloudflareinsights.com"],
+	])("lets %s reach the host it sends to, which is never the host it loads from", async (_, from, to) => {
+		expect(await cspDirective("script-src")).toContain(from);
+		expect(await cspDirective("connect-src")).toContain(to);
+	});
+
+	it("names worker-src, because a tag that builds a blob worker falls back to script-src and is refused", async () => {
+		expect(await cspDirective("worker-src")).toBe("worker-src 'self' blob:");
 	});
 
 	it("keep the resource policy at same-origin everywhere but the SVG route", async () => {
