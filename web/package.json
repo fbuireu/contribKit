@@ -60,9 +60,9 @@
 		"check": "pnpm types && astro check"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "14.3.0",
+		"@astrojs/cloudflare": "14.3.1",
 		"@astrojs/sitemap": "3.7.4",
-		"astro": "7.3.1",
+		"astro": "7.3.2",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
@@ -81,6 +81,6 @@
 		"semantic-release-monorepo": "8.0.2",
 		"typescript": "6.0.3",
 		"vitest": "5.0.0",
-		"wrangler": "4.129.1"
+		"wrangler": "4.130.0"
 	}
 }

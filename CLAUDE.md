@@ -235,6 +235,7 @@ Traps worth naming, because every one of them has already happened here:
   fails because there is nothing for it to name: the two files differ by one key
   ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)).
 - **`noneLight` is app-only.** The web ignores the light-theme palette variant, because an embed cannot know the viewer's theme ([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)).
+- **`astro check` cannot run on the next TypeScript major, so `typescript` is held below it.** That major ships the Go compiler and no `lib/typescript.js`, and `@astrojs/language-server` reaches for the programmatic API that file exposes: `pnpm check` dies in its `getTsconfig` with *Cannot read properties of undefined (reading 'fileExists')* before it has read a single file. Verified by installing it and running the command, not inferred. Nothing in this tree imports the compiler API itself, so `tsc --noEmit` and the suite are fine and `astro check` alone is what stops, which is enough to fail the whole of `verify:static`. [`renovate.json`](./.github/renovate.json) carries an `allowedVersions` for it, because otherwise a major pull request nobody can merge is opened twice a month; lift both together the day the language server reads the native compiler. forever-pto holds its docs package to the same line for the same reason.
 
 ## Deploy
 
