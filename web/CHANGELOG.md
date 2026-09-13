@@ -1,3 +1,10 @@
+# [contribkit-web-v1.17.0](https://github.com/fbuireu/contribKit/compare/web-v1.16.3...web-v1.17.0) (2026-09-13)
+
+
+### Features
+
+* **contribkit-web:** render as soon as a year is picked ([70e84aa](https://github.com/fbuireu/contribKit/commit/70e84aa30687227323186591ff775ae1a8310712))
+
 # [contribkit-web-v1.16.3](https://github.com/fbuireu/contribKit/compare/web-v1.16.2...web-v1.16.3) (2026-09-12)
 
 
