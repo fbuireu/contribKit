@@ -95,6 +95,9 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   infer the year back out of `days[0].date`, which only agreed with the request because the select always has a
   value: strip the select and the endpoint answers with GitHub's rolling twelve months, whose first date is *last*
   year, and the grid would have been built a year off.
+- **Changing the year is a render, not a pending choice.** The select's `change` event goes through the same
+  `submitRender` the button and the form use, so a picked year fetches at once and an empty username is refused
+  the same way. It used to sit until the render button was pressed, which read as the select doing nothing.
 
 ## Counts, totals, and the number in the hero
 
