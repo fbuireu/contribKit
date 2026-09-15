@@ -69,7 +69,7 @@
 	"devDependencies": {
 		"@astrojs/check": "0.9.10",
 		"@astrojs/ts-plugin": "1.10.11",
-		"@biomejs/biome": "2.5.12",
+		"@biomejs/biome": "2.5.13",
 		"@playwright/test": "1.63.0",
 		"@semantic-release/changelog": "7.0.0",
 		"@semantic-release/git": "11.0.1",
