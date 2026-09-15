@@ -44,7 +44,7 @@ dependencies:
 
   # Telemetry
   sentry_flutter: 9.30.0
-  posthog_flutter: 5.40.0
+  posthog_flutter: 5.40.1
 
   # Fonts
   google_fonts: 8.2.1
