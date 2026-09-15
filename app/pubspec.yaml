@@ -29,7 +29,7 @@ dependencies:
   share_plus: 13.3.0
 
   # Home screen widget + background refresh
-  home_widget: 0.9.3
+  home_widget: 0.9.4
   workmanager: 0.10.9
 
   # UI primitives
