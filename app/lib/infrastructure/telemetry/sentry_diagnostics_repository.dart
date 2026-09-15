@@ -69,17 +69,12 @@ final class SentryDiagnosticsRepository implements DiagnosticsRepository {
     options.privacy
       ..maskAllText = true
       ..maskAllImages = true
-      ..maskCallback<Widget>(_maskContributionData);
+      ..maskCallback<Widget>(maskingDecision);
     if (config.release.isNotEmpty) options.release = config.release;
   }
 
-  SentryMaskingDecision _maskContributionData(Element element, Widget widget) =>
-      maskingDecisionFor(masked: maskedWidgets, widget: widget);
-
-  static SentryMaskingDecision maskingDecisionFor({
-    required Set<Type> masked,
-    required Widget widget,
-  }) => masked.contains(widget.runtimeType)
+  SentryMaskingDecision maskingDecision(Element element, Widget widget) =>
+      maskedWidgets.contains(widget.runtimeType)
       ? SentryMaskingDecision.mask
       : SentryMaskingDecision.continueProcessing;
 

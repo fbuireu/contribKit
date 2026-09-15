@@ -44,8 +44,10 @@ final class _Recorder {
 SentryDiagnosticsRepository _repository(
   _Recorder recorder, {
   TelemetryConfig config = _configured,
+  Set<Type> maskedWidgets = const {},
 }) => SentryDiagnosticsRepository(
   config: config,
+  maskedWidgets: maskedWidgets,
   initialise: recorder.initialise,
   send: recorder.send,
   shutDown: recorder.shutDown,
@@ -130,21 +132,25 @@ void main() {
   });
 
   group('the masking rule', () {
-    test('masks a listed widget and leaves the rest to the defaults', () {
-      const masked = <Type>{SizedBox};
+    testWidgets('masks a listed widget and leaves the rest to the defaults', (
+      tester,
+    ) async {
+      final repository = _repository(_Recorder(), maskedWidgets: {SizedBox});
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: Column(children: [SizedBox(), Text('octocat')]),
+        ),
+      );
+      final box = tester.element(find.byType(SizedBox));
+      final text = tester.element(find.byType(Text));
 
       expect(
-        SentryDiagnosticsRepository.maskingDecisionFor(
-          masked: masked,
-          widget: const SizedBox(),
-        ),
+        repository.maskingDecision(box, box.widget),
         SentryMaskingDecision.mask,
       );
       expect(
-        SentryDiagnosticsRepository.maskingDecisionFor(
-          masked: masked,
-          widget: const Text('octocat'),
-        ),
+        repository.maskingDecision(text, text.widget),
         SentryMaskingDecision.continueProcessing,
       );
     });
