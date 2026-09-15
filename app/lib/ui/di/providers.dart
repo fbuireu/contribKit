@@ -26,6 +26,7 @@ import 'package:contribkit/infrastructure/telemetry/posthog_usage_event_reposito
 import 'package:contribkit/infrastructure/telemetry/sentry_diagnostics_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
 import 'package:contribkit/infrastructure/tip/revenuecat_tip_repository.dart';
+import 'package:contribkit/ui/contribution_data_widgets.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -72,7 +73,10 @@ TelemetryConfig telemetryConfig(Ref ref) =>
 
 @Riverpod(keepAlive: true)
 DiagnosticsRepository diagnosticsRepository(Ref ref) =>
-    SentryDiagnosticsRepository(config: ref.watch(telemetryConfigProvider));
+    SentryDiagnosticsRepository(
+      config: ref.watch(telemetryConfigProvider),
+      maskedWidgets: contributionDataWidgets,
+    );
 
 @Riverpod(keepAlive: true)
 UsageEventRepository usageEventRepository(Ref ref) =>

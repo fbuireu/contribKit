@@ -1,5 +1,6 @@
 import 'package:contribkit/infrastructure/telemetry/sentry_diagnostics_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -94,6 +95,22 @@ void main() {
       expect(options.release, 'contribkit@1.2.3');
     });
 
+    test(
+      'records a masked replay around an error and never a session',
+      () async {
+        final recorder = _Recorder();
+
+        await _repository(recorder).start();
+        final options = recorder.options!;
+
+        expect(options.replay.sessionSampleRate, 0.0);
+        expect(options.replay.onErrorSampleRate, 1.0);
+        expect(options.replay.quality, SentryReplayQuality.low);
+        expect(options.privacy.maskAllText, isTrue);
+        expect(options.privacy.maskAllImages, isTrue);
+      },
+    );
+
     test('leaves the release unset rather than setting it empty', () async {
       final recorder = _Recorder();
 
@@ -109,6 +126,27 @@ void main() {
       ).start();
 
       expect(recorder.options!.release, isNot(''));
+    });
+  });
+
+  group('the masking rule', () {
+    test('masks a listed widget and leaves the rest to the defaults', () {
+      const masked = <Type>{SizedBox};
+
+      expect(
+        SentryDiagnosticsRepository.maskingDecisionFor(
+          masked: masked,
+          widget: const SizedBox(),
+        ),
+        SentryMaskingDecision.mask,
+      );
+      expect(
+        SentryDiagnosticsRepository.maskingDecisionFor(
+          masked: masked,
+          widget: const Text('octocat'),
+        ),
+        SentryMaskingDecision.continueProcessing,
+      );
     });
   });
 

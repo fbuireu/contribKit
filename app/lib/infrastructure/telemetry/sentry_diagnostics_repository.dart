@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/repositories/diagnostics_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
+import 'package:flutter/widgets.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 typedef SentryInitialiser = Future<void> Function(
@@ -16,6 +17,7 @@ const redactedDiagnosticValue = 'redacted';
 final class SentryDiagnosticsRepository implements DiagnosticsRepository {
   SentryDiagnosticsRepository({
     required this.config,
+    this.maskedWidgets = const {},
     SentryInitialiser? initialise,
     SentryReporter? send,
     Future<void> Function()? shutDown,
@@ -24,6 +26,7 @@ final class SentryDiagnosticsRepository implements DiagnosticsRepository {
        _shutDown = shutDown ?? Sentry.close;
 
   final TelemetryConfig config;
+  final Set<Type> maskedWidgets;
   final SentryInitialiser _initialise;
   final SentryReporter _send;
   final Future<void> Function() _shutDown;
@@ -59,8 +62,26 @@ final class SentryDiagnosticsRepository implements DiagnosticsRepository {
       ..enableAutoPerformanceTracing = false
       ..maxBreadcrumbs = 0
       ..beforeSend = _scrub;
+    options.replay
+      ..sessionSampleRate = 0.0
+      ..onErrorSampleRate = 1.0
+      ..quality = SentryReplayQuality.low;
+    options.privacy
+      ..maskAllText = true
+      ..maskAllImages = true
+      ..maskCallback<Widget>(_maskContributionData);
     if (config.release.isNotEmpty) options.release = config.release;
   }
+
+  SentryMaskingDecision _maskContributionData(Element element, Widget widget) =>
+      maskingDecisionFor(masked: maskedWidgets, widget: widget);
+
+  static SentryMaskingDecision maskingDecisionFor({
+    required Set<Type> masked,
+    required Widget widget,
+  }) => masked.contains(widget.runtimeType)
+      ? SentryMaskingDecision.mask
+      : SentryMaskingDecision.continueProcessing;
 
   @override
   Future<void> report({required Object error, StackTrace? stackTrace}) async {

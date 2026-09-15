@@ -11,12 +11,15 @@ Under *App content → Data safety* (it sits inside the *Test and release* group
 | Data type | Collected | Shared | Purpose | Optional |
 | --- | --- | --- | --- | --- |
 | Crash logs | Yes | No | App functionality, Diagnostics | Yes, the person can turn it off |
+| App interactions (the masked recording that rides on a crash log) | Yes | No | Diagnostics | Yes, it is the same switch as crash logs |
 | App interactions | Yes | No | Analytics | Yes, and it is off until turned on |
 | Device or other IDs | Yes | No | Analytics | Yes, with the usage events it rides on |
 
-**The third row is the one that is easy to get wrong, and it was.** `personProfiles = never` stops PostHog creating a *person profile*; it does not stop the SDK generating a random `distinctId` per installation and attaching it to every event, which it must do to avoid counting one installation as many. Google names the Firebase installation ID as an example of this category, and that is the same shape of thing. None of it is linked to an identity, and none of it is an advertising identifier, so "Linked to identity" and "Used for tracking" are both No.
+**The second row is [ADR 0029](../adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)'s.** A Diagnostic Report from the foreground carries a short recording of the screens before the error, with every text, image and Cell drawn as a rectangle, and nothing is recorded when no error occurs. Google has no category for a masked screen recording, so it is declared as *App interactions* under the *Diagnostics* purpose, with the same collection switch as the crash log it belongs to; it is not a second consent and the form must not suggest one.
 
-"Shared" is No for all three: a processor acting on our instructions is not sharing in Play's sense.
+**The fourth row is the one that is easy to get wrong, and it was.** `personProfiles = never` stops PostHog creating a *person profile*; it does not stop the SDK generating a random `distinctId` per installation and attaching it to every event, which it must do to avoid counting one installation as many. Google names the Firebase installation ID as an example of this category, and that is the same shape of thing. None of it is linked to an identity, and none of it is an advertising identifier, so "Linked to identity" and "Used for tracking" are both No.
+
+"Shared" is No for all four: a processor acting on our instructions is not sharing in Play's sense.
 
 Say **data is encrypted in transit** (both SDKs are HTTPS-only) and that **the person can request deletion**, which for Sentry and PostHog means mailing `contact@contribkit.app`, the same route the policy already names for RevenueCat.
 
@@ -24,7 +27,7 @@ Say **data is encrypted in transit** (both SDKs are HTTPS-only) and that **the p
 
 Under *App Store Connect → App Privacy*, declare:
 
-- **Diagnostics → Crash Data**, not linked to identity, not used for tracking.
+- **Diagnostics → Crash Data**, not linked to identity, not used for tracking. The masked recording rides on it and is declared with it, not as *Usage Data*.
 - **Usage Data → Product Interaction**, not linked to identity, not used for tracking.
 - **Identifiers → Device ID**, not linked to identity, not used for tracking, for the same `distinctId` the Play table's third row covers.
 

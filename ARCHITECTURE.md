@@ -155,7 +155,9 @@ hand. But it reads settings through `SettingsRepository` like everything else, s
 at compile time. It read the box by string literal until that changed, which is one of the traps named in
 [CLAUDE.md](./CLAUDE.md#maintenance-contract). What it then does with them is `HomeScreenWidgetRefresh`, the same
 module the foreground writes through: the refresh sequence used to be spelled out in both places, so the isolate
-could drift from the app without anything failing.
+could drift from the app without anything failing. When the refresh throws, `DiagnosticReportService.warrants`
+decides whether the `Failure` is a defect worth a Diagnostic Report or the world's doing (no network, a rate limit,
+a renamed account), which the isolate answers with a retry and reports to nobody.
 
 ## 4. Failures
 
@@ -310,6 +312,7 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md) | Observability is Cloudflare's, exported to Better Stack |
 | [0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) | The app sends Telemetry through two ports with no failure channel |
 | [0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) | Telemetry Consent is asked twice and answered asymmetrically |
+| [0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) | Diagnostic Reports carry a masked Session Replay |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |

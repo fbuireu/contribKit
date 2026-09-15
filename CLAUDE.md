@@ -143,7 +143,9 @@ Both clients use the same layered architecture with a strict inward dependency d
 - **Telemetry carries no Username, ever.** A Usage Event is an enum case and has no payload; a Diagnostic Report
   carries the error's type and stack and never its message, because half the app's `Failure` messages interpolate a
   Username or a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
-  Widening either signature deletes the guarantee.
+  Widening either signature deletes the guarantee. The masked replay a foreground report carries keeps it only
+  while every widget that shows Contribution Data is a `Text`, an `Image` or listed in `contributionDataWidgets`
+  ([ADR 0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)).
 - **Edit `shared/`, never `app/assets/`.** The copies are generated.
 - **Conventional commits** (commitlint + lefthook). semantic-release owns versioning. Do NOT add a Co-Authored-By / Claude trailer to commits or PRs.
 
