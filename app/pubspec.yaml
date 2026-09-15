@@ -30,7 +30,7 @@ dependencies:
 
   # Home screen widget + background refresh
   home_widget: 0.9.4
-  workmanager: 0.10.9
+  workmanager: 0.10.10
 
   # UI primitives
   shadcn_ui: 0.56.3
