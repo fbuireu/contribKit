@@ -1,8 +1,8 @@
 # 0002: the store privacy declarations for Telemetry
 
-Deferred, because it cannot be done from this repository. It is recorded because shipping the build without it is a store policy violation, not a missing nicety.
+Status: declared on Google Play when [ADR 0027](../adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) first shipped, and kept here as the record of what the form says, because it lives in a console rather than in a file and a change to what the app sends off the device has to be checked against it. The one row still to change is the *Diagnostics* purpose on *App interactions* that [ADR 0029](../adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) adds: it goes in before the build carrying that change is published to any track. There is no iOS release and none planned, so there is no App Store Connect form and this page records Play alone.
 
-[ADR 0027](../adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) puts two vendor SDKs in the app and [ADR 0028](../adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) decides the consent model. Both stores require the collection to be declared before the build that contains it is released, and both declarations live in a console rather than in a file here.
+[ADR 0028](../adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) decides the consent model the declarations describe. Shipping a build that collects something the form does not name is a store policy violation, not a missing nicety.
 
 ## Google Play: Data safety
 
@@ -11,34 +11,13 @@ Under *App content → Data safety* (it sits inside the *Test and release* group
 | Data type | Collected | Shared | Purpose | Optional |
 | --- | --- | --- | --- | --- |
 | Crash logs | Yes | No | App functionality, Diagnostics | Yes, the person can turn it off |
-| App interactions (the masked recording that rides on a crash log) | Yes | No | Diagnostics | Yes, it is the same switch as crash logs |
-| App interactions | Yes | No | Analytics | Yes, and it is off until turned on |
+| App interactions | Yes | No | Analytics for the Usage Events, Diagnostics for the masked recording that rides on a crash log | Yes: Usage Events are off until turned on, and the recording follows the crash-log switch |
 | Device or other IDs | Yes | No | Analytics | Yes, with the usage events it rides on |
 
-**The second row is [ADR 0029](../adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)'s.** A Diagnostic Report from the foreground carries a short recording of the screens before the error, with every text, image and Cell drawn as a rectangle, and nothing is recorded when no error occurs. Google has no category for a masked screen recording, so it is declared as *App interactions* under the *Diagnostics* purpose, with the same collection switch as the crash log it belongs to; it is not a second consent and the form must not suggest one.
+**The *Diagnostics* purpose on the second row is [ADR 0029](../adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)'s.** A Diagnostic Report from the foreground carries a short recording of the screens before the error, with every text, image and Cell drawn as a rectangle, and nothing is recorded when no error occurs. Google has no category for a masked screen recording, so it is declared as *App interactions*, the one category that describes a sequence of screens, under a second purpose beside the Usage Events' *Analytics*, with the same collection switch as the crash log it belongs to; it is not a second row and not a second consent.
 
-**The fourth row is the one that is easy to get wrong, and it was.** `personProfiles = never` stops PostHog creating a *person profile*; it does not stop the SDK generating a random `distinctId` per installation and attaching it to every event, which it must do to avoid counting one installation as many. Google names the Firebase installation ID as an example of this category, and that is the same shape of thing. None of it is linked to an identity, and none of it is an advertising identifier, so "Linked to identity" and "Used for tracking" are both No.
+**The third row is the one that is easy to get wrong, and it was.** `personProfiles = never` stops PostHog creating a *person profile*; it does not stop the SDK generating a random `distinctId` per installation and attaching it to every event, which it must do to avoid counting one installation as many. Google names the Firebase installation ID as an example of this category, and that is the same shape of thing. None of it is linked to an identity, and none of it is an advertising identifier, so "Linked to identity" and "Used for tracking" are both No.
 
-"Shared" is No for all four: a processor acting on our instructions is not sharing in Play's sense.
+"Shared" is No for all three: a processor acting on our instructions is not sharing in Play's sense.
 
 Say **data is encrypted in transit** (both SDKs are HTTPS-only) and that **the person can request deletion**, which for Sentry and PostHog means mailing `contact@contribkit.app`, the same route the policy already names for RevenueCat.
-
-## Apple: App Privacy
-
-Under *App Store Connect → App Privacy*, declare:
-
-- **Diagnostics → Crash Data**, not linked to identity, not used for tracking. The masked recording rides on it and is declared with it, not as *Usage Data*.
-- **Usage Data → Product Interaction**, not linked to identity, not used for tracking.
-- **Identifiers → Device ID**, not linked to identity, not used for tracking, for the same `distinctId` the Play table's third row covers.
-
-None of this is actionable yet: `release-app.yml` ships to Google Play only, there is no iOS release path, and an app that is not in App Store Connect has no App Privacy form.
-
-**Answer No to "Used for Tracking" for both.** Tracking in Apple's sense means linking to third-party data for advertising or sharing with a data broker, and neither happens: no advertising identifier is read, no identity is linked, and the RevenueCat to PostHog integration that would link two vendors' identities is deliberately not enabled ([ADR 0027](../adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)). Answering Yes would put the app behind an App Tracking Transparency prompt it does not need.
-
-## The privacy manifest
-
-Both SDKs ship their own `PrivacyInfo.xcprivacy` and Xcode aggregates them. Check whether the app target needs one of its own for required-reason APIs: `UserDefaults` is the likely one, since both SDKs and `shared_preferences` reach it. If it does, the reason code is `CA92.1` (access limited to the app itself).
-
-## When
-
-Before the first `release-app.yml` run that carries a `SENTRY_DSN` or a `POSTHOG_PROJECT_TOKEN`. Until those secrets exist the shipped app collects nothing, so a release built without them is honestly described by the current declarations.
