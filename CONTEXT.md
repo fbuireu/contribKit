@@ -130,7 +130,7 @@ Everything the product sends off a person's device about how it is running, rath
 _Avoid_: tracking, monitoring, instrumentation
 
 **Diagnostic Report**:
-A record that something failed at runtime, carrying the error's type and where in the code it happened, sent so the defect can be fixed. Never carries a message, a Username, or any Contribution Data.
+A record that something failed at runtime, carrying the error's type and where in the code it happened, and, from the foreground, a masked recording of the screens before it, sent so the defect can be fixed. Never carries a message, a Username, or any Contribution Data: in the recording every text, image and Cell is a rectangle.
 _Avoid_: crash log, error event, exception report, bug report
 
 **Usage Event**:

@@ -445,6 +445,44 @@ void main() {
       );
     });
 
+    test('reports a socket that never opened as NetworkFailure', () async {
+      final repository = GitHubContributionRepository(
+        httpClient: MockClient(
+          (_) async => throw const SocketException('Network is unreachable'),
+        ),
+      );
+
+      await expectLater(
+        repository.fetchCalendar(username: username, year: year),
+        throwsA(isA<NetworkFailure>()),
+      );
+    });
+
+    test('reports a connection the client lost as NetworkFailure', () async {
+      final repository = GitHubContributionRepository(
+        httpClient: MockClient(
+          (_) async => throw http.ClientException('Connection closed'),
+        ),
+      );
+
+      await expectLater(
+        repository.fetchCalendar(username: username, year: year),
+        throwsA(isA<NetworkFailure>()),
+      );
+    });
+
+    test('lets anything that is not an IO error keep its type, so a defect is '
+        'reported as one', () async {
+      final repository = GitHubContributionRepository(
+        httpClient: MockClient((_) async => throw StateError('a bug')),
+      );
+
+      await expectLater(
+        repository.fetchCalendar(username: username, year: year),
+        throwsA(isA<StateError>()),
+      );
+    });
+
     test('reports other non-200 responses as NetworkFailure', () async {
       final repository = GitHubContributionRepository(
         httpClient: _clientReturning('', status: 500),

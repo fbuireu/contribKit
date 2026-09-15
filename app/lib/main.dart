@@ -1,9 +1,12 @@
+import 'package:contribkit/domain/failures/failure.dart';
+import 'package:contribkit/domain/services/diagnostic_report_service.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/github/contribution_repository_impl.dart';
 import 'package:contribkit/infrastructure/persistence/settings_repository_impl.dart';
 import 'package:contribkit/infrastructure/telemetry/sentry_diagnostics_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
+import 'package:contribkit/ui/contribution_data_widgets.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/features/privacy/telemetry_consent_notifier.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
@@ -18,6 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart' show SentryWidget;
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -47,9 +51,13 @@ void callbackDispatcher() {
         palettes: AssetPaletteRepository(),
         contributions: contributions,
       )();
+    } on Failure catch (failure, stackTrace) {
+      if (!DiagnosticReportService.warrants(failure)) return false;
+      await diagnostics.report(error: failure, stackTrace: stackTrace);
+      return true;
     } catch (error, stackTrace) {
       await diagnostics.report(error: error, stackTrace: stackTrace);
-      return false;
+      return true;
     } finally {
       contributions.close();
       await Hive.close();
@@ -73,11 +81,12 @@ Future<void> main() async {
 }
 
 Future<void> _runGuardedByConsent() async {
-  const app = ProviderScope(child: ContribKitApp());
+  final app = ProviderScope(child: SentryWidget(child: const ContribKitApp()));
   final consent = await _telemetryConsent();
 
   final diagnostics = SentryDiagnosticsRepository(
     config: const TelemetryConfig.fromEnvironment(),
+    maskedWidgets: contributionDataWidgets,
   );
 
   if (!consent.mayReportDiagnostics) {
@@ -115,7 +124,8 @@ Future<void> _scheduleWidgetRefresh() async {
     _widgetRefreshTask,
     _widgetRefreshTask,
     frequency: const Duration(hours: 24),
-    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+    constraints: Constraints(networkType: NetworkType.connected),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
   );
 }
 

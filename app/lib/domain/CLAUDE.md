@@ -242,6 +242,12 @@ person writes by hand may carry one; what no client does is *build* one.
   instead of bricking the Viewer. It returns `null` only for an empty list, which is a broken asset rather than a
   missing setting, and is what `ViewerState.paletteFailure` exists to report. `ViewerNotifier` spelled this out
   inline before, so the background isolate could not reuse it.
+- **`DiagnosticReportService.warrants(failure)`** answers whether a `Failure` is a defect worth a Diagnostic Report
+  or the world's doing. `NetworkFailure`, `RateLimitedFailure` and `NotFoundFailure` are the second kind: no route to
+  GitHub, GitHub saying wait, an account renamed since it was stored. Everything else means the code or the bundle is
+  wrong. It exists for the background isolate, which has no person to show a `FailureMessage` to and used to report
+  every failure instead; the foreground reports none of them, because a `Failure` the Viewer renders is handled. The
+  match is exhaustive, so a new kind has to be placed on one side or the other before the app compiles.
 - **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
   `pngPixelSizeFor` (those units times `pngPixelRatio`, 3.0). The PNG repository used to compute this inline while
   the Export sheet's format tile advertised the constant string `2880×720`: a size no `CellSize` produces, against

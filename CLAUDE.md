@@ -143,7 +143,9 @@ Both clients use the same layered architecture with a strict inward dependency d
 - **Telemetry carries no Username, ever.** A Usage Event is an enum case and has no payload; a Diagnostic Report
   carries the error's type and stack and never its message, because half the app's `Failure` messages interpolate a
   Username or a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
-  Widening either signature deletes the guarantee.
+  Widening either signature deletes the guarantee. The masked replay a foreground report carries keeps it only
+  while every widget that shows Contribution Data is a `Text`, an `Image` or listed in `contributionDataWidgets`
+  ([ADR 0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)).
 - **Edit `shared/`, never `app/assets/`.** The copies are generated.
 - **Conventional commits** (commitlint + lefthook). semantic-release owns versioning. Do NOT add a Co-Authored-By / Claude trailer to commits or PRs.
 
@@ -188,7 +190,7 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |
 | A `Failure` kind | the exhaustive match that renders it, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
 | A stored Hive key | add a legacy fallback and a migration test, or users silently lose the setting |
-| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** both store declarations ([`docs/plans/0002-telemetry-store-declarations.md`](./docs/plans/0002-telemetry-store-declarations.md)). The policy names the processors and the region, so a changed host is a policy change |
+| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** the Play *Data safety* form, whose contents are recorded in [ADR 0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md). The policy names the processors and the region, so a changed host is a policy change |
 | A decision an ADR records | that ADR: amend it, or supersede it and say so in both `## Status` blocks |
 | The layer map, a run end to end, or the release pipeline | [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
 | A claim the docs-consistency test asserts, on purpose | the doc first; the test only when the claim itself changed |

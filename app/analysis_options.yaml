@@ -8,6 +8,7 @@ analyzer:
     strict-raw-types: true
   errors:
     invalid_annotation_target: ignore
+    experimental_member_use: ignore
   exclude:
     - build/**
     - android/**

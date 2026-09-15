@@ -34,9 +34,10 @@ class PrivacySheet extends ConsumerWidget {
           _ConsentRow(
             title: 'Crash reports',
             description:
-                'Sends the type of an error and where in the code it happened, '
-                'never its message. Helps fix defects you would otherwise have '
-                'to report by hand.',
+                'Sends the type of an error, where in the code it happened and '
+                'a short recording of the screens before it with all text and '
+                'the calendar hidden, never its message. Helps fix defects you '
+                'would otherwise have to report by hand.',
             granted: consent.mayReportDiagnostics,
             onChanged: (granted) =>
                 notifier.setDiagnosticReports(granted: granted),
