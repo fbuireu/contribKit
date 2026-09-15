@@ -190,7 +190,7 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |
 | A `Failure` kind | the exhaustive match that renders it, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
 | A stored Hive key | add a legacy fallback and a migration test, or users silently lose the setting |
-| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** both store declarations ([`docs/plans/0002-telemetry-store-declarations.md`](./docs/plans/0002-telemetry-store-declarations.md)). The policy names the processors and the region, so a changed host is a policy change |
+| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** the Play *Data safety* form, whose contents are recorded in [ADR 0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md). The policy names the processors and the region, so a changed host is a policy change |
 | A decision an ADR records | that ADR: amend it, or supersede it and say so in both `## Status` blocks |
 | The layer map, a run end to end, or the release pipeline | [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
 | A claim the docs-consistency test asserts, on purpose | the doc first; the test only when the claim itself changed |
