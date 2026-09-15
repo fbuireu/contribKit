@@ -4,7 +4,7 @@ import type { Metadata } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
 
 const TITLE = "Privacy Policy: ContribKit";
-const EFFECTIVE_DATE = "2026-09-11";
+const EFFECTIVE_DATE = "2026-09-15";
 
 const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
 ---
@@ -34,8 +34,8 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
         <h3>Crash reports and usage events (in the app)</h3>
         <p>The app can report defects and record which of its screens are used. Both are optional, both are controlled from the <strong>Privacy</strong> sheet in the app, and both are processed in the European Union.</p>
         <ul>
-          <li><strong>Crash reports</strong>, via <a href="https://sentry.io/privacy/" target="_blank" rel="noopener">Sentry</a>. Sent unless you turn them off. A report contains the <em>type</em> of the error and the point in our code where it happened, plus your device model and OS version. It never contains the error's message, the username you looked up, or any calendar data: the message is replaced before the report leaves your device.</li>
-          <li><strong>Usage events</strong>, via <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog</a>. Off until you turn them on. An event is a single name from a fixed list, such as "the Customizer was opened". It carries no properties and no calendar data. PostHog does attach a randomly generated identifier to each event so that repeated events from one installation are not counted as many; it is created on your device, is not linked to you or to any account, and is discarded if you turn usage events off. No user profile is created, and no session is recorded or replayed.</li>
+          <li><strong>Crash reports</strong>, via <a href="https://sentry.io/privacy/" target="_blank" rel="noopener">Sentry</a>. Sent unless you turn them off. A report contains the <em>type</em> of the error and the point in our code where it happened, plus your device model and OS version. When the error happens while the app is open, the report also includes a short, low-resolution recording of the app's screens in the moments before it, in which every piece of text, every image and the whole contribution calendar are drawn as plain rectangles; nothing is recorded when no error occurs. A report never contains the error's message, the username you looked up, or any calendar data: the message is replaced, and the recording is masked, before either leaves your device.</li>
+          <li><strong>Usage events</strong>, via <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog</a>. Off until you turn them on. An event is a single name from a fixed list, such as "the Customizer was opened". It carries no properties and no calendar data. PostHog does attach a randomly generated identifier to each event so that repeated events from one installation are not counted as many; it is created on your device, is not linked to you or to any account, and is discarded if you turn usage events off. No user profile is created, and PostHog records no session and receives no recording.</li>
         </ul>
         <p>Neither is linked to an identity, neither is used for advertising, and neither is shared with anyone. You can change either choice at any time; turning one off stops it immediately.</p>
 
