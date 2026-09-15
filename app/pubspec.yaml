@@ -33,7 +33,7 @@ dependencies:
   workmanager: 0.10.9
 
   # UI primitives
-  shadcn_ui: 0.56.2
+  shadcn_ui: 0.56.3
   flutter_animate: 4.5.2
 
   # Splash screen
