@@ -59,7 +59,19 @@ equivalent, and the differences are the whole reason this section exists:
 | Unknown Count | `null` | `null` |
 | HTTP 429 | `rateLimited(…, retryAfterSeconds)` | `RateLimitedFailure`, with `resetAt` from `Retry-After` |
 | Timeout | 20 s → `network` | 20 s → `NetworkFailure` |
+| What else becomes a network failure | whatever `fetch` or `response.text()` throws; the parse runs outside the `try` | an `IOException` or an `http.ClientException` from the request, and nothing else; the parse runs outside the `try` |
 | Grid construction | in the domain layer | in the domain layer, `ContributionGridService` |
+
+**Only the request is inside the `try`, and only IO errors become `NetworkFailure`.** `_fetch` used to wrap
+its whole body, `_parseHtml` included, in a `catch (e)` that rethrew everything as `NetworkFailure`, so a
+`TypeError` in the parser or a `RangeError` in `ContributionGridService` reached the UI as *"Network error"*
+and reached Sentry as a `NetworkFailure` with a redacted message: indistinguishable from a phone with no signal,
+and now that the background isolate does not report those, invisible. The first alert the shipped app raised
+had exactly that shape, and the report cannot say which it was. The catch is now two clauses, `IOException` and
+`http.ClientException`, around the request alone, which is the scope the web has always had; anything else
+propagates with its own type, which `FailureMessage.ofAny` renders with the fallback and the isolate reports as
+the defect it is. The test file pins all three: a socket error, a lost connection, and a `StateError` that must
+come out as a `StateError`.
 
 **Two passes over the HTML, joined on the `<td>`'s `id`.** Pass one collects `(date, level?, id?)` from every `<td>`
 carrying `ContributionCalendar-day`; pass two builds `id → count` from every `<tool-tip for="…">`, taking the
