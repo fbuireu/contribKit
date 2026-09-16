@@ -9,6 +9,7 @@ final _everyFailure = <Failure>[
   const RateLimitedFailure(),
   const ParseFailure(message: 'markup changed'),
   const CacheFailure(message: 'box closed'),
+  const DeliveryFailure(message: 'destination not verified'),
   const ExportFailure(message: 'no bytes'),
   const TipFailure(message: 'declined'),
   const UnexpectedFailure(message: 'boom'),
@@ -46,6 +47,12 @@ void main() {
       expect(
         FailureMessage.of(const ParseFailure(message: 'markup changed')),
         isNot(contains('markup changed')),
+      );
+      expect(
+        FailureMessage.of(
+          const DeliveryFailure(message: 'destination not verified'),
+        ),
+        isNot(contains('destination not verified')),
       );
       expect(
         FailureMessage.of(const UnexpectedFailure(message: 'boom')),

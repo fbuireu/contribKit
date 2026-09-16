@@ -9,6 +9,7 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 | `core/` | App shell and head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `telemetry/`, `cookie-consent/`. |
 | `hero/` · `customize/` · `export/` · `how-it-works/` · `widget/` | Home-page feature sections: one folder each (`.astro` + `.css` + any local logic). |
 | `grid/` | The contribution graph: `CellTooltip` plus its rendering utilities (`calendar`, `render-svg`, `mini-grid`, `contribution`, `grid-geometry`). |
+| `contact/` | The `/contact` page's section: `Contact.astro`, its colocated `contact.css`, and `contact-form.ts`, the client controller that posts to `/api/contact`. It is the only component group that submits anything ([ADR 0030](../../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). |
 | `error/` | The 404/500 UI: `ErrorView` + `ContributionCode` + `glyph-utils`, generic over code and tone. |
 | `icons/` | Inline SVG icon components: no external icon library. |
 | `legal/` | Shared styles for the legal pages. |
@@ -28,6 +29,18 @@ The layer's rules (props in / markup out, colocated CSS, Palette colours and Cel
 - **The number in the hero goes through `formatTotalContributions`**, in [`grid/contribution.ts`](./grid/contribution.ts), which is the same
   function the SSR page and the client renderer call. It prints `unknown` for a `null` total. Never interpolate
   `stats.totalContributions` directly.
+- **The contact form's `maxlength` attributes come from the domain, never from the markup.**
+  `MAX_CONTACT_NAME_LENGTH`, `MAX_CONTACT_EMAIL_LENGTH`, `MIN_CONTACT_BODY_LENGTH` and `MAX_CONTACT_BODY_LENGTH`
+  are interpolated out of [`@domain/value-objects/contact-message`](../../domain/value-objects/contact-message.ts), so
+  the browser refuses exactly what the server would. Typing the numbers in would be the same class of drift as a
+  hex literal.
+  The form carries no `novalidate`, so `required`, `type="email"`, `minlength` and `maxlength` refuse a bad
+  submission in the browser before any request leaves; the server's 400 is the answer for a client that bypassed
+  them, not the first thing a person sees.
+- **The honeypot is hidden by a class, not by `type="hidden"` or `display:none` alone.** `.field--trap` clips it
+  out of the layout while leaving it in the accessibility tree's way as little as possible: it also carries
+  `tabindex="-1"`, `autocomplete="off"` and `aria-hidden="true"`, so a keyboard user never lands on it and a screen
+  reader never announces it. A `type="hidden"` input is the version bots know to leave alone.
 - `core/` renders on every page; `BaseLayout` composes `header` + `footer` + the head integrations (`seo`,
   `telemetry`, `cookie-consent`).
 

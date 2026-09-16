@@ -232,6 +232,102 @@ final class ContributionRepositoryProvider
 String _$contributionRepositoryHash() =>
     r'd92cbf55c7e69c567ed748d019c91494b149b2fb';
 
+@ProviderFor(contactMessageRepository)
+final contactMessageRepositoryProvider = ContactMessageRepositoryProvider._();
+
+final class ContactMessageRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ContactMessageRepository,
+          ContactMessageRepository,
+          ContactMessageRepository
+        >
+    with $Provider<ContactMessageRepository> {
+  ContactMessageRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'contactMessageRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$contactMessageRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ContactMessageRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ContactMessageRepository create(Ref ref) {
+    return contactMessageRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ContactMessageRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ContactMessageRepository>(value),
+    );
+  }
+}
+
+String _$contactMessageRepositoryHash() =>
+    r'705a03e37f3269b1b901b1aea11e7304dcea247a';
+
+@ProviderFor(sendContactMessage)
+final sendContactMessageProvider = SendContactMessageProvider._();
+
+final class SendContactMessageProvider
+    extends
+        $FunctionalProvider<
+          SendContactMessage,
+          SendContactMessage,
+          SendContactMessage
+        >
+    with $Provider<SendContactMessage> {
+  SendContactMessageProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sendContactMessageProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sendContactMessageHash();
+
+  @$internal
+  @override
+  $ProviderElement<SendContactMessage> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SendContactMessage create(Ref ref) {
+    return sendContactMessage(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SendContactMessage value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SendContactMessage>(value),
+    );
+  }
+}
+
+String _$sendContactMessageHash() =>
+    r'0081b5db690c51a61bcdb4549436515212981d2a';
+
 @ProviderFor(tipRepository)
 final tipRepositoryProvider = TipRepositoryProvider._();
 

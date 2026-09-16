@@ -5,6 +5,7 @@ export const FailureKind = {
 	Network: "Network",
 	Parse: "Parse",
 	RateLimited: "RateLimited",
+	Delivery: "Delivery",
 } as const;
 
 export type FailureKind = (typeof FailureKind)[keyof typeof FailureKind];
@@ -14,6 +15,9 @@ export const FailureField = {
 	Year: "year",
 	Color: "color",
 	Date: "date",
+	Name: "name",
+	Email: "email",
+	Message: "message",
 } as const;
 
 export type FailureField = (typeof FailureField)[keyof typeof FailureField];
@@ -27,7 +31,8 @@ export type Failure =
 			readonly kind: typeof FailureKind.RateLimited;
 			readonly message: string;
 			readonly retryAfterSeconds: number | null;
-	  };
+	  }
+	| { readonly kind: typeof FailureKind.Delivery; readonly message: string };
 
 const FAILURE_KINDS: ReadonlySet<string> = new Set(Object.values(FailureKind));
 
@@ -56,6 +61,8 @@ export const network = ({ message, status }: NetworkParams): Failure => ({
 	message,
 });
 export const parse = (message: string): Failure => ({ kind: FailureKind.Parse, message });
+
+export const delivery = (message: string): Failure => ({ kind: FailureKind.Delivery, message });
 
 export interface RateLimitedParams {
 	message: string;

@@ -1,6 +1,12 @@
 import { FailureKind } from "@domain/failures/failure";
 import { describe, expect, it, vi } from "vitest";
-import { ContributionsEndpoint, logContributionsFailure, logServerError, SERVER_ERROR_STATUS } from "./failure-log";
+import {
+	ContributionsEndpoint,
+	logContactFailure,
+	logContributionsFailure,
+	logServerError,
+	SERVER_ERROR_STATUS,
+} from "./failure-log";
 
 const loggerSpy = () => ({ error: vi.fn(), logError: vi.fn() });
 
@@ -63,6 +69,49 @@ describe("logContributionsFailure", () => {
 
 		const tags = logger.error.mock.calls.map(([call]) => call.context.endpoint);
 		expect(tags).toEqual(["api", "svg", "page"]);
+	});
+});
+
+describe("logContactFailure", () => {
+	it("logs a failed delivery with the platform's own reason, which never reaches the visitor", () => {
+		const logger = loggerSpy();
+
+		logContactFailure({
+			logger,
+			kind: FailureKind.Delivery,
+			status: 502,
+			reason: "destination address not verified",
+		});
+
+		expect(logger.error).toHaveBeenCalledWith({
+			message: "Contact message delivery failed",
+			context: { kind: FailureKind.Delivery, reason: "destination address not verified", status: 502 },
+		});
+	});
+
+	it("stays silent below the server-error threshold, so a rejected address is not an incident", () => {
+		const logger = loggerSpy();
+
+		logContactFailure({ logger, kind: FailureKind.InvalidInput, status: 400, reason: "bad address" });
+
+		expect(logger.error).not.toHaveBeenCalled();
+	});
+
+	it("logs exactly at the threshold", () => {
+		const logger = loggerSpy();
+
+		logContactFailure({ logger, kind: FailureKind.Delivery, status: SERVER_ERROR_STATUS, reason: "boom" });
+
+		expect(logger.error).toHaveBeenCalledTimes(1);
+	});
+
+	it("carries no name, address or message, which is the whole reason it takes four fields", () => {
+		const logger = loggerSpy();
+
+		logContactFailure({ logger, kind: FailureKind.Delivery, status: 502, reason: "upstream refused" });
+
+		const [call] = logger.error.mock.calls[0];
+		expect(Object.keys(call.context)).toEqual(["kind", "reason", "status"]);
 	});
 });
 

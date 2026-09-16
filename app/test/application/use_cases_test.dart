@@ -2,9 +2,11 @@ import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
 import 'package:contribkit/application/use_cases/give_tip.dart';
 import 'package:contribkit/application/use_cases/invalidate_contribution_cache.dart';
+import 'package:contribkit/application/use_cases/send_contact_message.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/contact_message.dart';
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,6 +93,33 @@ void main() {
       expect(
         await GiveTip(repository: repository)(testTipProducts.first),
         TipOutcome.cancelled,
+      );
+    });
+  });
+
+  group('SendContactMessage', () {
+    final message = ContactMessage(
+      name: 'Ada',
+      email: 'ada@example.com',
+      body: 'a message long enough to send',
+    );
+
+    test('hands the repository exactly the message it was given', () async {
+      final repository = FakeContactMessageRepository();
+
+      await SendContactMessage(repository: repository)(message);
+
+      expect(repository.delivered, [message]);
+    });
+
+    test('lets a DeliveryFailure through rather than wrapping it', () {
+      final repository = FakeContactMessageRepository(
+        failure: const DeliveryFailure(message: 'destination not verified'),
+      );
+
+      expect(
+        () => SendContactMessage(repository: repository)(message),
+        throwsA(isA<DeliveryFailure>()),
       );
     });
   });

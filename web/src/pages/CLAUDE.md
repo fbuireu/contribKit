@@ -6,19 +6,20 @@ It is also the only entry point for HTTP traffic.
 
 ## Invariants & rules
 
-- **`export const prerender = false` on every endpoint route.** The three `.ts` routes carry it; the `.astro`
+- **`export const prerender = false` on every endpoint route.** Every `.ts` route carries it; the `.astro`
   pages do not, because `output: "server"` already makes SSR the default and there is nothing to opt out of. The
   site is server-rendered because the SVG endpoint cannot be built ahead of time
   ([ADR 0007](../../../docs/adr/0007-server-rendered-web-app-on-the-edge.md)).
-- **Validate every external input before it reaches the domain.** Query strings go through Zod, in the two API
-  routes and nowhere else; the `:username` route param and the `ck_user` cookie go through `parseUsername`, which
+- **Validate every external input before it reaches the domain.** Query strings go through Zod, in the API
+  routes that take one, and `/api/contact` runs it over the request **body** for the same reason: shape first, meaning second; the `:username` route param and the `ck_user` cookie go through `parseUsername`, which
   is the domain's own validator and returns a `Failure` rather than throwing. Zod is for the *shape* of a query
   string, not a substitute for a value object.
 - **Map `Failure` to HTTP only through `@application/http/failure-http`** (`statusFor`, `messageFor`,
   `retryAfterHeader`), guarded by `isFailure` from `@domain/failures/failure`. Never inline a status, a message or
   a `Retry-After` (**with one exemption, and it is the only one**): a request that fails the Zod shape check has
   produced no `Failure` to map, so
-  `/api/contributions` answers a missing `user` with a hand-written 400. Anything that reached a value object maps
+  `/api/contributions` answers a missing `user` with a hand-written 400, and `/api/contact` answers a body that
+  fails the shape check with `"Invalid request body"`. Anything that reached a value object maps
   through `failure-http`.
 - **Compose at module scope, not per request**. In an `.astro` file there is no module scope, because the
   frontmatter runs on every request. That is why the repository and the curried use cases live in
@@ -34,11 +35,13 @@ It is also the only entry point for HTTP traffic.
 | [`index.astro`](./index.astro) | `/` | SSR landing page plus client interactivity |
 | `user/[username].svg.ts` | `GET /user/:username.svg` | The embed endpoint |
 | [`api/contributions.ts`](./api/contributions.ts) | `GET /api/contributions?user=&year=` | JSON |
+| [`api/contact.ts`](./api/contact.ts) | `POST /api/contact` | The contact form's endpoint, and the app's ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
 | [`api/health.ts`](./api/health.ts) | `GET /api/health` | Configuration presence check |
 | [`404.astro`](./404.astro), [`500.astro`](./500.astro) | `/404`, `/500` | Both render the shared `ErrorView`, **and both are reachable by hand** |
+| [`contact.astro`](./contact.astro) | `/contact` | The contact form. **Indexable and in the sitemap**, unlike the legal pages |
 | [`legal-notice.astro`](./legal-notice.astro), [`privacy.astro`](./privacy.astro), [`terms.astro`](./terms.astro) | - | Static legal pages |
-| `_contributions.ts` | - | Not a route: the shared composition every data consumer imports |
-| `_tests/` | - | Not routes: the three route tests plus the failure boundary's, kept out of the namespace by the underscore |
+| `_contributions.ts`, [`_contact.ts`](./_contact.ts) | - | Not routes: the shared compositions the data and contact consumers import |
+| `_tests/` | - | Not routes: the route tests plus the failure boundary's, kept out of the namespace by the underscore |
 | `CLAUDE.md` | `/CLAUDE`, 404'd | This file. Astro routes markdown too: see below |
 
 **Everything here that is not underscore-prefixed is a public URL, `.md` included.** This file is a route:
@@ -109,6 +112,29 @@ first: the rolling one here, the Year-anchored one everywhere else.
 Both point at the same array. New consumers read `days`; the alias goes away on a deliberate breaking release, not
 in passing.
 
+## `POST /api/contact`
+
+The one route that takes a body, and the only one the app calls
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). In order:
+
+1. **Zod over the parsed body**, `{ name?, email, message, website? }`. A body that is not JSON, or that fails that
+   shape, is the documented Zod exemption: a hand-written 400 with `"Invalid request body"`, because nothing has
+   produced a `Failure` to map.
+2. **The honeypot.** A non-empty `website` answers **202** and delivers nothing. A bot is told it succeeded, which
+   is the whole point of a honeypot: a 400 would tell it which field to stop filling. A *blank* one is an ordinary
+   submission, because a browser posts every field it has.
+3. **The use case**, whose `InvalidInput` becomes a 400 carrying `field` (`name`, `email` or `message`) so the form
+   can point at the input that was wrong, and whose `Delivery` becomes a 502 carrying a fixed sentence.
+4. **Every answer is `no-store`**, the 202 included: an accepted submission is not a cacheable resource.
+
+The `Delivery` failure is logged through `logContactFailure` with the platform's own reason, which the response
+never repeats. The 5xx is logged, the 400 is not, and that threshold is the helper's decision rather than this
+route's. It carries the same `try`/`catch` boundary the other two `.ts` routes do.
+
+**It is rate-limited on its own bucket.** `/api/contact` goes through `CONTACT_RATE_LIMITER` (five a minute) and
+everything else under `/api/` through `API_RATE_LIMITER` (a hundred): the two protect different things, and the
+answer a caller gets is identical either way.
+
 ## `middleware.ts`
 
 Runs on every request and does three things.
@@ -116,10 +142,12 @@ Runs on every request and does three things.
 1. **A 404 for `/CLAUDE`, before anything else.** Astro compiles this very file into a public page, and
    `AGENT_GUIDE_ROUTE` is what keeps it off the web
    ([ADR 0018](../../../docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
-2. **Rate limiting, `/api/*` only.** Keyed on `CF-Connecting-IP`, falling back to the literal `"unknown"`, so
-   requests arriving without that header share a single bucket. **The whole block is skipped when the
-   `API_RATE_LIMITER` binding is absent**, which is the case in local development, so "it did not rate-limit
-   locally" proves nothing. A rejection is a 429 with `Retry-After: 60`. The binding is read with
+2. **Rate limiting, `/api/*` only, across two buckets.** `/api/contact` is limited by `CONTACT_RATE_LIMITER` and
+   every other `/api/` path by `API_RATE_LIMITER`; the answer is the same 429 with the same `Retry-After: 60`
+   either way. Keyed on `CF-Connecting-IP`, falling back to the literal `"unknown"`, so
+   requests arriving without that header share a single bucket. **The block is skipped when the selected
+   binding is absent**, which is the case in local development, so "it did not rate-limit
+   locally" proves nothing; the contact path does **not** fall back to the API limiter when its own is missing. The bindings are read with
    `import { env } from "cloudflare:workers"`, the only supported route since `locals.runtime.env` became a getter
    that throws.
 3. **Security headers on every SSR response**, including that 429. They are applied by copying the response
@@ -176,8 +204,9 @@ nothing else, so the calendar embeds outside GitHub
   `trace: 8f3c1a`, an identifier that corresponded to nothing and that a user could reasonably have quoted in a bug
   report. Keep those lines free of anything that looks like a real identifier.
 - **`/api/health` returns 503, not 200, when anything is missing.** It checks the analytics ID, both
-  Better Stack variables and the `API_RATE_LIMITER` binding, and reports `"ok"` only when every one of them is present. A
-  local run or a preview deployment is expected to fail it.
+  Better Stack variables and the `API_RATE_LIMITER`, `CONTACT_RATE_LIMITER` and `CONTACT_EMAIL` bindings, and reports `"ok"` only when every one of them is present. A
+  local run or a preview deployment is expected to fail it, and a preview now fails it for one more reason: a
+  development Worker has the bindings but the zone's Email Routing still refuses an unverified destination.
 - **The landing page distinguishes an asked-for user from the default, and `resolveViewerIdentity` decides it.**
   `?user=` wins, then the `USERNAME_COOKIE`, then `DEFAULT_USERNAME`; `isExplicit` is true only for the first two,
   and it decides what a failure looks like: `daySourceFor` turns it into `Loaded`, `Empty` or `Placeholder`. An

@@ -1,0 +1,79 @@
+---
+import {
+	MAX_CONTACT_BODY_LENGTH,
+	MAX_CONTACT_EMAIL_LENGTH,
+	MAX_CONTACT_NAME_LENGTH,
+	MIN_CONTACT_BODY_LENGTH,
+} from "@domain/value-objects/contact-message";
+import { ElementId } from "@ui/utils/dom-contract";
+import "./contact.css";
+---
+
+<section class="contact-page" aria-label="Contact">
+  <div class="wrap">
+    <div class="contact-header">
+      <a href="/" data-astro-prefetch="false" class="back-link mono link-action">← back</a>
+      <h1>Contact</h1>
+      <p class="dimmer">
+        Questions, a palette you would like to see, or something that looks wrong? Write below and it reaches the
+        maintainer's mailbox. You can also mail <a href="mailto:contact@contribkit.app">contact@contribkit.app</a>
+        directly.
+      </p>
+    </div>
+
+    <form id={ElementId.ContactForm} class="contact-form">
+      <div class="field">
+        <label for={ElementId.ContactName}>name <span class="dimmer">(optional)</span></label>
+        <input
+          id={ElementId.ContactName}
+          name={ElementId.ContactName}
+          type="text"
+          maxlength={MAX_CONTACT_NAME_LENGTH}
+          autocomplete="name"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="field">
+        <label for={ElementId.ContactEmail}>email</label>
+        <input
+          id={ElementId.ContactEmail}
+          name={ElementId.ContactEmail}
+          type="email"
+          required
+          maxlength={MAX_CONTACT_EMAIL_LENGTH}
+          autocomplete="email"
+          spellcheck="false"
+          autocapitalize="none"
+        />
+      </div>
+
+      <div class="field">
+        <label for={ElementId.ContactMessage}>message</label>
+        <textarea
+          id={ElementId.ContactMessage}
+          name={ElementId.ContactMessage}
+          rows="7"
+          required
+          minlength={MIN_CONTACT_BODY_LENGTH}
+          maxlength={MAX_CONTACT_BODY_LENGTH}
+        ></textarea>
+      </div>
+
+      <div class="field field--trap" aria-hidden="true">
+        <label for={ElementId.ContactWebsite}>website</label>
+        <input id={ElementId.ContactWebsite} name={ElementId.ContactWebsite} type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      </div>
+
+      <div class="contact-actions">
+        <button id={ElementId.ContactSubmit} type="submit" class="contact-send">send</button>
+        <p id={ElementId.ContactStatus} class="contact-status mono" role="status" aria-live="polite" hidden></p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+import { initContactForm } from "@ui/components/contact/contact-form";
+initContactForm();
+</script>

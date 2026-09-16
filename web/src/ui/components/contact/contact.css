@@ -1,0 +1,125 @@
+@scope (.contact-page) {
+	:scope {
+		padding: 4rem 0 6rem;
+	}
+	.contact-header {
+		margin-bottom: 2.5rem;
+		border-bottom: 0.0625rem solid var(--border);
+		padding-bottom: 2rem;
+		max-width: 40rem;
+	}
+	.back-link {
+		font-size: var(--size-base);
+		display: inline-block;
+		margin-bottom: 1.25rem;
+		padding: 0.375rem 0.625rem;
+		margin-left: -0.625rem;
+	}
+	h1 {
+		font-size: var(--size-fluid-page-title);
+		font-weight: 700;
+		letter-spacing: -0.03em;
+		margin: 0 0 0.75rem;
+	}
+	.contact-header p {
+		font-size: var(--size-md);
+		color: var(--text-dim);
+		line-height: 1.7;
+		margin: 0;
+	}
+	.contact-header a {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 0.1875rem;
+	}
+	.contact-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		max-width: 34rem;
+	}
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+	.field label {
+		font-size: var(--size-sm);
+		font-weight: 500;
+		color: var(--text-dim);
+	}
+	.field input,
+	.field textarea {
+		font: inherit;
+		font-size: var(--size-md);
+		color: var(--text);
+		background: var(--surface);
+		border: 0.0625rem solid var(--border);
+		border-radius: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		width: 100%;
+		transition:
+			border-color 120ms,
+			background 120ms;
+	}
+	.field textarea {
+		resize: vertical;
+		line-height: 1.6;
+	}
+	.field input:focus-visible,
+	.field textarea:focus-visible {
+		outline: none;
+		border-color: var(--accent);
+		background: var(--surface-raised);
+	}
+	.field--trap {
+		position: absolute;
+		width: 0.0625rem;
+		height: 0.0625rem;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	.contact-actions {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.contact-send {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.625rem 1.25rem;
+		border-radius: 0.5rem;
+		font-weight: 500;
+		font-size: var(--size-md);
+		color: var(--text);
+		background: var(--surface-high);
+		border: 0.0625rem solid var(--border-strong);
+		transition:
+			background 120ms,
+			opacity 120ms;
+	}
+	.contact-send:hover:not(:disabled) {
+		background: var(--surface-raised);
+	}
+	.contact-send:focus-visible {
+		outline: 0.125rem solid var(--accent);
+		outline-offset: 0.125rem;
+	}
+	.contact-send:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+	.contact-status {
+		font-size: var(--size-sm);
+		margin: 0;
+		color: var(--text-dim);
+	}
+	.contact-status[data-tone="sent"] {
+		color: var(--accent);
+	}
+	.contact-status[data-tone="failed"] {
+		color: var(--danger);
+	}
+}

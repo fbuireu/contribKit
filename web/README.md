@@ -63,10 +63,12 @@ Unknown values silently fall back to the default, so the image never breaks.
 | ------------------------------------ | ------------------ | ------------------------------------------------------------------------ |
 | `GET /user/:username.svg`            | `image/svg+xml`    | Rendered calendar; accepts `palette`, `shape`, `background` query params |
 | `GET /api/contributions?user=&year=` | `application/json` | Contribution Days as `days` (`date`, `level`, `count`) plus yearly total; `cells` is a deprecated alias for the same array |
+| `POST /api/contact`                  | `application/json` | Sends a Contact Message as email through Cloudflare Email Routing; body `{ name?, email, message, website? }` |
 | `GET /api/health`                    | `application/json` | Deployment health: env vars/bindings presence (never values)             |
 
 - **Caching.** Both data responses are `public, max-age=3600, stale-while-revalidate=86400`.
-- **Rate limiting.** Only `/api/*`, per IP, at 100 req/min. `/user/:username.svg` is deliberately not, because README embeds reach it through GitHub's shared image proxy ([ADR 0010](../docs/adr/0010-rate-limit-only-the-json-api.md)).
+- **Rate limiting.** Only `/api/*`, per IP: 100 req/min on everything but `POST /api/contact`, which has its own bucket at **5 req/min** because it protects a mailbox rather than an upstream. `/user/:username.svg` is deliberately not rate-limited, because README embeds reach it through GitHub's shared image proxy ([ADR 0010](../docs/adr/0010-rate-limit-only-the-json-api.md)).
+- **The contact endpoint holds no secret.** It sends through the `CONTACT_EMAIL` `send_email` binding, refuses anything that fills its honeypot field with a silent `202`, and answers `502` when Email Routing refuses the send ([ADR 0030](../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 - **Backing off.** A `429` carries `Retry-After` in seconds whenever a wait is known (`60` from our own limiter, GitHub's own figure when GitHub is the one throttling), and no header at all when it is not, rather than a guess.
 - **Security headers.** Set by the [middleware](src/middleware.ts) on every server-rendered response, including the CSP.
 - **The one exemption.** The SVG route, and only that route, is served `Cross-Origin-Resource-Policy: cross-origin` so the calendar embeds outside GitHub ([ADR 0017](../docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md)).
@@ -117,7 +119,7 @@ DDD-ish layers; each one documents its own rules in a colocated `CLAUDE.md`:
 | ------------------------------------------------------- | --------------------------------------------------------------- |
 | **[domain](src/domain/CLAUDE.md)**                     | Pure business core: value objects, entities, failures, geometry |
 | **[application](src/application/CLAUDE.md)**           | Curried use cases and `Failure` → HTTP mapping                  |
-| **[infrastructure](src/infrastructure/CLAUDE.md)**     | GitHub scraping, SVG string renderer, logging                   |
+| **[infrastructure](src/infrastructure/CLAUDE.md)**     | GitHub scraping, SVG string renderer, email delivery, logging    |
 | **[ui](src/ui/CLAUDE.md)**                             | Astro components, client interactivity, styles                  |
 | **[ui/components](src/ui/components/CLAUDE.md)**       | Component groups, colocation and error-page rules               |
 | **[pages](src/pages/CLAUDE.md)**                       | Routes: the only layer that wires everything together            |
@@ -170,7 +172,9 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined). The Be
 | ----------------------------------- | --------------- | -------------------------------------------- | ------------------------------- |
 | `PUBLIC_GOOGLE_ANALYTICS_ID`        | build-time      | GA (browser)                                 | GitHub Environment **variable** |
 | `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time     | Better Stack browser tag (RUM), from the app's **Frontend** tab | GitHub Environment **variable** |
-| `API_RATE_LIMITER`                  | runtime binding | rate limiter                                 | `wrangler.toml` per env         |
+| `API_RATE_LIMITER`                  | runtime binding | rate limiter for `/api/*`                    | `wrangler.toml`, top level and per env |
+| `CONTACT_RATE_LIMITER`              | runtime binding | rate limiter for `POST /api/contact`         | `wrangler.toml` per env         |
+| `CONTACT_EMAIL`                     | runtime binding | `send_email`, pinned to `contact@contribkit.app` by `destination_address` | `wrangler.toml`, top level and per env |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker was built/configured with (presence only, never values).
 

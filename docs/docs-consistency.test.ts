@@ -519,6 +519,80 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 	});
 });
 
+describe("the Contact Message limits are written twice and must agree", () => {
+	const DART = join(REPO, "app/lib/domain/value_objects/contact_message.dart");
+	const WEB = join(REPO, "web/src/domain/value-objects/contact-message.ts");
+
+	const LIMITS: readonly { dart: string; web: string }[] = [
+		{ dart: "maxNameLength", web: "MAX_CONTACT_NAME_LENGTH" },
+		{ dart: "maxEmailLength", web: "MAX_CONTACT_EMAIL_LENGTH" },
+		{ dart: "minBodyLength", web: "MIN_CONTACT_BODY_LENGTH" },
+		{ dart: "maxBodyLength", web: "MAX_CONTACT_BODY_LENGTH" },
+	];
+
+	interface LimitParams {
+		body: string;
+		pattern: RegExp;
+	}
+
+	const limit = ({ body, pattern }: LimitParams): string | undefined => pattern.exec(body)?.[1];
+
+	const dartLimit = (name: string): RegExp => new RegExp(`static const ${name} = ([0-9]+);`);
+	const webLimit = (name: string): RegExp => new RegExp(`export const ${name} = ([0-9]+);`);
+
+	it("reads both spellings", () => {
+		for (const path of [DART, WEB]) expect(existsSync(path), relative(path)).toBe(true);
+	});
+
+	it("declares every limit in both languages", () => {
+		const dart = read(DART);
+		const web = read(WEB);
+		const undeclared = LIMITS.flatMap(({ dart: dartName, web: webName }) => [
+			...(limit({ body: dart, pattern: dartLimit(dartName) }) ? [] : [`app: ${dartName}`]),
+			...(limit({ body: web, pattern: webLimit(webName) }) ? [] : [`web: ${webName}`]),
+		]);
+
+		expect(undeclared).toEqual([]);
+	});
+
+	it("bounds a Contact Message by the same numbers on both clients", () => {
+		const dart = read(DART);
+		const web = read(WEB);
+		const disagreeing = LIMITS.filter(({ dart: dartName, web: webName }) => {
+			const inDart = limit({ body: dart, pattern: dartLimit(dartName) });
+			const inWeb = limit({ body: web, pattern: webLimit(webName) });
+			return inDart !== inWeb;
+		});
+
+		expect(disagreeing.map(({ dart: dartName }) => dartName)).toEqual([]);
+	});
+
+	it("sends to the one address the binding is pinned to, in every environment", () => {
+		const repository = read(join(REPO, "web/src/infrastructure/email/cloudflare-contact-message-repository.ts"));
+		const address = /export const CONTACT_ADDRESS = "([^"]+)"/.exec(repository)?.[1];
+		const pinned = [...read(join(REPO, "web/wrangler.toml")).matchAll(/^destination_address = "([^"]+)"$/gm)].map(
+			(match) => match[1],
+		);
+
+		expect(address).toBeDefined();
+		expect(pinned.length, "every send_email block pins a destination").toBeGreaterThanOrEqual(3);
+		expect(pinned.filter((candidate) => candidate !== address)).toEqual([]);
+	});
+
+	it("posts to a contact endpoint the web actually routes", () => {
+		const spelled = /const contactEndpointPath = '([^']+)'/.exec(
+			read(join(REPO, "app/lib/infrastructure/contact/http_contact_message_repository.dart")),
+		)?.[1];
+
+		expect(spelled, "the Dart repository no longer spells the endpoint as a constant").toBeDefined();
+		expect(spelled?.startsWith("/api/")).toBe(true);
+		expect(
+			existsSync(join(REPO, "web/src/pages", `${spelled?.slice(1)}.ts`)),
+			`no route under web/src/pages answers ${spelled}`,
+		).toBe(true);
+	});
+});
+
 describe("a Tip unlocks nothing, down to what the app ships", () => {
 	const PUBSPEC = join(REPO, "app/pubspec.yaml");
 

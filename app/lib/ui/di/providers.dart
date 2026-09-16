@@ -3,6 +3,8 @@ import 'package:contribkit/application/use_cases/fetch_contributions.dart';
 import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
 import 'package:contribkit/application/use_cases/give_tip.dart';
 import 'package:contribkit/application/use_cases/invalidate_contribution_cache.dart';
+import 'package:contribkit/application/use_cases/send_contact_message.dart';
+import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/diagnostics_repository.dart';
 import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
@@ -16,6 +18,7 @@ import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/assets/asset_suggested_username_repository.dart';
+import 'package:contribkit/infrastructure/contact/http_contact_message_repository.dart';
 import 'package:contribkit/infrastructure/export/markdown_export_repository_impl.dart';
 import 'package:contribkit/infrastructure/export/platform_export_delivery.dart';
 import 'package:contribkit/infrastructure/export/png_export_repository_impl.dart';
@@ -52,6 +55,14 @@ Future<List<String>> suggestedUsernames(Ref ref) =>
 @Riverpod(keepAlive: true)
 ContributionRepository contributionRepository(Ref ref) =>
     GitHubContributionRepository();
+
+@Riverpod(keepAlive: true)
+ContactMessageRepository contactMessageRepository(Ref ref) =>
+    HttpContactMessageRepository();
+
+@riverpod
+SendContactMessage sendContactMessage(Ref ref) =>
+    SendContactMessage(repository: ref.watch(contactMessageRepositoryProvider));
 
 @riverpod
 TipRepository tipRepository(Ref ref) => RevenueCatTipRepository();

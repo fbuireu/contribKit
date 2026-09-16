@@ -1,7 +1,7 @@
-import { invalidInput, network, notFound, parse, rateLimited } from "@domain/failures/failure";
+import { delivery, invalidInput, network, notFound, parse, rateLimited } from "@domain/failures/failure";
 import type { Username } from "@domain/value-objects/username";
 import { describe, expect, it } from "vitest";
-import { messageFor, retryAfterHeader, statusFor } from "./failure-http";
+import { messageFor, reasonFor, retryAfterHeader, statusFor } from "./failure-http";
 
 const handle = (value: string): Username => ({ _tag: "Username", value });
 
@@ -12,6 +12,7 @@ describe("statusFor", () => {
 		expect(statusFor(network({ message: "down" }))).toBe(502);
 		expect(statusFor(parse("oops"))).toBe(502);
 		expect(statusFor(rateLimited({ message: "slow down", retryAfterSeconds: 60 }))).toBe(429);
+		expect(statusFor(delivery("no destination"))).toBe(502);
 	});
 });
 
@@ -20,9 +21,33 @@ describe("messageFor", () => {
 		expect(messageFor(notFound(handle("ghost")))).toBe("User not found");
 	});
 
+	it("answers a fixed sentence for a Delivery failure, because its message is the platform's", () => {
+		expect(messageFor(delivery("destination address not verified"))).toBe("Could not send your message");
+	});
+
 	it("passes through the failure message otherwise", () => {
 		expect(messageFor(network({ message: "github is down" }))).toBe("github is down");
 		expect(messageFor(invalidInput({ field: "year", message: "not a year" }))).toBe("not a year");
+	});
+});
+
+describe("reasonFor", () => {
+	it("keeps the platform's own wording for a Delivery failure, which is what the log needs", () => {
+		expect(reasonFor(delivery("destination address not verified"))).toBe("destination address not verified");
+	});
+
+	it("still never echoes a username for NotFound", () => {
+		expect(reasonFor(notFound(handle("ghost")))).toBe("User not found");
+	});
+
+	it("agrees with messageFor everywhere the two are not deliberately apart", () => {
+		for (const failure of [
+			network({ message: "down" }),
+			parse("oops"),
+			invalidInput({ field: "year", message: "bad" }),
+		]) {
+			expect(reasonFor(failure)).toBe(messageFor(failure));
+		}
 	});
 });
 
@@ -48,5 +73,6 @@ describe("retryAfterHeader", () => {
 		expect(retryAfterHeader(network({ message: "down" }))).toEqual({});
 		expect(retryAfterHeader(parse("oops"))).toEqual({});
 		expect(retryAfterHeader(invalidInput({ field: "username", message: "bad" }))).toEqual({});
+		expect(retryAfterHeader(delivery("no destination"))).toEqual({});
 	});
 });

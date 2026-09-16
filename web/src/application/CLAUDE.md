@@ -22,7 +22,8 @@ Cloudflare or `fetch`: everything reaches it through a closure. Stateless: state
 
 | Function | Returns | Notes |
 | --- | --- | --- |
-| `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | The one use case there is: it defaults, validates, loads and builds the grid covering the Year. |
+| `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | Defaults, validates, loads and builds the grid covering the Year. |
+| `sendContactMessage(deliver)({ name?, email, body })` | `ContactMessage \| Failure` | Parses, then delivers. **An `InvalidInput` short-circuits before `deliver` is called**, asserted in the test, which is what makes a junk submission cost no send. It echoes the message back on success, the way `fetchCalendar` returns the calendar. |
 
 [`resolve-initial-view.ts`](./use-cases/resolve-initial-view.ts) sits alongside them and is not a use case in the curried sense: it takes no
 dependencies. It holds the landing page's request policy: `resolveViewerIdentity` (username precedence, whether the
@@ -76,6 +77,11 @@ one; it now sits with the code that applies it.
 
 - **`logContributionsFailure`** turns a failed fetch into a log line and applies the threshold itself, so no route
   repeats the comparison.
+- **`logContactFailure`** does the same for a refused Contact Message, under the message
+  `"Contact message delivery failed"`. It takes four fields and **not the visitor's name, address or message**: a
+  Contact Message is stored nowhere, and a log line carrying one would be the one copy that outlived the send
+  ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). The
+  `reason` it does take is the *platform's* wording, which `messageFor` deliberately keeps out of the response.
 - **`logServerError`** is the narrow helper the 500 page uses, and it **returns early when `error` is
   `undefined`.** Astro populates `Astro.props.error` only when it invokes the page as an error handler, and
   [`500.astro`](../pages/500.astro) is also the public URL `/500`. Every hand-typed visit used to write a fabricated incident with
@@ -99,9 +105,16 @@ field name, for the API's error body) and `retryAfterHeader`. Never inline one o
 | `Network` | 502 | `failure.message` |
 | `Parse` | 502 | `failure.message` |
 | `RateLimited` | 429 | `failure.message` |
+| `Delivery` | 502 | the literal `"Could not send your message"` |
 
 - **`STATUS_BY_KIND` is typed `Record<Failure["kind"], number>`,** so adding a kind to the union is a compile error
-  here until it is mapped. That is the guard; do not replace it with a lookup that defaults.
+  here until it is mapped. That is the guard; do not replace it with a lookup that defaults. It is also the whole of
+  what Effect would have been adopted for, which is why it was not
+  ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)).
+- **`Delivery` has a fixed message, for the same reason `NotFound` has one.** Its own
+  `message` is whatever Cloudflare said when the send was refused (an unverified destination address, most likely),
+  which is an operational detail the sender can do nothing with and which `logContactFailure` records instead. Every
+  fixed literal lives in this file and nowhere else.
 - **`NotFound` never echoes the username back.** The failure carries it, `messageFor` discards it. Keep it that way:
   the string is rendered into an error page and returned as the body of an SVG response.
 - **`Network` and `Parse` both map to 502**, deliberately. To a caller, "GitHub was unreachable" and "GitHub's HTML

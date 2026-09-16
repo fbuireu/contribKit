@@ -52,6 +52,14 @@ final class CacheFailure extends Failure {
   String toString() => 'CacheFailure: $message';
 }
 
+final class DeliveryFailure extends Failure {
+  const DeliveryFailure({required this.message});
+  final String message;
+
+  @override
+  String toString() => 'DeliveryFailure: $message';
+}
+
 final class ExportFailure extends Failure {
   const ExportFailure({required this.message});
   final String message;

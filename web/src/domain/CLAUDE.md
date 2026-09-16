@@ -15,26 +15,30 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   co-located `*.test.ts` files is the only other import in the folder, and it is the test's, not the layer's.
 - **Functional style.** Factory functions returning readonly objects. No classes.
 - **Two arguments means one destructured object**, the repo-wide convention the
-  [application guide](../application/CLAUDE.md) states. `invalidInput` and `network` both take one; `notFound` and
-  `parse` take a single positional argument because they have exactly one.
-- **Only `Username` and `Year` are `_tag` carriers,** and only they validate on construction: a `parse*` returning
+  [application guide](../application/CLAUDE.md) states. `invalidInput` and `network` both take one; `notFound`,
+  `parse` and `delivery` take a single positional argument because they have exactly one.
+- **`Username`, `Year` and `ContactMessage` are the `_tag` carriers,** and only they validate on construction: a `parse*` returning
   `T | Failure` (or `null`), plus an `is*` guard that checks the `_tag`. The rest of `value-objects/` is total
   (`clampLevel` clamps, `paletteByKey` defaults, `isCellShape` is a set membership test), so there is nothing to
   fail and no tag to carry.
-- **Never throw.** Errors are the `Failure` discriminated union, returned as values. Adding a kind is a compile
+- **Never throw.** Errors are the `Failure` discriminated union, returned as values, written by hand rather than
+  taken from a library. Effect was measured against this and turned down, with the triggers that would overturn
+  that written out
+  ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)). Adding a kind is a compile
   error at every exhaustive site, which is the point
   ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). `isFailure` is structural
-  (an object whose `kind` is one of the five), so it does not depend on the constructors having been used.
-- **Repositories are interfaces only.** `ContributionRepository` lives here; every implementation lives in
-  `infrastructure/`.
+  (an object whose `kind` is one in the sealed set), so it does not depend on the constructors having been used.
+- **Repositories are interfaces only.** `ContributionRepository` and `ContactMessageRepository` both live in
+  [`repositories/types.ts`](./repositories/types.ts); every implementation lives in `infrastructure/`.
 - **Never invent a Count.** An unknown Count is `null`, and `null` is not `0`. The one place that has to reconcile
   the two is `computeContributionStats`, and it refuses to guess: see the gotcha below before adding anything that
   sums.
 
-## The four value objects, and how each fails
+## The value objects, and how each fails
 
 | Value object | Rule | On failure |
 | --- | --- | --- |
+| `ContactMessage` | every field trimmed; an empty name becomes `null`; the email rule is strict (one `@`, a dot in the domain, no whitespace, no `<`, `>` or `"`); the body is `MIN_CONTACT_BODY_LENGTH`…`MAX_CONTACT_BODY_LENGTH` characters | `InvalidInput(name)` / `InvalidInput(email)` / `InvalidInput(message)` |
 | `Username` | trimmed, then `/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/`: 1–39 chars, no leading or trailing hyphen | `InvalidInput(username)` |
 | `Year` | `null` / `''` / `undefined` → `null`, meaning the rolling latest year; otherwise an integer in `MIN_YEAR … currentYear` | `InvalidInput(year)` |
 | `ContributionLevel` | `clampLevel` forces any number into `0–4` | never fails: it clamps, rounds, and answers `0` for `NaN` |
@@ -52,6 +56,23 @@ so `"2020abc"` used to read as 2020 and pass, and a query string nobody meant si
 rejects it. It is still a coercion, not a format check: `" 2020 "`, `"0x7e4"` and `"2.02e3"` all resolve to 2020
 and are accepted; only integrality and the `MIN_YEAR … currentYear` bounds are enforced, and the bounds are what
 catch the odder coercions (`"2e3"` resolves to 2000, so it fails the floor rather than the format).
+
+## `ContactMessage`: the email rule is the header-injection guard
+
+[`value-objects/contact-message.ts`](./value-objects/contact-message.ts) is a `_tag` carrier like `Username` and `Year`, and its
+email pattern is deliberately stricter than the RFC allows. It rejects whitespace, `<`, `>` and `"`, which means
+it rejects CR and LF, and that address is interpolated into a `Reply-To` header one layer out. The MIME builder
+strips CR and LF from every header value as well, so the guard is written twice on purpose
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). The **body** is
+not guarded and must not be: it is base64-encoded, so it may carry any line break a person types.
+
+**The limits have a Dart twin, and the docs contract diffs them.** `MAX_CONTACT_NAME_LENGTH`,
+`MAX_CONTACT_EMAIL_LENGTH`, `MIN_CONTACT_BODY_LENGTH` and `MAX_CONTACT_BODY_LENGTH` are the same four numbers
+[`app/lib/domain/value_objects/contact_message.dart`](../../../app/lib/domain/value_objects/contact_message.dart) declares as
+`static const` ints, because the app posts to this project's own endpoint and a form that accepts what the server
+refuses is a round trip spent on a rejection. The test reads both with a regex, so **the shape of these
+declarations is load-bearing**, the same way the Embed contract's are. The web's `maxlength` attributes are
+interpolated from these constants rather than typed into the markup.
 
 ## The Embed contract lives in `embed.ts`
 
@@ -174,6 +195,10 @@ test helper reintroduces the same bug in the test rather than the code.
   **It paid for itself immediately**: typing the field made the compiler point at [`ui/utils/page-init.ts`](../ui/utils/page-init.ts), which was
   casting the JSON API response straight into domain types. It parses through `contributionDay` now, which is the
   anti-corruption the client side never had.
+- **`Delivery` is a claim about our own transport, not about GitHub.** It is raised only by the email repository,
+  it maps to 502, and `messageFor` answers a fixed sentence for it rather than passing its message through: unlike
+  every other kind, a `Delivery` message is the platform's own wording and is log-only. That is the same treatment
+  `NotFound` gets, and for the same reason.
 - **`InvalidInput` carries a `field`, and `/api/contributions` now says which one.** The field was set by
   `parseUsername`, `parseYear` and `parseColor` and read by **nothing**, so a 400 told a machine consumer that
   something was wrong and not which parameter. Carrying discriminating data nobody reads is how a sealed union

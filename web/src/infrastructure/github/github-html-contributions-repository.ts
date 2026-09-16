@@ -4,6 +4,7 @@ import { type Failure, isFailure, network, notFound, parse, rateLimited } from "
 import type { ContributionRepository, FetchCalendarParams } from "@domain/repositories/types";
 import { totalContributionsFor } from "@domain/services/contribution-stats";
 import type { Year } from "@domain/value-objects/year";
+import { errorMessageOf } from "../errors/error-message";
 
 const USER_AGENT =
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -100,7 +101,7 @@ export const githubHtmlContributionRepository: ContributionRepository = {
 				},
 			});
 		} catch (error) {
-			return network({ message: error instanceof Error ? error.message : String(error) });
+			return network({ message: errorMessageOf(error) });
 		}
 
 		if (response.status === 404) return notFound(username);
@@ -115,7 +116,7 @@ export const githubHtmlContributionRepository: ContributionRepository = {
 		try {
 			html = await response.text();
 		} catch (error) {
-			return network({ message: error instanceof Error ? error.message : String(error) });
+			return network({ message: errorMessageOf(error) });
 		}
 
 		const { days, totalContributions } = parseHtml(html);

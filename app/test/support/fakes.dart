@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
+import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
@@ -7,12 +8,15 @@ import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/repositories/suggested_username_repository.dart';
 import 'package:contribkit/domain/repositories/tip_repository.dart';
+import 'package:contribkit/domain/repositories/usage_event_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/contact_message.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 
@@ -157,6 +161,22 @@ final class FakeContributionRepository implements ContributionRepository {
   }
 }
 
+final class FakeContactMessageRepository implements ContactMessageRepository {
+  FakeContactMessageRepository({this.failure, this.gate});
+
+  final Object? failure;
+  final Future<void>? gate;
+
+  final delivered = <ContactMessage>[];
+
+  @override
+  Future<void> deliver(ContactMessage message) async {
+    delivered.add(message);
+    if (gate case final wait?) await wait;
+    if (failure case final error?) throw error;
+  }
+}
+
 final class FakeExportRepository implements ExportRepository {
   FakeExportRepository({this.bytes = const [1, 2, 3], this.failure});
 
@@ -221,6 +241,21 @@ final class FakeTipRepository implements TipRepository {
     if (giveFailure case final error?) throw error;
     return outcome;
   }
+}
+
+final class FakeUsageEventRepository implements UsageEventRepository {
+  final recorded = <UsageEvent>[];
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<void> record(UsageEvent event) async {
+    recorded.add(event);
+  }
+
+  @override
+  Future<void> applyConsent({required bool granted}) async {}
 }
 
 final class FakeExportDelivery implements ExportDeliveryRepository {

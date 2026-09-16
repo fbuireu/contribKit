@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+type Limiter = { limit: (args: { key: string }) => Promise<{ success: boolean }> };
+
 const { env } = vi.hoisted(() => ({
-	env: {} as { API_RATE_LIMITER?: { limit: (args: { key: string }) => Promise<{ success: boolean }> } },
+	env: {} as { API_RATE_LIMITER?: Limiter; CONTACT_RATE_LIMITER?: Limiter },
 }));
 
 vi.mock("cloudflare:workers", () => ({ env }));
@@ -138,5 +140,57 @@ describe("api rate limiting", () => {
 		const response = await run({ path: "/api/contributions", next });
 		expect(next).toHaveBeenCalledOnce();
 		expect(response.status).toBe(200);
+	});
+});
+
+describe("the contact endpoint is limited on its own bucket", () => {
+	it("sends /api/contact to CONTACT_RATE_LIMITER and leaves the API one alone", async () => {
+		const api = vi.fn(() => Promise.resolve({ success: true }));
+		const contact = vi.fn(() => Promise.resolve({ success: true }));
+		env.API_RATE_LIMITER = { limit: api };
+		env.CONTACT_RATE_LIMITER = { limit: contact };
+
+		await run({ path: "/api/contact", next: ok, ip: "9.9.9.9" });
+
+		expect(contact).toHaveBeenCalledWith({ key: "9.9.9.9" });
+		expect(api).not.toHaveBeenCalled();
+	});
+
+	it("leaves every other /api/ path on the API limiter", async () => {
+		const api = vi.fn(() => Promise.resolve({ success: true }));
+		const contact = vi.fn(() => Promise.resolve({ success: true }));
+		env.API_RATE_LIMITER = { limit: api };
+		env.CONTACT_RATE_LIMITER = { limit: contact };
+
+		await run({ path: "/api/contributions", next: ok });
+
+		expect(api).toHaveBeenCalledOnce();
+		expect(contact).not.toHaveBeenCalled();
+	});
+
+	it("answers the same 429 with the same Retry-After, so a form can back off the same way", async () => {
+		env.API_RATE_LIMITER = undefined;
+		env.CONTACT_RATE_LIMITER = { limit: () => Promise.resolve({ success: false }) };
+		const next = vi.fn(ok);
+
+		const response = await run({ path: "/api/contact", next });
+
+		expect(response.status).toBe(429);
+		expect(response.headers.get("Retry-After")).toBe("60");
+		expect(await response.json()).toEqual({ error: "Too many requests" });
+		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("skips the block when the contact binding is absent, rather than falling back to the API one", async () => {
+		const api = vi.fn(() => Promise.resolve({ success: false }));
+		env.API_RATE_LIMITER = { limit: api };
+		env.CONTACT_RATE_LIMITER = undefined;
+		const next = vi.fn(ok);
+
+		const response = await run({ path: "/api/contact", next });
+
+		expect(response.status).toBe(200);
+		expect(api).not.toHaveBeenCalled();
+		expect(next).toHaveBeenCalledOnce();
 	});
 });

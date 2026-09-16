@@ -15,6 +15,7 @@ The mobile component (`app/`) is a single Flutter codebase shipping native iOS &
 - **Daily background refresh:** fetches once a day, easy on the battery
 - **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
 - **No login:** just a username, only public contribution data
+- **Contact the maintainer** from inside the app, without a mail client or an account
 
 ---
 
@@ -25,9 +26,9 @@ Same DDD-ish layers as the web (see **[Architecture](Architecture)**):
 ```
 app/lib/
 ├── domain/          entities, value objects, repository interfaces, services, failures
-├── application/     use cases: fetch_contributions, invalidate_contribution_cache, export_calendar, fetch_tip_products, give_tip
-├── infrastructure/  github repo, asset repos, export (png/svg/markdown), persistence, tip
-└── ui/              features (viewer, customizer, export, tip), widgets, theme, DI (Riverpod)
+├── application/     use cases: fetch_contributions, invalidate_contribution_cache, export_calendar, fetch_tip_products, give_tip, send_contact_message
+├── infrastructure/  github repo, asset repos, export (png/svg/markdown), persistence, tip, contact
+└── ui/              features (viewer, customizer, export, tip, contact, privacy), widgets, theme, DI (Riverpod)
 ```
 
 The customizer offers palette, shape, **size** and background pickers: **Cell Size is app-only**, the web has no user-facing size at all ([ADR 0016](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)). Each of them goes through one `SettingPicker` (`palette_picker`, `shape_picker`, `size_picker`, `background_picker`). The viewer renders the contribution grid with a stats panel. State is held in `viewer_notifier` (Riverpod) over an immutable `viewer_state` (freezed).
@@ -114,6 +115,16 @@ Widgets are driven by [`calendar_widget_service.dart`](https://github.com/fbuire
 ## Tips
 
 ContribKit offers an optional **Tip Jar** via RevenueCat ([`revenuecat_tip_repository.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/infrastructure/tip/revenuecat_tip_repository.dart)), surfaced in [`ui/features/tip/tip_jar_sheet.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/features/tip/tip_jar_sheet.dart). The use cases are `fetch_tip_products` (loads the available `TipProduct`s) and `give_tip`, which returns a `TipOutcome` so backing out of the store sheet is not reported as a failure. A Tip unlocks nothing and no code may check whether one was given ([ADR 0009](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)). The glossary reserves **Tip** for this and lists "purchase" under `_Avoid_`, which is why none of these names says it. The default `dart-defines.json` carries the RevenueCat sandbox key; `dart-defines.prod.json` carries the production one.
+
+## Contact
+
+The Viewer header carries a mail button that opens a **Contact** sheet: a name (optional), an email address and a message. Sending it is the **only** request the app makes to a ContribKit server, and the only thing you type that leaves the device. Everything else the app fetches comes straight from GitHub.
+
+The message is posted to [`POST /api/contact`](API-Reference) on `contribkit.app`, which turns it into an email and hands it to Cloudflare Email Routing. **Nothing is stored on the server**: no database row, no log line, and no copy beyond the email itself ([ADR 0030](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+
+`ContactMessage` validates before anything is sent, so a bad address or a message under ten characters is refused on the device rather than by the server. Its length limits are the same numbers the web's own value object declares, and the documentation-consistency test diffs the two.
+
+Opening the sheet records `UsageEvent.contactOpened`, which is a name from a fixed list and carries nothing else: no part of the message is ever Telemetry. The Privacy sheet names this sheet as the one exception to "ContribKit never sends anything you type".
 
 ## Development
 

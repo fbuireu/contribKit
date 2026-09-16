@@ -154,3 +154,9 @@ _Avoid_: tier, package, SKU, product, offering
 **Tip Jar**:
 The place a person chooses a Tip Product and pays.
 _Avoid_: paywall, store, shop, support page
+
+**Contact Message**:
+A single message a person writes to the maintainer, carrying their email address, the message itself, and a name if
+they chose to give one. It leaves as an email and is stored nowhere. It is not a record in a system, and nothing
+tracks its state: there is no queue, no status and no reply thread.
+_Avoid_: feedback, ticket, inquiry, support request

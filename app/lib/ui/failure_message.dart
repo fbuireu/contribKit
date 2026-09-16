@@ -14,6 +14,7 @@ abstract final class FailureMessage {
     AssetFailure() => 'ContribKit could not read its own design tokens. Reinstalling should fix it.',
     NetworkFailure(:final message) => 'Network error: $message',
     CacheFailure() => 'Could not read saved data. Please try again.',
+    DeliveryFailure() => 'Could not send your message. Please try again.',
     ExportFailure(:final message) => 'Export failed: $message',
     TipFailure(:final message) => 'Tip failed: $message',
     UnexpectedFailure() => fallback,

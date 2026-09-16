@@ -8,4 +8,5 @@ enum UsageEvent {
   exportShared,
   tipJarOpened,
   tipGiven,
+  contactOpened,
 }

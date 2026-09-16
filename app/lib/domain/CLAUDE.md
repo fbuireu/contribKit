@@ -53,7 +53,12 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
 wildcard ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)):
 
 `NetworkFailure` · `NotFoundFailure` · `RateLimitedFailure` · `ParseFailure` · `AssetFailure` · `CacheFailure` ·
-`ExportFailure` · `TipFailure` · `UnexpectedFailure`
+`DeliveryFailure` · `ExportFailure` · `TipFailure` · `UnexpectedFailure`
+
+**`DeliveryFailure` is the only kind whose web twin was added in the same change.** It says a Contact
+Message was refused: the server answered a non-2xx that was not a 429, and the sentence it carries is the server's
+own `error` field or the bare status. It is **not** `NetworkFailure`: the request arrived and was answered
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 **`AssetFailure` exists because `ParseFailure` meant two different things.** The asset repositories threw
 `ParseFailure` when [`assets/palettes.json`](../../assets/palettes.json) could not be read, and `FailureMessage` renders that kind as *"GitHub
@@ -66,7 +71,7 @@ docs-consistency guard could not see it: it policed only `_Avoid_` terms that ar
 `DOW`, `IAP`, `SKU`), which is four of a hundred and six, and every plain lowercase word went unchecked. It now
 polices a curated set of unambiguous ones, and `purchase` is in it.
 
-**Value-object constructors do not throw those.** `Username` throws `ArgumentError`, `Year` throws `RangeError`.
+**Value-object constructors do not throw those.** `Username` and `ContactMessage` throw `ArgumentError`, `Year` throws `RangeError`.
 That is intentional and worth stating because it looks like a violation: a `Failure` describes something that went
 wrong at runtime and that a user should be told about, while an invalid `Username` reaching the constructor is a
 programmer error: the input should have been validated at the UI boundary before a value object was ever asked for.
@@ -80,10 +85,12 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | Type | Rule |
 | --- | --- |
 | `Username` | trimmed; non-empty; at most 39 characters, checked separately from the pattern; `^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$` |
+| `ContactMessage` | every field trimmed; a blank name becomes `null`; `email` at most `maxEmailLength` and matching a pattern with exactly one `@`, a dot in the domain and no whitespace, `<`, `>` or `"`; `body` between `minBodyLength` and `maxBodyLength`. Otherwise `ArgumentError`, whose `message` the Contact sheet renders under the fields |
 | `Year` | integer in `Year.minYear` (2005) … the current year, else `RangeError`. `Year.current` is the shorthand |
 | `CellSize` | `compact` / `normal` / `large`, each mapping to a `pixels` and a `gap` |
 | `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
 | `TipOutcome` | `completed` / `cancelled`: what came back from the store when a Tip was offered |
+| `ContactMessage` | validates on construction like `Username`: every field trimmed, an empty name becomes `null`, and the email pattern is the same strict one the web uses. Carries its length limits as `static const` ints, which the docs contract diffs against the TypeScript. Value `==` |
 | `Embed` | the one spelling of an Embed URL: origin, segment, extension, and which options are worth a query param. It has a TypeScript twin the docs contract diffs it against; see below |
 | `AppSettings` | everything the app remembers, already defaulted. `SettingsRepository.load()` returns one, and `year` is `lastYear ?? Year.current` so no caller re-decides that. **No `==`**: nothing compares one, so it would be surface with no reader |
 | `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | - |
@@ -142,6 +149,20 @@ that does not exist yet, which is exactly why their handling of an unknown Count
 nothing going visibly wrong. They are computed **once per Contribution Calendar** now, in `ViewerNotifier`;
 `StatsPanel` used to call `ContributionStatsService.compute` from its own `build`, so all eight were re-derived on
 every frame and no test could reach the derivation through the notifier at all.
+
+## `ContactMessage` is the other half of a cross-language contract
+
+`ContactMessage.maxNameLength`, `maxEmailLength`, `minBodyLength` and `maxBodyLength` are the same numbers
+[`web/src/domain/value-objects/contact-message.ts`](../../../web/src/domain/value-objects/contact-message.ts) exports as
+`MAX_CONTACT_NAME_LENGTH`, `MAX_CONTACT_EMAIL_LENGTH`, `MIN_CONTACT_BODY_LENGTH` and `MAX_CONTACT_BODY_LENGTH`.
+They have to agree because the app posts to that server's own `/api/contact`, so a form here that accepts what the
+server refuses is a round trip spent being told no. Nothing links the two languages, so the docs contract diffs
+them with a regex over both, and **the shape of these declarations is load-bearing** exactly as `Embed`'s are.
+
+**The email pattern is a guard, not a validator.** It is stricter than the RFC on purpose: that address becomes a
+`Reply-To` header on the server, and rejecting whitespace, `<`, `>` and `"` is what rejects CR and LF. The **body**
+is deliberately unguarded, because the server base64-encodes it and a message may carry any line break
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 ## `Embed` is half of a cross-language contract
 

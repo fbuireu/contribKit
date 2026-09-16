@@ -3,6 +3,7 @@ import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
+import 'package:contribkit/ui/features/contact/contact_sheet.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
@@ -96,6 +97,17 @@ void main() {
             cellShape: CellShape.rounded,
             cellSize: CellSize.normal,
           ),
+        );
+      });
+    });
+
+    testWidgets('the Contact sheet', (tester) async {
+      await _atEveryScale(tester, (tester) async {
+        await pumpSheet(
+          tester,
+          surfaceSize: tester.view.physicalSize / tester.view.devicePixelRatio,
+          overrides: appOverrides(),
+          builder: (_) => const ContactSheet(),
         );
       });
     });

@@ -1,4 +1,5 @@
 import 'package:contribkit/ui/theme/app_colors.dart';
+import 'package:flutter/services.dart' show TextInputAction;
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -10,6 +11,10 @@ class AppTextField extends StatelessWidget {
     this.placeholder,
     this.onSubmitted,
     this.enabled = true,
+    this.maxLines = 1,
+    this.minLines,
+    this.keyboardType,
+    this.textInputAction,
   });
 
   final TextEditingController? controller;
@@ -17,6 +22,10 @@ class AppTextField extends StatelessWidget {
   final String? placeholder;
   final ValueChanged<String>? onSubmitted;
   final bool enabled;
+  final int? maxLines;
+  final int? minLines;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +39,10 @@ class AppTextField extends StatelessWidget {
       },
       onSubmitted: onSubmitted,
       enabled: enabled,
+      maxLines: maxLines,
+      minLines: minLines,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
     );
   }
 }

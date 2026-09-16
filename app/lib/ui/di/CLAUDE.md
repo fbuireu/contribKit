@@ -6,6 +6,13 @@ Dependency wiring: the one place that knows how to construct the full object gra
 It instantiates concrete repositories, passes them into use cases, and exposes the results as `@riverpod` providers
 for widgets and notifiers to watch. Everything else in `ui/` sees a provider, never a constructor.
 
+**`contactMessageRepositoryProvider` is `keepAlive` for the same reason `contributionRepositoryProvider` is**, and
+the reason is written out below: it owns one `http.Client` for the life of the app, and a `ref.read` from a sheet
+that is closing would otherwise tear the provider down while the POST is still in flight. Neither provider closes
+its client; `close()` exists on both repositories for a caller that builds one by hand, which today is the
+background isolate in `main.dart` for the GitHub one and only the tests for this one. `providers_test.dart` reads each of the two
+twice across a turn of the event loop and asserts the same instance comes back.
+
 **`contributionRepositoryProvider` is `keepAlive`, and the reason is a production defect.** It was auto-dispose,
 reached only with `ref.read` from `ViewerNotifier`, and a `ref.read` adds no listener: Riverpod tore the provider
 down at the end of the frame, while the request to GitHub was still in flight. That was harmless until a fix for
@@ -35,14 +42,14 @@ version. The background isolate in [`main.dart`](../../main.dart) constructs its
 Three tiers, in dependency order, plus one notifier that does not fit them:
 
 1. **Repository providers**: `paletteRepository`, `suggestedUsernameRepository`, `contributionRepository`,
-   `tipRepository`, `settingsRepository`, and one export repository per format. **Three are `keepAlive` and the rest
-   are not**: `telemetryConfig`, `diagnosticsRepository` and `usageEventRepository` hold SDK state that must survive
+   `contactMessageRepository`, `tipRepository`, `settingsRepository`, and one export repository per format. **`telemetryConfig`, `diagnosticsRepository` and `usageEventRepository` hold SDK state and are `keepAlive` for that reason**: they must survive
    a sheet closing, and a `keepAlive` provider may only read other `keepAlive` ones, which `riverpod_lint` enforces.
    Reading `settingsRepositoryProvider` from one of them is therefore a lint error, and that is why
    `TelemetryConsentNotifier` is **not** `keepAlive`: it reads settings, so it stays auto-dispose and is held alive
    instead by `ContribKitApp` watching it, the same way it watches the theme.
 2. **Use-case providers**: `fetchTipProducts`, `giveTip`, `fetchContributions`, `invalidateContributionCache`,
-   and `exportCalendar`, which takes an `ExportFormat` and is therefore one provider rather than one per format.
+   `sendContactMessage`, and `exportCalendar`, which takes an `ExportFormat` and is therefore one provider rather
+   than one per format.
    There is a provider for every use case, which is what stops `ui/` naming a repository directly.
 3. **Async data providers**: `palettes`, `suggestedUsernames`, which await a repository's load and are consumed as
    an `AsyncValue`. Both carry `@Riverpod(retry: _neverRetry)`, and that annotation is load-bearing.

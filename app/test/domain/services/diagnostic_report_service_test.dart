@@ -10,6 +10,7 @@ void main() {
         const NetworkFailure(message: 'Connection refused'),
         RateLimitedFailure(resetAt: DateTime(2026)),
         NotFoundFailure(username: Username('octocat')),
+        const DeliveryFailure(message: 'destination not verified'),
       ];
 
       expect(

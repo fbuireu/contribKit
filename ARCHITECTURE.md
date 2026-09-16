@@ -31,6 +31,8 @@ flowchart TD
     web --> site["contribkit.app"]
     web --> svg["GET /user/:username.svg"]
     web --> json["GET /api/contributions"]
+    web --> contact["POST /api/contact"]
+    app --> contact
     app --> widget["home-screen widget"]
     app --> export["PNG · SVG · Markdown"]
 
@@ -167,16 +169,20 @@ the difference is the point: each client can only fail in the ways it can actual
 
 | Web (`Failure` union, returned as a value) | App (`sealed class Failure`, thrown and caught) |
 | --- | --- |
-| `NotFound`, `InvalidInput`, `Network`, `Parse`, `RateLimited` | `NotFoundFailure`, `NetworkFailure`, `ParseFailure`, `RateLimitedFailure`, `AssetFailure`, `CacheFailure`, `ExportFailure`, `TipFailure`, `UnexpectedFailure` |
+| `NotFound`, `InvalidInput`, `Network`, `Parse`, `RateLimited`, `Delivery` | `NotFoundFailure`, `NetworkFailure`, `ParseFailure`, `RateLimitedFailure`, `AssetFailure`, `CacheFailure`, `DeliveryFailure`, `ExportFailure`, `TipFailure`, `UnexpectedFailure` |
 
 The web returns failures because a Worker route is a function from request to response and a thrown error there is
 just a 500 with no shape. The app throws them because a `sealed class` plus an exhaustive `switch` is how Dart makes
 a missed case a compile error. Adding a kind to either set means updating the exhaustive match that renders it, in
 the same commit.
 
-`RateLimited` is the newest and the two sets agree on it now: GitHub's 429 used to reach the web as `Network`, so a
-service that answered perfectly well and said *slow down* was reported to the reader as unreachable. The app has
-distinguished it since ADR 0004.
+`Delivery` is the newest, and it is the first kind both sets gained in the same change: a Contact Message that Email
+Routing refused is neither a bad request nor an unreachable GitHub
+([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). It maps to 502 on
+the web, and `messageFor` answers a fixed sentence for it rather than the platform's own wording, which goes to the
+log instead. `RateLimited` was the one before it, and the two sets agree on it now: GitHub's 429 used to reach the
+web as `Network`, so a service that answered perfectly well and said *slow down* was reported to the reader as
+unreachable. The app has distinguished it since ADR 0004.
 
 ## 5. Shared design tokens
 
@@ -313,6 +319,8 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) | The app sends Telemetry through two ports with no failure channel |
 | [0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) | Telemetry Consent is asked twice and answered asymmetrically |
 | [0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) | Diagnostic Reports carry a masked Session Replay |
+| [0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) | Contact Messages leave through Cloudflare's send_email binding |
+| [0031](./docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md) | The web keeps its hand-written Failure union instead of Effect |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |
@@ -355,6 +363,7 @@ opens a file in that exact folder, so a deeper split costs reach.
 | **Add a palette, shape or suggested username** | `shared/*.json`, then `pnpm sync:assets`, then the README feature list. The docs test asserts every shipped token is advertised. A palette also needs `noneLight` for the app ([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)). |
 | **Add a `Failure` kind** | The sealed set ([`web/src/domain/failures/failure.ts`](./web/src/domain/failures/failure.ts) or [`app/lib/domain/failures/failure.dart`](./app/lib/domain/failures/failure.dart)), every exhaustive match over it (on the web `web/src/application/http/failure-http.ts`), and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved. Never widen a match with `_`. |
 | **Change how contributions are fetched or parsed** | **Both** clients. The parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)), so a fix in one is a bug left in the other. Levels come from GitHub's `data-level`, not from the count. |
+| **Add a surface that sends a Contact Message** | The domain value object and its Dart twin (the length limits are diffed by the docs contract), the route, and the privacy policy's *Contact form* section. Delivery is the `send_email` binding and nothing else ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). |
 | **Add a web query parameter** | `querySchema` in the route, with a `.catch(default)`; the render options in [`web/src/domain/services/types.ts`](./web/src/domain/services/types.ts); then `web/README.md` and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md). |
 | **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, **plus a legacy-key fallback and a migration test**. The background isolate reads through the same repository, so it follows automatically. |
 | **Change what a cached calendar means** | Bump `_cacheBoxName` in the app's contribution repository. Past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)). |
