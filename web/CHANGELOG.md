@@ -1,3 +1,10 @@
+# [contribkit-web-v1.17.1](https://github.com/fbuireu/contribKit/compare/web-v1.17.0...web-v1.17.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* **contribkit-app:** retry the world's failures unreported ([#147](https://github.com/fbuireu/contribKit/issues/147)) ([e5dc799](https://github.com/fbuireu/contribKit/commit/e5dc799143e6269ba7aa7ef9184a05637b0aed16))
+
 # [contribkit-web-v1.17.0](https://github.com/fbuireu/contribKit/compare/web-v1.16.3...web-v1.17.0) (2026-09-13)
 
 

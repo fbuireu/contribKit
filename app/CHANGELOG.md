@@ -1,3 +1,12 @@
+# [contribkit-app-v1.5.3](https://github.com/fbuireu/contribKit/compare/app-v1.5.2...app-v1.5.3) (2026-09-15)
+
+
+### Bug Fixes
+
+* **contribkit-app:** retry the world's failures unreported ([#147](https://github.com/fbuireu/contribKit/issues/147)) ([e5dc799](https://github.com/fbuireu/contribKit/commit/e5dc799143e6269ba7aa7ef9184a05637b0aed16))
+* **contribkit-app:** update dependency home_widget to v0.9.4 ([#150](https://github.com/fbuireu/contribKit/issues/150)) ([76185ea](https://github.com/fbuireu/contribKit/commit/76185ea828b0dd868b24b5c3e32cc5125bc5e751))
+* **contribkit-app:** update dependency posthog_flutter to v5.40.1 ([#151](https://github.com/fbuireu/contribKit/issues/151)) ([8264350](https://github.com/fbuireu/contribKit/commit/826435019e70fb6a01cc9855209d9bdf8c52b1e7))
+
 # [contribkit-app-v1.5.2](https://github.com/fbuireu/contribKit/compare/app-v1.5.1...app-v1.5.2) (2026-09-11)
 
 

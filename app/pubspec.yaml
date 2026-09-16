@@ -1,7 +1,7 @@
 name: contribkit
 description: Visualize and export GitHub contribution calendars with full visual customization.
 publish_to: none
-version: 1.5.2+36
+version: 1.5.3+37
 
 environment:
   sdk: ">=3.13.0 <3.14.0"
@@ -29,11 +29,11 @@ dependencies:
   share_plus: 13.3.0
 
   # Home screen widget + background refresh
-  home_widget: 0.9.3
-  workmanager: 0.10.9
+  home_widget: 0.9.4
+  workmanager: 0.10.10
 
   # UI primitives
-  shadcn_ui: 0.56.2
+  shadcn_ui: 0.56.3
   flutter_animate: 4.5.2
 
   # Splash screen
@@ -44,7 +44,7 @@ dependencies:
 
   # Telemetry
   sentry_flutter: 9.30.0
-  posthog_flutter: 5.40.0
+  posthog_flutter: 5.40.1
 
   # Fonts
   google_fonts: 8.2.1
