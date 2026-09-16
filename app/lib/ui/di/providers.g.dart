@@ -496,7 +496,7 @@ final class DiagnosticsRepositoryProvider
 }
 
 String _$diagnosticsRepositoryHash() =>
-    r'9d85ae6128af07c51fd0453e1c0848c9e7cad079';
+    r'da22724ca68584035a8e3e7dadbbe9e37e35bfe4';
 
 @ProviderFor(usageEventRepository)
 final usageEventRepositoryProvider = UsageEventRepositoryProvider._();
