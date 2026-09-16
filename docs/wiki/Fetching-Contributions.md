@@ -1,6 +1,6 @@
 # Fetching Contributions
 
-ContribKit gets contribution data by reading GitHub's **public** contributions page, with no GitHub API call, no token, and no OAuth. The web implementation lives in [`infrastructure/github/github-html-contributions-repository.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/infrastructure/github/github-html-contributions-repository.ts) and implements the domain `ContributionsRepository` interface.
+ContribKit gets contribution data by reading GitHub's **public** contributions page, with no GitHub API call, no token, and no OAuth. The web implementation lives in [`infrastructure/github/github-html-contributions-repository.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/infrastructure/github/github-html-contributions-repository.ts) and implements the domain `ContributionRepository` interface.
 
 ---
 

@@ -43,7 +43,7 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 | [`features/export/`](./features/export) | Choosing an `ExportFormat` and the share flow. The format itself is a domain value object, not a private enum per surface |
 | [`features/tip/`](./features/tip) | The Tip Jar, its sealed `TipJarState`, and `TipProductPresentation`: the emoji and label each Tip Product is shown with |
 | [`features/widget/`](./features/widget) | Home-screen widget data sync and configuration |
-| [`features/contact/`](./features/contact) | The Contact sheet and its sealed `ContactSheetState`. It is the **one** surface in the app that sends something a person typed, and the Privacy sheet's opening sentence names it as the exception ([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
+| [`features/contact/`](./features/contact) | The Contact sheet and its sealed `ContactSheetState`. It is the **one** surface in the app that sends something a person typed, and the Privacy sheet's opening sentence names it as the exception ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
 | [`features/privacy/`](./features/privacy) | The Privacy sheet and `TelemetryConsentNotifier`: the two Telemetry Consent switches and the only thing that applies them ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). It is **not** part of the Customizer, which [`CONTEXT.md`](../../../CONTEXT.md) defines as Palette, Cell Shape, Cell Size and Background |
 
 ## `ViewerNotifier` owns the state
@@ -489,9 +489,24 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   produces 2061×267 at `normal`, there is no Cell Size that yields 2880×720, and the byte figures were
   invented. The tile asks `ExportGeometryService.pngPixelSizeFor` now, which is the same function the renderer
   sizes its canvas with, and the invented sizes are gone rather than re-guessed.
-- **The isolate reports failure to WorkManager.** `callbackDispatcher` caught everything and returned `true`, so
-  the retry and backoff policy never engaged and a transient `NetworkFailure` meant the Home Screen Widget kept
-  yesterday's data for another day. It returns `false` on a caught failure.
+- **The isolate tells WorkManager to retry the world's failures and reports only the code's.** `callbackDispatcher`
+  has had three answers to a thrown refresh. The first caught everything and returned `true`, so the retry and
+  backoff policy never engaged and a transient `NetworkFailure` left the Home Screen Widget on yesterday's data for
+  another day. The second returned `false` and reported everything, so a phone with no route to GitHub at refresh
+  time filed a `NetworkFailure` Diagnostic Report on every attempt: the first alert the shipped app ever raised, and
+  not a defect. It now asks `DiagnosticReportService.warrants`. A `NetworkFailure`, `RateLimitedFailure` or
+  `NotFoundFailure` is answered with `false`, which the plugin maps to `Result.retry()` and its backoff, and
+  reported to nobody; every other `Failure`, and any error that is not one, is reported and answered with `true`,
+  because retrying a `ParseFailure` re-files the same report at growing intervals and fixes nothing. The task is
+  also registered with a connected-network constraint, under `ExistingPeriodicWorkPolicy.update` so installs that
+  registered it without one pick the constraint up rather than keeping the old spec, which is what `keep` does.
+- **Every widget that shows Contribution Data and is not a `Text` or an `Image` is listed in
+  [`contribution_data_widgets.dart`](./contribution_data_widgets.dart).** That set is what the Sentry adapter masks
+  whole in a replay, and today it holds `ContributionGrid`, because `ContributionCell` paints with `CustomPaint`
+  and `DecoratedBox`, which the SDK's text and image defaults do not cover. A second renderer of Cells goes in the
+  set in the same commit, or it is visible in every replay. `SentryMask` in a feature widget is the wrong fix: it
+  puts the vendor in this layer and has to be remembered at every call site
+  ([ADR 0029](../../../docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)).
 - **Everything optional in `main()` is wrapped.** `FlutterNativeSplash.preserve` runs first and `remove()` runs in
   `ViewerScreen.initState`; between them sat legacy box deletion, WorkManager registration and RevenueCat
   configuration, all unguarded. Any throw meant `runApp` was never called and the person stared at the splash

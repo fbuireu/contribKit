@@ -12,7 +12,7 @@ CI is one workflow with **no path filter**, and a `changes` job that gates each 
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
-| `ci.yml` | every push and PR to `main`, plus manual dispatch, where the dispatch redeploys production and the smoke run behind it, and cuts no release: secrets ride the deploy and the build inlines the public env, so a rotated credential reaches nothing until something redeploys | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then deploy, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates them all |
+| `ci.yml` | every push and PR to `main`, plus manual dispatch, where the dispatch redeploys production and the smoke run behind it, and cuts no release: the build inlines the public env, so a rotated analytics token reaches nothing until something redeploys | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then deploy, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates them all |
 | [`_ci-app.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/_ci-app.yml) | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build`, and none of them can be a required check: see `Check` below |
 | [`_deploy.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/_deploy.yml) | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
 | [`release-app.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/release-app.yml) | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
@@ -59,7 +59,7 @@ wrapper re-spawns wrangler through a shell that splits a message on its spaces.
 
 Concurrency cancels in-progress runs for pull requests only.
 
-> **The path filter is wider than `web/**` on purpose.** `shared/**`, `docs/**` and `*.md` are in the trigger list because the documentation-consistency contract runs inside `web-check`, and a guard that never fires on documentation changes is not a guard. The cost is that `deploy-production` sits behind the same filter, so **a documentation-only push to `main` redeploys the Worker**. That is accepted: the deploy is idempotent, and the alternative is a silently disabled contract. Removing any of those three patterns disables it.
+> **The web set is wider than `web/**` on purpose.** `shared/`, `docs/`, `scripts/` and any root `*.md` count as web changes in the `changes` job, so **a documentation-only push to `main` redeploys the Worker**, since `deploy-production` reads the same output. That is accepted: the deploy is idempotent. What no longer depends on the width of that set is the contract itself, which runs in its own ungated `Docs Contract` job.
 
 ---
 

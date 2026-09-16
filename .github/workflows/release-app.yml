@@ -14,7 +14,7 @@ on:
         default: internal
 
 concurrency:
-  group: release-app
+  group: release
   cancel-in-progress: false
 
 permissions: {}

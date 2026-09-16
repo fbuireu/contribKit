@@ -1,5 +1,6 @@
 import 'package:contribkit/infrastructure/telemetry/sentry_diagnostics_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -43,8 +44,10 @@ final class _Recorder {
 SentryDiagnosticsRepository _repository(
   _Recorder recorder, {
   TelemetryConfig config = _configured,
+  Set<Type> maskedWidgets = const {},
 }) => SentryDiagnosticsRepository(
   config: config,
+  maskedWidgets: maskedWidgets,
   initialise: recorder.initialise,
   send: recorder.send,
   shutDown: recorder.shutDown,
@@ -94,6 +97,22 @@ void main() {
       expect(options.release, 'contribkit@1.2.3');
     });
 
+    test(
+      'records a masked replay around an error and never a session',
+      () async {
+        final recorder = _Recorder();
+
+        await _repository(recorder).start();
+        final options = recorder.options!;
+
+        expect(options.replay.sessionSampleRate, 0.0);
+        expect(options.replay.onErrorSampleRate, 1.0);
+        expect(options.replay.quality, SentryReplayQuality.low);
+        expect(options.privacy.maskAllText, isTrue);
+        expect(options.privacy.maskAllImages, isTrue);
+      },
+    );
+
     test('leaves the release unset rather than setting it empty', () async {
       final recorder = _Recorder();
 
@@ -109,6 +128,31 @@ void main() {
       ).start();
 
       expect(recorder.options!.release, isNot(''));
+    });
+  });
+
+  group('the masking rule', () {
+    testWidgets('masks a listed widget and leaves the rest to the defaults', (
+      tester,
+    ) async {
+      final repository = _repository(_Recorder(), maskedWidgets: {SizedBox});
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: Column(children: [SizedBox(), Text('octocat')]),
+        ),
+      );
+      final box = tester.element(find.byType(SizedBox));
+      final text = tester.element(find.byType(Text));
+
+      expect(
+        repository.maskingDecision(box, box.widget),
+        SentryMaskingDecision.mask,
+      );
+      expect(
+        repository.maskingDecision(text, text.widget),
+        SentryMaskingDecision.continueProcessing,
+      );
     });
   });
 

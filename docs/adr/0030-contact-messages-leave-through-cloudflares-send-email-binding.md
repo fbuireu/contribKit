@@ -1,4 +1,4 @@
-# 29. Contact Messages leave through Cloudflare's send_email binding
+# 30. Contact Messages leave through Cloudflare's send_email binding
 
 Date: 2026-09-16
 
@@ -57,7 +57,9 @@ one protects an upstream we do not own, the other protects a mailbox. A non-empt
 without delivering, so a bot is told nothing.
 
 **Delivery failure is a `Failure` kind of its own**, `Delivery` on the web and `DeliveryFailure` in the app, mapping
-to **502**. `messageFor` answers the fixed literal `"Could not send your message"` for it, the same way it does for
+to **502**. In the app it is one `DiagnosticReportService.warrants` answers **false** for, beside `NetworkFailure`
+and `RateLimitedFailure`: a refused send is the world's doing, and there is no defect in the app to fix from a
+report of it. `messageFor` answers the fixed literal `"Could not send your message"` for it, the same way it does for
 `NotFound`, because the failure's own message is the platform's wording and belongs in the log rather than in a
 response body. A rejected address or an empty message is `InvalidInput` with a new `FailureField`, not a second new
 kind: those are the same class of thing `parseUsername` already produces.
@@ -85,7 +87,9 @@ a surface the app could not implement on its own at all.
   travels and that nothing is stored on the server; it also had to soften the app section's claim that we operate no
   server receiving personal data, which this makes false. Google Play's *Data safety* form needs
   **Personal info → Name, Email address** and **Messages → Other in-app messages**, and the form has to be
-  resubmitted: see [`docs/plans/0002`](../plans/0002-telemetry-store-declarations.md), which now carries them. This
+  resubmitted: [28](0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) is where that table lives
+  and it now carries them. They are also the only rows no consent switch governs, because a Contact Message is sent
+  when a person presses Send. This
   is the part that is hard to reverse, for the same reason [28](0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)
   gives: a declared data type that stops being collected has to be re-declared, and the declaration is public.
 - **The five-a-minute limit is shared by every visitor behind one address.** A campus or an office NAT can exhaust

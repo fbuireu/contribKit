@@ -101,6 +101,9 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   infer the year back out of `days[0].date`, which only agreed with the request because the select always has a
   value: strip the select and the endpoint answers with GitHub's rolling twelve months, whose first date is *last*
   year, and the grid would have been built a year off.
+- **Changing the year is a render, not a pending choice.** The select's `change` event goes through the same
+  `submitRender` the button and the form use, so a picked year fetches at once and an empty username is refused
+  the same way. It used to sit until the render button was pressed, which read as the select doing nothing.
 
 ## Counts, totals, and the number in the hero
 
@@ -192,7 +195,7 @@ them together, because the CSS and the screen reader must not disagree.
   other page loads it. It intercepts `submit`, posts JSON to `/api/contact`, disables the button and refuses a
   second submit while one is in flight, and writes the outcome into an `aria-live` status node. The sentence it
   writes is the response's own `error` when there is one, so the server's *field* wording reaches the visitor, and
-  its own fallback otherwise ([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+  its own fallback otherwise ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 - [`unshuffle.ts`](./utils/unshuffle.ts) de-obfuscates the contact details on the legal pages. It is anti-scraping decoration, not a security
   control. Treat anything it protects as public.
 - **The three legal pages are pinned by [`web/e2e/legal-pages.spec.ts`](../../e2e/legal-pages.spec.ts)**, which asserts each answers 200, renders an

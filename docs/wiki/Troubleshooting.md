@@ -57,7 +57,7 @@ A 429 does not always mean the same thing, and the **body** is what tells the ca
 
 ## Deploy/preview issues (web)
 
-The environment is chosen at **build** time: `CLOUDFLARE_ENV=<env> astro build` flattens the `[env.NAME]` block into `dist/server/wrangler.json`, and you then deploy with a plain `wrangler deploy`. Passing `--env` to the deploy cannot silently pick the wrong one (wrangler compares it with the config's `targetEnvironment` and fails loudly on a mismatch), so if per-env routes, ratelimits or observability are missing, look at what `CLOUDFLARE_ENV` was during the build, not at the deploy flags. See **[Web Application](Web-Application)**.
+The environment is chosen twice and both have to say the same thing: `CLOUDFLARE_ENV=<env> astro build` picks the `[env.NAME]` block the adapter flattens into `dist/server/wrangler.json`, and `wrangler deploy --env <env>` picks the block the deploy selects. Neither can silently pick the wrong one, because wrangler compares the flag with the generated config's `targetEnvironment` and fails loudly on a mismatch. So if per-env routes, rate limits or observability are missing, the thing to check is whether the deploy passed `--env` at all: without it the bare top level ships, and everything declared only under a named environment is absent. See **[Web Application](Web-Application)**.
 
 ---
 

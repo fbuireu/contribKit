@@ -54,11 +54,13 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
-  https://www.googletagmanager.com https://betterstack.net; style-src 'self'
+  https://www.googletagmanager.com https://betterstack.net
+  https://static.cloudflareinsights.com; style-src 'self'
   'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;
-  img-src 'self' data:; connect-src 'self' https://www.google-analytics.com
-  https://analytics.google.com https://betterstack.net; frame-ancestors 'none';
-  base-uri 'self'; form-action 'self'
+  img-src 'self' data:; connect-src 'self' https://*.google-analytics.com
+  https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com
+  https://betterstack.net https://*.betterstackdata.com https://cloudflareinsights.com;
+  worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin
@@ -76,10 +78,10 @@ Cross-Origin-Embedder-Policy: unsafe-none
 
 Both deploys run from [`ci.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/ci.yml), only after `Verify (web)` (`pnpm verify`: format check, typecheck, `astro check` and coverage) passes:
 
-- **Production:** every push to `main` matching the workflow's path filter builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy` → worker `contribkit` on `contribkit.app`. That filter covers `shared/**`, `docs/**`, `scripts/**`, `*.md`, the three root config files and the workflow's own wiring as well as `web/**`, so a documentation-only push redeploys too; see **[CI/CD](CI-CD)** for why.
-- **Development:** every PR matching the same filter builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
+- **Production:** every push to `main` that the `changes` job counts as a web change builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. That set covers `shared/`, `docs/`, `scripts/`, root `*.md`, the root config files and the whole of `.github/` as well as `web/`, so a documentation-only push redeploys too; see **[CI/CD](CI-CD)** for why.
+- **Development:** every PR counted the same way builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.
 
-> **`@astrojs/cloudflare` gotcha:** the adapter flattens the `wrangler.toml` `[env.NAME]` block at build time into `dist/server/wrangler.json`. Select it with `CLOUDFLARE_ENV=<env> astro build`, then deploy with a plain `wrangler deploy` (use `--name` for previews). Do not pass `wrangler deploy --env <env>` on top of it. The generated config carries a `targetEnvironment`, and wrangler checks the flag against it: matching is a byte-for-byte no-op (`--dry-run` with and without `--env production` prints identical output, same Worker name, same bindings), and mismatching is a hard error (`This does not match the target environment "production"`). So the flag can only be redundant or fatal, never quietly wrong. `_deploy-web.yml` carried it until this was executed rather than assumed; it is gone.
+> **`@astrojs/cloudflare` gotcha:** two switches choose the environment and the deploy sets both. `CLOUDFLARE_ENV=<env> astro build` decides which `wrangler.toml` `[env.NAME]` block the adapter flattens into `dist/server/wrangler.json`; `wrangler deploy --env <env>` decides which block the deploy itself selects, and `--name` overrides the Worker name for a preview. Setting only the first is what once shipped the bare top level, leaving the custom domain and the rate-limit binding in the file and out of the Worker. A mismatched pair fails loudly rather than quietly: wrangler compares the flag with the generated config's `targetEnvironment` and reports `This does not match the target environment "production"`.
 
 See **[CI/CD](CI-CD)** for the full pipeline.
 
@@ -95,7 +97,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined).
 | `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time | Better Stack browser tag (RUM), from the app's Frontend tab |
 | `API_RATE_LIMITER` | runtime binding | rate limiter for `/api/*` |
 | `CONTACT_RATE_LIMITER` | runtime binding | rate limiter for `POST /api/contact` |
-| `CONTACT_EMAIL` | runtime binding | `send_email`, pinned to `contact@contribkit.app`; see [ADR 0029](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md) |
+| `CONTACT_EMAIL` | runtime binding | `send_email`, pinned to `contact@contribkit.app`; see [ADR 0030](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker has (presence only, never values).
 

@@ -120,7 +120,7 @@ ContribKit offers an optional **Tip Jar** via RevenueCat ([`revenuecat_tip_repos
 
 The Viewer header carries a mail button that opens a **Contact** sheet: a name (optional), an email address and a message. Sending it is the **only** request the app makes to a ContribKit server, and the only thing you type that leaves the device. Everything else the app fetches comes straight from GitHub.
 
-The message is posted to [`POST /api/contact`](API-Reference) on `contribkit.app`, which turns it into an email and hands it to Cloudflare Email Routing. **Nothing is stored on the server**: no database row, no log line, and no copy beyond the email itself ([ADR 0029](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+The message is posted to [`POST /api/contact`](API-Reference) on `contribkit.app`, which turns it into an email and hands it to Cloudflare Email Routing. **Nothing is stored on the server**: no database row, no log line, and no copy beyond the email itself ([ADR 0030](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 `ContactMessage` validates before anything is sent, so a bad address or a message under ten characters is refused on the device rather than by the server. Its length limits are the same numbers the web's own value object declares, and the documentation-consistency test diffs the two.
 

@@ -9,6 +9,6 @@ coverage:
         informational: true
 
 ignore:
-  - "**/types.ts"
   - "**/*.d.ts"
+  - "**/types.ts"
   - "**/*.astro"

@@ -4,7 +4,7 @@ How ContribKit is built, for contributors. What it does and how to use it is the
 user guides in [docs/wiki/](./docs/wiki/), in particular [How It Works](../../wiki/How-It-Works) and
 [Project Structure](../../wiki/Project-Structure); this document does not restate them. Conventions and the
 maintenance contract are [CLAUDE.md](./CLAUDE.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to
-work on the repo is [CONTRIBUTING.md](./CONTRIBUTING.md).
+work on the repo is [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 The thing to understand before anything else: **the same domain is implemented twice**, in TypeScript and in Dart,
 deliberately ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). The layering is heavier
@@ -127,7 +127,7 @@ in [§7](#7-where-things-live).
 | --- | --- | --- | --- |
 | 1 | `parseUsername(params.username)` | domain | Returns a `Username` or an `InvalidInput` failure; nothing downstream sees an unvalidated handle |
 | 2 | `loadContributions({ username, year: null })` | pages | Bound once in [`web/src/pages/_contributions.ts`](./web/src/pages/_contributions.ts), which every data route imports: the repository method is captured at module load, the call takes the request |
-| 3 | `githubHtmlContributionsRepository.fetch(...)` fetches and parses | infrastructure | Regexes over the rendered page: there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
+| 3 | `githubHtmlContributionRepository.fetchCalendar(...)` fetches and parses | infrastructure | Regexes over the rendered page: there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
 | 4 | `querySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
 | 5 | `buildRollingGrid(...)` then `svgStringRenderer({ calendar, options })` | domain → infrastructure | The lattice first, then string concatenation: no DOM |
 | 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Elsewhere it differs: `/api/health` is `no-store`, and the landing page is `private` either way (one hour once a visitor has asked for someone, `no-store` for the default view) |
@@ -157,7 +157,9 @@ hand. But it reads settings through `SettingsRepository` like everything else, s
 at compile time. It read the box by string literal until that changed, which is one of the traps named in
 [CLAUDE.md](./CLAUDE.md#maintenance-contract). What it then does with them is `HomeScreenWidgetRefresh`, the same
 module the foreground writes through: the refresh sequence used to be spelled out in both places, so the isolate
-could drift from the app without anything failing.
+could drift from the app without anything failing. When the refresh throws, `DiagnosticReportService.warrants`
+decides whether the `Failure` is a defect worth a Diagnostic Report or the world's doing (no network, a rate limit,
+a renamed account), which the isolate answers with a retry and reports to nobody.
 
 ## 4. Failures
 
@@ -176,7 +178,7 @@ the same commit.
 
 `Delivery` is the newest, and it is the first kind both sets gained in the same change: a Contact Message that Email
 Routing refused is neither a bad request nor an unreachable GitHub
-([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). It maps to 502 on
+([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). It maps to 502 on
 the web, and `messageFor` answers a fixed sentence for it rather than the platform's own wording, which goes to the
 log instead. `RateLimited` was the one before it, and the two sets agree on it now: GitHub's 429 used to reach the
 web as `Network`, so a service that answered perfectly well and said *slow down* was reported to the reader as
@@ -261,6 +263,16 @@ ran, and neither spelling can be required without leaving half the pull requests
 will publish. `Check` needs every gated job, runs under `always()`, and fails if any of them failed or was
 cancelled.
 
+**The gate on `changes` is declared once per chain, not once per job, and that is deliberate.** A job whose
+dependency was skipped is skipped too, so `smoke` inherits the gate from `deploy-production` and `comment`
+and `e2e` inherit it from `deploy-development`; those three name neither `changes` in their `needs` nor
+`needs.changes.outputs.web` in their `if`. They did until 2026-09-12, and the extra clause was a third copy of
+a condition that was already true by the time the job could run: verified against `push`, `pull_request` and
+`workflow_dispatch` alike, where the fallback in `changes` sets `web=true` anyway. Restoring it adds a
+condition that can only ever drift out of step with the one upstream. The jobs that do name `changes` are the
+ones that read it first-hand: `app-ci`, `verify-web`, both deploys, `release`, `cross-package-notice` and
+`Check`. forever-pto's `ci.yml` is shaped the same way, job for job.
+
 The ruleset requires `Check`, `Lint the pull request title`, `Dependency Review` and `zizmor`, the same four
 as every sibling repository. `Docs Contract` is reached through `Check` and needs no row of its own. The
 other three come from workflows of their own and `Check` cannot see them; `zizmor` is the check run the
@@ -306,7 +318,8 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md) | Observability is Cloudflare's, exported to Better Stack |
 | [0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) | The app sends Telemetry through two ports with no failure channel |
 | [0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) | Telemetry Consent is asked twice and answered asymmetrically |
-| [0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md) | Contact Messages leave through Cloudflare's send_email binding |
+| [0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) | Diagnostic Reports carry a masked Session Replay |
+| [0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) | Contact Messages leave through Cloudflare's send_email binding |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |
@@ -325,7 +338,7 @@ and it needs a link from somewhere other than this index: an ADR only the index 
 | --- | --- |
 | [CLAUDE.md](./CLAUDE.md) | Commands, conventions, the maintenance contract; loaded into every agent session |
 | [CONTEXT.md](./CONTEXT.md) | The domain glossary both clients obey, and the words to avoid |
-| [CONTRIBUTING.md](./CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
+| [CONTRIBUTING.md](./.github/CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
 | [web/src/domain/CLAUDE.md](./web/src/domain/CLAUDE.md) | Purity rules, value objects, failures, services |
 | [web/src/application/CLAUDE.md](./web/src/application/CLAUDE.md) | Curried use cases, `Failure` → HTTP mapping |
 | [web/src/infrastructure/CLAUDE.md](./web/src/infrastructure/CLAUDE.md) | GitHub scraping, the SVG renderer, logging |
@@ -349,7 +362,7 @@ opens a file in that exact folder, so a deeper split costs reach.
 | **Add a palette, shape or suggested username** | `shared/*.json`, then `pnpm sync:assets`, then the README feature list. The docs test asserts every shipped token is advertised. A palette also needs `noneLight` for the app ([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)). |
 | **Add a `Failure` kind** | The sealed set ([`web/src/domain/failures/failure.ts`](./web/src/domain/failures/failure.ts) or [`app/lib/domain/failures/failure.dart`](./app/lib/domain/failures/failure.dart)), every exhaustive match over it (on the web `web/src/application/http/failure-http.ts`), and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved. Never widen a match with `_`. |
 | **Change how contributions are fetched or parsed** | **Both** clients. The parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)), so a fix in one is a bug left in the other. Levels come from GitHub's `data-level`, not from the count. |
-| **Add a surface that sends a Contact Message** | The domain value object and its Dart twin (the length limits are diffed by the docs contract), the route, and the privacy policy's *Contact form* section. Delivery is the `send_email` binding and nothing else ([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). |
+| **Add a surface that sends a Contact Message** | The domain value object and its Dart twin (the length limits are diffed by the docs contract), the route, and the privacy policy's *Contact form* section. Delivery is the `send_email` binding and nothing else ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). |
 | **Add a web query parameter** | `querySchema` in the route, with a `.catch(default)`; the render options in [`web/src/domain/services/types.ts`](./web/src/domain/services/types.ts); then `web/README.md` and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md). |
 | **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, **plus a legacy-key fallback and a migration test**. The background isolate reads through the same repository, so it follows automatically. |
 | **Change what a cached calendar means** | Bump `_cacheBoxName` in the app's contribution repository. Past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)). |

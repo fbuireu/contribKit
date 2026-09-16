@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
@@ -96,8 +97,9 @@ final class GitHubContributionRepository implements ContributionRepository {
       'https://github.com/users/${username.value}/contributions'
       '?from=${year.value}-01-01&to=${year.value}-12-31',
     );
+    final http.Response response;
     try {
-      final response = await _httpClient
+      response = await _httpClient
           .get(
             uri,
             headers: {
@@ -111,29 +113,22 @@ final class GitHubContributionRepository implements ContributionRepository {
               message: 'Request timed out after ${_timeout.inSeconds}s',
             ),
           );
-      if (response.statusCode == 404) {
-        throw NotFoundFailure(username: username);
-      }
-      if (response.statusCode == 429) {
-        throw RateLimitedFailure(
-          resetAt: RetryAfter.resetAtFrom(response.headers),
-        );
-      }
-      if (response.statusCode != 200) {
-        throw NetworkFailure(message: 'HTTP ${response.statusCode}');
-      }
-
-      final calendar = _parseHtml(
-        html: response.body,
-        username: username,
-        year: year,
-      );
-      return calendar;
-    } on Failure {
-      rethrow;
-    } catch (e) {
+    } on IOException catch (e) {
+      throw NetworkFailure(message: e.toString());
+    } on http.ClientException catch (e) {
       throw NetworkFailure(message: e.toString());
     }
+    if (response.statusCode == 404) {
+      throw NotFoundFailure(username: username);
+    }
+    if (response.statusCode == 429) {
+      throw RateLimitedFailure(resetAt: RetryAfter.resetAtFrom(response.headers));
+    }
+    if (response.statusCode != 200) {
+      throw NetworkFailure(message: 'HTTP ${response.statusCode}');
+    }
+
+    return _parseHtml(html: response.body, username: username, year: year);
   }
 
   ContributionCalendar _parseHtml({

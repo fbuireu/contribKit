@@ -60,7 +60,7 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 - **One architecture, two platforms:** the same DDD-ish layering (`domain` → `application` → `infrastructure`/`ui`) in TypeScript and Dart, with pure domains, validated value objects at every boundary, and sealed sets of typed `Failure`s matched without a wildcard (returned as values on the web, thrown and caught in the app)
 - **Edge rendering:** SVG generated as a pure string inside a Cloudflare Worker (no DOM, no canvas), so output is deterministic and cacheable
 - **Single source of truth:** palettes/shapes/usernames defined once in `shared/`, consumed by both apps and auto-synced into the Flutter bundle
-- **Fully automated delivery:** per-component CI with path filters, per-PR preview Workers, semantic-release versioning, and **automatic Google Play shipping** (signed AAB + Play release notes generated from the changelog)
+- **Fully automated delivery:** one unfiltered CI workflow that gates per-component jobs on what changed, per-PR preview Workers, semantic-release versioning, and **automatic Google Play shipping** (signed AAB + Play release notes generated from the changelog)
 - **Hardened pipelines:** SHA-pinned actions, least-privilege permissions, zizmor workflow scanning, dependency auto-merge
 
 See **[Architecture](Architecture)**, **[CI/CD](CI-CD)**, and **[Git Hooks](Git-Hooks)** for the details.

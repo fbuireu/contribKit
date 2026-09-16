@@ -29,7 +29,7 @@ directive, because it is load-bearing and invisible in the response.
 
 ## `github/`: scraping the contributions page
 
-`githubHtmlContributionsRepository` is a module-level singleton, imported directly by
+`githubHtmlContributionRepository` is a module-level singleton, imported directly by
 [`pages/_contributions.ts`](../pages/_contributions.ts). A factory used to wrap it (a function returning a constant, with a test asserting that
 its `fetch` was a function), and it was deleted: it constructed nothing, and a second adapter would be a new
 export here rather than a new branch inside a factory.
@@ -92,7 +92,7 @@ no activity, which is a lie the reader cannot detect
 **`total` is `null` the moment a Contribution Day at level 1 or above has an unknown Count.** It is not GitHub's own
 headline figure (nothing here reads that), so it is only as complete as the tool-tip pass, and a partial pass
 cannot be reported as a measurement. A level-0 day with no Count does **not** void it, because GitHub's level 0 is
-zero. That is the same rule `computeContributionStats` applies in the domain and the same one the app's `_totalFor`
+zero. That is the same rule `computeContributionStats` applies in the domain and the same one the app's `ContributionStatsService.totalFor`
 applies, and this file did not follow it: it summed `count ?? 0` whenever *any* tool-tip parsed, so a page whose
 `<td>`s parsed and whose tool-tips half failed produced an **understated total presented as exact**.
 `statsWithScrapedTotal` then let that beat the domain function that had correctly refused to guess. It only degraded
@@ -122,7 +122,7 @@ and now identical *positions*, because neither computes any. What is left here i
 `cloudflareContactMessageRepository` implements `ContactMessageRepository` and is the only outbound **write** in
 the project: everything else here fetches. It sends through Cloudflare's `send_email` binding, `CONTACT_EMAIL`,
 rather than a provider's API, so there is no runtime secret to hold or rotate
-([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 **The address is pinned twice, and the outer pin is the platform's.** `CONTACT_ADDRESS` is the `From` and the `To`
 this file builds, and `destination_address` on the binding in [`wrangler.toml`](../../wrangler.toml) is what makes any

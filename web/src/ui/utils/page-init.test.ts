@@ -376,6 +376,43 @@ describe("the username strip", () => {
 	});
 });
 
+describe("the year select", () => {
+	const TWO_YEARS = `<option value="${CURRENT_YEAR - 1}">${CURRENT_YEAR - 1}</option><option value="${CURRENT_YEAR}" selected>${CURRENT_YEAR}</option>`;
+
+	it("renders the year picked without waiting for the render button", async () => {
+		const fetchStub = vi.fn(okFetch);
+		vi.stubGlobal("fetch", fetchStub);
+		document.body.innerHTML = HERO;
+		byId("hero-year").innerHTML = TWO_YEARS;
+		initPage();
+		(byId("hero-username") as HTMLInputElement).value = "torvalds";
+
+		const select = selectById("hero-year") as HTMLSelectElement;
+		select.value = String(CURRENT_YEAR - 1);
+		select.dispatchEvent(new Event("change", { bubbles: true }));
+		await settle();
+
+		expect(fetchStub).toHaveBeenCalledTimes(1);
+		expect(fetchStub).toHaveBeenCalledWith(expect.stringContaining(`user=torvalds&year=${CURRENT_YEAR - 1}`));
+	});
+
+	it("refuses to ask the endpoint for nobody, exactly as the render button does", async () => {
+		const fetchStub = vi.fn(okFetch);
+		vi.stubGlobal("fetch", fetchStub);
+		document.body.innerHTML = HERO;
+		byId("hero-year").innerHTML = TWO_YEARS;
+		initPage();
+
+		const select = selectById("hero-year") as HTMLSelectElement;
+		select.value = String(CURRENT_YEAR - 1);
+		select.dispatchEvent(new Event("change", { bubbles: true }));
+		await settle();
+
+		expect(fetchStub).not.toHaveBeenCalled();
+		expect(byId("hero-error").textContent).toMatch(/enter a github username/i);
+	});
+});
+
 describe("history navigation", () => {
 	it("restores the username and year the URL names, without pushing a new entry", async () => {
 		const fetchStub = vi.fn(okFetch);

@@ -60,7 +60,7 @@ catch the odder coercions (`"2e3"` resolves to 2000, so it fails the floor rathe
 email pattern is deliberately stricter than the RFC allows. It rejects whitespace, `<`, `>` and `"`, which means
 it rejects CR and LF, and that address is interpolated into a `Reply-To` header one layer out. The MIME builder
 strips CR and LF from every header value as well, so the guard is written twice on purpose
-([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). The **body** is
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). The **body** is
 not guarded and must not be: it is base64-encoded, so it may carry any line break a person types.
 
 **The limits have a Dart twin, and the docs contract diffs them.** `MAX_CONTACT_NAME_LENGTH`,

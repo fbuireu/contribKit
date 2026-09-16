@@ -58,7 +58,7 @@ wildcard ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exc
 **`DeliveryFailure` is the only kind whose web twin was added in the same change.** It says a Contact
 Message was refused: the server answered a non-2xx that was not a 429, and the sentence it carries is the server's
 own `error` field or the bare status. It is **not** `NetworkFailure`: the request arrived and was answered
-([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 **`AssetFailure` exists because `ParseFailure` meant two different things.** The asset repositories threw
 `ParseFailure` when [`assets/palettes.json`](../../assets/palettes.json) could not be read, and `FailureMessage` renders that kind as *"GitHub
@@ -138,7 +138,7 @@ named is what let the grid drop 31 December 2028 in silence. Divide by `weeks.le
 **Every figure derived from Counts is nullable, and `null` means "not knowable" rather than zero.** `weeklyAverage`
 is `null` when Total Contributions is; `bestDayCount` and `bestMonthContributions` are `null` the moment any active
 day has an unknown Count, because the largest Count *seen* is a lower bound and reporting it as the best day is the
-same lie `_totalFor` refuses to tell. `currentStreak`, `longestStreak` and `totalDaysActive` stay
+same lie `totalFor` refuses to tell. `currentStreak`, `longestStreak` and `totalDaysActive` stay
 non-nullable: they count *days*, which the Contribution Level answers on its own. `bestMonth` does not count days
 (it names the month with the highest summed Count), so it is nulled by the same rule as `bestMonthContributions`,
 and it is an `int?`.
@@ -162,7 +162,7 @@ them with a regex over both, and **the shape of these declarations is load-beari
 **The email pattern is a guard, not a validator.** It is stricter than the RFC on purpose: that address becomes a
 `Reply-To` header on the server, and rejecting whitespace, `<`, `>` and `"` is what rejects CR and LF. The **body**
 is deliberately unguarded, because the server base64-encodes it and a message may carry any line break
-([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 ## `Embed` is half of a cross-language contract
 
@@ -263,6 +263,12 @@ person writes by hand may carry one; what no client does is *build* one.
   instead of bricking the Viewer. It returns `null` only for an empty list, which is a broken asset rather than a
   missing setting, and is what `ViewerState.paletteFailure` exists to report. `ViewerNotifier` spelled this out
   inline before, so the background isolate could not reuse it.
+- **`DiagnosticReportService.warrants(failure)`** answers whether a `Failure` is a defect worth a Diagnostic Report
+  or the world's doing. `NetworkFailure`, `RateLimitedFailure` and `NotFoundFailure` are the second kind: no route to
+  GitHub, GitHub saying wait, an account renamed since it was stored. Everything else means the code or the bundle is
+  wrong. It exists for the background isolate, which has no person to show a `FailureMessage` to and used to report
+  every failure instead; the foreground reports none of them, because a `Failure` the Viewer renders is handled. The
+  match is exhaustive, so a new kind has to be placed on one side or the other before the app compiles.
 - **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
   `pngPixelSizeFor` (those units times `pngPixelRatio`, 3.0). The PNG repository used to compute this inline while
   the Export sheet's format tile advertised the constant string `2880×720`: a size no `CellSize` produces, against

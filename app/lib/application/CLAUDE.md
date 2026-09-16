@@ -33,7 +33,7 @@ outcome, not an error and not a success, and it is a value now.
 
 **`SendContactMessage` is the one whose repository talks to this project's own server.** Every other
 repository behind these classes reaches GitHub, the bundle, Hive or the store; this one posts to `/api/contact`
-([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). The use case
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). The use case
 itself knows none of that, which is the point: `ContactSheet` builds a `ContactMessage` (whose constructor is what
 rejects a bad address) and hands it over.
 

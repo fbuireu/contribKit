@@ -150,6 +150,7 @@ function initUsernameStrip() {
 	const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
 	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
 	const usernameDisplay = document.getElementById(ElementId.HeroUsernameDisplay);
+	const yearSelect = document.getElementById(ElementId.HeroYear) as HTMLSelectElement | null;
 	if (!input || !renderButton || !usernameDisplay) return;
 
 	const submitRender = () => {
@@ -179,6 +180,7 @@ function initUsernameStrip() {
 		if (value) setHeroError(null);
 	});
 	renderButton.addEventListener("click", submitRender);
+	yearSelect?.addEventListener("change", submitRender);
 	document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons).forEach((button) => {
 		button.addEventListener("click", () => {
 			const username = button.dataset.username;

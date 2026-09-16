@@ -35,13 +35,13 @@ It is also the only entry point for HTTP traffic.
 | [`index.astro`](./index.astro) | `/` | SSR landing page plus client interactivity |
 | `user/[username].svg.ts` | `GET /user/:username.svg` | The embed endpoint |
 | [`api/contributions.ts`](./api/contributions.ts) | `GET /api/contributions?user=&year=` | JSON |
-| [`api/contact.ts`](./api/contact.ts) | `POST /api/contact` | The contact form's endpoint, and the app's ([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
+| [`api/contact.ts`](./api/contact.ts) | `POST /api/contact` | The contact form's endpoint, and the app's ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
 | [`api/health.ts`](./api/health.ts) | `GET /api/health` | Configuration presence check |
 | [`404.astro`](./404.astro), [`500.astro`](./500.astro) | `/404`, `/500` | Both render the shared `ErrorView`, **and both are reachable by hand** |
 | [`contact.astro`](./contact.astro) | `/contact` | The contact form. **Indexable and in the sitemap**, unlike the three legal pages |
 | [`legal-notice.astro`](./legal-notice.astro), [`privacy.astro`](./privacy.astro), [`terms.astro`](./terms.astro) | - | Static legal pages |
 | `_contributions.ts`, [`_contact.ts`](./_contact.ts) | - | Not routes: the shared compositions the data and contact consumers import |
-| `_tests/` | - | Not routes: the route tests, kept out of the namespace by the underscore |
+| `_tests/` | - | Not routes: the route tests plus the failure boundary's, kept out of the namespace by the underscore |
 | `CLAUDE.md` | `/CLAUDE`, 404'd | This file. Astro routes markdown too: see below |
 
 **Everything here that is not underscore-prefixed is a public URL, `.md` included.** This file is a route:
@@ -115,7 +115,7 @@ in passing.
 ## `POST /api/contact`
 
 The one route that takes a body, and the only one the app calls
-([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). In order:
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). In order:
 
 1. **Zod over the parsed body**, `{ name?, email, message, website? }`. A body that is not JSON, or that fails that
    shape, is the documented Zod exemption: a hand-written 400 with `"Invalid request body"`, because nothing has

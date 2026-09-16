@@ -1,3 +1,38 @@
+# [contribkit-web-v1.17.1](https://github.com/fbuireu/contribKit/compare/web-v1.17.0...web-v1.17.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* **contribkit-app:** retry the world's failures unreported ([#147](https://github.com/fbuireu/contribKit/issues/147)) ([e5dc799](https://github.com/fbuireu/contribKit/commit/e5dc799143e6269ba7aa7ef9184a05637b0aed16))
+
+# [contribkit-web-v1.17.0](https://github.com/fbuireu/contribKit/compare/web-v1.16.3...web-v1.17.0) (2026-09-13)
+
+
+### Features
+
+* **contribkit-web:** render as soon as a year is picked ([70e84aa](https://github.com/fbuireu/contribKit/commit/70e84aa30687227323186591ff775ae1a8310712))
+
+# [contribkit-web-v1.16.3](https://github.com/fbuireu/contribKit/compare/web-v1.16.2...web-v1.16.3) (2026-09-12)
+
+
+### Bug Fixes
+
+* **contribkit-web:** name worker-src, and admit the Cloudflare beacon ([2089148](https://github.com/fbuireu/contribKit/commit/2089148011b320e54a5fc761fcc675adacc6da53))
+
+# [contribkit-web-v1.16.2](https://github.com/fbuireu/contribKit/compare/web-v1.16.1...web-v1.16.2) (2026-09-12)
+
+
+### Bug Fixes
+
+* **contribkit-web:** let GA4 reach its regional collect endpoint ([d92da6f](https://github.com/fbuireu/contribKit/commit/d92da6fe0cd3963cb32c50ace45460f14b8892cc))
+
+# [contribkit-web-v1.16.1](https://github.com/fbuireu/contribKit/compare/web-v1.16.0...web-v1.16.1) (2026-09-12)
+
+
+### Bug Fixes
+
+* **contribkit-web:** let the browser tag reach its ingest host ([c50e449](https://github.com/fbuireu/contribKit/commit/c50e449afc37cf8311378297e375cff8049d8822))
+
 # [contribkit-web-v1.16.0](https://github.com/fbuireu/contribKit/compare/web-v1.15.0...web-v1.16.0) (2026-09-12)
 
 

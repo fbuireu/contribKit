@@ -127,7 +127,7 @@ Component-specific setup, commands, and deploy flows live in **[web/README.md](w
 | Guide                                              | Description                                                  |
 | --------------------------------------------------- | ------------------------------------------------------------ |
 | **[Architecture](ARCHITECTURE.md)**                 | The layer map both clients share, a request end to end, build and release |
-| **[Contributing](CONTRIBUTING.md)**                 | Setup, the checks, commit rules, and how a change gets released |
+| **[Contributing](.github/CONTRIBUTING.md)**         | Setup, the checks, commit rules, and how a change gets released |
 | **[Domain glossary](CONTEXT.md)**                   | The canonical name for every domain concept, and the ones to avoid |
 | **[Web](web/README.md)**                            | API reference, embedding guide, architecture, deploys        |
 | **[App](app/README.md)**                            | Flutter setup, widgets, in-app purchases, releases           |

@@ -39,7 +39,7 @@ Flutter widgets, and must never import from `ui/`.
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown, plus `PlatformExportDelivery`, the only file that names `share_plus` or `Clipboard` |
 | `tip/` | The RevenueCat implementation of `TipRepository` |
-| `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read. **Both SDKs are configured in Dart and never from the platform manifests**: PostHog would otherwise initialise itself from `onAttachedToEngine`, ahead of the consent gate ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)) |
+| `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read. **Both SDKs are configured in Dart and never from the platform manifests**: PostHog would otherwise initialise itself from `onAttachedToEngine`, ahead of the consent gate ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). The Sentry adapter records a replay only around an error, masks every text and image, and masks whole any widget whose `Type` is in its `maskedWidgets`; it cannot name those types itself, because they live in `ui/`, so the composition roots pass them in ([ADR 0029](../../../docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)). `maskingDecision` is the callback itself and is public, so its test hands it real elements from a pumped tree rather than a lookalike |
 
 ## `github/`: the second scraper
 
@@ -61,7 +61,19 @@ equivalent, and the differences are the whole reason this section exists:
 | Unknown Count | `null` | `null` |
 | HTTP 429 | `rateLimited(…, retryAfterSeconds)` | `RateLimitedFailure`, with `resetAt` from `Retry-After` |
 | Timeout | 20 s → `network` | 20 s → `NetworkFailure` |
+| What else becomes a network failure | whatever `fetch` or `response.text()` throws; the parse runs outside the `try` | an `IOException` or an `http.ClientException` from the request, and nothing else; the parse runs outside the `try` |
 | Grid construction | in the domain layer | in the domain layer, `ContributionGridService` |
+
+**Only the request is inside the `try`, and only IO errors become `NetworkFailure`.** `_fetch` used to wrap
+its whole body, `_parseHtml` included, in a `catch (e)` that rethrew everything as `NetworkFailure`, so a
+`TypeError` in the parser or a `RangeError` in `ContributionGridService` reached the UI as *"Network error"*
+and reached Sentry as a `NetworkFailure` with a redacted message: indistinguishable from a phone with no signal,
+and now that the background isolate does not report those, invisible. The first alert the shipped app raised
+had exactly that shape, and the report cannot say which it was. The catch is now two clauses, `IOException` and
+`http.ClientException`, around the request alone, which is the scope the web has always had; anything else
+propagates with its own type, which `FailureMessage.ofAny` renders with the fallback and the isolate reports as
+the defect it is. The test file pins all three: a socket error, a lost connection, and a `StateError` that must
+come out as a `StateError`.
 
 **Two passes over the HTML, joined on the `<td>`'s `id`.** Pass one collects `(date, level?, id?)` from every `<td>`
 carrying `ContributionCalendar-day`; pass two builds `id → count` from every `<tool-tip for="…">`, taking the
@@ -123,7 +135,7 @@ the streak walk in [`ui/features/widget/calendar_widget_service.dart`](../ui/fea
 
 Every other repository here reaches GitHub, the bundle, Hive or the store. `HttpContactMessageRepository` posts a
 Contact Message to `${Embed.origin}/api/contact`, which is this project's own Worker
-([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). That does
+([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). That does
 **not** reopen [ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md): the contributions scrape is
 still a direct GitHub call, and this is a surface the app could not implement on its own, because sending mail needs
 a binding only a Worker has. The origin comes from `Embed.origin` rather than a second literal, so the one place

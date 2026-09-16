@@ -102,6 +102,11 @@
 			"groupName": "node"
 		},
 		{
+			"matchDepNames": ["typescript"],
+			"allowedVersions": "<7",
+			"groupName": "typescript"
+		},
+		{
 			"matchDepNames": ["pnpm"],
 			"groupName": "pnpm"
 		}

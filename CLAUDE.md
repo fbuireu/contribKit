@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [CONTEXT.md](./CONTEXT.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./CONTRIBUTING.md).
+Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [CONTEXT.md](./CONTEXT.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 ## What this is
 
@@ -101,7 +101,7 @@ covered on its own, and `ContribKitApp` is covered by `widget_test.dart`.
 ```
 CONTEXT.md          domain glossary: the single vocabulary both clients obey
 ARCHITECTURE.md     the big picture, and the only ADR index
-CONTRIBUTING.md     setup, checks, commit rules, release trains
+.github/            CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md, the templates and the workflows
 docs/docs-consistency.test.ts  the repo-wide contract: the one test that lives with its subject, not with the code
 docs/adr/           decisions (0001…), sequentially numbered
 docs/plans/         deferred work, kept because the decision to defer is recorded
@@ -143,11 +143,13 @@ Both clients use the same layered architecture with a strict inward dependency d
 - **A Contact Message is the one thing a person types that leaves the device, and it leaves as email.** It is
   stored nowhere: no database, no log line, no queue. `logContactFailure` takes the failure's kind and the
   platform's reason and **never the name, the address or the message**
-  ([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+  ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 - **Telemetry carries no Username, ever.** A Usage Event is an enum case and has no payload; a Diagnostic Report
   carries the error's type and stack and never its message, because half the app's `Failure` messages interpolate a
   Username or a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
-  Widening either signature deletes the guarantee.
+  Widening either signature deletes the guarantee. The masked replay a foreground report carries keeps it only
+  while every widget that shows Contribution Data is a `Text`, an `Image` or listed in `contributionDataWidgets`
+  ([ADR 0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)).
 - **Edit `shared/`, never `app/assets/`.** The copies are generated.
 - **Conventional commits** (commitlint + lefthook). semantic-release owns versioning. Do NOT add a Co-Authored-By / Claude trailer to commits or PRs.
 
@@ -192,7 +194,7 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |
 | A `Failure` kind | the exhaustive match that renders it, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
 | A stored Hive key | add a legacy fallback and a migration test, or users silently lose the setting |
-| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** both store declarations ([`docs/plans/0002-telemetry-store-declarations.md`](./docs/plans/0002-telemetry-store-declarations.md)). The policy names the processors and the region, so a changed host is a policy change. It is no longer Telemetry alone: the Contact sheet sends a name, an address and a message a person typed, which is why the Play form carries *Personal info* and *Messages* rows ([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)), and why the Privacy sheet's first sentence names it as the one exception |
+| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** the Play *Data safety* form, whose contents are recorded in [ADR 0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md). The policy names the processors and the region, so a changed host is a policy change. It is no longer Telemetry alone: a Contact Message carries a name, an address and text a person typed, which is why that table has *Personal info* and *Messages* rows and why they are the ones no consent switch governs ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
 | A decision an ADR records | that ADR: amend it, or supersede it and say so in both `## Status` blocks |
 | The layer map, a run end to end, or the release pipeline | [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
 | A claim the docs-consistency test asserts, on purpose | the doc first; the test only when the claim itself changed |
@@ -239,6 +241,14 @@ Traps worth naming, because every one of them has already happened here:
   fails because there is nothing for it to name: the two files differ by one key
   ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)).
 - **`noneLight` is app-only.** The web ignores the light-theme palette variant, because an embed cannot know the viewer's theme ([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)).
+- **Both components push a release commit, and one concurrency group is the only thing ordering them.** `ci.yml` releases web on a push to `main`; `release-app.yml` releases app on a dispatch. They ran in groups of their own (`release` and `release-app`), so a dispatch during a web release was a race for the branch, and the loser fails its push *after* `@semantic-release/git` has created the tag: a version that exists as a tag with no commit behind it. They share the `release` group now, so the second one waits. forever-pto answers the same question the other way, by letting only one of its packages push at all ([its ADR 0011](https://github.com/fbuireu/forever-pto/blob/main/adr/0011-per-package-versioning-with-a-bridge-tag.md)); either shape works, two pushers in two groups does not, and `docs/docs-consistency.test.ts` asserts the group.
+- **The release commit is the one commit on `main` commitlint never checks.** The hook runs on a branch and [`commit-message.yml`](./.github/workflows/commit-message.yml) reads the pull request title, so nothing but the docs contract sees `@semantic-release/git`'s `message`. Its shape is `chore(<package>): release <version> [skip ci]`, the scope fixed to the package name by `@commitlint/config-pnpm-scopes`, and the `[skip ci]` load-bearing: without it that push starts the run that cuts the next release. The single-package sibling repositories have no package to name and say `chore(release): <version> [skip ci]` instead.
+- **The Better Stack browser tag speaks to two different hosts, and the CSP has to name both.** `b.js` comes from `betterstack.net`; the events go to the *source's own* ingest host, `s<id>.<region>.betterstackdata.com`. `connect-src` named only the first, so the tag loaded, initialised and had every beacon refused by the browser: `Fetch API cannot load … Refused to connect because it violates the document's Content Security Policy`, in the console and nowhere else. Nothing on the server sees it, the tag reports no error of its own, and Better Stack simply shows no sessions, so this reads as "the token is wrong" for as long as you look at the network tab and not the console. The ingest host is per source, which is why the directive names `https://*.betterstackdata.com` rather than the id.
+
+  **GA4 had the same shape and the same silence**, found in the console the moment the Better Stack half started working: gtag loads from `googletagmanager.com` and posts to `region<n>.google-analytics.com`, a *regional* endpoint chosen per visitor, so a `connect-src` naming `www.google-analytics.com` blocks every hit. `https://*.analytics.google.com` does not cover it either: that is a different domain from `google-analytics.com`. The directive names `https://*.google-analytics.com`, which covers `www.` and every region. Pinning one region is the trap forever-pto was in, working for whoever the edge routed to `region1` and silently not for anyone else. **The Cloudflare beacon is the third**, and it made the rule: `static.cloudflareinsights.com` serves it, `cloudflareinsights.com` receives it. `middleware.test.ts` iterates the three vendors and pins, for each, that the load host is in `script-src` and the send host in `connect-src`; the rule to carry away is that **a tag's script host is never its ingest host**, and the browser only ever says so in the console. Whether the beacon is injected at all is a Cloudflare dashboard setting, not a file here, so the CSP admitting it is necessary and not sufficient.
+
+  **`worker-src` is the same trap one level up.** Better Stack's tag builds its sampling worker from a `blob:` URL, and an unset `worker-src` does not default to permissive: it falls back to `script-src`, which admits no blobs, so the worker is refused with *Creating a worker from 'blob:…' violates the following Content Security Policy directive*, naming `script-src`, which is why it reads as a script problem. The directive is stated outright. biancafiore had it before either sibling did and never needed it; these two needed it and did not have it.
+- **`astro check` cannot run on the next TypeScript major, so `typescript` is held below it.** That major ships the Go compiler and no `lib/typescript.js`, and `@astrojs/language-server` reaches for the programmatic API that file exposes: `pnpm check` dies in its `getTsconfig` with *Cannot read properties of undefined (reading 'fileExists')* before it has read a single file. Verified by installing it and running the command, not inferred. Nothing in this tree imports the compiler API itself, so `tsc --noEmit` and the suite are fine and `astro check` alone is what stops, which is enough to fail the whole of `verify:static`. [`renovate.json`](./.github/renovate.json) carries an `allowedVersions` for it, because otherwise a major pull request nobody can merge is opened twice a month; lift both together the day the language server reads the native compiler. forever-pto holds its docs package to the same line for the same reason.
 
 ## Deploy
 
@@ -322,7 +332,7 @@ starts. Tag the case again once that rule stops matching.
 Message leaves through Cloudflare's `send_email` binding, `CONTACT_EMAIL`, whose `destination_address` pins the one
 address it may ever reach; anti-abuse is a honeypot field plus `CONTACT_RATE_LIMITER`, a second rate limit at five a
 minute, rather than Turnstile, which would need a verification secret
-([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). Both are declared at
+([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). Both are declared at
 the top level **and** in each named environment, for the reason the first paragraph of this section gives. What no
 file can assert is that `contact@contribkit.app` is a **verified destination address** in Email Routing: until it
 is, every send is refused and the form answers 502 with the platform's reason in Better Stack. `wrangler dev` binds
@@ -330,5 +340,7 @@ no `send_email` at all, so the form answers 502 locally too, and that proves not
 
 Web deploys to Cloudflare Workers via `ci.yml` (production on `main`, a per-PR preview otherwise). A
 manual dispatch on `main` redeploys production and the smoke run behind it, and cuts no
-release: the Worker secrets ride the deploy and the build inlines the public variables, so a rotated
-credential reaches nothing until something redeploys, and rotation changes no file a push filter could see. It is server-rendered because the SVG endpoint cannot be prerendered ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). The `changes` job counts `docs/**`, `shared/**` and `*.md` as web changes, so a docs-only push to `main` still redeploys production; that is the accepted price of the docs contract and the shared tokens both living outside `web/`. The app ships to Google Play via `release-app.yml` on manual dispatch with a track. The two components are released independently, which is why GitHub Environments are namespaced `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)); see the README for the mapping. A commit that touches both `app/` and `web/` is filed in both changelogs, because `semantic-release-monorepo` attributes by path and `main` takes squash merges. That is correct for a change which genuinely spans both clients, so it is a notice and not a gate: the `cross-package-notice` job in `ci.yml` comments on the pull request and does not block it.
+release: the build inlines the public variables, so a rotated analytics token reaches nothing until
+something redeploys, and rotating it changes no file in the tree. There are no Worker runtime secrets here
+to ride the deploy, unlike the sibling repositories: `API_RATE_LIMITER` is a binding rather than a secret,
+and the only credentials `_deploy.yml` handles are wrangler's own. It is server-rendered because the SVG endpoint cannot be prerendered ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). The `changes` job counts `docs/**`, `shared/**` and `*.md` as web changes, so a docs-only push to `main` still redeploys production; that is the accepted price of the docs contract and the shared tokens both living outside `web/`. The app ships to Google Play via `release-app.yml` on manual dispatch with a track. The two components are released independently, which is why GitHub Environments are namespaced `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)); see the README for the mapping. A commit that touches both `app/` and `web/` is filed in both changelogs, because `semantic-release-monorepo` attributes by path and `main` takes squash merges. That is correct for a change which genuinely spans both clients, so it is a notice and not a gate: the `cross-package-notice` job in `ci.yml` comments on the pull request and does not block it.
