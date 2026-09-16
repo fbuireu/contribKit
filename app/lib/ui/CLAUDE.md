@@ -43,7 +43,7 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 | [`features/export/`](./features/export) | Choosing an `ExportFormat` and the share flow. The format itself is a domain value object, not a private enum per surface |
 | [`features/tip/`](./features/tip) | The Tip Jar, its sealed `TipJarState`, and `TipProductPresentation`: the emoji and label each Tip Product is shown with |
 | [`features/widget/`](./features/widget) | Home-screen widget data sync and configuration |
-| [`features/contact/`](./features/contact) | The Contact sheet and its sealed `ContactSheetState`. It is the **one** surface in the app that sends something a person typed, and the Privacy sheet's opening sentence names it as the exception ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
+| [`features/contact/`](./features/contact) | The Contact sheet and its sealed `ContactSheetState`. It is the **one** surface in the app that sends something a person typed, and the Privacy sheet's description names it as the exception ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
 | [`features/privacy/`](./features/privacy) | The Privacy sheet and `TelemetryConsentNotifier`: the two Telemetry Consent switches and the only thing that applies them ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). It is **not** part of the Customizer, which [`CONTEXT.md`](../../../CONTEXT.md) defines as Palette, Cell Shape, Cell Size and Background |
 
 ## `ViewerNotifier` owns the state

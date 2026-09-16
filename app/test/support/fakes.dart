@@ -8,6 +8,7 @@ import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/repositories/suggested_username_repository.dart';
 import 'package:contribkit/domain/repositories/tip_repository.dart';
+import 'package:contribkit/domain/repositories/usage_event_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/contact_message.dart';
@@ -15,6 +16,7 @@ import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 
@@ -239,6 +241,21 @@ final class FakeTipRepository implements TipRepository {
     if (giveFailure case final error?) throw error;
     return outcome;
   }
+}
+
+final class FakeUsageEventRepository implements UsageEventRepository {
+  final recorded = <UsageEvent>[];
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<void> record(UsageEvent event) async {
+    recorded.add(event);
+  }
+
+  @override
+  Future<void> applyConsent({required bool granted}) async {}
 }
 
 final class FakeExportDelivery implements ExportDeliveryRepository {

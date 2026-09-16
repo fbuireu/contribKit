@@ -131,6 +131,20 @@ void main() {
       expect(repository.delivered, hasLength(1));
     });
 
+    testWidgets('Close after a sent message dismisses the sheet', (
+      tester,
+    ) async {
+      await _openSheet(tester, FakeContactMessageRepository());
+
+      await _fillIn(tester);
+      await tester.tap(find.text('Send'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ContactSheet), findsNothing);
+    });
+
     testWidgets('Cancel closes the sheet and sends nothing', (tester) async {
       final repository = FakeContactMessageRepository();
       await _openSheet(tester, repository);

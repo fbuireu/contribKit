@@ -8,7 +8,7 @@ Accepted. Amends [28](0028-telemetry-consent-is-asked-twice-and-answered-asymmet
 
 ## Context
 
-Until now the only way to reach the maintainer was the `mailto:contact@contribkit.app` link on the three legal
+Until now the only way to reach the maintainer was the `mailto:contact@contribkit.app` link on the legal
 pages. That is a dead end for anyone whose browser has no mail client configured, and it is unreachable from the
 app, which has no such link at all. A form is the obvious answer, and the obvious ways to deliver one all cost the
 same thing: a secret.

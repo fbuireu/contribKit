@@ -87,8 +87,7 @@ class _ContactSheetState extends ConsumerState<ContactSheet> {
     return AppSheet(
       title: const Text('Contact'),
       description: const Text(
-        'Write to the maintainer. Your message is sent as an email and stored '
-        'nowhere else.',
+        'Write to the maintainer; it leaves as an email and is stored nowhere.',
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

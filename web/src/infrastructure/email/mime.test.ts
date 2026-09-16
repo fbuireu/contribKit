@@ -78,6 +78,14 @@ describe("buildMimeMessage", () => {
 		expect(decoded(build({ text: "café ☕\nsecond line" }))).toBe("café ☕\nsecond line");
 	});
 
+	it("still writes a complete document for an empty text, with an empty body after the blank line", () => {
+		const raw = build({ text: "" });
+
+		expect(headersOf(raw).split("\r\n")).toHaveLength(9);
+		expect(bodyOf(raw)).toBe("\r\n");
+		expect(decoded(raw)).toBe("");
+	});
+
 	it("wraps the encoded body at 76 characters, which is what a mail transfer agent expects", () => {
 		const raw = build({ text: "a".repeat(1000) });
 

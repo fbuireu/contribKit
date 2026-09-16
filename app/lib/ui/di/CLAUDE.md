@@ -7,8 +7,10 @@ It instantiates concrete repositories, passes them into use cases, and exposes t
 for widgets and notifiers to watch. Everything else in `ui/` sees a provider, never a constructor.
 
 **`contactMessageRepositoryProvider` is `keepAlive` for the same reason `contributionRepositoryProvider` is**, and
-the reason is written out below: it owns an `http.Client` and closes it, and a `ref.read` from a sheet that is
-closing would tear the provider down while the POST is still in flight. `providers_test.dart` reads each of the two
+the reason is written out below: it owns one `http.Client` for the life of the app, and a `ref.read` from a sheet
+that is closing would otherwise tear the provider down while the POST is still in flight. Neither provider closes
+its client; `close()` exists on both repositories for a caller that builds one by hand, which today is the
+background isolate in `main.dart` for the GitHub one and only the tests for this one. `providers_test.dart` reads each of the two
 twice across a turn of the event loop and asserts the same instance comes back.
 
 **`contributionRepositoryProvider` is `keepAlive`, and the reason is a production defect.** It was auto-dispose,

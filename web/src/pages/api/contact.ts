@@ -1,12 +1,12 @@
 import { NOT_CACHEABLE } from "@application/http/cache-control";
-import { fieldFor, messageFor, statusFor } from "@application/http/failure-http";
+import { fieldFor, messageFor, reasonFor, statusFor } from "@application/http/failure-http";
 import {
 	logContactFailure,
 	logServerError,
 	SERVER_ERROR_MESSAGE,
 	SERVER_ERROR_STATUS,
 } from "@application/http/failure-log";
-import { FailureKind, isFailure } from "@domain/failures/failure";
+import { isFailure } from "@domain/failures/failure";
 import { logger } from "@infrastructure/logging/logger";
 import type { APIRoute } from "astro";
 import { z } from "astro/zod";
@@ -45,7 +45,7 @@ const handle: APIRoute = async ({ request }) => {
 			logger,
 			kind: result.kind,
 			status,
-			reason: result.kind === FailureKind.Delivery ? result.message : messageFor(result),
+			reason: reasonFor(result),
 		});
 		return Response.json({ error: messageFor(result), ...fieldFor(result) }, { status, headers: uncacheable });
 	}

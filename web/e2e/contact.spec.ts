@@ -15,7 +15,7 @@ test.describe("contact", () => {
 		await expect(page.locator(byId(ElementId.ContactSubmit))).toBeVisible();
 	});
 
-	test("stays in the index, unlike the three legal pages", async ({ page }) => {
+	test("stays in the index, unlike the legal pages", async ({ page }) => {
 		await page.goto("/contact");
 
 		await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");

@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
+import { CONTACT_ROUTE } from "@domain/value-objects/contact-message";
 import { EMBED_ROUTE } from "@domain/value-objects/embed";
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -26,7 +27,6 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 const AGENT_GUIDE_ROUTE = "/CLAUDE";
 const API_NAMESPACE = "/api/";
-const CONTACT_ROUTE = "/api/contact";
 
 interface WithSecurityHeadersParams {
 	response: Response;

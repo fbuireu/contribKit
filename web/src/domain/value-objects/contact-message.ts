@@ -1,5 +1,7 @@
 import { type Failure, FailureField, invalidInput } from "../failures/failure";
 
+export const CONTACT_ROUTE = "/api/contact";
+
 export const MAX_CONTACT_NAME_LENGTH = 80;
 export const MAX_CONTACT_EMAIL_LENGTH = 254;
 export const MIN_CONTACT_BODY_LENGTH = 10;

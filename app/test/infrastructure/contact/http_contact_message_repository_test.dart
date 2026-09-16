@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -112,6 +113,28 @@ void main() {
         );
       },
     );
+
+    testWidgets('turns a request that never answers into a NetworkFailure', (
+      tester,
+    ) async {
+      final repository = _repositoryAnswering(
+        (_) => Completer<http.Response>().future,
+      );
+
+      final outcome = expectLater(
+        repository.deliver(_message),
+        throwsA(
+          isA<NetworkFailure>().having(
+            (failure) => failure.message,
+            'message',
+            contains('timed out'),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 21));
+
+      await outcome;
+    });
 
     test('turns a socket error into a NetworkFailure', () async {
       final repository = _repositoryAnswering((_) async {

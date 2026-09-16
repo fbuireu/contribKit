@@ -84,6 +84,7 @@ List<Override> appOverrides({
   FakeContactMessageRepository? contact,
   FakeSuggestedUsernameRepository? usernames,
   FakeTipRepository? tips,
+  FakeUsageEventRepository? usageEvents,
   FakeExportDelivery? delivery,
   FakeExportRepository? svg,
   FakeExportRepository? png,
@@ -105,6 +106,9 @@ List<Override> appOverrides({
     usernames ?? FakeSuggestedUsernameRepository(),
   ),
   tipRepositoryProvider.overrideWithValue(tips ?? FakeTipRepository()),
+  usageEventRepositoryProvider.overrideWithValue(
+    usageEvents ?? FakeUsageEventRepository(),
+  ),
   exportDeliveryProvider.overrideWithValue(delivery ?? FakeExportDelivery()),
   svgExportRepositoryProvider.overrideWithValue(svg ?? FakeExportRepository()),
   pngExportRepositoryProvider.overrideWithValue(png ?? FakeExportRepository()),

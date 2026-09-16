@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/app_settings.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/failure_message.dart';
+import 'package:contribkit/ui/features/contact/contact_sheet.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
@@ -286,6 +288,23 @@ void main() {
       expect(field.controller?.text, 'torvalds');
       expect(find.byType(ContributionGrid), findsOneWidget);
     });
+
+    testWidgets(
+      'the mail button opens the Contact sheet and records only that',
+      (tester) async {
+        final usageEvents = FakeUsageEventRepository();
+        await _pumpViewer(
+          tester,
+          overrides: appOverrides(usageEvents: usageEvents),
+        );
+
+        await tester.tap(find.byIcon(LucideIcons.mail));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ContactSheet), findsOneWidget);
+        expect(usageEvents.recorded, [UsageEvent.contactOpened]);
+      },
+    );
 
     testWidgets('the theme toggle swaps the icon it offers', (tester) async {
       await _pumpViewer(tester);

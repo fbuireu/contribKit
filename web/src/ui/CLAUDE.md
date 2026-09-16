@@ -18,8 +18,12 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 
 ## Invariants & rules
 
-- **Components are dumb.** Props in, markup out. No fetching, no domain logic. Client interactivity lives in
-  [`utils/page-init.ts`](./utils/page-init.ts), not scattered through component `<script>` blocks.
+- **Components are dumb.** Props in, markup out. No fetching, no domain logic. The landing page's interactivity
+  lives in [`utils/page-init.ts`](./utils/page-init.ts), one controller for the whole page; a component that owns
+  its own behaviour keeps a colocated controller beside it and one `<script>` that calls it, the way
+  [`header/theme-toggle.ts`](./components/core/header/theme-toggle.ts) and
+  [`contact/contact-form.ts`](./components/contact/contact-form.ts) do. Behaviour never lives inline in the
+  `<script>` block itself, because vitest cannot reach it there.
 - **CSS is colocated.** Each component imports its own `.css` from the same folder.
 - **Palette colours and Cell Shapes always come from `@domain/value-objects/`.** Never a hex literal, never a shape
   name typed as a bare string.

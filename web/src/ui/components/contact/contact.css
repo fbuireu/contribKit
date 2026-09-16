@@ -93,15 +93,19 @@
 		border-radius: 0.5rem;
 		font-weight: 500;
 		font-size: var(--size-md);
-		color: var(--white);
-		background: var(--accent);
-		border: 0.0625rem solid transparent;
+		color: var(--text);
+		background: var(--surface-high);
+		border: 0.0625rem solid var(--border-strong);
 		transition:
 			background 120ms,
 			opacity 120ms;
 	}
 	.contact-send:hover:not(:disabled) {
-		background: color-mix(in oklch, var(--accent), var(--black) 12%);
+		background: var(--surface-raised);
+	}
+	.contact-send:focus-visible {
+		outline: 0.125rem solid var(--accent);
+		outline-offset: 0.125rem;
 	}
 	.contact-send:disabled {
 		opacity: 0.55;

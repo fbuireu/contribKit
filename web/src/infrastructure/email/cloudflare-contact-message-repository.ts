@@ -3,6 +3,7 @@ import { env } from "cloudflare:workers";
 import { delivery } from "@domain/failures/failure";
 import type { ContactMessageRepository } from "@domain/repositories/types";
 import type { ContactMessage } from "@domain/value-objects/contact-message";
+import { errorMessageOf } from "../errors/error-message";
 import { buildMimeMessage } from "./mime";
 
 export const CONTACT_ADDRESS = "contact@contribkit.app";
@@ -15,8 +16,6 @@ const textFor = (message: ContactMessage): string =>
 	[`Name: ${message.name ?? "(not given)"}`, `Email: ${message.email}`, "", message.body].join("\n");
 
 const messageIdFor = (date: Date): string => `<${date.getTime()}.${crypto.randomUUID()}@contribkit.app>`;
-
-const reasonFor = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
 export const cloudflareContactMessageRepository: ContactMessageRepository = {
 	deliver: async (message) => {
@@ -38,7 +37,7 @@ export const cloudflareContactMessageRepository: ContactMessageRepository = {
 			await binding.send(new EmailMessage(CONTACT_ADDRESS, CONTACT_ADDRESS, raw));
 			return message;
 		} catch (error) {
-			return delivery(reasonFor(error));
+			return delivery(errorMessageOf(error));
 		}
 	},
 };

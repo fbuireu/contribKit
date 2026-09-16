@@ -1,6 +1,5 @@
+import { CONTACT_ROUTE } from "@domain/value-objects/contact-message";
 import { ElementId } from "@ui/utils/dom-contract";
-
-export const CONTACT_ENDPOINT = "/api/contact";
 
 export const ContactStatusTone = {
 	Sent: "sent",
@@ -53,7 +52,7 @@ export function initContactForm(): void {
 
 		const fields = new FormData(form);
 		try {
-			const response = await fetch(CONTACT_ENDPOINT, {
+			const response = await fetch(CONTACT_ROUTE, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

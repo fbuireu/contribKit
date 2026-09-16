@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
 
+import { CONTACT_ROUTE } from "@domain/value-objects/contact-message";
 import { ElementId } from "@ui/utils/dom-contract";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CONTACT_ENDPOINT, initContactForm } from "./contact-form";
+import { initContactForm } from "./contact-form";
 
 const MARKUP = `
 	<form id="${ElementId.ContactForm}">
@@ -55,7 +56,7 @@ describe("initContactForm", () => {
 
 		expect(request).toHaveBeenCalledOnce();
 		const [url, init] = request.mock.calls[0] as unknown as [string, RequestInit];
-		expect(url).toBe(CONTACT_ENDPOINT);
+		expect(url).toBe(CONTACT_ROUTE);
 		expect(init.method).toBe("POST");
 		expect(JSON.parse(String(init.body))).toEqual({
 			name: "Ada",
@@ -115,6 +116,23 @@ describe("initContactForm", () => {
 		const status = byId(ElementId.ContactStatus);
 		expect(status.textContent).toContain("could not send your message");
 		expect(status.dataset.tone).toBe("failed");
+	});
+
+	it("posts an empty string for any field the form does not carry, rather than the word undefined", async () => {
+		document.body.innerHTML = `
+			<form id="${ElementId.ContactForm}">
+				<button id="${ElementId.ContactSubmit}" type="submit">send</button>
+				<p id="${ElementId.ContactStatus}" hidden></p>
+			</form>
+		`;
+		initContactForm();
+		const request = vi.fn(async () => answer({ body: { status: "accepted" } }));
+		vi.stubGlobal("fetch", request);
+
+		await submit();
+
+		const [, init] = request.mock.calls[0] as unknown as [string, RequestInit];
+		expect(JSON.parse(String(init.body))).toEqual({ name: "", email: "", message: "", website: "" });
 	});
 
 	it("disables the button while in flight and refuses a second submit until the first settles", async () => {

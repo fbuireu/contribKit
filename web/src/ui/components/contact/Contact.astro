@@ -21,7 +21,7 @@ import "./contact.css";
       </p>
     </div>
 
-    <form id={ElementId.ContactForm} class="contact-form" novalidate>
+    <form id={ElementId.ContactForm} class="contact-form">
       <div class="field">
         <label for={ElementId.ContactName}>name <span class="dimmer">(optional)</span></label>
         <input
@@ -62,7 +62,7 @@ import "./contact.css";
 
       <div class="field field--trap" aria-hidden="true">
         <label for={ElementId.ContactWebsite}>website</label>
-        <input id={ElementId.ContactWebsite} name={ElementId.ContactWebsite} type="text" tabindex="-1" autocomplete="off" />
+        <input id={ElementId.ContactWebsite} name={ElementId.ContactWebsite} type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
       </div>
 
       <div class="contact-actions">

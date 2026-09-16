@@ -38,7 +38,7 @@ It is also the only entry point for HTTP traffic.
 | [`api/contact.ts`](./api/contact.ts) | `POST /api/contact` | The contact form's endpoint, and the app's ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
 | [`api/health.ts`](./api/health.ts) | `GET /api/health` | Configuration presence check |
 | [`404.astro`](./404.astro), [`500.astro`](./500.astro) | `/404`, `/500` | Both render the shared `ErrorView`, **and both are reachable by hand** |
-| [`contact.astro`](./contact.astro) | `/contact` | The contact form. **Indexable and in the sitemap**, unlike the three legal pages |
+| [`contact.astro`](./contact.astro) | `/contact` | The contact form. **Indexable and in the sitemap**, unlike the legal pages |
 | [`legal-notice.astro`](./legal-notice.astro), [`privacy.astro`](./privacy.astro), [`terms.astro`](./terms.astro) | - | Static legal pages |
 | `_contributions.ts`, [`_contact.ts`](./_contact.ts) | - | Not routes: the shared compositions the data and contact consumers import |
 | `_tests/` | - | Not routes: the route tests plus the failure boundary's, kept out of the namespace by the underscore |

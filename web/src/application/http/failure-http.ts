@@ -23,6 +23,9 @@ export const messageFor = (failure: Failure): string => {
 	return failure.message;
 };
 
+export const reasonFor = (failure: Failure): string =>
+	failure.kind === FailureKind.NotFound ? NOT_FOUND_MESSAGE : failure.message;
+
 export const retryAfterHeader = (failure: Failure): Record<string, string> =>
 	failure.kind === FailureKind.RateLimited && failure.retryAfterSeconds !== null
 		? { "Retry-After": String(failure.retryAfterSeconds) }

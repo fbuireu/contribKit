@@ -555,7 +555,7 @@ describe("the Contact Message limits are written twice and must agree", () => {
 		expect(undeclared).toEqual([]);
 	});
 
-	it("bounds a Contact Message by the same four numbers on both clients", () => {
+	it("bounds a Contact Message by the same numbers on both clients", () => {
 		const dart = read(DART);
 		const web = read(WEB);
 		const disagreeing = LIMITS.filter(({ dart: dartName, web: webName }) => {
@@ -565,6 +565,18 @@ describe("the Contact Message limits are written twice and must agree", () => {
 		});
 
 		expect(disagreeing.map(({ dart: dartName }) => dartName)).toEqual([]);
+	});
+
+	it("sends to the one address the binding is pinned to, in every environment", () => {
+		const repository = read(join(REPO, "web/src/infrastructure/email/cloudflare-contact-message-repository.ts"));
+		const address = /export const CONTACT_ADDRESS = "([^"]+)"/.exec(repository)?.[1];
+		const pinned = [...read(join(REPO, "web/wrangler.toml")).matchAll(/^destination_address = "([^"]+)"$/gm)].map(
+			(match) => match[1],
+		);
+
+		expect(address).toBeDefined();
+		expect(pinned.length, "every send_email block pins a destination").toBeGreaterThanOrEqual(3);
+		expect(pinned.filter((candidate) => candidate !== address)).toEqual([]);
 	});
 
 	it("posts to a contact endpoint the web actually routes", () => {
