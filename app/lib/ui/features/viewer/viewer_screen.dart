@@ -6,6 +6,7 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
+import 'package:contribkit/ui/features/contact/contact_sheet.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/privacy/privacy_sheet.dart';
@@ -169,6 +170,22 @@ class _Header extends ConsumerWidget {
             iconOnly: true,
             child: Icon(
               LucideIcons.shield,
+              size: Tokens.iconSm,
+              color: colors.mutedForeground,
+            ),
+          ),
+          AppButton.ghost(
+            onPressed: () {
+              ref
+                  .read(usageEventRepositoryProvider)
+                  .record(UsageEvent.contactOpened);
+              ContactSheet.show(context);
+            },
+            size: AppButtonSize.sm,
+            semanticLabel: 'Contact',
+            iconOnly: true,
+            child: Icon(
+              LucideIcons.mail,
               size: Tokens.iconSm,
               color: colors.mutedForeground,
             ),

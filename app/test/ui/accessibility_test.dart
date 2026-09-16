@@ -7,6 +7,7 @@ import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
+import 'package:contribkit/ui/features/contact/contact_sheet.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
@@ -111,6 +112,7 @@ void main() {
         expect(labels, contains('torvalds'));
         expect(labels, contains('Year ${DateTime.now().year}'));
         expect(labels, contains('Year ${Year.minYear}'));
+        expect(labels, contains('Contact'));
         expect(labels, contains('Support ContribKit'));
         expect(labels, contains('Switch to the light theme'));
         expect(labels, contains('Show contributions'));
@@ -185,6 +187,22 @@ void main() {
             reason: '${format.name} has no announced label',
           );
         }
+        _expectEveryButtonAnnounced(tester);
+        await _expectMeetsGuidelines(tester);
+      });
+    });
+
+    testWidgets('the Contact sheet names its send, cancel and close controls', (
+      tester,
+    ) async {
+      await _withSemantics(tester, () async {
+        await pumpSheet(
+          tester,
+          overrides: appOverrides(),
+          builder: (_) => const ContactSheet(),
+        );
+
+        expect(_buttonLabels(tester), containsAll(['Send', 'Cancel', 'Close']));
         _expectEveryButtonAnnounced(tester);
         await _expectMeetsGuidelines(tester);
       });

@@ -81,6 +81,7 @@ List<Override> appOverrides({
   FakeSettingsRepository? settings,
   FakePaletteRepository? palettes,
   FakeContributionRepository? contributions,
+  FakeContactMessageRepository? contact,
   FakeSuggestedUsernameRepository? usernames,
   FakeTipRepository? tips,
   FakeExportDelivery? delivery,
@@ -96,6 +97,9 @@ List<Override> appOverrides({
   ),
   contributionRepositoryProvider.overrideWithValue(
     contributions ?? FakeContributionRepository(),
+  ),
+  contactMessageRepositoryProvider.overrideWithValue(
+    contact ?? FakeContactMessageRepository(),
   ),
   suggestedUsernameRepositoryProvider.overrideWithValue(
     usernames ?? FakeSuggestedUsernameRepository(),

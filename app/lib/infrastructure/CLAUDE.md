@@ -32,6 +32,8 @@ Flutter widgets, and must never import from `ui/`.
 | Directory | Contents |
 |---|---|
 | `github/` | `GitHubContributionRepository`: scraping plus the Hive calendar cache |
+| `http/` | `RetryAfter`, the one parser for the header every repository here reads |
+| `contact/` | `HttpContactMessageRepository`: **the only call this app makes to a ContribKit server** |
 | [`github/dtos/`](./github/dtos) | JSON transfer objects for the cache, converted before leaving the layer |
 | `persistence/` | `HiveSettingsRepository`: every stored setting |
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
@@ -116,6 +118,48 @@ the streak walk in [`ui/features/widget/calendar_widget_service.dart`](../ui/fea
   hands them to `ContributionGridService`, rather than trusting the shape it read. It used to map the DTO's weeks
   straight through, so the grid invariant held on the cached path only because `_toDto` had written it correctly.
   And when the walk was building the wrong dates, the cache faithfully stored the wrong grid and served it back.
+
+## `contact/`: the first call to our own server
+
+Every other repository here reaches GitHub, the bundle, Hive or the store. `HttpContactMessageRepository` posts a
+Contact Message to `${Embed.origin}/api/contact`, which is this project's own Worker
+([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). That does
+**not** reopen [ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md): the contributions scrape is
+still a direct GitHub call, and this is a surface the app could not implement on its own, because sending mail needs
+a binding only a Worker has. The origin comes from `Embed.origin` rather than a second literal, so the one place
+that names `contribkit.app` in Dart stays one place.
+
+It takes an `http.Client` or owns one and exposes `close()`, exactly like `GitHubContributionRepository`, and its
+provider is `keepAlive` for the same reason that one is: a `ref.read` adds no listener, and a disposed provider
+would close the client mid-request.
+
+**Failure mapping, and it is narrower than it looks:**
+
+| Situation | Result |
+| --- | --- |
+| `IOException` or `http.ClientException` around the request, including the 20 s timeout | `NetworkFailure` |
+| status 429 | `RateLimitedFailure`, `resetAt` from `RetryAfter` |
+| any other non-2xx | `DeliveryFailure`, carrying the body's `error` field or the bare `HTTP <code>` |
+| anything else thrown | **propagates untouched** |
+
+That last row is the one worth stating. A blanket `catch (e)` here would turn a `StateError` in our own code into a
+network message shown to a person, which is the shape of defect the Tip repository already recorded once. Only the
+two transport exceptions are converted, and they are converted around the **request** alone: decoding the body
+cannot raise a `NetworkFailure`, because by then the network has done its job.
+
+**A `DeliveryFailure` never carries the platform's wording**, because the server does not send it: `/api/contact`
+answers the fixed sentence `"Could not send your message"` and logs the reason itself. What arrives here is
+already public copy.
+
+## `http/`: one `Retry-After` parser, every reader
+
+`RetryAfter.resetAtFrom` handles both forms the RFC allows: an integer count of seconds added to now, or an HTTP
+date through `HttpDate.parse`, falling back to ISO-8601. Anything neither can read leaves `resetAt` as `null`,
+which the UI has to tolerate.
+
+It was `_resetAtFrom`, private to `contribution_repository_impl.dart`, and stayed private for as long as the GitHub
+scraper was the only thing here making a request. The contact repository can be told to slow down too, so leaving it
+private would have meant another copy of a parser whose *first* version silently supported only half the spec.
 
 ## `persistence/`: settings
 
@@ -279,7 +323,7 @@ suspicious of this file specifically.
   `level` and so the fallback never fires for an entry this version wrote; it stays for entries written before the
   field existed, and paying for a full pass over the year on every cache hit to serve that case was the wrong
   trade.
-- The `RateLimitedFailure.resetAt` parser accepts `Retry-After` in both forms the RFC allows: an integer count of
+- The `RateLimitedFailure.resetAt` parser is `RetryAfter` in `http/`, and accepts `Retry-After` in both forms the RFC allows: an integer count of
   seconds, added to now, or an HTTP-date parsed with `HttpDate.parse` from `dart:io`. The date branch used to be
   `DateTime.tryParse`, which only understands ISO-8601: `Wed, 21 Oct 2015 07:28:00 GMT` came back `null`, so half
   the spec was silently unsupported while the doc claimed both. ISO-8601 remains as a fallback. A header neither can

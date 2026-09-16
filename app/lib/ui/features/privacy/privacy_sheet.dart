@@ -24,8 +24,10 @@ class PrivacySheet extends ConsumerWidget {
     return AppSheet(
       title: const Text('Privacy'),
       description: const Text(
-        'ContribKit never sends the username you look up, the calendar you '
-        'render, or anything you type. You can change these at any time.',
+        'ContribKit never sends the username you look up or the calendar you '
+        'render. The one thing you type that does leave the device is a '
+        'message you write in the Contact sheet, and only when you send it. '
+        'You can change these at any time.',
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

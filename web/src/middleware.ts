@@ -24,6 +24,8 @@ const SECURITY_HEADERS: Record<string, string> = {
 };
 
 const AGENT_GUIDE_ROUTE = "/CLAUDE";
+const API_NAMESPACE = "/api/";
+const CONTACT_ROUTE = "/api/contact";
 
 interface WithSecurityHeadersParams {
 	response: Response;
@@ -51,8 +53,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		});
 	}
 
-	if (url.pathname.startsWith("/api/")) {
-		const rateLimiter = env.API_RATE_LIMITER;
+	if (url.pathname.startsWith(API_NAMESPACE)) {
+		const rateLimiter = url.pathname === CONTACT_ROUTE ? env.CONTACT_RATE_LIMITER : env.API_RATE_LIMITER;
 
 		if (rateLimiter) {
 			const key = request.headers.get("CF-Connecting-IP") ?? "unknown";

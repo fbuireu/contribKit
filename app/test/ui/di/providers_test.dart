@@ -5,7 +5,9 @@ import 'package:contribkit/application/use_cases/fetch_contributions.dart';
 import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
 import 'package:contribkit/application/use_cases/give_tip.dart';
 import 'package:contribkit/application/use_cases/invalidate_contribution_cache.dart';
+import 'package:contribkit/application/use_cases/send_contact_message.dart';
 import 'package:contribkit/domain/failures/failure.dart';
+import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
@@ -78,6 +80,21 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
       final second = container.read(contributionRepositoryProvider);
+
+      expect(identical(first, second), isTrue);
+    },
+  );
+
+  test(
+    'keeps one contact repository alive across the frame a send spans',
+    () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final first = container.read(contactMessageRepositoryProvider);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+      final second = container.read(contactMessageRepositoryProvider);
 
       expect(identical(first, second), isTrue);
     },
@@ -164,6 +181,10 @@ void main() {
       );
       expect(container.read(tipRepositoryProvider), isA<TipRepository>());
       expect(
+        container.read(contactMessageRepositoryProvider),
+        isA<ContactMessageRepository>(),
+      );
+      expect(
         container.read(settingsRepositoryProvider),
         isA<SettingsRepository>(),
       );
@@ -204,6 +225,10 @@ void main() {
       );
       expect(container.read(fetchTipProductsProvider), isA<FetchTipProducts>());
       expect(container.read(giveTipProvider), isA<GiveTip>());
+      expect(
+        container.read(sendContactMessageProvider),
+        isA<SendContactMessage>(),
+      );
     });
 
     test('exportCalendar is one family that switches on the Export Format', () {

@@ -48,6 +48,13 @@ void main() {
       );
     });
 
+    test('a DeliveryFailure repeats why the send was refused', () {
+      expect(
+        const DeliveryFailure(message: 'destination not verified').toString(),
+        'DeliveryFailure: destination not verified',
+      );
+    });
+
     test('a CacheFailure repeats the storage message', () {
       expect(
         const CacheFailure(message: 'box is closed').toString(),
@@ -77,13 +84,14 @@ void main() {
     });
   });
 
-  test('the set is sealed, so every Failure is one of the nine', () {
+  test('the set is sealed, so every Failure names a kind in it', () {
     const failures = <Failure>[
       NetworkFailure(message: 'x'),
       RateLimitedFailure(),
       ParseFailure(message: 'x'),
       AssetFailure(asset: 'x'),
       CacheFailure(message: 'x'),
+      DeliveryFailure(message: 'x'),
       ExportFailure(message: 'x'),
       TipFailure(message: 'x'),
       UnexpectedFailure(message: 'x'),
@@ -101,6 +109,7 @@ void main() {
         ParseFailure() => 'ParseFailure',
         AssetFailure() => 'AssetFailure',
         CacheFailure() => 'CacheFailure',
+        DeliveryFailure() => 'DeliveryFailure',
         ExportFailure() => 'ExportFailure',
         TipFailure() => 'TipFailure',
         UnexpectedFailure() => 'UnexpectedFailure',

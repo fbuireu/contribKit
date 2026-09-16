@@ -1,0 +1,14 @@
+---
+import Contact from "@ui/components/contact/Contact.astro";
+import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
+import type { Metadata } from "@ui/components/core/seo/types";
+
+const metadata: Metadata = {
+	title: "Contact: ContribKit",
+	description: "Send the ContribKit maintainer a message about the app, the site, or the public API.",
+};
+---
+
+<BaseLayout metadata={metadata}>
+  <Contact />
+</BaseLayout>

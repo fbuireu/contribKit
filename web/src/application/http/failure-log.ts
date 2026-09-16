@@ -42,6 +42,19 @@ export const logContributionsFailure = ({
 	});
 };
 
+export interface LogContactFailureParams {
+	logger: FailureLogger;
+	kind: Failure["kind"];
+	status: number;
+	reason: string;
+}
+
+export const logContactFailure = ({ logger, kind, status, reason }: LogContactFailureParams): void => {
+	if (status < SERVER_ERROR_STATUS) return;
+
+	logger.error({ message: "Contact message delivery failed", context: { kind, reason, status } });
+};
+
 export interface LogServerErrorParams {
 	logger: FailureLogger;
 	error: unknown;

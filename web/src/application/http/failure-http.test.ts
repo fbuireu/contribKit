@@ -1,4 +1,4 @@
-import { invalidInput, network, notFound, parse, rateLimited } from "@domain/failures/failure";
+import { delivery, invalidInput, network, notFound, parse, rateLimited } from "@domain/failures/failure";
 import type { Username } from "@domain/value-objects/username";
 import { describe, expect, it } from "vitest";
 import { messageFor, retryAfterHeader, statusFor } from "./failure-http";
@@ -12,12 +12,17 @@ describe("statusFor", () => {
 		expect(statusFor(network({ message: "down" }))).toBe(502);
 		expect(statusFor(parse("oops"))).toBe(502);
 		expect(statusFor(rateLimited({ message: "slow down", retryAfterSeconds: 60 }))).toBe(429);
+		expect(statusFor(delivery("no destination"))).toBe(502);
 	});
 });
 
 describe("messageFor", () => {
 	it("uses a friendly message for not-found", () => {
 		expect(messageFor(notFound(handle("ghost")))).toBe("User not found");
+	});
+
+	it("answers a fixed sentence for a Delivery failure, because its message is the platform's", () => {
+		expect(messageFor(delivery("destination address not verified"))).toBe("Could not send your message");
 	});
 
 	it("passes through the failure message otherwise", () => {
@@ -48,5 +53,6 @@ describe("retryAfterHeader", () => {
 		expect(retryAfterHeader(network({ message: "down" }))).toEqual({});
 		expect(retryAfterHeader(parse("oops"))).toEqual({});
 		expect(retryAfterHeader(invalidInput({ field: "username", message: "bad" }))).toEqual({});
+		expect(retryAfterHeader(delivery("no destination"))).toEqual({});
 	});
 });

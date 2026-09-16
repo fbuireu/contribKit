@@ -45,6 +45,12 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   was the e2e, which spelled the same strings by hand; and the suite clicked `.theme-toggle`, a class the contract
   does not own, sitting beside the id it does. Dropping that redundant-looking class would have broken the e2e
   with nothing to explain why. Add a selector here and use it from both sides, tests included.
+- **A page that is not the landing page adds ids and no `Selector`.** The contact form's ids
+  (`ContactForm`, `ContactName`, `ContactEmail`, `ContactMessage`, `ContactWebsite`, `ContactSubmit`,
+  `ContactStatus`) are in `ElementId` and deliberately **not** in `Selector`, because the rule below walks the whole
+  `Selector` enum against `/` and every one of them would match nothing there. Its controller reads them through
+  `ElementId` directly, and [`e2e/contact.spec.ts`](../../e2e/contact.spec.ts) asserts them against `/contact`
+  instead.
 - **Adding a `Selector` entry adds an e2e obligation.** [`web/e2e/index.spec.ts`](../../e2e/index.spec.ts) walks the whole enum against the
   landing page and fails on any entry that matches nothing, because an entry no markup satisfies is a renamed id
   the `if (el)` consumers turn into a silent no-op. Two lists in that spec carve out the entries that only exist
@@ -180,6 +186,13 @@ them together, because the CSS and the screen reader must not disagree.
   `:root.theme-dark` is what the toggle pins. They have to hold the same declarations in the same order, and the
   test compares them declaration for declaration. Add a variable to one and forget the other and a pinned dark
   theme silently loses it. The third block, `:root.theme-light`, is a different palette and is not checked.
+- **The contact form's controller lives with its component, not in `utils/`.**
+  [`components/contact/contact-form.ts`](./components/contact/contact-form.ts) is colocated beside `Contact.astro`
+  rather than in `utils/`, the same way `theme-toggle.ts` sits with the header: it belongs to one component and no
+  other page loads it. It intercepts `submit`, posts JSON to `/api/contact`, disables the button and refuses a
+  second submit while one is in flight, and writes the outcome into an `aria-live` status node. The sentence it
+  writes is the response's own `error` when there is one, so the server's *field* wording reaches the visitor, and
+  its own fallback otherwise ([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 - [`unshuffle.ts`](./utils/unshuffle.ts) de-obfuscates the contact details on the legal pages. It is anti-scraping decoration, not a security
   control. Treat anything it protects as public.
 - **The three legal pages are pinned by [`web/e2e/legal-pages.spec.ts`](../../e2e/legal-pages.spec.ts)**, which asserts each answers 200, renders an

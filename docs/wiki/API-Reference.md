@@ -14,6 +14,7 @@ Base URL: `https://contribkit.app`
 |----------|---------|-------------|
 | `GET /user/:username.svg` | `image/svg+xml` | Rendered calendar; accepts `palette`, `shape`, `background` |
 | `GET /api/contributions?user=&year=` | `application/json` | Raw Contribution Days plus yearly total |
+| `POST /api/contact` | `application/json` | Sends a Contact Message to the maintainer as email |
 | `GET /api/health` | `application/json` | Deployment health: env var/binding presence (never values) |
 
 ---
@@ -113,6 +114,47 @@ naming the parameter that was rejected (`username` or `year`), because this endp
 
 ---
 
+## `POST /api/contact`
+
+Sends a message to the maintainer. There is no authentication and no account: the message leaves as an email
+through Cloudflare Email Routing and is **stored nowhere**, so there is nothing to read back and no id to quote.
+
+### Request body
+
+`Content-Type: application/json`
+
+```json
+{
+  "name": "Ada",
+  "email": "ada@example.com",
+  "message": "The nord palette looks wrong at level 1."
+}
+```
+
+| Field | Required | Rule |
+|-------|----------|------|
+| `email` | yes | at most 254 characters; exactly one `@`, a dot in the domain, and no whitespace, `<`, `>` or `"`. The rule is stricter than the RFC on purpose: that address becomes a `Reply-To` header |
+| `message` | yes | 10 to 4000 characters after trimming. Line breaks are kept |
+| `name` | no | at most 80 characters. Blank or omitted is the same thing |
+| `website` | no | a honeypot. Leave it empty. A non-empty value is accepted and **not sent** |
+
+Every field is trimmed before it is checked.
+
+### Responses
+
+| Status | Meaning |
+|--------|---------|
+| `202` | Accepted. The body is `{ "status": "accepted" }`. A submission that filled the honeypot gets this too, and sends nothing |
+| `400` | Either `{ "error": "Invalid request body" }` when the JSON does not have the shape above, or `{ "error": "<sentence>", "field": "name" \| "email" \| "message" }` when a value was rejected |
+| `429` | The per-IP limit for this endpoint, **5 requests a minute**, which is its own bucket and far tighter than the 100/min the rest of `/api/*` gets. Carries `Retry-After: 60` |
+| `502` | `{ "error": "Could not send your message" }`. Email Routing refused the send. The reason is deliberately not in the body; it is in the server log |
+
+**Every answer is `Cache-Control: no-store`, the `202` included.**
+
+```bash
+curl -s -X POST "https://contribkit.app/api/contact" -H "Content-Type: application/json" -d '{"email":"ada@example.com","message":"hello from the API reference"}'
+```
+
 ## `GET /api/health`
 
 Reports whether the deployed worker was built/configured with each expected variable and binding. Reports **presence only, never values**. Sent with `Cache-Control: no-store`.
@@ -123,7 +165,9 @@ Reports whether the deployed worker was built/configured with each expected vari
   "env": {
     "PUBLIC_GOOGLE_ANALYTICS_ID": true,
     "PUBLIC_BETTER_STACK_TRACKING_TOKEN": true,
-    "API_RATE_LIMITER": true
+    "API_RATE_LIMITER": true,
+    "CONTACT_RATE_LIMITER": true,
+    "CONTACT_EMAIL": true
   },
   "timestamp": "2026-01-01T00:00:00.000Z"
 }
@@ -135,7 +179,7 @@ Returns `200` when everything is present, `503` (`"status": "misconfigured"`) ot
 
 ## Rate limiting
 
-`/api/*` requests pass through a Cloudflare rate limiter (the `API_RATE_LIMITER` binding), keyed on the caller's `CF-Connecting-IP`. Over the limit, the API responds:
+`/api/*` requests pass through a Cloudflare rate limiter, keyed on the caller's `CF-Connecting-IP`. There are two buckets: `POST /api/contact` uses `CONTACT_RATE_LIMITER` at **5 requests a minute**, and every other `/api/` path uses `API_RATE_LIMITER` at 100. The answer is the same either way:
 
 ```http
 HTTP/1.1 429 Too Many Requests
@@ -164,7 +208,7 @@ Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 So a calendar is served from cache for an hour, then revalidated in the background for up to a day. README image embeds are additionally cached by GitHub's Camo proxy.
 
-**Every answer that is not a calendar says `no-store`**: a 400, a 404, a 429 and a 500 on either endpoint, and `/api/health` whichever answer it gives. Only the success path is cacheable, so a transient upstream failure cannot be stored by an intermediary and replayed at a reader who retries. That matters most on the SVG endpoint, whose responses reach a README through Camo: a cached failure would show a broken image that no refresh could clear.
+**Every answer that is not a calendar says `no-store`**: a 400, a 404, a 429 and a 500 on either endpoint, every answer `/api/contact` gives, and `/api/health` whichever answer it gives. Only the success path is cacheable, so a transient upstream failure cannot be stored by an intermediary and replayed at a reader who retries. That matters most on the SVG endpoint, whose responses reach a README through Camo: a cached failure would show a broken image that no refresh could clear.
 
 ---
 

@@ -23,9 +23,11 @@ the one command CI actually runs.
 |------|-------|
 | [`pages/index.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/index.astro) | Landing page: SSR initial render + client interactivity |
 | [`pages/api/contributions.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/api/contributions.ts) | `GET /api/contributions?user=&year=` |
+| [`pages/api/contact.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/api/contact.ts) | `POST /api/contact` |
 | [`pages/api/health.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/api/health.ts) | `GET /api/health` |
 | `pages/user/[username].svg.ts` | `GET /user/:username.svg` |
 | [`pages/404.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/404.astro), [`500.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/500.astro) | Error pages (shared `ErrorView`) |
+| [`pages/contact.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/contact.astro) | `/contact`: the contact form, indexable and in the sitemap |
 | [`pages/legal-notice.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/legal-notice.astro), [`privacy.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/privacy.astro), [`terms.astro`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/terms.astro) | Static legal pages |
 
 All dynamic routes set `prerender = false`. Pages are the composition root: they instantiate infrastructure and use cases **once at module scope**, validate input with Zod + domain value objects, call the use case, and map any `Failure` to an HTTP response via `statusFor`/`messageFor`. No business logic lives in pages. See **[API Reference](API-Reference)**.
@@ -36,6 +38,7 @@ All dynamic routes set `prerender = false`. Pages are the composition root: they
 |-------|------------|
 | `/api/contributions` | Zod schema requires `user` (min 1), optional `year`; then `parseUsername` + `parseYear` |
 | `/user/:username.svg` | `parseUsername(params.username)`; `palette`/`shape` fall back to defaults, `background` is regex-checked (`transparent`, hex, or CSS color name) then defaulted |
+| `/api/contact` | Zod over the JSON **body** requires `email` and `message` and allows `name` and the `website` honeypot; then `parseContactMessage`, whose email rule is also the header-injection guard |
 
 Unknown `palette`/`shape`/`background` values silently fall back to defaults via Zod `.catch()`, so the SVG never errors on bad options; only an invalid **username** produces a 4xx.
 
@@ -46,7 +49,7 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 [`src/middleware.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/middleware.ts) runs on every request and does three things:
 
 1. **Blocking the agent guide:** `/CLAUDE` gets a bare `404` before anything else runs. Astro compiles [`src/pages/CLAUDE.md`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/CLAUDE.md) into a public page, and this is what keeps it off the web ([ADR 0018](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
-2. **Rate limiting:** for `/api/*` paths, it reads the `API_RATE_LIMITER` binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. Over the limit, it returns `429` with `Retry-After: 60` (still wrapped in the security headers).
+2. **Rate limiting:** for `/api/*` paths, it picks a binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. `POST /api/contact` goes through `CONTACT_RATE_LIMITER` (5/min, protecting a mailbox) and everything else through `API_RATE_LIMITER` (100/min, protecting an upstream). Over the limit, it returns `429` with `Retry-After: 60` either way (still wrapped in the security headers). A path whose own binding is absent is simply not limited; the contact path never falls back to the other bucket.
 3. **Security headers:** every response is re-wrapped with a strict header set:
 
 ```
@@ -90,7 +93,9 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined).
 |----------|------|---------|
 | `PUBLIC_GOOGLE_ANALYTICS_ID` | build-time | GA (browser) |
 | `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time | Better Stack browser tag (RUM), from the app's Frontend tab |
-| `API_RATE_LIMITER` | runtime binding | rate limiter |
+| `API_RATE_LIMITER` | runtime binding | rate limiter for `/api/*` |
+| `CONTACT_RATE_LIMITER` | runtime binding | rate limiter for `POST /api/contact` |
+| `CONTACT_EMAIL` | runtime binding | `send_email`, pinned to `contact@contribkit.app`; see [ADR 0029](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md) |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker has (presence only, never values).
 

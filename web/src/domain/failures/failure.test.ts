@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Username } from "../value-objects/username";
-import { FailureKind, invalidInput, isFailure, network, notFound, parse, rateLimited } from "./failure";
+import { delivery, FailureKind, invalidInput, isFailure, network, notFound, parse, rateLimited } from "./failure";
 
 const handle = (value: string): Username => ({ _tag: "Username", value });
 
@@ -52,6 +52,13 @@ describe("failure constructors", () => {
 			kind: "RateLimited",
 			message: "slow down",
 			retryAfterSeconds: null,
+		});
+	});
+
+	it("delivery", () => {
+		expect(delivery("email routing refused the destination")).toEqual({
+			kind: "Delivery",
+			message: "email routing refused the destination",
 		});
 	});
 

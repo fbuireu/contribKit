@@ -12,9 +12,10 @@ be constructible and testable with `const FetchContributions(repository: fake)` 
   [`ui/di/providers.dart`](../ui/di/CLAUDE.md).
 - **Stateless.** Every one of them is a `const` constructor over a repository. State lives in `ui/`.
 - **Named parameters** for anything taking more than one argument, matching the repository interface it fronts.
-  `GiveTip.call(TipProduct product)` is the one positional signature, because it has exactly one argument.
+  `GiveTip.call(TipProduct product)` and `SendContactMessage.call(ContactMessage message)` are the positional
+signatures, because each has exactly one argument.
 
-## The five use cases
+## The use cases
 
 | Class | Fronts | Returns |
 | --- | --- | --- |
@@ -23,11 +24,18 @@ be constructible and testable with `const FetchContributions(repository: fake)` 
 | `ExportCalendar` | `ExportRepository.export` | `List<int>`: the encoded bytes |
 | `FetchTipProducts` | `TipRepository.getProducts` | `List<TipProduct>` |
 | `GiveTip` | `TipRepository.give` | `TipOutcome` |
+| `SendContactMessage` | `ContactMessageRepository.deliver` | `Future<void>`: it either returns or throws a `Failure` |
 
 **`GiveTip` returns a `TipOutcome`, and that is the point of it.** It returned `Future<void>`, so *completed* and
 *cancelled* were the same value and the Tip Jar could not tell them apart, which is exactly why nobody noticed
 that the repository below it had an unreachable cancel arm. A store sheet the person backs out of is an ordinary
 outcome, not an error and not a success, and it is a value now.
+
+**`SendContactMessage` is the one whose repository talks to this project's own server.** Every other
+repository behind these classes reaches GitHub, the bundle, Hive or the store; this one posts to `/api/contact`
+([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). The use case
+itself knows none of that, which is the point: `ContactSheet` builds a `ContactMessage` (whose constructor is what
+rejects a bad address) and hands it over.
 
 Every one of them is a one-line delegation today, and that is fine. They exist so `ui/` depends on `application/` rather than
 on a repository interface it would also have to call, and so a rule belonging between the widget and the repository

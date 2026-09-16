@@ -140,6 +140,10 @@ Both clients use the same layered architecture with a strict inward dependency d
   folder's guide, never inline ([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)).
 - **Errors are a sealed, typed set.** Returned as values on the web, thrown and matched without a wildcard in the app ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). Never widen a match with `_` to silence the compiler.
 - **Never invent data for the user.** An unknown Count is not zero, and must not be estimated, summed, or displayed as exact.
+- **A Contact Message is the one thing a person types that leaves the device, and it leaves as email.** It is
+  stored nowhere: no database, no log line, no queue. `logContactFailure` takes the failure's kind and the
+  platform's reason and **never the name, the address or the message**
+  ([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 - **Telemetry carries no Username, ever.** A Usage Event is an enum case and has no payload; a Diagnostic Report
   carries the error's type and stack and never its message, because half the app's `Failure` messages interpolate a
   Username or a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
@@ -188,7 +192,7 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |
 | A `Failure` kind | the exhaustive match that renders it, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
 | A stored Hive key | add a legacy fallback and a migration test, or users silently lose the setting |
-| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** both store declarations ([`docs/plans/0002-telemetry-store-declarations.md`](./docs/plans/0002-telemetry-store-declarations.md)). The policy names the processors and the region, so a changed host is a policy change |
+| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** both store declarations ([`docs/plans/0002-telemetry-store-declarations.md`](./docs/plans/0002-telemetry-store-declarations.md)). The policy names the processors and the region, so a changed host is a policy change. It is no longer Telemetry alone: the Contact sheet sends a name, an address and a message a person typed, which is why the Play form carries *Personal info* and *Messages* rows ([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)), and why the Privacy sheet's first sentence names it as the one exception |
 | A decision an ADR records | that ADR: amend it, or supersede it and say so in both `## Status` blocks |
 | The layer map, a run end to end, or the release pipeline | [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
 | A claim the docs-consistency test asserts, on purpose | the doc first; the test only when the claim itself changed |
@@ -313,6 +317,16 @@ so the Worker is running and routing. **A browser gets the JSON**, checked on 20
 what supplies. So the JSON API is up and the zone answers a datacenter address differently from a person: a bot rule
 on `/api/*`. Cloudflare's **Security Events** log names the rule that blocked a given request, which is where a fix
 starts. Tag the case again once that rule stops matching.
+
+**The contact form adds two bindings and no secret, which is the whole reason it is shaped this way.** A Contact
+Message leaves through Cloudflare's `send_email` binding, `CONTACT_EMAIL`, whose `destination_address` pins the one
+address it may ever reach; anti-abuse is a honeypot field plus `CONTACT_RATE_LIMITER`, a second rate limit at five a
+minute, rather than Turnstile, which would need a verification secret
+([ADR 0029](./docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)). Both are declared at
+the top level **and** in each named environment, for the reason the first paragraph of this section gives. What no
+file can assert is that `contact@contribkit.app` is a **verified destination address** in Email Routing: until it
+is, every send is refused and the form answers 502 with the platform's reason in Better Stack. `wrangler dev` binds
+no `send_email` at all, so the form answers 502 locally too, and that proves nothing about production.
 
 Web deploys to Cloudflare Workers via `ci.yml` (production on `main`, a per-PR preview otherwise). A
 manual dispatch on `main` redeploys production and the smoke run behind it, and cuts no

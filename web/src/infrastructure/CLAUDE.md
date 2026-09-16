@@ -20,6 +20,9 @@ directive, because it is load-bearing and invisible in the response.
 - **Factory functions returning an object that satisfies a domain interface.** No classes.
 - **Convert at the boundary.** A network error, a non-OK status or unparseable HTML becomes a `Failure` here. No raw
   `Error` may escape this layer.
+- **This layer is the only one that names a Cloudflare binding.** `github/` reaches the network, `email/` sends
+  through `CONTACT_EMAIL`, and `middleware.ts` reads the two rate limiters. Nothing in `domain/` or `application/`
+  knows either exists.
 - **The scraper is the only place that knows GitHub's markup.** If GitHub changes the page, exactly one file here
   changes, and then so does the app's copy of the same parser
   ([ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md)).
@@ -113,6 +116,37 @@ and now identical *positions*, because neither computes any. What is left here i
 - It draws whatever the layout's `cells` hold, and `chunkWeeks` inside it returns as many weeks as the days make. A calendar
   shorter than 371 days therefore renders with empty trailing weeks rather than a narrower image: the width comes
   from `WEEKS_PER_YEAR`, not from the data.
+
+## `email/`: the one thing this project sends rather than reads
+
+`cloudflareContactMessageRepository` implements `ContactMessageRepository` and is the only outbound **write** in
+the project: everything else here fetches. It sends through Cloudflare's `send_email` binding, `CONTACT_EMAIL`,
+rather than a provider's API, so there is no runtime secret to hold or rotate
+([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+
+**The address is pinned twice, and the outer pin is the platform's.** `CONTACT_ADDRESS` is the `From` and the `To`
+this file builds, and `destination_address` on the binding in [`wrangler.toml`](../../wrangler.toml) is what makes any
+other recipient impossible regardless of what this code does. The visitor's address goes in `Reply-To` and nowhere
+else: putting it in `From` is what DMARC rejects.
+
+**What no file here can assert is that the recipient is a verified destination address in Email Routing.** It is a
+name resolved in the Cloudflare dashboard, like the observability destinations
+([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). Until it is verified
+every send is refused, and the refusal arrives as a `Delivery` failure carrying Cloudflare's own wording, which
+`logContactFailure` writes to Better Stack and `messageFor` keeps out of the response.
+
+**`mime.ts` builds the document by hand, and that is a decision rather than an omission.** No `mimetext`: a
+short header block and a base64 body do not justify a dependency, which is the same trade
+[ADR 0006](../../../docs/adr/0006-parse-the-contributions-page-with-regexes.md) makes for the parser. The body is
+base64 over UTF-8 bytes folded at 76 columns, so a message may carry any line break; **every header value has its
+CR and LF replaced with a space**, which is the second of two injection guards. The first is the domain's email
+rule, which rejects them outright. Two guards, because the layer below cannot see what the layer above validated.
+
+**The binding is read through `import { env } from "cloudflare:workers"`,** the same route the middleware takes,
+and `EmailMessage` comes from `cloudflare:email`. Both are virtual modules with no Node implementation, so the
+colocated tests mock them with `vi.mock` exactly as the health and middleware tests mock `cloudflare:workers`.
+`env.CONTACT_EMAIL` is **absent in local development**, and the repository answers `Delivery` for that rather than
+throwing: `wrangler dev` provides no Email Routing at all, so the form answering 502 locally is expected.
 
 ## `logging/`
 

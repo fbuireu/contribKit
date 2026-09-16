@@ -4,7 +4,7 @@ import type { Metadata } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
 
 const TITLE = "Privacy Policy: ContribKit";
-const EFFECTIVE_DATE = "2026-09-11";
+const EFFECTIVE_DATE = "2026-09-16";
 
 const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
 ---
@@ -23,7 +23,8 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
         <p>ContribKit is a tool for visualising public GitHub contribution calendars. This policy explains what data we collect, why, and how you can control it, both in the mobile app and on this website.</p>
 
         <h2>The mobile app</h2>
-        <p>The ContribKit app (iOS &amp; Android) requires no account, login, or authentication token, and we do not operate any server that receives or stores your personal data. Your username, selected year, palette, and visual preferences are stored locally on your device and are never sent to us. Uninstalling the app, or clearing its data, removes them.</p>
+        <p>The ContribKit app (iOS &amp; Android) requires no account, login, or authentication token. Your username, selected year, palette, and visual preferences are stored locally on your device and are never sent to us. Uninstalling the app, or clearing its data, removes them.</p>
+        <p>There is exactly one thing the app sends to a server of ours, and only when you ask it to: a message you write in the app's <strong>Contact</strong> sheet. It is covered by the <a href="#contact-form">Contact form</a> section below, which applies to the app and the website alike. Apart from that, we operate no server that receives or stores your personal data.</p>
         <p>To function, the app connects to two third parties directly from your device:</p>
         <ul>
           <li><strong>GitHub</strong>: the app requests the public contribution page at <code>github.com/users/&#123;username&#125;/contributions</code> using only the username you enter. As with any web request, GitHub receives your device's IP address and standard request metadata. No GitHub login or token is involved.</li>
@@ -51,6 +52,11 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
         <h3>Better Stack Telemetry</h3>
         <p>We use Better Stack to monitor site performance and catch front-end errors. Session data is anonymous and not linked to any individual. Data is processed by Better Stack, Inc. and subject to <a href="https://betterstack.com/privacy" target="_blank" rel="noopener">Better Stack's Privacy Policy</a>. Cookies set: <code>bs_*</code> (session cookies).</p>
 
+        <h2 id="contact-form">Contact form</h2>
+        <p>The <a href="/contact">contact form</a> on this website, and the <strong>Contact</strong> sheet in the app, are the one place ContribKit asks you to type something that is sent to us rather than to GitHub. Both collect your <strong>email address</strong>, your <strong>message</strong>, and your <strong>name</strong> if you choose to give one. Nothing else is attached: no account, no identifier, and none of the calendar you were looking at. The app's sheet sends the same three fields to the same endpoint on this website.</p>
+        <p>A submission reaches our Cloudflare Worker, which turns it into an email and hands it to Cloudflare Email Routing, which forwards it to the maintainer's mailbox. <strong>Nothing is stored on the server</strong>: the message is not written to a database or a log, and the only copy that survives is the email itself. That copy is kept in the mailbox for as long as it takes to answer you and is deleted on request. It is used to reply to you and for nothing else: never for a mailing list, never for advertising, and it is never shared.</p>
+        <p>A hidden field and a per-IP limit of five submissions a minute are used to refuse automated submissions. Cloudflare acts as our processor for the delivery; see <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare's Privacy Policy</a>.</p>
+
         <h2>Your choices</h2>
         <p>You can accept or reject analytics cookies at any time using the cookie banner or the <button type="button" data-cc="show-preferencesModal" class="inline-prefs-btn">cookie preferences</button> link in the footer. Rejecting analytics means neither Google Analytics nor Better Stack will load.</p>
 
@@ -72,7 +78,7 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
         <p>We may update this policy to reflect changes in the services we use. The effective date above reflects the most recent revision. Continued use after an update constitutes acceptance.</p>
 
         <h2>Contact</h2>
-        <p>Questions about this policy? <a href="mailto:contact@contribkit.app">contact@contribkit.app</a></p>
+        <p>Questions about this policy? Use the <a href="/contact">contact form</a>, or mail <a href="mailto:contact@contribkit.app">contact@contribkit.app</a>.</p>
 
       </div>
     </div>

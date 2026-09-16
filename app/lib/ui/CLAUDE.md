@@ -43,6 +43,7 @@ through [`di/`](./di/CLAUDE.md), `infrastructure/`.
 | [`features/export/`](./features/export) | Choosing an `ExportFormat` and the share flow. The format itself is a domain value object, not a private enum per surface |
 | [`features/tip/`](./features/tip) | The Tip Jar, its sealed `TipJarState`, and `TipProductPresentation`: the emoji and label each Tip Product is shown with |
 | [`features/widget/`](./features/widget) | Home-screen widget data sync and configuration |
+| [`features/contact/`](./features/contact) | The Contact sheet and its sealed `ContactSheetState`. It is the **one** surface in the app that sends something a person typed, and the Privacy sheet's opening sentence names it as the exception ([ADR 0029](../../../docs/adr/0029-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
 | [`features/privacy/`](./features/privacy) | The Privacy sheet and `TelemetryConsentNotifier`: the two Telemetry Consent switches and the only thing that applies them ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). It is **not** part of the Customizer, which [`CONTEXT.md`](../../../CONTEXT.md) defines as Palette, Cell Shape, Cell Size and Background |
 
 ## `ViewerNotifier` owns the state
@@ -289,6 +290,32 @@ but as a module with a test.
 `TipProduct.title` comes from the store and **nothing renders it**; the label above wins. Do not assume the store's
 own wording reaches the screen.
 
+## `features/contact/`: the one thing you type that leaves
+
+[`contact_sheet.dart`](./features/contact/contact_sheet.dart) is an `AppSheet` with three `AppTextField`s and a
+sealed [`ContactSheetState`](./features/contact/contact_sheet_state.dart) (idle / sending / sent / failed), the same
+shape and for the same reason as `TipJarState`: loose booleans would allow *sending* and *sent* at once, and
+`isSending` is what refuses a second tap rather than a hand-written guard.
+
+**Validation is the value object's, and the message under the fields is `ArgumentError.message`.** `ContactMessage`
+throws on a bad address or a short message before the repository is reached, exactly as `Username` does in the
+Viewer, and `_inputError` renders it the way `_inputError` does there. A failed *send* is different: it goes
+through `FailureMessage.ofAny`, so there is still no `switch` over a `Failure` outside `FailureMessage.of`.
+
+**`AppTextField` grew `maxLines`, `minLines`, `keyboardType` and `textInputAction` for this**, and
+each has a caller here: the message field is a multi-line box, the email field asks for an email keyboard, and the
+first two fields advance to the next. That is the rule the layout table above states for a dead parameter read in
+the other direction.
+
+**The entry point is a ghost icon button in the Viewer header**, `LucideIcons.mail`, labelled `Contact`,
+recording `UsageEvent.contactOpened`. It is an enum case with no payload like every other one, so opening the sheet
+is recorded and **nothing about the message ever is**
+([ADR 0027](../../../docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
+
+**The Privacy sheet's first sentence had to change, and that is not cosmetic.** It said ContribKit never sends
+"anything you type", which this makes false. It now names the Contact sheet as the one exception, and only when you
+send. A sentence in that sheet is a privacy claim; the published policy carries the long version.
+
 ## `features/widget/`
 
 Three modules, and the split is deliberate. `HomeScreenWidgetRefresh` owns the **sequence**: stored username, stored
@@ -437,7 +464,7 @@ misses, and the streak silently stops at the last clock change. The scraper's gr
   handles both RFC forms and is tested twice, and the arm that rendered it destructured nothing. So the whole
   parser was dead weight behind "Try again later." It says *Try again after 14:32* when GitHub told us, and falls
   back to the vague sentence when it did not.
-- **`FailureMessage.of` is the exhaustive match, and it lists all nine failures.** It is the **only** `switch` over
+- **`FailureMessage.of` is the exhaustive match, and it lists every kind in the sealed set.** It is the **only** `switch` over
   a `Failure` in the app and must stay that way: a second one needs a `_` arm to compile, and a `_` arm is exactly
   what [ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) forbids. Adding a kind
   would stop being a compile error. It lives in a module of its own rather than inside the widget that renders it,

@@ -4,7 +4,7 @@ Date: 2026-09-11
 
 ## Status
 
-Accepted. Carries the consent half of [27](0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md).
+Accepted. Carries the consent half of [27](0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md). **Amended by [29](0029-contact-messages-leave-through-cloudflares-send-email-binding.md)**, which adds two rows to the store declarations this decision's consequences describe: the app now also collects a name, an email address and a message, none of which is Telemetry.
 
 ## Context
 
@@ -39,7 +39,7 @@ Both vendors are configured to ingest in the **European Union**: PostHog's host 
 ## Consequences
 
 - **The published privacy policy is now load-bearing in a way it was not.** It names two processors, says what each receives, and says the data is processed in the EU. Every one of those is a claim a configuration change can falsify. Changing the PostHog host, or issuing a Sentry DSN in another region, is a policy change and not a config change.
-- **Both app stores have to be told.** Google Play's *Data safety* form and Apple's *App Privacy* answers both have to declare crash logs and product interaction, and they are declarations the stores hold us to. This is the part of this decision that is genuinely hard to reverse: an app that has declared a data type and stops collecting it has to re-declare, and the declarations are visible to anybody on the store listing.
+- **Both app stores have to be told.** Google Play's *Data safety* form and Apple's *App Privacy* answers both have to declare crash logs and product interaction (and, since [29](0029-contact-messages-leave-through-cloudflares-send-email-binding.md), personal info and in-app messages), and they are declarations the stores hold us to. This is the part of this decision that is genuinely hard to reverse: an app that has declared a data type and stops collecting it has to re-declare, and the declarations are visible to anybody on the store listing.
 - **Opt-out for Diagnostic Reports is a position, not a neutral default.** It is defensible because a Diagnostic Report carries no identifier and no message ([27](0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) is what makes that true). If that ever stops being true, this default stops being defensible and has to move to opt-in with it. The two decisions are joined.
 - **The opt-in only holds because the platform is told not to start PostHog itself.** `posthog_flutter` reads
   `com.posthog.posthog.PROJECT_TOKEN` from `AndroidManifest.xml` and from `Info.plist` and initialises from

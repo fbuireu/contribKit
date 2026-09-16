@@ -9,6 +9,8 @@ export const GET: APIRoute = () => {
 		PUBLIC_GOOGLE_ANALYTICS_ID: Boolean(import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID),
 		PUBLIC_BETTER_STACK_TRACKING_TOKEN: Boolean(import.meta.env.PUBLIC_BETTER_STACK_TRACKING_TOKEN),
 		API_RATE_LIMITER: Boolean(env.API_RATE_LIMITER),
+		CONTACT_RATE_LIMITER: Boolean(env.CONTACT_RATE_LIMITER),
+		CONTACT_EMAIL: Boolean(env.CONTACT_EMAIL),
 	};
 
 	const ok = Object.values(presence).every(Boolean);

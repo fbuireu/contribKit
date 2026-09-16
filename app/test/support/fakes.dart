@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
+import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
@@ -9,6 +10,7 @@ import 'package:contribkit/domain/repositories/suggested_username_repository.dar
 import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/contact_message.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
@@ -154,6 +156,22 @@ final class FakeContributionRepository implements ContributionRepository {
   @override
   Future<void> invalidateCache(Username username) async {
     invalidated.add(username);
+  }
+}
+
+final class FakeContactMessageRepository implements ContactMessageRepository {
+  FakeContactMessageRepository({this.failure, this.gate});
+
+  final Object? failure;
+  final Future<void>? gate;
+
+  final delivered = <ContactMessage>[];
+
+  @override
+  Future<void> deliver(ContactMessage message) async {
+    delivered.add(message);
+    if (gate case final wait?) await wait;
+    if (failure case final error?) throw error;
   }
 }
 

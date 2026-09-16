@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("cloudflare:workers", () => ({ env: { API_RATE_LIMITER: { limit: vi.fn() } } }));
+vi.mock("cloudflare:workers", () => ({
+	env: {
+		API_RATE_LIMITER: { limit: vi.fn() },
+		CONTACT_RATE_LIMITER: { limit: vi.fn() },
+		CONTACT_EMAIL: { send: vi.fn() },
+	},
+}));
 
 import { GET } from "../api/health";
 
@@ -18,6 +24,8 @@ describe("GET /api/health", () => {
 		const body = (await res.json()) as { status: string; env: Record<string, boolean> };
 		expect(body.status).toBe("ok");
 		expect(body.env.API_RATE_LIMITER).toBe(true);
+		expect(body.env.CONTACT_RATE_LIMITER).toBe(true);
+		expect(body.env.CONTACT_EMAIL).toBe(true);
 	});
 
 	it("503 misconfigured when a var is missing", async () => {

@@ -1,5 +1,12 @@
 export const ElementId = {
 	CellTooltip: "cell-tooltip",
+	ContactEmail: "contact-email",
+	ContactForm: "contact-form",
+	ContactMessage: "contact-message",
+	ContactName: "contact-name",
+	ContactStatus: "contact-status",
+	ContactSubmit: "contact-submit",
+	ContactWebsite: "contact-website",
 	CustomGrid: "custom-grid-container",
 	CustomPaletteLabel: "custom-palette-label",
 	CustomShapeLabel: "custom-shape-label",

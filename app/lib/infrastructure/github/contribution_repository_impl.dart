@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
@@ -12,6 +11,7 @@ import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/github/dtos/contribution_calendar_dto.dart';
+import 'package:contribkit/infrastructure/http/retry_after.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -115,7 +115,9 @@ final class GitHubContributionRepository implements ContributionRepository {
         throw NotFoundFailure(username: username);
       }
       if (response.statusCode == 429) {
-        throw RateLimitedFailure(resetAt: _resetAtFrom(response.headers));
+        throw RateLimitedFailure(
+          resetAt: RetryAfter.resetAtFrom(response.headers),
+        );
       }
       if (response.statusCode != 200) {
         throw NetworkFailure(message: 'HTTP ${response.statusCode}');
@@ -131,19 +133,6 @@ final class GitHubContributionRepository implements ContributionRepository {
       rethrow;
     } catch (e) {
       throw NetworkFailure(message: e.toString());
-    }
-  }
-
-  static DateTime? _resetAtFrom(Map<String, String> headers) {
-    final retryAfter = headers['retry-after'];
-    if (retryAfter == null) return null;
-    final trimmed = retryAfter.trim();
-    final seconds = int.tryParse(trimmed);
-    if (seconds != null) return DateTime.now().add(Duration(seconds: seconds));
-    try {
-      return HttpDate.parse(trimmed);
-    } catch (_) {
-      return DateTime.tryParse(trimmed);
     }
   }
 
