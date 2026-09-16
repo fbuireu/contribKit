@@ -108,7 +108,9 @@ field name, for the API's error body) and `retryAfterHeader`. Never inline one o
 | `Delivery` | 502 | the literal `"Could not send your message"` |
 
 - **`STATUS_BY_KIND` is typed `Record<Failure["kind"], number>`,** so adding a kind to the union is a compile error
-  here until it is mapped. That is the guard; do not replace it with a lookup that defaults.
+  here until it is mapped. That is the guard; do not replace it with a lookup that defaults. It is also the whole of
+  what Effect would have been adopted for, which is why it was not
+  ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)).
 - **`Delivery` has a fixed message, for the same reason `NotFound` has one.** Its own
   `message` is whatever Cloudflare said when the send was refused (an unverified destination address, most likely),
   which is an operational detail the sender can do nothing with and which `logContactFailure` records instead. Every

@@ -21,7 +21,10 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   `T | Failure` (or `null`), plus an `is*` guard that checks the `_tag`. The rest of `value-objects/` is total
   (`clampLevel` clamps, `paletteByKey` defaults, `isCellShape` is a set membership test), so there is nothing to
   fail and no tag to carry.
-- **Never throw.** Errors are the `Failure` discriminated union, returned as values. Adding a kind is a compile
+- **Never throw.** Errors are the `Failure` discriminated union, returned as values, written by hand rather than
+  taken from a library. Effect was measured against this and turned down, with the triggers that would overturn
+  that written out
+  ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)). Adding a kind is a compile
   error at every exhaustive site, which is the point
   ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). `isFailure` is structural
   (an object whose `kind` is one in the sealed set), so it does not depend on the constructors having been used.

@@ -320,6 +320,7 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) | Telemetry Consent is asked twice and answered asymmetrically |
 | [0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) | Diagnostic Reports carry a masked Session Replay |
 | [0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) | Contact Messages leave through Cloudflare's send_email binding |
+| [0031](./docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md) | The web keeps its hand-written Failure union instead of Effect |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |
