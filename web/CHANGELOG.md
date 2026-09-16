@@ -1,3 +1,10 @@
+# [contribkit-web-v1.18.0](https://github.com/fbuireu/contribKit/compare/web-v1.17.1...web-v1.18.0) (2026-09-16)
+
+
+### Features
+
+* contact form ([#154](https://github.com/fbuireu/contribKit/issues/154)) ([48b669e](https://github.com/fbuireu/contribKit/commit/48b669e8fe8b1beff8adc9c28af6033109951524))
+
 # [contribkit-web-v1.17.1](https://github.com/fbuireu/contribKit/compare/web-v1.17.0...web-v1.17.1) (2026-09-15)
 
 
