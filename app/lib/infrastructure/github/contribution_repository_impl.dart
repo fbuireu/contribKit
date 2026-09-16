@@ -122,7 +122,9 @@ final class GitHubContributionRepository implements ContributionRepository {
       throw NotFoundFailure(username: username);
     }
     if (response.statusCode == 429) {
-      throw RateLimitedFailure(resetAt: RetryAfter.resetAtFrom(response.headers));
+      throw RateLimitedFailure(
+        resetAt: RetryAfter.resetAtFrom(response.headers),
+      );
     }
     if (response.statusCode != 200) {
       throw NetworkFailure(message: 'HTTP ${response.statusCode}');
