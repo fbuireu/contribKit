@@ -75,7 +75,7 @@ describe("buildMimeMessage", () => {
 	});
 
 	it("round-trips the body through base64 over UTF-8 bytes", () => {
-		expect(decoded(build({ text: "café — ☕\nsecond line" }))).toBe("café — ☕\nsecond line");
+		expect(decoded(build({ text: "café ☕\nsecond line" }))).toBe("café ☕\nsecond line");
 	});
 
 	it("wraps the encoded body at 76 characters, which is what a mail transfer agent expects", () => {

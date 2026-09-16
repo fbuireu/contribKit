@@ -63,7 +63,7 @@ pnpm verify:static       # format:check + typecheck + check: everything verify d
 pnpm verify              # verify:static + coverage: what CI runs
 pnpm verify:changed      # verify:static + test:ut:changed: what pre-push runs
 
-`verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference — `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
+`verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference: `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
 pnpm lint:all                    # biome lint over web, docs and .github
 pnpm format:all                  # biome check --write, the same three
 pnpm format:check                # biome check, read-only: what CI runs
@@ -278,7 +278,7 @@ through `import.meta.env`, so the first version of that line was undefined whate
 silently kept the literal fallback. Verified by building with `SITE_URL=https://example.test` and reading the
 emitted `sitemap-index.xml`: it says `example.test` now and `contribkit.app` with the variable unset. That is also
 why the analytics variables carry the `PUBLIC_` prefix and this one does not: they are read from
-`import.meta.env` in app code, and this one is read in the config. The cases tagged `@smoke` live in [`web/e2e/smoke.spec.ts`](./web/e2e/smoke.spec.ts) and nowhere else, so the set that can revert a deploy is one file rather than a tag scattered through the suite. Every repository that deploys runs the same shared cases — the homepage with a non-empty title, an unknown path answering 404, and `robots.txt` — so a set that differs between them is drift rather than a decision. The remaining case is this repository's alone and earns it: `/user/<name>.svg`, the route
+`import.meta.env` in app code, and this one is read in the config. The cases tagged `@smoke` live in [`web/e2e/smoke.spec.ts`](./web/e2e/smoke.spec.ts) and nowhere else, so the set that can revert a deploy is one file rather than a tag scattered through the suite. Every repository that deploys runs the same shared cases (the homepage with a non-empty title, an unknown path answering 404, and `robots.txt`), so a set that differs between them is drift rather than a decision. The remaining case is this repository's alone and earns it: `/user/<name>.svg`, the route
 that [cannot be prerendered](./docs/adr/0007-server-rendered-web-app-on-the-edge.md), so it is the one that
 distinguishes a running Worker from a bucket of assets. A smoke case can only assert what the deploy it follows has
 already published, which is why none of them names a feature. The step passes no `--pass-with-no-tests`, because
