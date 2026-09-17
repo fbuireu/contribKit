@@ -9,7 +9,6 @@ import { buildMimeMessage } from "./mime";
 export const CONTACT_SENDER = "contact@contribkit.app";
 
 const MISSING_BINDING = "CONTACT_EMAIL binding is absent";
-const MISSING_DESTINATION = "MAINTAINER_EMAIL variable is absent";
 
 const subjectFor = (message: ContactMessage): string => `ContribKit contact: ${message.name ?? message.email}`;
 
@@ -18,11 +17,10 @@ const textFor = (message: ContactMessage): string =>
 
 const messageIdFor = (date: Date): string => `<${date.getTime()}.${crypto.randomUUID()}@contribkit.app>`;
 
-export const cloudflareContactMessageRepository = (destination: string | undefined): ContactMessageRepository => ({
+export const cloudflareContactMessageRepository = (destination: string): ContactMessageRepository => ({
 	deliver: async (message) => {
 		const binding = env.CONTACT_EMAIL;
 		if (!binding) return delivery(MISSING_BINDING);
-		if (!destination) return delivery(MISSING_DESTINATION);
 
 		const date = new Date();
 		const raw = buildMimeMessage({

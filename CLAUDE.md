@@ -337,8 +337,9 @@ would need a verification secret
 declared at the top level **and** in each named environment, for the reason the first paragraph of this section
 gives. The variable takes the `SITE_URL` route: `_deploy.yml` passes it to the build, `astro.config.ts` declares
 it as a `server`, `public` field, and Astro inlines it, so a changed mailbox reaches nothing until something
-redeploys. The build step fails when it is empty, because a Worker built without it answers every send with a 502
-and `/api/health` would be the only thing saying so. The binding used to carry `destination_address =
+redeploys. The schema field is **not** optional, so a build without it fails the way one without
+`PUBLIC_GOOGLE_ANALYTICS_ID` already does; there is no guard step in the workflow, because the sibling
+repositories carry none and the schema is the guard. `/api/health` reports its presence. The binding used to carry `destination_address =
 "contact@contribkit.app"` and the code sent to the same address, and Cloudflare refused every one of those sends:
 a verified destination address is an external mailbox the account forwards **to**, and the zone's own address can
 never be one. What no file can assert is that the variable's value **is** verified in Email Routing: if it is not,

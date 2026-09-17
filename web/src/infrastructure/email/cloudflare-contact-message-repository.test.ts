@@ -59,16 +59,6 @@ describe("cloudflareContactMessageRepository", () => {
 		expect(CONTACT_SENDER).toBe("contact@contribkit.app");
 	});
 
-	it("answers Delivery without sending when it was built with no destination, which is a build that read no variable", async () => {
-		for (const missing of [undefined, ""]) {
-			const result = await cloudflareContactMessageRepository(missing).deliver(message());
-
-			expect(kindOf(result)).toBe("Delivery");
-			expect((result as { message: string }).message).toContain("MAINTAINER_EMAIL");
-		}
-		expect(sent).toHaveLength(0);
-	});
-
 	it("points Reply-To at the visitor, which is the only way an answer reaches them", async () => {
 		await repository.deliver(message());
 

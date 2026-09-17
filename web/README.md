@@ -175,7 +175,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined). The Be
 | `API_RATE_LIMITER`                  | runtime binding | rate limiter for `/api/*`                    | `wrangler.toml`, top level and per env |
 | `CONTACT_RATE_LIMITER`              | runtime binding | rate limiter for `POST /api/contact`         | `wrangler.toml` per env         |
 | `CONTACT_EMAIL`                     | runtime binding | `send_email`, sending from `contact@contribkit.app` | `wrangler.toml`, top level and per env |
-| `MAINTAINER_EMAIL`               | build-time      | the verified mailbox a Contact Message is delivered to; the build fails when it is empty | GitHub **repository variable** |
+| `MAINTAINER_EMAIL`               | build-time      | the verified mailbox a Contact Message is delivered to; required by the `astro:env` schema, so a build without it fails | GitHub **repository variable** |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker was built/configured with (presence only, never values).
 

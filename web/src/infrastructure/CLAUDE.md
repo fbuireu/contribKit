@@ -128,8 +128,8 @@ rather than a provider's API, so there is no runtime secret to hold or rotate
 `contact@contribkit.app` because Cloudflare sends only from a zone Email Routing serves, and
 `cloudflareContactMessageRepository` is a factory taking the recipient, which the composition root reads from the
 `MAINTAINER_EMAIL` build-time variable. This layer never reads `astro:env`: the page layer does, and hands the
-value in, so this file is testable with a literal. A factory built with no recipient answers `Delivery` without
-sending, the way it does for a missing binding. The binding in [`wrangler.toml`](../../wrangler.toml) names no
+value in, so this file is testable with a literal, and the `astro:env` schema requires the variable, so no build
+ever hands it an empty one. The binding in [`wrangler.toml`](../../wrangler.toml) names no
 `destination_address` any more, because the address is in no file. The visitor's address goes in `Reply-To` and
 nowhere else: putting it in `From` is what DMARC rejects.
 

@@ -52,14 +52,6 @@ jobs:
         env:
           ENVIRONMENT: ${{ inputs.environment }}
         run: echo "wrangler_env=${ENVIRONMENT##*-}" >> "$GITHUB_OUTPUT"
-      - name: Refuse to build a Worker whose contact form can reach nobody
-        env:
-          MAINTAINER_EMAIL: ${{ vars.MAINTAINER_EMAIL }}
-        run: |
-          if [ -z "${MAINTAINER_EMAIL}" ]; then
-            echo "MAINTAINER_EMAIL is empty, so every Contact Message would be refused with a 502 and nothing would say why" >&2
-            exit 1
-          fi
       - name: Build
         working-directory: web
         env:

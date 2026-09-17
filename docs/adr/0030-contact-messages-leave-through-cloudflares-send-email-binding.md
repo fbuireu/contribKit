@@ -46,9 +46,9 @@ in this repository holds either. It is the **`MAINTAINER_EMAIL` repository varia
 [`_deploy.yml`](../../.github/workflows/_deploy.yml) hands to the build beside `SITE_URL`, and which
 [`astro.config.ts`](../../web/astro.config.ts) declares as a `server`, `public` field so Astro inlines it into the
 Worker; the composition root in [`web/src/pages/_contact.ts`](../../web/src/pages/_contact.ts) reads it from
-`astro:env/server` and builds the repository with it. The deploy refuses to build when the variable is empty, and
-`/api/health` reports its presence, because a Worker built without it answers every send with a 502 and nothing
-else would say why. What still limits where a message can go is Email Routing itself: Cloudflare delivers only to
+`astro:env/server` and builds the repository with it. The schema field is required, so a build without the
+variable fails the way biancafiore's does without `BIANCA_EMAIL`, and the workflow carries no guard step of its
+own; `/api/health` reports its presence. What still limits where a message can go is Email Routing itself: Cloudflare delivers only to
 a destination address the account has verified, whichever value the variable carries.
 
 The sender is `contact@contribkit.app`, which has to be an address on the zone Email Routing serves, and the
