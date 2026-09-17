@@ -167,7 +167,8 @@ Reports whether the deployed worker was built/configured with each expected vari
     "PUBLIC_BETTER_STACK_TRACKING_TOKEN": true,
     "API_RATE_LIMITER": true,
     "CONTACT_RATE_LIMITER": true,
-    "CONTACT_EMAIL": true
+    "CONTACT_EMAIL": true,
+    "CONTACT_DESTINATION": true
   },
   "timestamp": "2026-01-01T00:00:00.000Z"
 }

@@ -47,7 +47,7 @@
 		"format:all": "pnpm format . ../docs ../.github",
 		"format:changed": "pnpm format --changed",
 		"format:check": "biome check --no-errors-on-unmatched . ../docs ../.github",
-		"typecheck": "pnpm types && tsc --project . --noEmit",
+		"typecheck": "pnpm types && pnpm sync && tsc --project . --noEmit",
 		"test:ut": "vitest run --logHeapUsage",
 		"test:ut:watch": "vitest --logHeapUsage",
 		"test:ut:coverage": "pnpm test:ut --coverage",

@@ -16,7 +16,11 @@ vi.mock("cloudflare:email", () => ({
 
 import { isFailure } from "@domain/failures/failure";
 import type { ContactMessage } from "@domain/value-objects/contact-message";
-import { CONTACT_ADDRESS, cloudflareContactMessageRepository } from "./cloudflare-contact-message-repository";
+import { CONTACT_SENDER, cloudflareContactMessageRepository } from "./cloudflare-contact-message-repository";
+
+const DESTINATION = "maintainer@example.com";
+
+const repository = cloudflareContactMessageRepository(DESTINATION);
 
 const message = (overrides: Partial<ContactMessage> = {}): ContactMessage => ({
 	_tag: "ContactMessage",
@@ -46,36 +50,46 @@ describe("cloudflareContactMessageRepository", () => {
 		env.CONTACT_EMAIL = { send: vi.fn(async () => undefined) };
 	});
 
-	it("constructs the EmailMessage from and to the one address the binding may reach", async () => {
-		await cloudflareContactMessageRepository.deliver(message());
+	it("sends from the zone's own address to the destination it was built with", async () => {
+		await repository.deliver(message());
 
 		expect(sent).toHaveLength(1);
-		expect(sent[0].from).toBe(CONTACT_ADDRESS);
-		expect(sent[0].to).toBe(CONTACT_ADDRESS);
-		expect(CONTACT_ADDRESS).toBe("contact@contribkit.app");
+		expect(sent[0].from).toBe(CONTACT_SENDER);
+		expect(sent[0].to).toBe(DESTINATION);
+		expect(CONTACT_SENDER).toBe("contact@contribkit.app");
+	});
+
+	it("answers Delivery without sending when it was built with no destination, which is a build that read no variable", async () => {
+		for (const missing of [undefined, ""]) {
+			const result = await cloudflareContactMessageRepository(missing).deliver(message());
+
+			expect(kindOf(result)).toBe("Delivery");
+			expect((result as { message: string }).message).toContain("CONTACT_DESTINATION");
+		}
+		expect(sent).toHaveLength(0);
 	});
 
 	it("points Reply-To at the visitor, which is the only way an answer reaches them", async () => {
-		await cloudflareContactMessageRepository.deliver(message());
+		await repository.deliver(message());
 
 		expect(headersOf(sent[0].raw)).toContain("Reply-To: ada@example.com");
 	});
 
 	it("carries the name, the address and then the message itself in the body", async () => {
-		await cloudflareContactMessageRepository.deliver(message({ body: "please add a palette" }));
+		await repository.deliver(message({ body: "please add a palette" }));
 
 		expect(decodedBody(sent[0].raw)).toBe("Name: Ada\nEmail: ada@example.com\n\nplease add a palette");
 	});
 
 	it("says so rather than inventing a name when none was given", async () => {
-		await cloudflareContactMessageRepository.deliver(message({ name: null }));
+		await repository.deliver(message({ name: null }));
 
 		expect(decodedBody(sent[0].raw)).toContain("Name: (not given)");
 		expect(headersOf(sent[0].raw)).toContain("=?UTF-8?B?");
 	});
 
 	it("cannot have a name add a header, because every header value loses its line breaks", async () => {
-		await cloudflareContactMessageRepository.deliver(message({ name: "Ada\r\nBcc: victim@example.com" }));
+		await repository.deliver(message({ name: "Ada\r\nBcc: victim@example.com" }));
 
 		expect(headersOf(sent[0].raw)).not.toContain("Bcc:");
 		expect(headersOf(sent[0].raw).split("\r\n")).toHaveLength(9);
@@ -84,13 +98,13 @@ describe("cloudflareContactMessageRepository", () => {
 	it("echoes the message back on success, the way fetchCalendar returns the calendar", async () => {
 		const sending = message();
 
-		expect(await cloudflareContactMessageRepository.deliver(sending)).toBe(sending);
+		expect(await repository.deliver(sending)).toBe(sending);
 	});
 
 	it("answers Delivery when the binding is absent, which is every local run", async () => {
 		env.CONTACT_EMAIL = undefined;
 
-		const result = await cloudflareContactMessageRepository.deliver(message());
+		const result = await repository.deliver(message());
 
 		expect(kindOf(result)).toBe("Delivery");
 		expect(sent).toHaveLength(0);
@@ -103,7 +117,7 @@ describe("cloudflareContactMessageRepository", () => {
 			}),
 		};
 
-		const result = await cloudflareContactMessageRepository.deliver(message());
+		const result = await repository.deliver(message());
 
 		expect(result).toEqual({ kind: "Delivery", message: "destination address not verified" });
 	});
@@ -115,7 +129,7 @@ describe("cloudflareContactMessageRepository", () => {
 			}),
 		};
 
-		expect(await cloudflareContactMessageRepository.deliver(message())).toEqual({
+		expect(await repository.deliver(message())).toEqual({
 			kind: "Delivery",
 			message: "refused",
 		});

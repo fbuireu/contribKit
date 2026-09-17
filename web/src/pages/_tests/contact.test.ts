@@ -6,6 +6,7 @@ const { env, send } = vi.hoisted(() => ({
 }));
 
 vi.mock("cloudflare:workers", () => ({ env }));
+vi.mock("astro:env/server", () => ({ CONTACT_DESTINATION: "maintainer@example.com" }));
 vi.mock("cloudflare:email", () => ({ EmailMessage: class {} }));
 
 import { POST } from "../api/contact";

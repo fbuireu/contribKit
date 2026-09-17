@@ -204,9 +204,11 @@ nothing else, so the calendar embeds outside GitHub
   `trace: 8f3c1a`, an identifier that corresponded to nothing and that a user could reasonably have quoted in a bug
   report. Keep those lines free of anything that looks like a real identifier.
 - **`/api/health` returns 503, not 200, when anything is missing.** It checks the analytics ID, both
-  Better Stack variables and the `API_RATE_LIMITER`, `CONTACT_RATE_LIMITER` and `CONTACT_EMAIL` bindings, and reports `"ok"` only when every one of them is present. A
-  local run or a preview deployment is expected to fail it, and a preview now fails it for one more reason: a
-  development Worker has the bindings but the zone's Email Routing still refuses an unverified destination.
+  Better Stack variables, the `API_RATE_LIMITER`, `CONTACT_RATE_LIMITER` and `CONTACT_EMAIL` bindings and the
+  `CONTACT_DESTINATION` build-time variable, and reports `"ok"` only when every one of them is present. A
+  local run is expected to fail it. `CONTACT_DESTINATION` is read from `astro:env/server` in
+  [`_contact.ts`](./_contact.ts), which is the composition root and therefore the one place that hands the
+  mailbox to the infrastructure factory; the route tests mock that module the way they mock `cloudflare:workers`.
 - **The landing page distinguishes an asked-for user from the default, and `resolveViewerIdentity` decides it.**
   `?user=` wins, then the `USERNAME_COOKIE`, then `DEFAULT_USERNAME`; `isExplicit` is true only for the first two,
   and it decides what a failure looks like: `daySourceFor` turns it into `Loaded`, `Empty` or `Placeholder`. An

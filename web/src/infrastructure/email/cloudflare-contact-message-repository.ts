@@ -6,9 +6,10 @@ import type { ContactMessage } from "@domain/value-objects/contact-message";
 import { errorMessageOf } from "../errors/error-message";
 import { buildMimeMessage } from "./mime";
 
-export const CONTACT_ADDRESS = "contact@contribkit.app";
+export const CONTACT_SENDER = "contact@contribkit.app";
 
 const MISSING_BINDING = "CONTACT_EMAIL binding is absent";
+const MISSING_DESTINATION = "CONTACT_DESTINATION variable is absent";
 
 const subjectFor = (message: ContactMessage): string => `ContribKit contact: ${message.name ?? message.email}`;
 
@@ -17,15 +18,16 @@ const textFor = (message: ContactMessage): string =>
 
 const messageIdFor = (date: Date): string => `<${date.getTime()}.${crypto.randomUUID()}@contribkit.app>`;
 
-export const cloudflareContactMessageRepository: ContactMessageRepository = {
+export const cloudflareContactMessageRepository = (destination: string | undefined): ContactMessageRepository => ({
 	deliver: async (message) => {
 		const binding = env.CONTACT_EMAIL;
 		if (!binding) return delivery(MISSING_BINDING);
+		if (!destination) return delivery(MISSING_DESTINATION);
 
 		const date = new Date();
 		const raw = buildMimeMessage({
-			from: CONTACT_ADDRESS,
-			to: CONTACT_ADDRESS,
+			from: CONTACT_SENDER,
+			to: destination,
 			replyTo: message.email,
 			subject: subjectFor(message),
 			text: textFor(message),
@@ -34,10 +36,10 @@ export const cloudflareContactMessageRepository: ContactMessageRepository = {
 		});
 
 		try {
-			await binding.send(new EmailMessage(CONTACT_ADDRESS, CONTACT_ADDRESS, raw));
+			await binding.send(new EmailMessage(CONTACT_SENDER, destination, raw));
 			return message;
 		} catch (error) {
 			return delivery(errorMessageOf(error));
 		}
 	},
-};
+});

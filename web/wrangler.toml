@@ -9,7 +9,6 @@ binding = "ASSETS"
 
 [[send_email]]
 name = "CONTACT_EMAIL"
-destination_address = "contact@contribkit.app"
 
 [observability]
 enabled = true
@@ -52,7 +51,6 @@ simple = { limit = 5, period = 60 }
 
 [[env.production.send_email]]
 name = "CONTACT_EMAIL"
-destination_address = "contact@contribkit.app"
 
 [env.production.observability]
 enabled = true
@@ -84,7 +82,6 @@ simple = { limit = 5, period = 60 }
 
 [[env.development.send_email]]
 name = "CONTACT_EMAIL"
-destination_address = "contact@contribkit.app"
 
 [env.development.observability]
 enabled = true

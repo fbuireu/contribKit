@@ -567,16 +567,27 @@ describe("the Contact Message limits are written twice and must agree", () => {
 		expect(disagreeing.map(({ dart: dartName }) => dartName)).toEqual([]);
 	});
 
-	it("sends to the one address the binding is pinned to, in every environment", () => {
+	it("sends from the zone's own address, and names the recipient in no file", () => {
 		const repository = read(join(REPO, "web/src/infrastructure/email/cloudflare-contact-message-repository.ts"));
-		const address = /export const CONTACT_ADDRESS = "([^"]+)"/.exec(repository)?.[1];
-		const pinned = [...read(join(REPO, "web/wrangler.toml")).matchAll(/^destination_address = "([^"]+)"$/gm)].map(
-			(match) => match[1],
-		);
+		const sender = /export const CONTACT_SENDER = "([^"]+)"/.exec(repository)?.[1];
+		const wrangler = read(join(REPO, "web/wrangler.toml"));
+		const bindings = wrangler.match(/^\[\[(?:env\.\w+\.)?send_email\]\]$/gm) ?? [];
 
-		expect(address).toBeDefined();
-		expect(pinned.length, "every send_email block pins a destination").toBeGreaterThanOrEqual(3);
-		expect(pinned.filter((candidate) => candidate !== address)).toEqual([]);
+		expect(sender?.endsWith("@contribkit.app"), "the sender must be on the zone Email Routing serves").toBe(true);
+		expect(bindings.length, "the binding is declared at the top level and in every environment").toBeGreaterThanOrEqual(
+			3,
+		);
+		expect(wrangler).not.toMatch(/destination_address|allowed_destination_addresses/);
+	});
+
+	it("reads the recipient from the one variable the deploy passes to the build", () => {
+		const deploy = read(join(REPO, ".github/workflows/_deploy.yml"));
+		const config = read(join(REPO, "web/astro.config.ts"));
+		const root = read(join(REPO, "web/src/pages/_contact.ts"));
+
+		expect(deploy).toMatch(/^\s+CONTACT_DESTINATION: \$\{\{ vars\.CONTACT_DESTINATION \}\}$/m);
+		expect(config).toMatch(/CONTACT_DESTINATION: envField\.string\(\{ context: "server", access: "public"/);
+		expect(root).toContain('import { CONTACT_DESTINATION } from "astro:env/server"');
 	});
 
 	it("posts to a contact endpoint the web actually routes", () => {

@@ -6,6 +6,13 @@ Date: 2026-09-16
 
 Accepted. Amends [28](0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md), whose store declarations no longer describe everything the app collects.
 
+Amended on 2026-09-17: the recipient is no longer `contact@contribkit.app` pinned in `wrangler.toml`, because
+Cloudflare refused every send with *destination address is not a verified address*. A verified destination address
+is an external mailbox the account forwards **to**, and an address on the routed zone cannot be one, so the design
+as first written could never deliver. The recipient is now the `CONTACT_DESTINATION` GitHub repository variable,
+inlined at build time the way `SITE_URL` is; the sender stays `contact@contribkit.app`. Everything below reads as
+amended.
+
 ## Context
 
 Until now the only way to reach the maintainer was the `mailto:contact@contribkit.app` link on the legal
@@ -33,13 +40,21 @@ A Worker on the same zone can send through it with a binding rather than a key.
 
 A Contact Message leaves through a Cloudflare `send_email` binding named `CONTACT_EMAIL`, declared in
 [`web/wrangler.toml`](../../web/wrangler.toml) at the top level **and** under `[env.production]` and
-`[env.development]`, because wrangler inherits no binding into a named environment. The binding carries
-`destination_address = "contact@contribkit.app"`, so the platform itself refuses a send to anywhere else: the
-address is not a value the code chooses per request and cannot become one.
+`[env.development]`, because wrangler inherits no binding into a named environment. The binding names no
+`destination_address`: the recipient is not a value the code chooses per request, but it is not a value any file
+in this repository holds either. It is the **`CONTACT_DESTINATION` repository variable**, which
+[`_deploy.yml`](../../.github/workflows/_deploy.yml) hands to the build beside `SITE_URL`, and which
+[`astro.config.ts`](../../web/astro.config.ts) declares as a `server`, `public` field so Astro inlines it into the
+Worker; the composition root in [`web/src/pages/_contact.ts`](../../web/src/pages/_contact.ts) reads it from
+`astro:env/server` and builds the repository with it. The deploy refuses to build when the variable is empty, and
+`/api/health` reports its presence, because a Worker built without it answers every send with a 502 and nothing
+else would say why. What still limits where a message can go is Email Routing itself: Cloudflare delivers only to
+a destination address the account has verified, whichever value the variable carries.
 
-Sender and recipient are both `contact@contribkit.app`, and `Reply-To` carries the visitor's address, which is what
-makes answering a message a reply rather than a copy-paste. The alternative, putting the visitor in `From`, is what
-DMARC exists to reject.
+The sender is `contact@contribkit.app`, which has to be an address on the zone Email Routing serves, and the
+recipient is the maintainer's own mailbox, the one that address forwards to. `Reply-To` carries the visitor's
+address, which is what makes answering a message a reply rather than a copy-paste. The alternative, putting the
+visitor in `From`, is what DMARC exists to reject.
 
 **The MIME document is built by hand**, in `buildMimeMessage`, rather than by adding `mimetext`. It is a short
 header block and a base64 body, and the reason is the same one that keeps the scraper on regexes
@@ -71,17 +86,24 @@ a surface the app could not implement on its own at all.
 
 ## Consequences
 
-- **`contact@contribkit.app` has to be a verified destination address in Email Routing, and nothing in this
-  repository can assert that.** It is a name resolved in the Cloudflare dashboard, the same class of fact as the
-  observability destinations ([26](0026-observability-is-cloudflares-exported-to-better-stack.md)). Until the
-  verification mail that arrives through the existing forward is answered, **every send is refused**, and the
-  failure mode is a `Delivery` 502 carrying the platform's own reason into Better Stack while the visitor is told
-  only that the message could not be sent. That is the first place to look when the form stops working.
+- **The value of `CONTACT_DESTINATION` has to be a verified destination address in Email Routing, and nothing in
+  this repository can assert that.** It is a name resolved in the Cloudflare dashboard, the same class of fact as
+  the observability destinations ([26](0026-observability-is-cloudflares-exported-to-better-stack.md)). A value
+  that is not on that list, or the zone's own `contact@contribkit.app`, which can never be, means **every send is
+  refused**, and the failure mode is a `Delivery` 502 carrying the platform's own reason into Better Stack while
+  the visitor is told only that the message could not be sent. That is the first place to look when the form
+  stops working, and it is how the first version of this decision was found not to work at all.
+- **Changing the mailbox is a redeploy, not a commit.** The variable is read at build time, so a new value reaches
+  nothing until something rebuilds, exactly as a rotated analytics token does; the manual dispatch on `main` is
+  the way to do that. The mailbox is therefore in no file, which is the reason it is a variable rather than a
+  line in `wrangler.toml`, and it is a **variable** rather than a secret because it is an address, not a
+  credential: nothing can be done with it that cannot be done with the `mailto:` link on the legal pages.
 - **Local development has no Email Routing, so the form answers 502 there.** `pnpm wrangler:dev` binds no
   `send_email`, and the repository answers `Delivery` when the binding is absent rather than pretending to send.
   "It did not work locally" therefore proves nothing, exactly as it does for the rate limiter.
-- **The deploy still needs no secret and no new workflow input.** That is the property being bought, and it is what
-  makes rotating nothing possible: there is nothing to rotate. Replacing this with any provider gives it back.
+- **The deploy still needs no secret.** It reads one more variable, the way it already reads `SITE_URL` and the
+  analytics ids, and a variable is not a credential: there is still nothing to rotate. That is the property being
+  bought, and replacing this with any provider gives it back.
 - **The published privacy policy grows a section, and both store declarations grow two rows.** The policy in
   [`web/src/pages/privacy.astro`](../../web/src/pages/privacy.astro) now says what a Contact Message carries, where it
   travels and that nothing is stored on the server; it also had to soften the app section's claim that we operate no

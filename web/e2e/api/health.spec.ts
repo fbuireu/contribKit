@@ -6,6 +6,7 @@ const CHECKED_KEYS = [
 	"API_RATE_LIMITER",
 	"CONTACT_RATE_LIMITER",
 	"CONTACT_EMAIL",
+	"CONTACT_DESTINATION",
 ];
 
 interface HealthBody {

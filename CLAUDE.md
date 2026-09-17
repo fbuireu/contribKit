@@ -57,7 +57,7 @@ pnpm sync:assets                 # copy shared/*.json into app/assets (also runs
 pnpm dev                         # astro dev (dev:open appends --open)
 pnpm build                       # astro build
 pnpm wrangler:dev                # build + wrangler dev (real Workers runtime)
-pnpm typecheck           # wrangler types + tsc --noEmit
+pnpm typecheck           # wrangler types + astro sync (the astro:env types) + tsc --noEmit
 pnpm check               # astro check: the only thing that typechecks .astro files
 pnpm verify:static       # format:check + typecheck + check: everything verify does but the suite
 pnpm verify              # verify:static + coverage: what CI runs
@@ -328,14 +328,21 @@ what supplies. So the JSON API is up and the zone answers a datacenter address d
 on `/api/*`. Cloudflare's **Security Events** log names the rule that blocked a given request, which is where a fix
 starts. Tag the case again once that rule stops matching.
 
-**The contact form adds two bindings and no secret, which is the whole reason it is shaped this way.** A Contact
-Message leaves through Cloudflare's `send_email` binding, `CONTACT_EMAIL`, whose `destination_address` pins the one
-address it may ever reach; anti-abuse is a honeypot field plus `CONTACT_RATE_LIMITER`, a second rate limit at five a
-minute, rather than Turnstile, which would need a verification secret
-([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). Both are declared at
-the top level **and** in each named environment, for the reason the first paragraph of this section gives. What no
-file can assert is that `contact@contribkit.app` is a **verified destination address** in Email Routing: until it
-is, every send is refused and the form answers 502 with the platform's reason in Better Stack. `wrangler dev` binds
+**The contact form adds two bindings, one repository variable and no secret, which is the whole reason it is
+shaped this way.** A Contact Message leaves through Cloudflare's `send_email` binding, `CONTACT_EMAIL`, from
+`contact@contribkit.app` to the mailbox the **`CONTACT_DESTINATION` repository variable** names; anti-abuse is a
+honeypot field plus `CONTACT_RATE_LIMITER`, a second rate limit at five a minute, rather than Turnstile, which
+would need a verification secret
+([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). Both bindings are
+declared at the top level **and** in each named environment, for the reason the first paragraph of this section
+gives. The variable takes the `SITE_URL` route: `_deploy.yml` passes it to the build, `astro.config.ts` declares
+it as a `server`, `public` field, and Astro inlines it, so a changed mailbox reaches nothing until something
+redeploys. The build step fails when it is empty, because a Worker built without it answers every send with a 502
+and `/api/health` would be the only thing saying so. The binding used to carry `destination_address =
+"contact@contribkit.app"` and the code sent to the same address, and Cloudflare refused every one of those sends:
+a verified destination address is an external mailbox the account forwards **to**, and the zone's own address can
+never be one. What no file can assert is that the variable's value **is** verified in Email Routing: if it is not,
+every send is refused and the form answers 502 with the platform's reason in Better Stack. `wrangler dev` binds
 no `send_email` at all, so the form answers 502 locally too, and that proves nothing about production.
 
 Web deploys to Cloudflare Workers via `ci.yml` (production on `main`, a per-PR preview otherwise). A

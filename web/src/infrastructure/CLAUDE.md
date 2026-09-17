@@ -124,16 +124,21 @@ the project: everything else here fetches. It sends through Cloudflare's `send_e
 rather than a provider's API, so there is no runtime secret to hold or rotate
 ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
-**The address is pinned twice, and the outer pin is the platform's.** `CONTACT_ADDRESS` is the `From` and the `To`
-this file builds, and `destination_address` on the binding in [`wrangler.toml`](../../wrangler.toml) is what makes any
-other recipient impossible regardless of what this code does. The visitor's address goes in `Reply-To` and nowhere
-else: putting it in `From` is what DMARC rejects.
+**The sender is this file's, the recipient is the caller's.** `CONTACT_SENDER` is the `From`, fixed to
+`contact@contribkit.app` because Cloudflare sends only from a zone Email Routing serves, and
+`cloudflareContactMessageRepository` is a factory taking the recipient, which the composition root reads from the
+`CONTACT_DESTINATION` build-time variable. This layer never reads `astro:env`: the page layer does, and hands the
+value in, so this file is testable with a literal. A factory built with no recipient answers `Delivery` without
+sending, the way it does for a missing binding. The binding in [`wrangler.toml`](../../wrangler.toml) names no
+`destination_address` any more, because the address is in no file. The visitor's address goes in `Reply-To` and
+nowhere else: putting it in `From` is what DMARC rejects.
 
 **What no file here can assert is that the recipient is a verified destination address in Email Routing.** It is a
 name resolved in the Cloudflare dashboard, like the observability destinations
-([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). Until it is verified
-every send is refused, and the refusal arrives as a `Delivery` failure carrying Cloudflare's own wording, which
-`logContactFailure` writes to Better Stack and `messageFor` keeps out of the response.
+([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). A recipient that is
+not verified, and the zone's own `contact@contribkit.app` can never be, means every send is refused, and the refusal
+arrives as a `Delivery` failure carrying Cloudflare's own wording, which `logContactFailure` writes to Better Stack
+and `messageFor` keeps out of the response.
 
 **`mime.ts` builds the document by hand, and that is a decision rather than an omission.** No `mimetext`: a
 short header block and a base64 body do not justify a dependency, which is the same trade
