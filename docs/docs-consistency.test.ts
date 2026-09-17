@@ -585,9 +585,9 @@ describe("the Contact Message limits are written twice and must agree", () => {
 		const config = read(join(REPO, "web/astro.config.ts"));
 		const root = read(join(REPO, "web/src/pages/_contact.ts"));
 
-		expect(deploy).toMatch(/^\s+CONTACT_DESTINATION: \$\{\{ vars\.CONTACT_DESTINATION \}\}$/m);
-		expect(config).toMatch(/CONTACT_DESTINATION: envField\.string\(\{ context: "server", access: "public"/);
-		expect(root).toContain('import { CONTACT_DESTINATION } from "astro:env/server"');
+		expect(deploy).toMatch(/^\s+MAINTAINER_EMAIL: \$\{\{ vars\.MAINTAINER_EMAIL \}\}$/m);
+		expect(config).toMatch(/MAINTAINER_EMAIL: envField\.string\(\{ context: "server", access: "public"/);
+		expect(root).toContain('import { MAINTAINER_EMAIL } from "astro:env/server"');
 	});
 
 	it("posts to a contact endpoint the web actually routes", () => {

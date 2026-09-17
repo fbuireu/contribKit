@@ -168,7 +168,7 @@ Reports whether the deployed worker was built/configured with each expected vari
     "API_RATE_LIMITER": true,
     "CONTACT_RATE_LIMITER": true,
     "CONTACT_EMAIL": true,
-    "CONTACT_DESTINATION": true
+    "MAINTAINER_EMAIL": true
   },
   "timestamp": "2026-01-01T00:00:00.000Z"
 }

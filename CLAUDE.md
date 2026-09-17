@@ -330,7 +330,7 @@ starts. Tag the case again once that rule stops matching.
 
 **The contact form adds two bindings, one repository variable and no secret, which is the whole reason it is
 shaped this way.** A Contact Message leaves through Cloudflare's `send_email` binding, `CONTACT_EMAIL`, from
-`contact@contribkit.app` to the mailbox the **`CONTACT_DESTINATION` repository variable** names; anti-abuse is a
+`contact@contribkit.app` to the mailbox the **`MAINTAINER_EMAIL` repository variable** names; anti-abuse is a
 honeypot field plus `CONTACT_RATE_LIMITER`, a second rate limit at five a minute, rather than Turnstile, which
 would need a verification secret
 ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). Both bindings are

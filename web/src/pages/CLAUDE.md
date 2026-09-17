@@ -205,8 +205,8 @@ nothing else, so the calendar embeds outside GitHub
   report. Keep those lines free of anything that looks like a real identifier.
 - **`/api/health` returns 503, not 200, when anything is missing.** It checks the analytics ID, both
   Better Stack variables, the `API_RATE_LIMITER`, `CONTACT_RATE_LIMITER` and `CONTACT_EMAIL` bindings and the
-  `CONTACT_DESTINATION` build-time variable, and reports `"ok"` only when every one of them is present. A
-  local run is expected to fail it. `CONTACT_DESTINATION` is read from `astro:env/server` in
+  `MAINTAINER_EMAIL` build-time variable, and reports `"ok"` only when every one of them is present. A
+  local run is expected to fail it. `MAINTAINER_EMAIL` is read from `astro:env/server` in
   [`_contact.ts`](./_contact.ts), which is the composition root and therefore the one place that hands the
   mailbox to the infrastructure factory; the route tests mock that module the way they mock `cloudflare:workers`.
 - **The landing page distinguishes an asked-for user from the default, and `resolveViewerIdentity` decides it.**

@@ -97,7 +97,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined).
 | `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time | Better Stack browser tag (RUM), from the app's Frontend tab |
 | `API_RATE_LIMITER` | runtime binding | rate limiter for `/api/*` |
 | `CONTACT_RATE_LIMITER` | runtime binding | rate limiter for `POST /api/contact` |
-| `CONTACT_DESTINATION` | build-time | the verified mailbox a Contact Message is delivered to, a GitHub repository variable |
+| `MAINTAINER_EMAIL` | build-time | the verified mailbox a Contact Message is delivered to, a GitHub repository variable |
 | `CONTACT_EMAIL` | runtime binding | `send_email`, sending from `contact@contribkit.app`; see [ADR 0030](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker has (presence only, never values).

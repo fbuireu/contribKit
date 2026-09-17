@@ -50,7 +50,7 @@ export default defineConfig({
 			}),
 			PUBLIC_GOOGLE_ANALYTICS_ID: envField.string({ context: "client", access: "public" }),
 			PUBLIC_BETTER_STACK_TRACKING_TOKEN: envField.string({ context: "client", access: "public", optional: true }),
-			CONTACT_DESTINATION: envField.string({ context: "server", access: "public", optional: true }),
+			MAINTAINER_EMAIL: envField.string({ context: "server", access: "public", optional: true }),
 		},
 	},
 	vite: {

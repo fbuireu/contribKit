@@ -9,7 +9,7 @@ import { buildMimeMessage } from "./mime";
 export const CONTACT_SENDER = "contact@contribkit.app";
 
 const MISSING_BINDING = "CONTACT_EMAIL binding is absent";
-const MISSING_DESTINATION = "CONTACT_DESTINATION variable is absent";
+const MISSING_DESTINATION = "MAINTAINER_EMAIL variable is absent";
 
 const subjectFor = (message: ContactMessage): string => `ContribKit contact: ${message.name ?? message.email}`;
 

@@ -68,7 +68,7 @@ Unknown values silently fall back to the default, so the image never breaks.
 
 - **Caching.** Both data responses are `public, max-age=3600, stale-while-revalidate=86400`.
 - **Rate limiting.** Only `/api/*`, per IP: 100 req/min on everything but `POST /api/contact`, which has its own bucket at **5 req/min** because it protects a mailbox rather than an upstream. `/user/:username.svg` is deliberately not rate-limited, because README embeds reach it through GitHub's shared image proxy ([ADR 0010](../docs/adr/0010-rate-limit-only-the-json-api.md)).
-- **The contact endpoint holds no secret.** It sends through the `CONTACT_EMAIL` `send_email` binding, from `contact@contribkit.app` to the mailbox the `CONTACT_DESTINATION` build-time variable names, refuses anything that fills its honeypot field with a silent `202`, and answers `502` when Email Routing refuses the send ([ADR 0030](../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+- **The contact endpoint holds no secret.** It sends through the `CONTACT_EMAIL` `send_email` binding, from `contact@contribkit.app` to the mailbox the `MAINTAINER_EMAIL` build-time variable names, refuses anything that fills its honeypot field with a silent `202`, and answers `502` when Email Routing refuses the send ([ADR 0030](../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 - **Backing off.** A `429` carries `Retry-After` in seconds whenever a wait is known (`60` from our own limiter, GitHub's own figure when GitHub is the one throttling), and no header at all when it is not, rather than a guess.
 - **Security headers.** Set by the [middleware](src/middleware.ts) on every server-rendered response, including the CSP.
 - **The one exemption.** The SVG route, and only that route, is served `Cross-Origin-Resource-Policy: cross-origin` so the calendar embeds outside GitHub ([ADR 0017](../docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md)).
@@ -175,7 +175,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined). The Be
 | `API_RATE_LIMITER`                  | runtime binding | rate limiter for `/api/*`                    | `wrangler.toml`, top level and per env |
 | `CONTACT_RATE_LIMITER`              | runtime binding | rate limiter for `POST /api/contact`         | `wrangler.toml` per env         |
 | `CONTACT_EMAIL`                     | runtime binding | `send_email`, sending from `contact@contribkit.app` | `wrangler.toml`, top level and per env |
-| `CONTACT_DESTINATION`               | build-time      | the verified mailbox a Contact Message is delivered to; the build fails when it is empty | GitHub **repository variable** |
+| `MAINTAINER_EMAIL`               | build-time      | the verified mailbox a Contact Message is delivered to; the build fails when it is empty | GitHub **repository variable** |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker was built/configured with (presence only, never values).
 

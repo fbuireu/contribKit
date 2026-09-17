@@ -9,7 +9,7 @@ Accepted. Amends [28](0028-telemetry-consent-is-asked-twice-and-answered-asymmet
 Amended on 2026-09-17: the recipient is no longer `contact@contribkit.app` pinned in `wrangler.toml`, because
 Cloudflare refused every send with *destination address is not a verified address*. A verified destination address
 is an external mailbox the account forwards **to**, and an address on the routed zone cannot be one, so the design
-as first written could never deliver. The recipient is now the `CONTACT_DESTINATION` GitHub repository variable,
+as first written could never deliver. The recipient is now the `MAINTAINER_EMAIL` GitHub repository variable,
 inlined at build time the way `SITE_URL` is; the sender stays `contact@contribkit.app`. Everything below reads as
 amended.
 
@@ -42,7 +42,7 @@ A Contact Message leaves through a Cloudflare `send_email` binding named `CONTAC
 [`web/wrangler.toml`](../../web/wrangler.toml) at the top level **and** under `[env.production]` and
 `[env.development]`, because wrangler inherits no binding into a named environment. The binding names no
 `destination_address`: the recipient is not a value the code chooses per request, but it is not a value any file
-in this repository holds either. It is the **`CONTACT_DESTINATION` repository variable**, which
+in this repository holds either. It is the **`MAINTAINER_EMAIL` repository variable**, which
 [`_deploy.yml`](../../.github/workflows/_deploy.yml) hands to the build beside `SITE_URL`, and which
 [`astro.config.ts`](../../web/astro.config.ts) declares as a `server`, `public` field so Astro inlines it into the
 Worker; the composition root in [`web/src/pages/_contact.ts`](../../web/src/pages/_contact.ts) reads it from
@@ -86,7 +86,7 @@ a surface the app could not implement on its own at all.
 
 ## Consequences
 
-- **The value of `CONTACT_DESTINATION` has to be a verified destination address in Email Routing, and nothing in
+- **The value of `MAINTAINER_EMAIL` has to be a verified destination address in Email Routing, and nothing in
   this repository can assert that.** It is a name resolved in the Cloudflare dashboard, the same class of fact as
   the observability destinations ([26](0026-observability-is-cloudflares-exported-to-better-stack.md)). A value
   that is not on that list, or the zone's own `contact@contribkit.app`, which can never be, means **every send is
@@ -97,7 +97,9 @@ a surface the app could not implement on its own at all.
   nothing until something rebuilds, exactly as a rotated analytics token does; the manual dispatch on `main` is
   the way to do that. The mailbox is therefore in no file, which is the reason it is a variable rather than a
   line in `wrangler.toml`, and it is a **variable** rather than a secret because it is an address, not a
-  credential: nothing can be done with it that cannot be done with the `mailto:` link on the legal pages.
+  credential: nothing can be done with it that cannot be done with the `mailto:` link on the legal pages. The
+  name follows biancafiore, whose contact form delivers to `BIANCA_EMAIL` the same way and keeps its sender in
+  code: the person's mailbox is `<who>_EMAIL`, and here the person is the maintainer.
 - **Local development has no Email Routing, so the form answers 502 there.** `pnpm wrangler:dev` binds no
   `send_email`, and the repository answers `Delivery` when the binding is absent rather than pretending to send.
   "It did not work locally" therefore proves nothing, exactly as it does for the rate limiter.

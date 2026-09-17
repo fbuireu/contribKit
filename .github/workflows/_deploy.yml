@@ -54,10 +54,10 @@ jobs:
         run: echo "wrangler_env=${ENVIRONMENT##*-}" >> "$GITHUB_OUTPUT"
       - name: Refuse to build a Worker whose contact form can reach nobody
         env:
-          CONTACT_DESTINATION: ${{ vars.CONTACT_DESTINATION }}
+          MAINTAINER_EMAIL: ${{ vars.MAINTAINER_EMAIL }}
         run: |
-          if [ -z "${CONTACT_DESTINATION}" ]; then
-            echo "CONTACT_DESTINATION is empty, so every Contact Message would be refused with a 502 and nothing would say why" >&2
+          if [ -z "${MAINTAINER_EMAIL}" ]; then
+            echo "MAINTAINER_EMAIL is empty, so every Contact Message would be refused with a 502 and nothing would say why" >&2
             exit 1
           fi
       - name: Build
@@ -65,7 +65,7 @@ jobs:
         env:
           CLOUDFLARE_ENV: ${{ steps.stage.outputs.wrangler_env }}
           SITE_URL: ${{ vars.SITE_URL }}
-          CONTACT_DESTINATION: ${{ vars.CONTACT_DESTINATION }}
+          MAINTAINER_EMAIL: ${{ vars.MAINTAINER_EMAIL }}
           PUBLIC_GOOGLE_ANALYTICS_ID: ${{ vars.PUBLIC_GOOGLE_ANALYTICS_ID }}
           PUBLIC_BETTER_STACK_TRACKING_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_TRACKING_TOKEN }}
         run: pnpm build

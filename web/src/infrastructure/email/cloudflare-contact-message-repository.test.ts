@@ -64,7 +64,7 @@ describe("cloudflareContactMessageRepository", () => {
 			const result = await cloudflareContactMessageRepository(missing).deliver(message());
 
 			expect(kindOf(result)).toBe("Delivery");
-			expect((result as { message: string }).message).toContain("CONTACT_DESTINATION");
+			expect((result as { message: string }).message).toContain("MAINTAINER_EMAIL");
 		}
 		expect(sent).toHaveLength(0);
 	});

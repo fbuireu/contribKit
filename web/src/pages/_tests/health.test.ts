@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("astro:env/server", () => ({ CONTACT_DESTINATION: "maintainer@example.com" }));
+vi.mock("astro:env/server", () => ({ MAINTAINER_EMAIL: "maintainer@example.com" }));
 vi.mock("cloudflare:workers", () => ({
 	env: {
 		API_RATE_LIMITER: { limit: vi.fn() },
@@ -27,7 +27,7 @@ describe("GET /api/health", () => {
 		expect(body.env.API_RATE_LIMITER).toBe(true);
 		expect(body.env.CONTACT_RATE_LIMITER).toBe(true);
 		expect(body.env.CONTACT_EMAIL).toBe(true);
-		expect(body.env.CONTACT_DESTINATION).toBe(true);
+		expect(body.env.MAINTAINER_EMAIL).toBe(true);
 	});
 
 	it("503 misconfigured when a var is missing", async () => {

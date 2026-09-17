@@ -1,4 +1,4 @@
-import { CONTACT_DESTINATION } from "astro:env/server";
+import { MAINTAINER_EMAIL } from "astro:env/server";
 import { env } from "cloudflare:workers";
 import { NOT_CACHEABLE } from "@application/http/cache-control";
 import type { APIRoute } from "astro";
@@ -12,7 +12,7 @@ export const GET: APIRoute = () => {
 		API_RATE_LIMITER: Boolean(env.API_RATE_LIMITER),
 		CONTACT_RATE_LIMITER: Boolean(env.CONTACT_RATE_LIMITER),
 		CONTACT_EMAIL: Boolean(env.CONTACT_EMAIL),
-		CONTACT_DESTINATION: Boolean(CONTACT_DESTINATION),
+		MAINTAINER_EMAIL: Boolean(MAINTAINER_EMAIL),
 	};
 
 	const ok = Object.values(presence).every(Boolean);
