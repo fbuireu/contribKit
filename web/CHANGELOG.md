@@ -1,3 +1,10 @@
+# [contribkit-web-v1.19.0](https://github.com/fbuireu/contribKit/compare/web-v1.18.0...web-v1.19.0) (2026-09-17)
+
+
+### Features
+
+* **contribkit-web:** validate the contact form inline, one field at a time ([16bb3bf](https://github.com/fbuireu/contribKit/commit/16bb3bfb0ef288b429be8f33d656ec7d4b4b881e))
+
 # [contribkit-web-v1.18.0](https://github.com/fbuireu/contribKit/compare/web-v1.17.1...web-v1.18.0) (2026-09-16)
 
 
