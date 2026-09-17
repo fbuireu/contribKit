@@ -32,12 +32,22 @@ const message = (overrides: Partial<ContactMessage> = {}): ContactMessage => ({
 
 const headersOf = (raw: string): string => raw.split("\r\n\r\n")[0];
 
-const decodedBody = (raw: string): string =>
-	new TextDecoder().decode(
-		Uint8Array.from(atob(raw.split("\r\n\r\n").slice(1).join("").replaceAll("\r\n", "")), (character) =>
-			character.charCodeAt(0),
-		),
-	);
+const decodedParts = (raw: string): string[] => {
+	const boundary = /boundary="([^"]+)"/.exec(headersOf(raw))?.[1] ?? "";
+	return raw
+		.split("\r\n\r\n")
+		.slice(1)
+		.join("\r\n\r\n")
+		.split(`--${boundary}`)
+		.slice(1, -1)
+		.map((part) =>
+			new TextDecoder().decode(
+				Uint8Array.from(atob(part.trim().split("\r\n\r\n").slice(1).join("").replaceAll("\r\n", "")), (character) =>
+					character.charCodeAt(0),
+				),
+			),
+		);
+};
 
 const kindOf = (value: unknown): string => {
 	expect(isFailure(value)).toBe(true);
@@ -65,16 +75,23 @@ describe("cloudflareContactMessageRepository", () => {
 		expect(headersOf(sent[0].raw)).toContain("Reply-To: ada@example.com");
 	});
 
-	it("carries the name, the address and then the message itself in the body", async () => {
+	it("carries the rendered email twice, as plain text and as HTML, each naming the sender and the message", async () => {
 		await repository.deliver(message({ body: "please add a palette" }));
 
-		expect(decodedBody(sent[0].raw)).toBe("Name: Ada\nEmail: ada@example.com\n\nplease add a palette");
+		const [text, html] = decodedParts(sent[0].raw);
+		expect(headersOf(sent[0].raw)).toContain("Content-Type: multipart/alternative");
+		expect(text).toContain("Ada");
+		expect(text).toContain("ada@example.com");
+		expect(text).toContain("please add a palette");
+		expect(html).toContain("<html");
+		expect(html).toContain("please add a palette");
+		expect(html).toContain("mailto:ada@example.com");
 	});
 
 	it("says so rather than inventing a name when none was given", async () => {
 		await repository.deliver(message({ name: null }));
 
-		expect(decodedBody(sent[0].raw)).toContain("Name: (not given)");
+		expect(decodedParts(sent[0].raw)[0]).toContain("(not given)");
 		expect(headersOf(sent[0].raw)).toContain("=?UTF-8?B?");
 	});
 
@@ -82,7 +99,7 @@ describe("cloudflareContactMessageRepository", () => {
 		await repository.deliver(message({ name: "Ada\r\nBcc: victim@example.com" }));
 
 		expect(headersOf(sent[0].raw)).not.toContain("Bcc:");
-		expect(headersOf(sent[0].raw).split("\r\n")).toHaveLength(9);
+		expect(headersOf(sent[0].raw).split("\r\n")).toHaveLength(8);
 	});
 
 	it("echoes the message back on success, the way fetchCalendar returns the calendar", async () => {

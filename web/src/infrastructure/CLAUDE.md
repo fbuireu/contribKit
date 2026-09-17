@@ -140,18 +140,31 @@ not verified, and the zone's own `contact@contribkit.app` can never be, means ev
 arrives as a `Delivery` failure carrying Cloudflare's own wording, which `logContactFailure` writes to Better Stack
 and `messageFor` keeps out of the response.
 
-**`mime.ts` builds the document by hand, and that is a decision rather than an omission.** No `mimetext`: a
-short header block and a base64 body do not justify a dependency, which is the same trade
-[ADR 0006](../../../docs/adr/0006-parse-the-contributions-page-with-regexes.md) makes for the parser. The body is
-base64 over UTF-8 bytes folded at 76 columns, so a message may carry any line break; **every header value has its
-CR and LF replaced with a space**, which is the second of two injection guards. The first is the domain's email
-rule, which rejects them outright. Two guards, because the layer below cannot see what the layer above validated.
+**`ContactMessageEmail.tsx` is the email, and it is React Email, the way the sibling sites' are.** It is the one
+`.tsx` file in the project, which is why the web `tsconfig` carries `jsx` and the Astro config carries the React
+integration: nothing renders React to the browser, and the docs contract's comment and layer guards walk `.tsx` so
+that stays true by assertion. The template takes the `ContactMessage`, the sent date and the site, and draws its
+header strip and its button from `PALETTES.github`, the domain's own colours; the neutral greys are the email's
+own literals, because an email client reads no CSS variable. `cloudflareContactMessageRepository` renders it twice
+through `@react-email/render`, once as HTML and once with `plainText`, and hands both to `mime.ts`. Everything the
+visitor typed goes through React's escaping, and a colocated test pins that a message cannot add markup.
+
+**`mime.ts` builds the envelope by hand, and that is a decision rather than an omission.** No `mimetext`: a
+short header block and a `multipart/alternative` body of two base64 parts do not justify a dependency, which is
+the same trade [ADR 0006](../../../docs/adr/0006-parse-the-contributions-page-with-regexes.md) makes for the
+parser. Each part is base64 over UTF-8 bytes folded at 76 columns, so a message may carry any line break; the
+boundary is a UUID stripped to the characters RFC 2046 allows; **every header value has its CR and LF replaced
+with a space**, which is the second of two injection guards. The first is the domain's email rule, which rejects
+them outright. Two guards, because the layer below cannot see what the layer above validated.
 
 **The binding is read through `import { env } from "cloudflare:workers"`,** the same route the middleware takes,
 and `EmailMessage` comes from `cloudflare:email`. Both are virtual modules with no Node implementation, so the
 colocated tests mock them with `vi.mock` exactly as the health and middleware tests mock `cloudflare:workers`.
-`env.CONTACT_EMAIL` is **absent in local development**, and the repository answers `Delivery` for that rather than
-throwing: `wrangler dev` provides no Email Routing at all, so the form answering 502 locally is expected.
+`env.CONTACT_EMAIL` is a **local stand-in in development**: `wrangler dev` binds an unrestricted Send Email that
+writes the document to `web/.wrangler/tmp/email/` as an `.eml` and reports success, which is the quickest way to
+read the exact bytes the Worker would hand to Email Routing, rendered by workerd rather than by Node. The
+repository still answers `Delivery` rather than throwing when the binding is absent, because a hand-run build
+outside wrangler has none.
 
 ## `logging/`
 

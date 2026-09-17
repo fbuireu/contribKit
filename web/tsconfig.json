@@ -4,6 +4,8 @@
 	"exclude": ["dist", "coverage", "test-results", "playwright-report"],
 	"compilerOptions": {
 		"types": [],
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
 		"paths": {
 			"vitest": ["./node_modules/vitest"],
 			"@shared/*": ["../shared/*"],

@@ -2,16 +2,19 @@ import { describe, expect, it } from "vitest";
 import { buildMimeMessage } from "./mime";
 
 const DATE = new Date(Date.UTC(2026, 8, 16, 9, 30, 0));
+const BOUNDARY = "=_boundary";
 
 const build = (overrides: Partial<Parameters<typeof buildMimeMessage>[0]> = {}): string =>
 	buildMimeMessage({
 		from: "contact@contribkit.app",
-		to: "contact@contribkit.app",
+		to: "maintainer@example.com",
 		replyTo: "ada@example.com",
 		subject: "ContribKit contact: Ada",
 		text: "Name: Ada\nEmail: ada@example.com\n\nhello",
+		html: "<p>hello</p>",
 		date: DATE,
 		messageId: "<1.2@contribkit.app>",
+		boundary: BOUNDARY,
 		...overrides,
 	});
 
@@ -19,9 +22,19 @@ const headersOf = (raw: string): string => raw.split("\r\n\r\n")[0];
 
 const bodyOf = (raw: string): string => raw.split("\r\n\r\n").slice(1).join("\r\n\r\n");
 
-const decoded = (raw: string): string =>
+const partsOf = (raw: string): string[] =>
+	bodyOf(raw)
+		.split(`--${BOUNDARY}`)
+		.slice(1, -1)
+		.map((part) => part.replace(/^\r\n/, "").replace(/\r\n$/, ""));
+
+const partHeadersOf = (part: string): string => part.split("\r\n\r\n")[0];
+
+const decodedPart = (part: string): string =>
 	new TextDecoder().decode(
-		Uint8Array.from(atob(bodyOf(raw).replaceAll("\r\n", "")), (character) => character.charCodeAt(0)),
+		Uint8Array.from(atob(part.split("\r\n\r\n").slice(1).join("").replaceAll("\r\n", "")), (character) =>
+			character.charCodeAt(0),
+		),
 	);
 
 describe("buildMimeMessage", () => {
@@ -37,23 +50,35 @@ describe("buildMimeMessage", () => {
 			"Message-ID",
 			"MIME-Version",
 			"Content-Type",
-			"Content-Transfer-Encoding",
 		]);
 	});
 
-	it("declares utf-8 text encoded as base64", () => {
-		const headers = headersOf(build());
+	it("declares a multipart/alternative document whose parts are utf-8 text encoded as base64", () => {
+		const raw = build();
+		const parts = partsOf(raw);
 
-		expect(headers).toContain("MIME-Version: 1.0");
-		expect(headers).toContain("Content-Type: text/plain; charset=utf-8");
-		expect(headers).toContain("Content-Transfer-Encoding: base64");
+		expect(headersOf(raw)).toContain("MIME-Version: 1.0");
+		expect(headersOf(raw)).toContain(`Content-Type: multipart/alternative; boundary="${BOUNDARY}"`);
+		expect(parts).toHaveLength(2);
+		expect(partHeadersOf(parts[0])).toBe(
+			"Content-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64",
+		);
+		expect(partHeadersOf(parts[1])).toBe("Content-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: base64");
+		expect(bodyOf(raw).trimEnd().endsWith(`--${BOUNDARY}--`)).toBe(true);
+	});
+
+	it("puts the plain text first and the HTML second, which is the order a client prefers the last of", () => {
+		const parts = partsOf(build({ text: "plain", html: "<b>rich</b>" }));
+
+		expect(decodedPart(parts[0])).toBe("plain");
+		expect(decodedPart(parts[1])).toBe("<b>rich</b>");
 	});
 
 	it("names the sender, the recipient and the address a reply goes to", () => {
 		const headers = headersOf(build());
 
 		expect(headers).toContain("From: contact@contribkit.app");
-		expect(headers).toContain("To: contact@contribkit.app");
+		expect(headers).toContain("To: maintainer@example.com");
 		expect(headers).toContain("Reply-To: ada@example.com");
 	});
 
@@ -74,28 +99,28 @@ describe("buildMimeMessage", () => {
 		);
 	});
 
-	it("round-trips the body through base64 over UTF-8 bytes", () => {
-		expect(decoded(build({ text: "café ☕\nsecond line" }))).toBe("café ☕\nsecond line");
+	it("round-trips each part through base64 over UTF-8 bytes", () => {
+		const parts = partsOf(build({ text: "café ☕\nsecond line", html: "<p>café ☕</p>" }));
+
+		expect(decodedPart(parts[0])).toBe("café ☕\nsecond line");
+		expect(decodedPart(parts[1])).toBe("<p>café ☕</p>");
 	});
 
-	it("still writes a complete document for an empty text, with an empty body after the blank line", () => {
-		const raw = build({ text: "" });
+	it("still writes a complete document for an empty text, with an empty part after the blank line", () => {
+		const parts = partsOf(build({ text: "" }));
 
-		expect(headersOf(raw).split("\r\n")).toHaveLength(9);
-		expect(bodyOf(raw)).toBe("\r\n");
-		expect(decoded(raw)).toBe("");
+		expect(parts).toHaveLength(2);
+		expect(decodedPart(parts[0])).toBe("");
 	});
 
-	it("wraps the encoded body at 76 characters, which is what a mail transfer agent expects", () => {
-		const raw = build({ text: "a".repeat(1000) });
+	it("wraps each encoded part at 76 characters, which is what a mail transfer agent expects", () => {
+		const parts = partsOf(build({ text: "a".repeat(1000), html: "b".repeat(1000) }));
 
-		expect(
-			bodyOf(raw)
-				.trimEnd()
-				.split("\r\n")
-				.every((line) => line.length <= 76),
-		).toBe(true);
-		expect(bodyOf(raw).trimEnd().split("\r\n").length).toBeGreaterThan(1);
+		for (const part of parts) {
+			const lines = part.split("\r\n\r\n").slice(1).join("").split("\r\n");
+			expect(lines.every((line) => line.length <= 76)).toBe(true);
+			expect(lines.length).toBeGreaterThan(1);
+		}
 	});
 
 	it("strips CR and LF out of every header value, so no field can inject a second header", () => {
@@ -109,13 +134,22 @@ describe("buildMimeMessage", () => {
 			.split("\r\n")
 			.map((line) => line.split(":")[0]);
 
-		expect(names).toHaveLength(9);
+		expect(names).toHaveLength(8);
 		expect(names).not.toContain("Bcc");
 		expect(names).not.toContain("X-Sneaky");
 		expect(headersOf(raw)).toContain("Reply-To: ada@example.com Bcc: victim@example.com");
 	});
 
-	it("leaves the body's own line breaks alone, because the body is encoded rather than written out", () => {
-		expect(decoded(build({ text: "first\r\nBcc: victim@example.com" }))).toBe("first\r\nBcc: victim@example.com");
+	it("keeps the boundary to the characters RFC 2046 allows, whatever it was handed", () => {
+		const raw = build({ boundary: '=_ab"c d\r\n--' });
+
+		expect(headersOf(raw)).toContain('boundary="=_abcd--"');
+		expect(raw).toContain("\r\n--=_abcd--\r\n");
+	});
+
+	it("leaves a part's own line breaks alone, because the part is encoded rather than written out", () => {
+		const parts = partsOf(build({ text: "first\r\nBcc: victim@example.com" }));
+
+		expect(decodedPart(parts[0])).toBe("first\r\nBcc: victim@example.com");
 	});
 });

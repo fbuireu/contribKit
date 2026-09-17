@@ -56,12 +56,17 @@ recipient is the maintainer's own mailbox, the one that address forwards to. `Re
 address, which is what makes answering a message a reply rather than a copy-paste. The alternative, putting the
 visitor in `From`, is what DMARC exists to reject.
 
-**The MIME document is built by hand**, in `buildMimeMessage`, rather than by adding `mimetext`. It is a short
-header block and a base64 body, and the reason is the same one that keeps the scraper on regexes
-([6](0006-parse-the-contributions-page-with-regexes.md)): a dependency whose whole job is string concatenation is a
-supply chain for a function that fits on a screen. The body is base64 over UTF-8 bytes folded at 76 characters, so a message may carry any
-line break it likes; every **header** value has its CR and LF replaced with a space before it is written, which is
-the second of two guards against header injection. The first is
+**The MIME envelope is built by hand**, in `buildMimeMessage`, rather than by adding `mimetext`. It is a short
+header block and a `multipart/alternative` body of two base64 parts, and the reason is the same one that keeps the
+scraper on regexes ([6](0006-parse-the-contributions-page-with-regexes.md)): a dependency whose whole job is string
+concatenation is a supply chain for a function that fits on a screen. **The document inside it is React Email**,
+which is not the same trade: `ContactMessageEmail.tsx` is the template biancafiore and forever-pto render for the
+same purpose, with the same card, the same label-and-value rows, the same *Reply* button and the same dark-mode
+block, and a laid-out email that matches the sibling sites was worth `react`, `react-dom`,
+`@react-email/components` and `@react-email/render` where a header block was not. The plain-text part is the same
+element rendered with `plainText`, so the two never disagree. Each part is base64 over UTF-8 bytes folded at 76
+characters, so a message may carry any line break it likes; every **header** value has its CR and LF replaced
+with a space before it is written, which is the second of two guards against header injection. The first is
 [`web/src/domain/value-objects/contact-message.ts`](../../web/src/domain/value-objects/contact-message.ts), whose email rule
 rejects whitespace, `<`, `>` and `"` outright and therefore doubles as that guard.
 
@@ -100,9 +105,11 @@ a surface the app could not implement on its own at all.
   credential: nothing can be done with it that cannot be done with the `mailto:` link on the legal pages. The
   name follows biancafiore, whose contact form delivers to `BIANCA_EMAIL` the same way and keeps its sender in
   code: the person's mailbox is `<who>_EMAIL`, and here the person is the maintainer.
-- **Local development has no Email Routing, so the form answers 502 there.** `pnpm wrangler:dev` binds no
-  `send_email`, and the repository answers `Delivery` when the binding is absent rather than pretending to send.
-  "It did not work locally" therefore proves nothing, exactly as it does for the rate limiter.
+- **Local development has no Email Routing, and `wrangler dev` stands in for it.** `pnpm wrangler:dev` binds a
+  local `send_email` that writes the document to `web/.wrangler/tmp/email/` as an `.eml` and answers 202, so a
+  message "sent" locally reaches nobody and the file is the only evidence. "It worked locally" therefore proves the
+  render and the envelope and nothing about delivery, exactly as a local run proves nothing about the rate limiter.
+  The repository still answers `Delivery` when the binding is absent rather than pretending to send.
 - **The deploy still needs no secret.** It reads one more variable, the way it already reads `SITE_URL` and the
   analytics ids, and a variable is not a credential: there is still nothing to rotate. That is the property being
   bought, and replacing this with any provider gives it back.

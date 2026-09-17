@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import cloudflare from "@astrojs/cloudflare";
+import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, envField, fontProviders } from "astro/config";
 
@@ -15,6 +16,7 @@ export default defineConfig({
 	output: "server",
 	adapter: cloudflare(),
 	integrations: [
+		react(),
 		sitemap({
 			customPages: [`${SITE}/`],
 			filter: (page) => !NOINDEX_SLUGS.some((slug) => page.includes(slug)),

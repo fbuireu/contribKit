@@ -31,7 +31,7 @@ export default defineConfig({
 		coverage: {
 			provider: "istanbul",
 			reporter: ["text", "lcov"],
-			include: ["src/**/*.ts"],
+			include: ["src/**/*.ts", "src/**/*.tsx"],
 			exclude: ["src/**/*.d.ts", "src/env.d.ts", "**/types.ts", "**/*.astro"],
 			thresholds: {
 				lines: MIN_THRESHOLD,

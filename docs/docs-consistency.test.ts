@@ -47,7 +47,7 @@ const WIKI_SHORTHAND_TARGET = /\]\(\.\.\/\.\.\/wiki\/([^)\s#]+)/g;
 const LINE_NUMBER_CITATION = /`[\w/.-]+\.(?:ts|dart|astro|mjs|yml):\d+/g;
 const ADR_FILENAME = /^\d{4}(-[a-z\d]+)+\.md$/;
 const ADR_INDEX_ROW = /\]\(\.\/docs\/adr\/(\d{4}-[a-z\d-]+\.md)\) \| ([^|]+?) \|/g;
-const WEB_SOURCE_FILE = /\.(ts|astro)$/;
+const WEB_SOURCE_FILE = /\.(tsx?|astro)$/;
 const GENERATED_DART_FILE = /\.(g|freezed)\.dart$/;
 const BARE_FILENAME_IN_BACKTICKS = /`([a-z0-9_.-]+\.(?:ts|dart|astro))`/g;
 const SOURCE_PATH_IN_BACKTICKS =
@@ -60,7 +60,7 @@ const SINGLE_QUOTED_STRING = /'[^']*'/g;
 const TEMPLATE_LITERAL = /`[^`]*`/g;
 const LINE_COMMENT = /(^|[^:/])\/\//;
 const BLOCK_COMMENT_OPENER = /[/]\*/;
-const COLOCATED_TEST_FILE = /\.test\.ts$/;
+const COLOCATED_TEST_FILE = /\.test\.tsx?$/;
 const ADR_STATUS_LINE = /\n## Status\n\n(\w+)/;
 const SHORT_ADR_REFERENCE = /\bADR \d{1,3}\b/g;
 const ADR_HEADING_PREFIX = /^# \d+\. /;
@@ -909,7 +909,7 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 	const identifierFiles = (): string[] =>
 		[
-			...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".ts") }),
+			...walk({ dir: join(REPO, "web/src"), match: (path) => /\.tsx?$/.test(path) }),
 			...walk({
 				dir: join(REPO, "app/lib"),
 				match: (path) => path.endsWith(".dart") && !GENERATED_DART_FILE.test(path),

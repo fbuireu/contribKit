@@ -8,7 +8,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro SSR site on 
 
 ## Stack
 
-- **web**: Astro (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Biome, Vitest, Playwright
+- **web**: Astro (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Biome, Vitest, Playwright, and React only for the one email the site sends, rendered with React Email ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md))
 - **app**: Flutter / Dart ([`app/pubspec.yaml`](./app/pubspec.yaml)), Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
 - **shared**: plain JSON, imported by web at build time and mirrored into [`app/assets/`](./app/assets) ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **repo**: pnpm workspaces, lefthook, commitlint, semantic-release per component
@@ -343,8 +343,11 @@ repositories carry none and the schema is the guard. `/api/health` reports its p
 "contact@contribkit.app"` and the code sent to the same address, and Cloudflare refused every one of those sends:
 a verified destination address is an external mailbox the account forwards **to**, and the zone's own address can
 never be one. What no file can assert is that the variable's value **is** verified in Email Routing: if it is not,
-every send is refused and the form answers 502 with the platform's reason in Better Stack. `wrangler dev` binds
-no `send_email` at all, so the form answers 502 locally too, and that proves nothing about production.
+every send is refused and the form answers 502 with the platform's reason in Better Stack. `wrangler dev` binds a
+**local** `send_email` that delivers nothing: it writes the whole document as an `.eml` under
+`web/.wrangler/tmp/email/` and answers the Worker as if it had sent, so a local 202 proves the template and the
+envelope render inside workerd and nothing about Email Routing. This guide used to say the binding was absent
+locally and the form answered 502; that was true of an older wrangler and is not now.
 
 Web deploys to Cloudflare Workers via `ci.yml` (production on `main`, a per-PR preview otherwise). A
 manual dispatch on `main` redeploys production and the smoke run behind it, and cuts no
