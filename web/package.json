@@ -1,6 +1,6 @@
 {
 	"name": "contribkit-web",
-	"version": "1.19.0",
+	"version": "1.19.1",
 	"private": true,
 	"description": "Visualize, customize and export your GitHub contribution calendar: web app and README embed",
 	"keywords": [

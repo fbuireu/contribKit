@@ -1,3 +1,10 @@
+# [contribkit-web-v1.19.1](https://github.com/fbuireu/contribKit/compare/web-v1.19.0...web-v1.19.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **contribkit-web:** deliver contact messages to the mailbox the CONTACT_DESTINATION variable names ([8a2bbd2](https://github.com/fbuireu/contribKit/commit/8a2bbd2c9c4d385385ef3dded79333c2aefa9e67))
+
 # [contribkit-web-v1.19.0](https://github.com/fbuireu/contribKit/compare/web-v1.18.0...web-v1.19.0) (2026-09-17)
 
 
