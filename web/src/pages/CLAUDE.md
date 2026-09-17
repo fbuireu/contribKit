@@ -73,7 +73,7 @@ pattern's reject arm and the `no-store` a rejected handle gets. Changing the cac
 test rather than a silent loosening of the only throttle that route has. The e2e asserts the **status** before the
 header, which it did not: the assertion read a success-path header without establishing that the route had
 succeeded, so a single throttled scrape during a parallel run reported as "the caching contract is broken". Every
-`no-store` site is covered at the unit level too, in the three route tests and the failure boundary; each one was
+`no-store` site is covered at the unit level too, in the route tests and the failure boundary; each one was
 verified by mutation. **Nothing end to end covers a 429 on either route**, because reproducing one means
 GitHub rate-limiting the Worker; the `Retry-After` passthrough is pinned at the unit level instead: both
 arms on both routes, in [`_tests/contributions.test.ts`](./_tests/contributions.test.ts) and [`_tests/username-svg.test.ts`](./_tests/username-svg.test.ts), over the mapping in

@@ -166,7 +166,7 @@ test helper reintroduces the same bug in the test rather than the code.
 - **`calendarLayout` is the whole geometry, in one call, and it is the module's interface.** It chunks the days
   into Contribution Weeks, sizes the document, clamps every Contribution Level, and returns finished placements:
   `monthLabels`, `weekdayLabels` and `cells`, each already carrying its `x` and `y`. The pad, gutter and baseline
-  constants, the per-shape radius table and the four point functions are **private to this file**: they were nine
+  constants, the per-shape radius table and the point functions are **private to this file**: they were nine
   exported primitives, and both renderers therefore imported twelve symbols each and wrote the same thirty-line
   walk: the same dimensions destructure, the same label loops, the same `translate` group, a byte-identical
   close. Only the geometry had been shared; the composition had not. What each renderer keeps is its own string
