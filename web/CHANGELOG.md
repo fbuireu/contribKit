@@ -1,3 +1,10 @@
+# [contribkit-web-v1.20.0](https://github.com/fbuireu/contribKit/compare/web-v1.19.1...web-v1.20.0) (2026-09-17)
+
+
+### Features
+
+* **contribkit-web:** lay the contact email out with React Email, the way the sibling sites do ([d4f32d9](https://github.com/fbuireu/contribKit/commit/d4f32d9a0ab4c76ffab76a0d1c1a638135b78f95))
+
 # [contribkit-web-v1.19.1](https://github.com/fbuireu/contribKit/compare/web-v1.19.0...web-v1.19.1) (2026-09-17)
 
 
