@@ -51,7 +51,8 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   with nothing to explain why. Add a selector here and use it from both sides, tests included.
 - **A page that is not the landing page adds ids and no `Selector`.** The contact form's ids
   (`ContactForm`, `ContactName`, `ContactEmail`, `ContactMessage`, `ContactWebsite`, `ContactSubmit`,
-  `ContactStatus`) are in `ElementId` and deliberately **not** in `Selector`, because the rule below walks the whole
+  `ContactStatus`, and the per-field `ContactNameError`, `ContactEmailError` and `ContactMessageError`) are in
+  `ElementId` and deliberately **not** in `Selector`, because the rule below walks the whole
   `Selector` enum against `/` and every one of them would match nothing there. Its controller reads them through
   `ElementId` directly, and [`e2e/contact.spec.ts`](../../e2e/contact.spec.ts) asserts them against `/contact`
   instead.
@@ -198,8 +199,19 @@ them together, because the CSS and the screen reader must not disagree.
   rather than in `utils/`, the same way `theme-toggle.ts` sits with the header: it belongs to one component and no
   other page loads it. It intercepts `submit`, posts JSON to `/api/contact`, disables the button and refuses a
   second submit while one is in flight, and writes the outcome into an `aria-live` status node. The sentence it
-  writes is the response's own `error` when there is one, so the server's *field* wording reaches the visitor, and
+  writes is the response's own `error` when there is one, so the server's wording reaches the visitor, and
   its own fallback otherwise ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+  **It validates the way a form library does, and the browser's own bubbles are switched off.** The controller sets
+  `noValidate` on the form and runs the domain's own per-field rules (`validateContactName`, `validateContactEmail`,
+  `validateContactBody`, the three `parseContactMessage` is composed of) in the *touched* mode: a field is first
+  checked when it is left, and from then on as it changes; a submit checks every field, marks them all touched,
+  writes each sentence into the field's own error node, sets `aria-invalid` on the control and focuses the first
+  wrong one, and no request leaves until the form is clean. A 400 that names a `field` lands on that field's error
+  node the same way, with focus moved there; every other failure goes to the status node. The native bubbles were
+  the alternative and were rejected because they are unstyled, one field at a time, and worded by the browser rather
+  than by the same rule the server applies. The `required`, `type="email"`, `minlength` and `maxlength` attributes
+  stay on the controls: they are what a client with scripting off still gets, and `maxlength` is what keeps a
+  pasted essay inside the limit before any rule runs.
 - [`unshuffle.ts`](./utils/unshuffle.ts) de-obfuscates the contact details on the legal pages. It is anti-scraping decoration, not a security
   control. Treat anything it protects as public.
 - **The three legal pages are pinned by [`web/e2e/legal-pages.spec.ts`](../../e2e/legal-pages.spec.ts)**, which asserts each answers 200, renders an

@@ -72,6 +72,20 @@
 		border-color: var(--accent);
 		background: var(--surface-raised);
 	}
+	.field input[aria-invalid="true"],
+	.field textarea[aria-invalid="true"] {
+		border-color: var(--danger);
+	}
+	.field-error {
+		font-size: var(--size-sm);
+		color: var(--danger);
+		margin: 0;
+	}
+	.field-error::selection,
+	.contact-status[data-tone="failed"]::selection {
+		color: var(--background);
+		background: var(--danger);
+	}
 	.field--trap {
 		position: absolute;
 		width: 0.0625rem;

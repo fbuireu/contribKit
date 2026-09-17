@@ -10,6 +10,8 @@ export const FailureKind = {
 
 export type FailureKind = (typeof FailureKind)[keyof typeof FailureKind];
 
+export type InvalidInputFailure = Extract<Failure, { kind: typeof FailureKind.InvalidInput }>;
+
 export const FailureField = {
 	Username: "username",
 	Year: "year",
@@ -45,7 +47,7 @@ export interface InvalidInputParams {
 }
 
 export const notFound = (username: Username): Failure => ({ kind: FailureKind.NotFound, username });
-export const invalidInput = ({ field, message }: InvalidInputParams): Failure => ({
+export const invalidInput = ({ field, message }: InvalidInputParams): InvalidInputFailure => ({
 	kind: FailureKind.InvalidInput,
 	field,
 	message,

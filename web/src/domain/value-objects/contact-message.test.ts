@@ -8,6 +8,9 @@ import {
 	MAX_CONTACT_NAME_LENGTH,
 	MIN_CONTACT_BODY_LENGTH,
 	parseContactMessage,
+	validateContactBody,
+	validateContactEmail,
+	validateContactName,
 } from "./contact-message";
 
 const BODY = "a".repeat(MIN_CONTACT_BODY_LENGTH);
@@ -19,7 +22,7 @@ const parsed = (message: Parsed): ContactMessage => {
 	return message as ContactMessage;
 };
 
-const fieldOf = (value: Parsed): string => {
+const fieldOf = (value: Parsed | null): string => {
 	expect(isFailure(value)).toBe(true);
 	return (value as { field: string }).field;
 };
@@ -99,6 +102,40 @@ describe("parseContactMessage", () => {
 
 		expect(parsed(parseContactMessage({ email: "ada@example.com", body: atLimit })).body).toBe(atLimit);
 		expect(fieldOf(parseContactMessage({ email: "ada@example.com", body: `${atLimit}a` }))).toBe("message");
+	});
+});
+
+describe("the per-field rules", () => {
+	it("are the same rules the parser applies, one field at a time, so a form can run them on blur", () => {
+		expect(validateContactName("Ada")).toBeNull();
+		expect(validateContactName(null)).toBeNull();
+		expect(fieldOf(validateContactName("a".repeat(MAX_CONTACT_NAME_LENGTH + 1)))).toBe("name");
+		expect(validateContactEmail("ada@example.com")).toBeNull();
+		expect(fieldOf(validateContactEmail("ada@example"))).toBe("email");
+		expect(validateContactBody(BODY)).toBeNull();
+		expect(fieldOf(validateContactBody("hi"))).toBe("message");
+	});
+
+	it("tell an empty required field apart from a malformed one, in the sentence rather than the field", () => {
+		const empty = validateContactEmail("   ");
+		const malformed = validateContactEmail("ada");
+		const blank = validateContactBody("");
+		const short = validateContactBody("hi");
+
+		expect(fieldOf(empty)).toBe("email");
+		expect(fieldOf(malformed)).toBe("email");
+		expect((empty as { message: string }).message).not.toBe((malformed as { message: string }).message);
+		expect(fieldOf(blank)).toBe("message");
+		expect(fieldOf(short)).toBe("message");
+		expect((blank as { message: string }).message).not.toBe((short as { message: string }).message);
+	});
+
+	it("reject in the parser's order: name, then email, then body", () => {
+		const everythingWrong = parseContactMessage({ name: "a".repeat(MAX_CONTACT_NAME_LENGTH + 1), email: "", body: "" });
+		const nameFine = parseContactMessage({ name: "Ada", email: "", body: "" });
+
+		expect(fieldOf(everythingWrong)).toBe("name");
+		expect(fieldOf(nameFine)).toBe("email");
 	});
 });
 

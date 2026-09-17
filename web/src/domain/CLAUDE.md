@@ -66,6 +66,14 @@ strips CR and LF from every header value as well, so the guard is written twice 
 ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). The **body** is
 not guarded and must not be: it is base64-encoded, so it may carry any line break a person types.
 
+**The rules are exported one field at a time, and the parser is their composition.** `validateContactName`,
+`validateContactEmail` and `validateContactBody` each answer an `InvalidInputFailure` or `null`, and
+`parseContactMessage` runs them in that order before it trims and tags. They exist so the contact form can check a
+single field when it is left, with the same sentence the server would answer; a second copy of the rule in the
+client is the drift the `maxlength` interpolation already refuses. An empty required field gets its own sentence
+("Enter your email address", "Write a message") rather than the length rule's, because the two are different
+mistakes to the person reading them and the same `field` to everything else.
+
 **The limits have a Dart twin, and the docs contract diffs them.** `MAX_CONTACT_NAME_LENGTH`,
 `MAX_CONTACT_EMAIL_LENGTH`, `MIN_CONTACT_BODY_LENGTH` and `MAX_CONTACT_BODY_LENGTH` are the same four numbers
 [`app/lib/domain/value_objects/contact_message.dart`](../../../app/lib/domain/value_objects/contact_message.dart) declares as

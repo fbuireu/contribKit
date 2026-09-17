@@ -31,7 +31,9 @@ import "./contact.css";
           maxlength={MAX_CONTACT_NAME_LENGTH}
           autocomplete="name"
           spellcheck="false"
+          aria-describedby={ElementId.ContactNameError}
         />
+        <p id={ElementId.ContactNameError} class="field-error mono" hidden></p>
       </div>
 
       <div class="field">
@@ -45,7 +47,9 @@ import "./contact.css";
           autocomplete="email"
           spellcheck="false"
           autocapitalize="none"
+          aria-describedby={ElementId.ContactEmailError}
         />
+        <p id={ElementId.ContactEmailError} class="field-error mono" hidden></p>
       </div>
 
       <div class="field">
@@ -57,7 +61,9 @@ import "./contact.css";
           required
           minlength={MIN_CONTACT_BODY_LENGTH}
           maxlength={MAX_CONTACT_BODY_LENGTH}
+          aria-describedby={ElementId.ContactMessageError}
         ></textarea>
+        <p id={ElementId.ContactMessageError} class="field-error mono" hidden></p>
       </div>
 
       <div class="field field--trap" aria-hidden="true">

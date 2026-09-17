@@ -21,6 +21,37 @@ test.describe("contact", () => {
 		await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
 	});
 
+	test("refuses an empty submission inline, without a bubble and without a request", async ({ page }) => {
+		const requests: string[] = [];
+		page.on("request", (sent) => {
+			if (sent.url().endsWith("/api/contact")) requests.push(sent.url());
+		});
+		await page.goto("/contact");
+
+		await page.locator(byId(ElementId.ContactSubmit)).click();
+
+		await expect(page.locator(byId(ElementId.ContactEmailError))).toBeVisible();
+		await expect(page.locator(byId(ElementId.ContactMessageError))).toBeVisible();
+		await expect(page.locator(byId(ElementId.ContactNameError))).toBeHidden();
+		await expect(page.locator(byId(ElementId.ContactEmail))).toHaveAttribute("aria-invalid", "true");
+		await expect(page.locator(byId(ElementId.ContactEmail))).toBeFocused();
+		expect(requests).toEqual([]);
+	});
+
+	test("checks a field once it is left, and clears the sentence as soon as it is fixed", async ({ page }) => {
+		await page.goto("/contact");
+		const email = page.locator(byId(ElementId.ContactEmail));
+		const error = page.locator(byId(ElementId.ContactEmailError));
+
+		await email.fill("ada@");
+		await expect(error).toBeHidden();
+		await email.blur();
+		await expect(error).toBeVisible();
+
+		await email.fill("ada@example.com");
+		await expect(error).toBeHidden();
+	});
+
 	test("400s a request that carries no message at all", async ({ request }) => {
 		const response = await request.post("/api/contact", { data: {} });
 

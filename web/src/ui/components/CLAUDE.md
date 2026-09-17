@@ -34,9 +34,12 @@ The layer's rules (props in / markup out, colocated CSS, Palette colours and Cel
   are interpolated out of [`@domain/value-objects/contact-message`](../../domain/value-objects/contact-message.ts), so
   the browser refuses exactly what the server would. Typing the numbers in would be the same class of drift as a
   hex literal.
-  The form carries no `novalidate`, so `required`, `type="email"`, `minlength` and `maxlength` refuse a bad
-  submission in the browser before any request leaves; the server's 400 is the answer for a client that bypassed
-  them, not the first thing a person sees.
+  The markup carries `required`, `type="email"`, `minlength` and `maxlength` and no `novalidate`; the controller
+  sets `noValidate` itself, so with scripting the domain's per-field rules answer inline in the `field-error` node
+  each control names through `aria-describedby`, and without it the browser's own checks still refuse a bad
+  submission. Either way the server's 400 is the answer for a client that bypassed both, not the first thing a
+  person sees. The error nodes and the failed status are `--danger` on the page's colours, and they restate
+  `::selection` on purpose: the default selection highlight under red text was unreadable.
 - **The honeypot is hidden by a class, not by `type="hidden"` or `display:none` alone.** `.field--trap` clips it
   out of the layout while leaving it in the accessibility tree's way as little as possible: it also carries
   `tabindex="-1"`, `autocomplete="off"` and `aria-hidden="true"`, so a keyboard user never lands on it and a screen

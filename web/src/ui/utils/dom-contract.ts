@@ -1,9 +1,12 @@
 export const ElementId = {
 	CellTooltip: "cell-tooltip",
 	ContactEmail: "contact-email",
+	ContactEmailError: "contact-email-error",
 	ContactForm: "contact-form",
 	ContactMessage: "contact-message",
+	ContactMessageError: "contact-message-error",
 	ContactName: "contact-name",
+	ContactNameError: "contact-name-error",
 	ContactStatus: "contact-status",
 	ContactSubmit: "contact-submit",
 	ContactWebsite: "contact-website",
