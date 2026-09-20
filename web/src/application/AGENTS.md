@@ -139,7 +139,7 @@ Two constants, `CACHEABLE_ANSWER` and `NOT_CACHEABLE`, and the rule they exist t
 that carries data is cacheable.** Every route reads them rather than spelling a header value at the `Response`;
 the one-hour policy was written out at two call sites and the failure branches wrote nothing at all, which is not
 the same as `no-store` because an intermediary may store a response that states no policy. The
-[pages guide](../pages/CLAUDE.md) has the surface-by-surface table and why the SVG endpoint is where it bites.
+[pages guide](../pages/AGENTS.md) has the surface-by-surface table and why the SVG endpoint is where it bites.
 
 It sits beside `failure-http.ts` and not inside it: a cache policy is a property of the *answer*, not a mapping
 from a `Failure`, and half the sites that need `NOT_CACHEABLE` (`/api/health`, the Zod shape rejection) never

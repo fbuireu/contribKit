@@ -91,7 +91,7 @@ Monorepo with three components sharing design tokens:
 | [`app/`](app)                | iOS & Android app, Android home-screen widgets          | Flutter · Riverpod · RevenueCat           | **[app/README.md](app/README.md)** |
 | [`shared/`](shared)          | Single source of truth for palettes, shapes, usernames  | JSON consumed by both apps                | **[shared/README.md](shared/README.md)** |
 
-Both apps follow the same DDD-ish layered architecture (`domain` → `application` → `infrastructure` / `ui`): the domain is pure, validated value objects guard every boundary, errors are a sealed set of typed `Failure`s matched exhaustively at the boundary (returned as values on the web, thrown and caught in the app), and each layer documents its own rules in a colocated `CLAUDE.md`.
+Both apps follow the same DDD-ish layered architecture (`domain` → `application` → `infrastructure` / `ui`): the domain is pure, validated value objects guard every boundary, errors are a sealed set of typed `Failure`s matched exhaustively at the boundary (returned as values on the web, thrown and caught in the app), and each layer documents its own rules in a colocated `AGENTS.md`.
 
 Both apps also share one vocabulary: **[CONTEXT.md](CONTEXT.md)** is the domain glossary, and **[docs/adr/](docs/adr)** records the decisions behind the architecture.
 
@@ -182,7 +182,7 @@ If you find this project useful, consider supporting its development:
 
 This project uses AI assistance primarily for documentation and review purposes. AI tools (GitHub Copilot, Claude) were used to:
 
-- Write and improve documentation (READMEs, layer `CLAUDE.md` files)
+- Write and improve documentation (READMEs, layer `AGENTS.md` files)
 - Generate boilerplate code and configuration files
 - Assist with code reviews and refactoring suggestions
 

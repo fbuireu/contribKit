@@ -51,7 +51,7 @@ middleware.ts      rate limiting + security headers
 
 Unit tests sit next to what they cover. The one exception is [`docs/docs-consistency.test.ts`](https://github.com/fbuireu/contribKit/blob/main/docs/docs-consistency.test.ts): its subject is the documentation, not a module, so it lives beside the documents at the repo root. It still runs from the web package: [`web/vitest.config.ts`](https://github.com/fbuireu/contribKit/blob/main/web/vitest.config.ts) adds `../docs/**/*.test.ts`, [`web/tsconfig.json`](https://github.com/fbuireu/contribKit/blob/main/web/tsconfig.json) includes it, and the biome scripts pass `../docs`.
 
-Every layer carries a colocated `CLAUDE.md` documenting its rules, and the docs-consistency test fails if one is missing. See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
+Every layer carries a colocated `AGENTS.md` documenting its rules, and the docs-consistency test fails if one is missing. See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
 
 ---
 

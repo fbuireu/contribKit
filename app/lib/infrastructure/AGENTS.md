@@ -20,7 +20,7 @@ Flutter widgets, and must never import from `ui/`.
   iterated, which is after the `try` that would have made it a `ParseFailure`. It builds a `List<String>` eagerly
   now. Any `cast`, `map` or `where` returned from inside a `try` here has the same hole.
 - **DTOs convert to entities at the boundary and never leak upward.** See
-  [`github/dtos/`](./github/dtos/CLAUDE.md).
+  [`github/dtos/`](./github/dtos/AGENTS.md).
 - **Levels come from GitHub when GitHub supplies them.** `data-level` is authoritative; a derived level is a
   fallback for an **absent** attribute, not for an unreadable one. It used to be a fallback for both: an index
   outside 0 to 4 returned `null` and fell through to the count, so the same HTML painted `veryHigh` on the web and
@@ -323,9 +323,9 @@ suspicious of this file specifically.
   isolate rather than degrading through the repository's own guard (`_read` then, `_tolerating` now). The isolate still constructs its repositories by hand, because a
   background isolate has no `ProviderScope`. But it no longer knows a single storage key, and since the refresh
   sequence moved into `HomeScreenWidgetRefresh` it no longer knows the order of the reads either.
-  This is the first of the three traps in the [root guide](../../../CLAUDE.md#maintenance-contract).
+  This is the first of the three traps in the [root guide](../../../AGENTS.md#maintenance-contract).
 - **`_toDto` builds the DTOs, and the DTOs generate both directions.** It was a map literal against read-only
-  DTOs, so nothing could tell you when the two drifted; see [`github/dtos/`](./github/dtos/CLAUDE.md).
+  DTOs, so nothing could tell you when the two drifted; see [`github/dtos/`](./github/dtos/AGENTS.md).
 - **`_readCache` takes the `Username` it was called with** rather than rebuilding one from the cache key. It used
   to split the key on `:` and re-parse the first half, which once the key was lower-cased would have handed back
   a differently-cased calendar on a cache hit than on a fresh fetch.

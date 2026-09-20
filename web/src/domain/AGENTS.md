@@ -1,7 +1,7 @@
 # web/src/domain
 
 The business core, in pure TypeScript. No Astro, no Cloudflare, no `fetch`, no `node:*`. It is the half of the
-project that is implemented twice: the Dart mirror is [`app/lib/domain/`](../../../app/lib/domain/CLAUDE.md), and
+project that is implemented twice: the Dart mirror is [`app/lib/domain/`](../../../app/lib/domain/AGENTS.md), and
 the two are meant to stay diffable concept by concept
 ([ADR 0003](../../../docs/adr/0003-layered-domain-architecture-in-both-clients.md)).
 
@@ -15,7 +15,7 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   co-located `*.test.ts` files is the only other import in the folder, and it is the test's, not the layer's.
 - **Functional style.** Factory functions returning readonly objects. No classes.
 - **Two arguments means one destructured object**, the repo-wide convention the
-  [application guide](../application/CLAUDE.md) states. `invalidInput` and `network` both take one; `notFound`,
+  [application guide](../application/AGENTS.md) states. `invalidInput` and `network` both take one; `notFound`,
   `parse` and `delivery` take a single positional argument because they have exactly one.
 - **`Username`, `Year` and `ContactMessage` are the `_tag` carriers,** and only they validate on construction: a `parse*` returning
   `T | Failure` (or `null`), plus an `is*` guard that checks the `_tag`. The rest of `value-objects/` is total

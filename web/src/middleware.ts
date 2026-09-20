@@ -25,7 +25,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 	].join("; "),
 };
 
-const AGENT_GUIDE_ROUTE = "/CLAUDE";
+const AGENT_GUIDE_ROUTE = "/AGENTS";
 const API_NAMESPACE = "/api/";
 
 interface WithSecurityHeadersParams {

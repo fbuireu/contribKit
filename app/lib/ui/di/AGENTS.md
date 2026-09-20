@@ -60,7 +60,7 @@ from 200ms to a 6.4s ceiling, and reports `AsyncLoading` the whole time. Both pr
 asset**: if `assets/palettes.json` is unreadable on the first attempt it is unreadable on the tenth, so every one of
 those retries was delay bought with nothing. Worse, `PalettePicker` and the Viewer's suggestion row render *nothing*
 while loading and their message only on error, so the failure paths this repository added on purpose, and that
-[`ui/CLAUDE.md`](../CLAUDE.md) describes, were unreachable for the length of the backoff: a Customizer with a
+[`ui/AGENTS.md`](../AGENTS.md) describes, were unreachable for the length of the backoff: a Customizer with a
 silently missing Palette section, which is the exact defect they were written to fix. Nothing caught it because
 neither path had a test. Keep `retry` off for anything asset-backed, and think before turning it on for something
 else: the contributions fetch does not go through a provider at all, so there is currently nothing here that a

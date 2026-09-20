@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [CONTEXT.md](./CONTEXT.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
@@ -117,15 +117,15 @@ Both clients use the same layered architecture with a strict inward dependency d
 
 | Folder | Covers |
 | --- | --- |
-| [`web/src/domain/`](./web/src/domain/CLAUDE.md) | purity rules, value objects, failures, services |
-| [`web/src/application/`](./web/src/application/CLAUDE.md) | curried use cases, `Failure` → HTTP mapping |
-| [`web/src/infrastructure/`](./web/src/infrastructure/CLAUDE.md) | GitHub scraping, SVG renderer, logging |
-| [`web/src/ui/`](./web/src/ui/CLAUDE.md) · [`components/`](./web/src/ui/components/CLAUDE.md) | component groups, colocation |
-| [`web/src/pages/`](./web/src/pages/CLAUDE.md) | routes, the composition root |
-| [`app/lib/domain/`](./app/lib/domain/CLAUDE.md) | pure Dart core, entities, value objects |
-| [`app/lib/application/`](./app/lib/application/CLAUDE.md) | one class per use case |
-| [`app/lib/infrastructure/`](./app/lib/infrastructure/CLAUDE.md) · [`github/dtos/`](./app/lib/infrastructure/github/dtos/CLAUDE.md) | clients, persistence, export, DTOs |
-| [`app/lib/ui/`](./app/lib/ui/CLAUDE.md) · [`di/`](./app/lib/ui/di/CLAUDE.md) · [`theme/`](./app/lib/ui/theme/CLAUDE.md) | widgets, providers, wiring, tokens |
+| [`web/src/domain/`](./web/src/domain/AGENTS.md) | purity rules, value objects, failures, services |
+| [`web/src/application/`](./web/src/application/AGENTS.md) | curried use cases, `Failure` → HTTP mapping |
+| [`web/src/infrastructure/`](./web/src/infrastructure/AGENTS.md) | GitHub scraping, SVG renderer, logging |
+| [`web/src/ui/`](./web/src/ui/AGENTS.md) · [`components/`](./web/src/ui/components/AGENTS.md) | component groups, colocation |
+| [`web/src/pages/`](./web/src/pages/AGENTS.md) | routes, the composition root |
+| [`app/lib/domain/`](./app/lib/domain/AGENTS.md) | pure Dart core, entities, value objects |
+| [`app/lib/application/`](./app/lib/application/AGENTS.md) | one class per use case |
+| [`app/lib/infrastructure/`](./app/lib/infrastructure/AGENTS.md) · [`github/dtos/`](./app/lib/infrastructure/github/dtos/AGENTS.md) | clients, persistence, export, DTOs |
+| [`app/lib/ui/`](./app/lib/ui/AGENTS.md) · [`di/`](./app/lib/ui/di/AGENTS.md) · [`theme/`](./app/lib/ui/theme/AGENTS.md) | widgets, providers, wiring, tokens |
 
 ## Conventions
 
@@ -169,13 +169,13 @@ These documents are not generated. A change that does not update them leaves the
 | Every pinned version matches the manifest that pins it, and exactly one manifest pins pnpm | Ruby included: `setup-ruby` reads [`app/android/.ruby-version`](./app/android/.ruby-version), which Renovate keeps current, where a `ruby-version:` literal in the workflow was a pin no bot could see |
 | No document outside the ADRs names a runtime or a framework beside a version | the manifest is the only copy Renovate keeps current, so a digit in prose is a claim a bump falsifies; the two sentences that narrate a past bump by its number are allow-listed by name |
 | Every documented `pnpm` script is declared in a [`package.json`](./package.json) | read from code spans, so prose saying "the pnpm and Node pins" is not mistaken for a command |
-| Every source layer carries a nested `CLAUDE.md`, listed in both maps, with no stray `CONTEXT.md` outside the root | |
+| Every source layer carries a nested `AGENTS.md`, listed in both maps, with no stray `CONTEXT.md` outside the root | |
 | Nothing under [`web/src/pages`](./web/src/pages) becomes a public URL by accident | [ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) |
 | Every bare filename a guide cites still exists | searched across [`app/lib`](./app/lib), [`app/test`](./app/test), [`web/src`](./web/src) and [`web/e2e`](./web/e2e): a guide pointing at the test that pins a rule is citing the most useful file it could |
 | Every glossary term is used somewhere outside the glossary | |
 | No identifier is named after a word a glossary `_Avoid_` list rejects | narrower than it sounds: see below |
 | No `//` **or `/* */`** comment in any hand-written source | `app/lib`, `app/test`, `app/tool`, `web/src`, `web/e2e`, `docs/`, `scripts/` and the `web/*.config.ts` files. The exception list is exactly `// @vitest-environment` and `/// <reference>`, the ones the runner reads, so a `///` Dart doc comment or a `// @TODO` is caught like any other. The block form was invisible for a year |
-| **Both** clients' layers import only inwards, and the app's pure core imports no framework | over `.astro` as well as `.ts`, and over every import form rather than `from "…"` alone: that hole is how a marketing component reached around the domain and counted the raw token JSON instead of the filtered `CELL_SHAPES`. It also resolves a **relative** specifier against the importing file, because an alias prefix was the only thing it read, so `../../infrastructure/...` was invisible, and it now forbids reaching `pages/` from anywhere, which no layer listed. **The app had no such guard at all**: its layering and its `domain/CLAUDE.md` promise of zero external dependencies were stated and enforced by nothing. Dart needs no relative-path resolution because `always_use_package_imports` forbids relative imports outright |
+| **Both** clients' layers import only inwards, and the app's pure core imports no framework | over `.astro` as well as `.ts`, and over every import form rather than `from "…"` alone: that hole is how a marketing component reached around the domain and counted the raw token JSON instead of the filtered `CELL_SHAPES`. It also resolves a **relative** specifier against the importing file, because an alias prefix was the only thing it read, so `../../infrastructure/...` was invisible, and it now forbids reaching `pages/` from anywhere, which no layer listed. **The app had no such guard at all**: its layering and its `domain/AGENTS.md` promise of zero external dependencies were stated and enforced by nothing. Dart needs no relative-path resolution because `always_use_package_imports` forbids relative imports outright |
 | `shadcn_ui` stays inside [`app/lib/ui/widgets/`](./app/lib/ui/widgets), the theme and the composition root | |
 | **The things written more than once stay identical** | the Embed contract in Dart and TypeScript, the dark palette in its two CSS blocks, and the Cell geometry in Dart, TypeScript **and Kotlin**. The last was called an unclosable gap by [ADR 0020](./docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) on the grounds that the Android widget renders to a bitmap nothing can assert on, which is true of the *output* and not of the numbers in the source. The web path filter, written across every workflow that carried one, used to be on this list and is gone because the filters are gone: one unfiltered `ci.yml` replaced them |
 | Every `observability` block names a `destinations` array for logs and for traces, redacts the query string, and declares no `tail_consumers` | a block with no destination reaches Cloudflare's dashboard and nothing else, which is the silent failure the deleted tail Worker used to have. What the contract cannot check is that the destination *exists*: it is a name resolved against the Cloudflare dashboard ([ADR 0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)) |
@@ -188,7 +188,7 @@ A failure means the docs and the code disagree: fix whichever is wrong, and **ne
 | --- | --- |
 | What a domain word means, or introduce a new one | [`CONTEXT.md`](./CONTEXT.md): vocabulary only, no implementation |
 | An identifier that a glossary `_Avoid_` list forbids | the code, not the glossary |
-| A folder's layout or a rule its guide states | that folder's `CLAUDE.md` (table above) |
+| A folder's layout or a rule its guide states | that folder's `AGENTS.md` (table above) |
 | A palette, shape, or suggested username | `shared/*.json`, then `pnpm sync:assets`, then the README's feature list |
 | How contributions are fetched or parsed | **both** clients: the parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)) |
 | A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |

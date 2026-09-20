@@ -223,7 +223,7 @@ nothing went wrong.
 
 **This folder holds the writer, and the decisions stay one layer up.** Whether something that went wrong is worth a
 line, under which message, and above which status, is
-[`failure-log.ts`](../application/http/failure-log.ts) in [`application/http/`](../application/CLAUDE.md): it takes a logger as a parameter rather than
+[`failure-log.ts`](../application/http/failure-log.ts) in [`application/http/`](../application/AGENTS.md): it takes a logger as a parameter rather than
 reaching for one, and it declares the port it takes. That port and the two helpers were three files in two layers
 before, two of them declaring **character-for-character identical** one-method interfaces (`ServerErrorLogger` here
 and `FailureLogger` there) so that two helpers doing the same job could each be tested with a fake. `Logger` here

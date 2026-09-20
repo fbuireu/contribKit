@@ -2,7 +2,7 @@
 
 The business core, in pure Dart. Zero external dependencies: no Flutter, no Riverpod, no `dart:ui`. It is the other
 half of a domain implemented twice: the TypeScript mirror is
-[`web/src/domain/`](../../../web/src/domain/CLAUDE.md), and the two are meant to stay diffable concept by concept
+[`web/src/domain/`](../../../web/src/domain/AGENTS.md), and the two are meant to stay diffable concept by concept
 ([ADR 0003](../../../docs/adr/0003-layered-domain-architecture-in-both-clients.md)).
 
 The vocabulary these types are named after is [`CONTEXT.md`](../../../CONTEXT.md), and it is prescriptive: an
@@ -202,7 +202,7 @@ person writes by hand may carry one; what no client does is *build* one.
 - **`CellSize` carries its own `label` and `step`.** `label` is an exhaustive `switch (this)`, like `CellShape.label`
   and `BackgroundPreset.label`, so a fourth Cell Size is a compile error. `SizePicker` held a hand-maintained
   `const Map` reached as `labels[size]!` until this landed, which is the **exact** shape
-  [`app/lib/ui/theme/CLAUDE.md`](../ui/theme/CLAUDE.md) records as a past crash: the fix was applied to the other two enums and not to this
+  [`app/lib/ui/theme/AGENTS.md`](../ui/theme/AGENTS.md) records as a past crash: the fix was applied to the other two enums and not to this
   one. `step` is `pixels + gap`, the pitch a renderer advances by, and it exists so that number is written once:
   `ExportGeometryService` and both Export repositories each spelled it out, and `RenderOptions` carried a `cellSize`
   getter that restated `pixels` under the name [ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) reserves for pixel geometry. That getter is gone.

@@ -5,7 +5,7 @@ import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, envField, fontProviders } from "astro/config";
 
-const NOINDEX_SLUGS = ["legal-notice", "privacy", "terms", "CLAUDE"];
+const NOINDEX_SLUGS = ["legal-notice", "privacy", "terms", "AGENTS"];
 
 const SITE = process.env.SITE_URL ?? "https://contribkit.app";
 

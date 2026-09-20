@@ -4,7 +4,7 @@ Date: 2026-09-11
 
 ## Status
 
-Accepted. Supersedes the delivery mechanism assumed by the *Deploy* section of [`CLAUDE.md`](../../CLAUDE.md), not the destination: the logs still land in the same Better Stack source.
+Accepted. Supersedes the delivery mechanism assumed by the *Deploy* section of [`AGENTS.md`](../../AGENTS.md), not the destination: the logs still land in the same Better Stack source.
 
 ## Context
 
@@ -43,4 +43,4 @@ The rejected alternatives are the half-move, which produces spans nothing can be
 - **`PUBLIC_BETTER_STACK_SOURCE_TOKEN` and `PUBLIC_BETTER_STACK_INGESTING_URL` are gone from the repository.** Nothing read them once the Worker stopped posting its own logs: the browser tag uses a different token entirely. The host and the token now live in the Cloudflare destination and nowhere else, which is the trade this decision makes.
 - **Tracing is in open beta and is billed from 2026-10-01**, at $0.05 per million events above 10 million per month. The dial is `head_sampling_rate`, in both stages, and the preview Worker of every pull request carries the same `1`. If the embed endpoint's traffic ever grows into that, lowering the development stage first is the cheap half.
 - **Trace ids do not propagate beyond Cloudflare.** W3C trace context propagation is not available, so a span here cannot be joined to a trace in any service outside the platform. Since the only outbound call is an unauthenticated scrape of github.com, that costs nothing today.
-- Where this bites: the *Deploy* section of [`CLAUDE.md`](../../CLAUDE.md), the `logging/` section of [`web/src/infrastructure/CLAUDE.md`](../../web/src/infrastructure/CLAUDE.md), the workflow table in [`ARCHITECTURE.md`](../../ARCHITECTURE.md), and the [CI-CD](../wiki/CI-CD.md) and [Web-Application](../wiki/Web-Application.md) wiki pages.
+- Where this bites: the *Deploy* section of [`AGENTS.md`](../../AGENTS.md), the `logging/` section of [`web/src/infrastructure/AGENTS.md`](../../web/src/infrastructure/AGENTS.md), the workflow table in [`ARCHITECTURE.md`](../../ARCHITECTURE.md), and the [CI-CD](../wiki/CI-CD.md) and [Web-Application](../wiki/Web-Application.md) wiki pages.

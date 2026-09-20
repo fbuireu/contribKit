@@ -14,7 +14,7 @@ flowchart RL
     ui --> domain
 ```
 
-Each layer documents its own rules in a colocated `CLAUDE.md`.
+Each layer documents its own rules in a colocated `AGENTS.md`.
 
 ---
 
@@ -39,9 +39,9 @@ hardcoded default Cell Shape that comes from [`shared/shapes.json`](https://gith
 
 | Question | Guide |
 |---|---|
-| What is a value object here, and how does each one fail? | [`web/src/domain/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/domain/CLAUDE.md) · [`app/lib/domain/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/domain/CLAUDE.md) |
-| What use cases are there, and what maps a `Failure` to a status? | [`web/src/application/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/application/CLAUDE.md) · [`app/lib/application/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/application/CLAUDE.md) |
-| How is GitHub scraped, and how is the SVG drawn? | [`web/src/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/CLAUDE.md) · [`app/lib/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/infrastructure/CLAUDE.md) |
+| What is a value object here, and how does each one fail? | [`web/src/domain/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/domain/AGENTS.md) · [`app/lib/domain/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/domain/AGENTS.md) |
+| What use cases are there, and what maps a `Failure` to a status? | [`web/src/application/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/application/AGENTS.md) · [`app/lib/application/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/application/AGENTS.md) |
+| How is GitHub scraped, and how is the SVG drawn? | [`web/src/infrastructure/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/AGENTS.md) · [`app/lib/infrastructure/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/app/lib/infrastructure/AGENTS.md) |
 | What does each error mean to a caller? | **[API Reference](API-Reference)** · **[Troubleshooting](Troubleshooting)** |
 | Why are the layers this shape at all? | [ADR 0003](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0003-layered-domain-architecture-in-both-clients.md) |
 

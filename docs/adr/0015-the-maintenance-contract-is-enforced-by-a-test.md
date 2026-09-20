@@ -8,7 +8,7 @@ Accepted.
 
 ## Context
 
-This repo carries a lot of prose: a root [`CLAUDE.md`](../../CLAUDE.md), a glossary in [`CONTEXT.md`](../../CONTEXT.md), an [`ARCHITECTURE.md`](../../ARCHITECTURE.md), thirteen per-layer `CLAUDE.md` files, this ADR directory, a published wiki and four READMEs. They are the primary interface for anyone (increasingly, an agent) arriving without context, and the maintenance contract already states the rule: when you change code, update the docs in the same commit.
+This repo carries a lot of prose: a root [`AGENTS.md`](../../AGENTS.md), a glossary in [`CONTEXT.md`](../../CONTEXT.md), an [`ARCHITECTURE.md`](../../ARCHITECTURE.md), thirteen per-layer `AGENTS.md` files, this ADR directory, a published wiki and four READMEs. They are the primary interface for anyone (increasingly, an agent) arriving without context, and the maintenance contract already states the rule: when you change code, update the docs in the same commit.
 
 Nothing checked. Documentation rot is silent by construction: no build fails, no type breaks, and the only signal is a reader acting on a claim that stopped being true. Writing these documents produced exactly that, repeatedly and undetected by review:
 

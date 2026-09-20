@@ -3,7 +3,7 @@
 How ContribKit is built, for contributors. What it does and how to use it is the [README](./README.md) and the
 user guides in [docs/wiki/](./docs/wiki/), in particular [How It Works](../../wiki/How-It-Works) and
 [Project Structure](../../wiki/Project-Structure); this document does not restate them. Conventions and the
-maintenance contract are [CLAUDE.md](./CLAUDE.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to
+maintenance contract are [AGENTS.md](./AGENTS.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to
 work on the repo is [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 The thing to understand before anything else: **the same domain is implemented twice**, in TypeScript and in Dart,
@@ -116,7 +116,7 @@ Three rules govern the diagram in both languages:
   and the two clients carry that set differently. See §4.
 
 The codebase-wide conventions those boundaries sit inside are stated once in
-[CLAUDE.md](./CLAUDE.md#conventions); what each layer actually guarantees is that layer's own `CLAUDE.md`, linked
+[AGENTS.md](./AGENTS.md#conventions); what each layer actually guarantees is that layer's own `AGENTS.md`, linked
 in [§7](#7-where-things-live).
 
 ## 3. A request, end to end
@@ -155,7 +155,7 @@ Separately, `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart) r
 home-screen widget. It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
 hand. But it reads settings through `SettingsRepository` like everything else, so a renamed key breaks it
 at compile time. It read the box by string literal until that changed, which is one of the traps named in
-[CLAUDE.md](./CLAUDE.md#maintenance-contract). What it then does with them is `HomeScreenWidgetRefresh`, the same
+[AGENTS.md](./AGENTS.md#maintenance-contract). What it then does with them is `HomeScreenWidgetRefresh`, the same
 module the foreground writes through: the refresh sequence used to be spelled out in both places, so the isolate
 could drift from the app without anything failing. When the refresh throws, `DiagnosticReportService.warrants`
 decides whether the `Failure` is a defect worth a Diagnostic Report or the world's doing (no network, a rate limit,
@@ -294,7 +294,7 @@ secrets; the full mapping is in the [README](./README.md#monorepo-development).
 ## 7. Where things live
 
 Three axes, three kinds of document. [CONTEXT.md](./CONTEXT.md) is the domain glossary: what the words **mean**.
-The `CLAUDE.md` files (one at the root, one per layer) are **structure**, and they load automatically when an
+The `AGENTS.md` files (one at the root, one per layer) are **structure**, and they load automatically when an
 agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 
 | ADR | Decision |
@@ -337,18 +337,18 @@ and it needs a link from somewhere other than this index: an ADR only the index 
 
 | Document | Covers |
 | --- | --- |
-| [CLAUDE.md](./CLAUDE.md) | Commands, conventions, the maintenance contract; loaded into every agent session |
+| [AGENTS.md](./AGENTS.md) | Commands, conventions, the maintenance contract; loaded into every agent session |
 | [CONTEXT.md](./CONTEXT.md) | The domain glossary both clients obey, and the words to avoid |
 | [CONTRIBUTING.md](./.github/CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
-| [web/src/domain/CLAUDE.md](./web/src/domain/CLAUDE.md) | Purity rules, value objects, failures, services |
-| [web/src/application/CLAUDE.md](./web/src/application/CLAUDE.md) | Curried use cases, `Failure` → HTTP mapping |
-| [web/src/infrastructure/CLAUDE.md](./web/src/infrastructure/CLAUDE.md) | GitHub scraping, the SVG renderer, logging |
-| [web/src/ui/CLAUDE.md](./web/src/ui/CLAUDE.md) · [components/](./web/src/ui/components/CLAUDE.md) | Component groups and colocation |
-| [web/src/pages/CLAUDE.md](./web/src/pages/CLAUDE.md) | Routes and the composition root |
-| [app/lib/domain/CLAUDE.md](./app/lib/domain/CLAUDE.md) | Pure Dart core, entities, value objects |
-| [app/lib/application/CLAUDE.md](./app/lib/application/CLAUDE.md) | One class per use case |
-| [app/lib/infrastructure/CLAUDE.md](./app/lib/infrastructure/CLAUDE.md) · [github/dtos/](./app/lib/infrastructure/github/dtos/CLAUDE.md) | Clients, persistence, export, DTOs |
-| [app/lib/ui/CLAUDE.md](./app/lib/ui/CLAUDE.md) · [di/](./app/lib/ui/di/CLAUDE.md) · [theme/](./app/lib/ui/theme/CLAUDE.md) | Widgets, providers, wiring, tokens |
+| [web/src/domain/AGENTS.md](./web/src/domain/AGENTS.md) | Purity rules, value objects, failures, services |
+| [web/src/application/AGENTS.md](./web/src/application/AGENTS.md) | Curried use cases, `Failure` → HTTP mapping |
+| [web/src/infrastructure/AGENTS.md](./web/src/infrastructure/AGENTS.md) | GitHub scraping, the SVG renderer, logging |
+| [web/src/ui/AGENTS.md](./web/src/ui/AGENTS.md) · [components/](./web/src/ui/components/AGENTS.md) | Component groups and colocation |
+| [web/src/pages/AGENTS.md](./web/src/pages/AGENTS.md) | Routes and the composition root |
+| [app/lib/domain/AGENTS.md](./app/lib/domain/AGENTS.md) | Pure Dart core, entities, value objects |
+| [app/lib/application/AGENTS.md](./app/lib/application/AGENTS.md) | One class per use case |
+| [app/lib/infrastructure/AGENTS.md](./app/lib/infrastructure/AGENTS.md) · [github/dtos/](./app/lib/infrastructure/github/dtos/AGENTS.md) | Clients, persistence, export, DTOs |
+| [app/lib/ui/AGENTS.md](./app/lib/ui/AGENTS.md) · [di/](./app/lib/ui/di/AGENTS.md) · [theme/](./app/lib/ui/theme/AGENTS.md) | Widgets, providers, wiring, tokens |
 | [docs/plans/](./docs/plans/) | Work deferred on purpose, kept because the decision to defer is the record |
 | [docs/wiki/](./docs/wiki/) | The published GitHub wiki: user-facing, synced by `sync-wiki.yml` |
 

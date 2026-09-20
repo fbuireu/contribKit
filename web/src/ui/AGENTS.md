@@ -12,7 +12,7 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 
 | Directory | Contents |
 |---|---|
-| `components/` | Every Astro component, grouped by role. See [`components/CLAUDE.md`](./components/CLAUDE.md). |
+| `components/` | Every Astro component, grouped by role. See [`components/AGENTS.md`](./components/AGENTS.md). |
 | `utils/` | The browser-side half: `page-init` (the page controller), `state` + `render`, `roving` (keyboard navigation), `cookie` / `url` (username and year persistence), `cell-tooltip`, `contribution-errors`, `mulberry` (seeded PRNG), `app-links`, `unshuffle`. |
 | `styles/` | Global CSS in `@layer` order: `index.css` is the entry, imported by `BaseLayout`. |
 
@@ -70,7 +70,7 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   carried its guard first and handed a bare `string` to three callers, each of which re-guarded or did not; the
   palette path had none at all, so a `data-key` naming a palette [`shared/palettes.json`](../../../shared/palettes.json) does not define threw a
   `TypeError` in three renderers instead of falling back. The long version is in the
-  [components guide](./components/CLAUDE.md), which owns the renderers.
+  [components guide](./components/AGENTS.md), which owns the renderers.
 - **State is module-level, in [`state.ts`](./utils/state.ts)**: two variables, `days` and `username`, behind getters and setters.
   There is no store and no framework. Anything needing the current grid calls `getDays()`; anything changing it
   calls `setDays()` and then a `render*` function. Nothing subscribes, so **a mutation without a matching render

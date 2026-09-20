@@ -42,7 +42,7 @@ It is also the only entry point for HTTP traffic.
 | [`legal-notice.astro`](./legal-notice.astro), [`privacy.astro`](./privacy.astro), [`terms.astro`](./terms.astro) | - | Static legal pages |
 | `_contributions.ts`, [`_contact.ts`](./_contact.ts) | - | Not routes: the shared compositions the data and contact consumers import |
 | `_tests/` | - | Not routes: the route tests plus the failure boundary's, kept out of the namespace by the underscore |
-| `CLAUDE.md` | `/CLAUDE`, 404'd | This file. Astro routes markdown too: see below |
+| `AGENTS.md` | `/AGENTS`, 404'd | This file. Astro routes markdown too: see below |
 
 **Everything here that is not underscore-prefixed is a public URL, `.md` included.** This file is a route:
 Astro compiled it and served it on `contribkit.app` until `AGENT_GUIDE_ROUTE` in `web/src/middleware.ts`
@@ -139,7 +139,7 @@ answer a caller gets is identical either way.
 
 Runs on every request and does three things.
 
-1. **A 404 for `/CLAUDE`, before anything else.** Astro compiles this very file into a public page, and
+1. **A 404 for `/AGENTS`, before anything else.** Astro compiles this very file into a public page, and
    `AGENT_GUIDE_ROUTE` is what keeps it off the web
    ([ADR 0018](../../../docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
 2. **Rate limiting, `/api/*` only, across two buckets.** `/api/contact` is limited by `CONTACT_RATE_LIMITER` and

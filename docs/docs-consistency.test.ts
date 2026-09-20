@@ -197,7 +197,7 @@ describe("source paths named in documentation", () => {
 	});
 
 	it("cites symbols, never a line number that will rot", () => {
-		const allowed = new Set(["CLAUDE.md", "docs/adr/0000-adr-template.md"]);
+		const allowed = new Set(["AGENTS.md", "docs/adr/0000-adr-template.md"]);
 		const cited: string[] = [];
 		for (const file of markdownFiles()) {
 			if (allowed.has(relative(file))) continue;
@@ -353,22 +353,22 @@ describe("shared design tokens", () => {
 describe("layer documentation", () => {
 	const layerGuides = (): string[] =>
 		[
-			...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith("CLAUDE.md") }),
-			...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith("CLAUDE.md") }),
+			...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith("AGENTS.md") }),
+			...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith("AGENTS.md") }),
 		]
 			.map(relative)
 			.sort();
 
 	it("gives every layer under web/src and app/lib its own guide", () => {
 		const missing = [
-			...directoriesIn("web/src").map((layer) => `web/src/${layer}/CLAUDE.md`),
-			...directoriesIn("app/lib").map((layer) => `app/lib/${layer}/CLAUDE.md`),
+			...directoriesIn("web/src").map((layer) => `web/src/${layer}/AGENTS.md`),
+			...directoriesIn("app/lib").map((layer) => `app/lib/${layer}/AGENTS.md`),
 		].filter((path) => !existsSync(join(REPO, path)));
 		expect(missing).toEqual([]);
 	});
 
 	it("lists every guide that exists in the root guide's table", () => {
-		const guide = read(join(REPO, "CLAUDE.md"));
+		const guide = read(join(REPO, "AGENTS.md"));
 		expect(layerGuides().filter((path) => !guide.includes(path))).toEqual([]);
 	});
 
@@ -386,7 +386,7 @@ describe("layer documentation", () => {
 });
 
 describe("the guides match the manifests", () => {
-	const guide = read(join(REPO, "CLAUDE.md"));
+	const guide = read(join(REPO, "AGENTS.md"));
 	const contributing = read(join(REPO, CONTRIBUTOR_GUIDE));
 	const rootPackage = json<{ packageManager: string; engines: { node: string }; scripts: Record<string, string> }>(
 		"package.json",
@@ -424,7 +424,7 @@ describe("the guides match the manifests", () => {
 	it("names every runtime it pins", () => {
 		const unnamed = RUNTIMES.flatMap((runtime) =>
 			[
-				["CLAUDE.md", guide],
+				["AGENTS.md", guide],
 				[CONTRIBUTOR_GUIDE, contributing],
 			]
 				.filter(([, body]) => !body.includes(runtime))
@@ -472,7 +472,7 @@ describe("the guides match the manifests", () => {
 		const builtins = new Set(["install", "exec", "dlx", "add", "remove", "run", "why", "workspaces"]);
 		const declared = new Set([...Object.keys(rootPackage.scripts), ...Object.keys(webPackage.scripts)]);
 		const invented = [
-			["CLAUDE.md", guide],
+			["AGENTS.md", guide],
 			[CONTRIBUTOR_GUIDE, contributing],
 		].flatMap(([doc, body]) =>
 			[...codeOnly(body).matchAll(DOCUMENTED_PNPM_SCRIPT)]
@@ -618,7 +618,7 @@ describe("a Tip unlocks nothing, down to what the app ships", () => {
 describe("the app is analyzed by the command that loads its plugin", () => {
 	const OPTIONS = join(REPO, "app/analysis_options.yaml");
 	const PUBSPEC = join(REPO, "app/pubspec.yaml");
-	const SEARCHED = [".github", "docs", "app/lefthook.yml", "CLAUDE.md", "ARCHITECTURE.md"];
+	const SEARCHED = [".github", "docs", "app/lefthook.yml", "AGENTS.md", "ARCHITECTURE.md"];
 
 	it("declares riverpod_lint as a plugin, over a range the manifest satisfies", () => {
 		const declared = /^\s{2}riverpod_lint:\s*\^(\d+)\.(\d+)\.\d+\s*$/m.exec(read(OPTIONS));
@@ -950,8 +950,8 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 describe("nested guides name real files", () => {
 	const nestedGuides = (): string[] => [
-		...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith("CLAUDE.md") }),
-		...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith("CLAUDE.md") }),
+		...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith("AGENTS.md") }),
+		...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith("AGENTS.md") }),
 	];
 
 	const citedFilenames = (body: string): string[] => [
@@ -1052,8 +1052,8 @@ describe("nothing under web/src/pages becomes a route by accident", () => {
 		const markdown = walk({ dir: join(REPO, "web/src/pages"), match: (path) => path.endsWith(".md") })
 			.filter((path) => !IGNORED_BY_ASTRO(path))
 			.map(relative);
-		expect(markdown).toEqual(["web/src/pages/CLAUDE.md"]);
-		expect(read(join(REPO, "web/src/middleware.ts"))).toContain('const AGENT_GUIDE_ROUTE = "/CLAUDE"');
+		expect(markdown).toEqual(["web/src/pages/AGENTS.md"]);
+		expect(read(join(REPO, "web/src/middleware.ts"))).toContain('const AGENT_GUIDE_ROUTE = "/AGENTS"');
 	});
 });
 
@@ -1168,7 +1168,7 @@ describe("the app layers only import inwards", () => {
 			.sort();
 		expect(
 			offenders,
-			"app/lib/domain/CLAUDE.md promises zero external dependencies, and nothing was checking it",
+			"app/lib/domain/AGENTS.md promises zero external dependencies, and nothing was checking it",
 		).toEqual([]);
 	});
 });
@@ -1203,7 +1203,7 @@ describe("two or more arguments are one object typed after the function", () => 
 	];
 
 	it("is the rule the guide states", () => {
-		expect(read(join(REPO, "CLAUDE.md"))).toContain("One argument is positional; two or more are one object");
+		expect(read(join(REPO, "AGENTS.md"))).toContain("One argument is positional; two or more are one object");
 	});
 
 	it("holds everywhere, tests included", () => {
@@ -1320,7 +1320,7 @@ const POLICED_NAMES = policedNames({
 	],
 });
 const STATED_VERSION = statedVersionPattern(POLICED_NAMES);
-const NARRATED_VERSIONS: Record<string, string[]> = { "CLAUDE.md": ["Flutter 3.47.2", "Dart 3.13.2"] };
+const NARRATED_VERSIONS: Record<string, string[]> = { "AGENTS.md": ["Flutter 3.47.2", "Dart 3.13.2"] };
 
 describe("stated versions", () => {
 	it("polices the runtimes and every versioned dependency the manifests declare, and nothing else", () => {

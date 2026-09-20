@@ -9,7 +9,7 @@ be constructible and testable with `const FetchContributions(repository: fake)` 
   `useCase(...)` at the call site, and it is why a second public method means a second use case.
 - **Dependencies arrive through the constructor**, held in a private final field. No service locator, no
   `ref.read`, no `Provider.of`. The only place that knows how to build one is
-  [`ui/di/providers.dart`](../ui/di/CLAUDE.md).
+  [`ui/di/providers.dart`](../ui/di/AGENTS.md).
 - **Stateless.** Every one of them is a `const` constructor over a repository. State lives in `ui/`.
 - **Named parameters** for anything taking more than one argument, matching the repository interface it fronts.
   `GiveTip.call(TipProduct product)` and `SendContactMessage.call(ContactMessage message)` are the positional

@@ -8,7 +8,7 @@ Accepted. Closes the departure recorded as a consequence of [8](0008-the-mobile-
 
 ## Context
 
-[`CONTEXT.md`](../../CONTEXT.md) has always defined a Count as "the exact number of contributions on a Contribution Day. Unknown for some days, which is distinct from a known zero", and the root [`CLAUDE.md`](../../CLAUDE.md) has always said an unknown Count "must not be estimated, summed, or displayed as exact". The web obeyed both: `ContributionDay.count` is `number | null`.
+[`CONTEXT.md`](../../CONTEXT.md) has always defined a Count as "the exact number of contributions on a Contribution Day. Unknown for some days, which is distinct from a known zero", and the root [`AGENTS.md`](../../AGENTS.md) has always said an unknown Count "must not be estimated, summed, or displayed as exact". The web obeyed both: `ContributionDay.count` is `number | null`.
 
 The app could not. `count` was a non-nullable `int`, so three different situations collapsed into `0`: a tool-tip whose text carried no leading number, a day the scrape never mentioned at all, and a Contribution Grid padding day outside the requested Year. None of those is a day on which someone did nothing, and the app could not tell you which it was looking at.
 
@@ -31,4 +31,4 @@ Padding days carry `null` too. A day outside the requested Year is not a day wit
 - **Nothing may render `totalContributions` directly.** `intl`'s `NumberFormat.format` takes a `dynamic`, so an `int?` compiles and prints the literal string `null`, and the analyzer says nothing. Both surfaces go through `formatTotalContributions`; a new one must too.
 - **The Cell Tooltip says `contributions unknown`** rather than a number nobody measured, and the SVG Export writes `unknown` in its per-cell `<title>` for the same reason.
 - Reverting means another cache version, re-deciding what each of the three unknown cases becomes, and re-introducing a Streak that disagrees with the web's. That is the cost of the honesty, and it is why this is written down.
-- Where it bites: [`app/lib/domain/CLAUDE.md`](../../app/lib/domain/CLAUDE.md) states the two rules, [`app/lib/infrastructure/CLAUDE.md`](../../app/lib/infrastructure/CLAUDE.md) states what the parser and the grid write, and [`app/lib/ui/CLAUDE.md`](../../app/lib/ui/CLAUDE.md) states the rendering rule.
+- Where it bites: [`app/lib/domain/AGENTS.md`](../../app/lib/domain/AGENTS.md) states the two rules, [`app/lib/infrastructure/AGENTS.md`](../../app/lib/infrastructure/AGENTS.md) states what the parser and the grid write, and [`app/lib/ui/AGENTS.md`](../../app/lib/ui/AGENTS.md) states the rendering rule.

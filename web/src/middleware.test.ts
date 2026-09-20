@@ -82,10 +82,10 @@ describe("security headers", () => {
 });
 
 describe("the pages-layer agent guide", () => {
-	it("is not reachable, because Astro turns src/pages/CLAUDE.md into a route", async () => {
+	it("is not reachable, because Astro turns src/pages/AGENTS.md into a route", async () => {
 		env.API_RATE_LIMITER = undefined;
 		const next = vi.fn(ok);
-		const response = await run({ path: "/CLAUDE", next });
+		const response = await run({ path: "/AGENTS", next });
 		expect(response.status).toBe(404);
 		expect(next).not.toHaveBeenCalled();
 		expect(response.headers.get("X-Frame-Options")).toBe("DENY");
@@ -93,7 +93,7 @@ describe("the pages-layer agent guide", () => {
 
 	it("does not block a real route that merely starts the same way", async () => {
 		env.API_RATE_LIMITER = undefined;
-		const response = await run({ path: "/CLAUDEX", next: ok });
+		const response = await run({ path: "/AGENTSX", next: ok });
 		expect(response.status).toBe(200);
 	});
 });

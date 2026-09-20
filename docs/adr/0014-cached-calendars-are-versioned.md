@@ -22,4 +22,4 @@ Adding a schema field and migrating in place was rejected for this class of chan
 
 - **Every user takes a one-time cache miss** on the release that bumps it, and refetches. That is the cost, and it is bounded.
 - The DTO still carries a nullable level and falls back to deriving one, which is now unreachable for entries written by this version. It is kept as defence for the next schema change rather than removed.
-- Settings are a different problem with a different answer: they are versioned per key with a legacy fallback, because losing a user's chosen palette is not recoverable by refetching. See [`CLAUDE.md`](../../CLAUDE.md) for the rule.
+- Settings are a different problem with a different answer: they are versioned per key with a legacy fallback, because losing a user's chosen palette is not recoverable by refetching. See [`AGENTS.md`](../../AGENTS.md) for the rule.

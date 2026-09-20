@@ -17,7 +17,7 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 ## Invariants & rules
 
 The layer's rules (props in / markup out, colocated CSS, Palette colours and Cell Shapes from
-`@domain/value-objects/`) are in the [parent guide](../CLAUDE.md) and are not restated here. What this folder adds:
+`@domain/value-objects/`) are in the [parent guide](../AGENTS.md) and are not restated here. What this folder adds:
 
 - **Anything fed from a DOM `dataset` is guarded where it is read, not where it is used.** `getActiveShape` and
   `getActivePalette` in [`ui/utils/render.ts`](../utils/render.ts) are the two places a `data-key` becomes a `CellShape` or a `Palette`,
@@ -130,7 +130,7 @@ Saturday of the current week and walks 371 days back from there, so it never sho
 
 ## `error/`
 
-[`404.astro`](../../pages/404.astro) and [`500.astro`](../../pages/500.astro) share `ErrorView` and `ContributionCode`. The [pages guide](../../pages/CLAUDE.md)
+[`404.astro`](../../pages/404.astro) and [`500.astro`](../../pages/500.astro) share `ErrorView` and `ContributionCode`. The [pages guide](../../pages/AGENTS.md)
 states the rule. Tone is token-only (`.error-page.is-danger` remaps the `--grid-*` / `--error-*`
 custom properties to the red ramp), so a new tone is a class and a token block, never an inlined hex.
 
@@ -147,7 +147,7 @@ custom properties to the red ramp), so a new tone is a class and a token block, 
   `calendar.ts` builds a weekday-damped score around a rising base and compares with `>=`, while this one adds a
   column ramp to a raw `mulberry32` draw and compares with `>`. The thresholds are tuned against those two scales
   and mean nothing swapped over. Neither is anybody's data
-  ([the Count invention rule](../../domain/CLAUDE.md) applies to both).
+  ([the Count invention rule](../../domain/AGENTS.md) applies to both).
 - **`shapePreviewSVG` draws its own miniatures** rather than reusing `renderCellShape`, at a 20×20 viewBox with
   hand-tuned radii, because a 10 px cell scaled up reads as a blur. Its table is keyed on `CellShape`, so adding a
   member fails to compile here, which is the intended reminder.

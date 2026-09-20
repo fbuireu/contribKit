@@ -4,7 +4,7 @@ Thanks for considering it. ContribKit is a monorepo with two clients over one do
 Cloudflare Workers and a Flutter mobile app, and most of what is unusual about contributing here comes from
 that one fact. Read this before your first pull request; it will save you a rejected commit.
 
-If you want the shape of the codebase, that is [CLAUDE.md](../CLAUDE.md) and the nested guides it links, and
+If you want the shape of the codebase, that is [AGENTS.md](../AGENTS.md) and the nested guides it links, and
 [ARCHITECTURE.md](../ARCHITECTURE.md) for the big picture. If you want the vocabulary, that is
 [CONTEXT.md](../CONTEXT.md). If you want the *why*, that is [docs/adr/](../docs/adr/).
 
@@ -52,7 +52,7 @@ included, so the documents are where the explanation lives
 ([ADR 0021](../docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)). The
 user-facing documentation is the [wiki](../docs/wiki/), edited **in this repository** and published by
 [`sync-wiki.yml`](./workflows/sync-wiki.yml) on every push touching it, so an edit made in the wiki UI is
-overwritten on the next sync. The agent-facing guides (`CLAUDE.md` and friends) are held to the code by a
+overwritten on the next sync. The agent-facing guides (`AGENTS.md` and friends) are held to the code by a
 test, so read *The docs are part of the change* below before editing one.
 
 ## Getting started
@@ -135,7 +135,7 @@ lefthook runs Biome and `dart format` on `pre-commit`, commitlint on `commit-msg
 latter only when a Dart file, `pubspec.yaml` or `analysis_options.yaml` is in the push. The web hook runs the
 changed-only variant rather than `verify` because the coverage floor and a subset run cannot both hold; CI
 runs the full `pnpm verify` on the pushed sha, so a push whose coverage dropped still fails its check.
-[CLAUDE.md](../CLAUDE.md) explains the trade.
+[AGENTS.md](../AGENTS.md) explains the trade.
 
 [`app/analysis_options.yaml`](../app/analysis_options.yaml) sits well above `flutter_lints`, and the rules it
 adds are the ones a reviewer would otherwise have to say out loud: `directives_ordering` and
@@ -163,7 +163,7 @@ them kept current by a bot.
 
 - **Use the glossary's words.** [CONTEXT.md](../CONTEXT.md) is prescriptive: if the code says something its
   `_Avoid_` list names, the code is what is wrong. Do not edit the glossary to match a stale identifier.
-- **No code comments**, doc comments included. The `CLAUDE.md` guides carry the explanation.
+- **No code comments**, doc comments included. The `AGENTS.md` guides carry the explanation.
 - **One argument is positional and two or more are a single object typed `<FunctionName>Params`**:
   `render({ shape, overrides }: RenderParams)`. The exception is a function a runtime calls back, such as a
   `sort` comparator, which is handed its arguments one at a time.
@@ -220,7 +220,7 @@ commit**. A follow-up commit is a promise, not a fix.
 build when the docs and the repo disagree. `ci.yml` runs it in a `Docs Contract` job that is **not** gated on
 which client changed, so it fires on every push and pull request. When it fails, fix whichever side is
 wrong, and **never delete an assertion to get green**. It cannot check prose or rationale, so a green run is
-not a correct document. [CLAUDE.md](../CLAUDE.md) has the full table of what to update for a given change,
+not a correct document. [AGENTS.md](../AGENTS.md) has the full table of what to update for a given change,
 and [ARCHITECTURE.md](../ARCHITECTURE.md) holds the ADR index.
 
 Writing an ADR: copy [`0000-adr-template.md`](../docs/adr/0000-adr-template.md) to `NNNN-kebab-title.md`

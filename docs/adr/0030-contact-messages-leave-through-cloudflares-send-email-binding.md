@@ -129,7 +129,7 @@ a surface the app could not implement on its own at all.
 - **The message-length contract now exists in two languages**, and the docs contract diffs them the way it already
   diffs the Embed contract ([20](0020-the-cell-geometry-is-the-apps-in-three-languages.md) is the same shape for
   geometry). Change a limit in one and the test fails until the other agrees.
-- Where this bites: the [pages guide](../../web/src/pages/CLAUDE.md), the
-  [web infrastructure guide](../../web/src/infrastructure/CLAUDE.md), the
-  [app infrastructure guide](../../app/lib/infrastructure/CLAUDE.md), the Deploy section of
-  [`CLAUDE.md`](../../CLAUDE.md), and [`docs/wiki/API-Reference.md`](../wiki/API-Reference.md).
+- Where this bites: the [pages guide](../../web/src/pages/AGENTS.md), the
+  [web infrastructure guide](../../web/src/infrastructure/AGENTS.md), the
+  [app infrastructure guide](../../app/lib/infrastructure/AGENTS.md), the Deploy section of
+  [`AGENTS.md`](../../AGENTS.md), and [`docs/wiki/API-Reference.md`](../wiki/API-Reference.md).

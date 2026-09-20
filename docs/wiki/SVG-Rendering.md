@@ -43,7 +43,7 @@ with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The gr
 
 - **Month labels** come from `MONTH_LABELS` in [`calendar-labels.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/value-objects/calendar-labels.ts) (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `calendarLayout` emits a label at the first week of each new month, but only when that week's first day falls on or before day 7, which prevents a stray label when a month barely peeks into a column. That yields exactly twelve distinct labels for every year from 2005 to 2030: the December spill at both ends never earns a thirteenth.
 - **Day-of-week labels** are `WEEKDAY_LABELS = ["Mon", "Wed", "Fri"]`, drawn on alternating rows (rows 1, 3, 5) so they don't overlap.
-- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one: a known defect recorded in [`web/src/infrastructure/CLAUDE.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/CLAUDE.md).
+- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one: a known defect recorded in [`web/src/infrastructure/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/AGENTS.md).
 
 ---
 

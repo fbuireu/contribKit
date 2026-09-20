@@ -54,17 +54,17 @@
 
 ## Architecture
 
-Same DDD-ish layering as the web; each layer documents its rules in a colocated [`CLAUDE.md`](../CLAUDE.md):
+Same DDD-ish layering as the web; each layer documents its rules in a colocated [`AGENTS.md`](../AGENTS.md):
 
 | Layer                                                    | Role                                                                  |
 | --------------------------------------------------------- | --------------------------------------------------------------------- |
-| **[domain](lib/domain/CLAUDE.md)**                       | Pure Dart business core: entities, value objects, typed `Failure`s    |
-| **[application](lib/application/CLAUDE.md)**             | One class per use case, dependencies via constructor                  |
-| **[infrastructure](lib/infrastructure/CLAUDE.md)**       | GitHub client, Hive persistence, export implementations               |
-| **[infrastructure/github/dtos](lib/infrastructure/github/dtos/CLAUDE.md)** | JSON DTOs, converted to entities at the boundary    |
-| **[ui](lib/ui/CLAUDE.md)**                               | Widgets + Riverpod providers: the only Flutter-aware layer             |
-| **[ui/di](lib/ui/di/CLAUDE.md)**                         | All dependency wiring                                                 |
-| **[ui/theme](lib/ui/theme/CLAUDE.md)**                   | Design tokens and semantic colors                                     |
+| **[domain](lib/domain/AGENTS.md)**                       | Pure Dart business core: entities, value objects, typed `Failure`s    |
+| **[application](lib/application/AGENTS.md)**             | One class per use case, dependencies via constructor                  |
+| **[infrastructure](lib/infrastructure/AGENTS.md)**       | GitHub client, Hive persistence, export implementations               |
+| **[infrastructure/github/dtos](lib/infrastructure/github/dtos/AGENTS.md)** | JSON DTOs, converted to entities at the boundary    |
+| **[ui](lib/ui/AGENTS.md)**                               | Widgets + Riverpod providers: the only Flutter-aware layer             |
+| **[ui/di](lib/ui/di/AGENTS.md)**                         | All dependency wiring                                                 |
+| **[ui/theme](lib/ui/theme/AGENTS.md)**                   | Design tokens and semantic colors                                     |
 
 ---
 
