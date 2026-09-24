@@ -134,7 +134,7 @@ A record that something failed at runtime, carrying the error's type and where i
 _Avoid_: crash log, error event, exception report, bug report
 
 **Usage Event**:
-A named record that a person reached one point in the product, chosen from a fixed set. It carries the name and nothing else: no free text, no properties, and therefore no personal data.
+A named record that a person reached one point in the product, chosen from a fixed set, sometimes with the value it concerns: the Palette, Cell Shape, Export Format or Year that was chosen, or how an action ended, each drawn from a fixed set of its own. It never carries a Username, free text, or Contribution Data, and therefore no personal data.
 _Avoid_: analytics event, metric, hit, action log
 
 **Telemetry Consent**:

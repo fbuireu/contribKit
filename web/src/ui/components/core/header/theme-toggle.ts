@@ -1,3 +1,4 @@
+import { recordUsageEvent, ThemeChoice, UsageEventName } from "@ui/components/core/telemetry/usage-event";
 import { ElementId } from "@ui/utils/dom-contract";
 
 export const COLOR_SCHEME_KEY = "color-scheme";
@@ -14,9 +15,9 @@ export function initThemeToggle(): void {
 	const meta = document.querySelector<HTMLMetaElement>(COLOR_SCHEME_META_SELECTOR);
 	const darkModeMediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
 
-	function pinned(): string | null {
+	function pinned(): ThemeChoice | null {
 		const storedScheme = localStorage.getItem(COLOR_SCHEME_KEY);
-		return storedScheme === "light" || storedScheme === "dark" ? storedScheme : null;
+		return storedScheme === ThemeChoice.Light || storedScheme === ThemeChoice.Dark ? storedScheme : null;
 	}
 	function effective(): string {
 		return pinned() ?? (darkModeMediaQuery.matches ? "dark" : "light");
@@ -42,6 +43,7 @@ export function initThemeToggle(): void {
 			localStorage.setItem(COLOR_SCHEME_KEY, darkModeMediaQuery.matches ? "light" : "dark");
 		}
 		apply();
+		recordUsageEvent({ event: UsageEventName.ThemeChanged, properties: { theme: pinned() ?? ThemeChoice.System } });
 	});
 
 	darkModeMediaQuery.addEventListener("change", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contributionError } from "./contribution-errors";
+import { contributionError, contributionFailureReason } from "./contribution-errors";
 
 const MENTIONS_INVALID = /invalid/i;
 const MENTIONS_NOT_FOUND = /not found/i;
@@ -30,5 +30,19 @@ describe("contributionError", () => {
 	it("falls back when the server sent no message either", () => {
 		expect(contributionError({ status: 418, serverMessage: undefined })).toBe(FALLBACK);
 		expect(contributionError({ status: 418, serverMessage: null })).toBe(FALLBACK);
+	});
+});
+
+describe("contributionFailureReason", () => {
+	it("names each status the sentence table knows by a closed reason", () => {
+		expect(contributionFailureReason(400)).toBe("invalid_username");
+		expect(contributionFailureReason(404)).toBe("not_found");
+		expect(contributionFailureReason(429)).toBe("rate_limited");
+		expect(contributionFailureReason(502)).toBe("upstream");
+	});
+
+	it("answers unknown for any other status, so no status code leaks as a free value", () => {
+		expect(contributionFailureReason(418)).toBe("unknown");
+		expect(contributionFailureReason(500)).toBe("unknown");
 	});
 });

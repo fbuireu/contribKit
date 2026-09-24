@@ -5,6 +5,7 @@ import {
 	validateContactEmail,
 	validateContactName,
 } from "@domain/value-objects/contact-message";
+import { ContactMessageOutcome, recordUsageEvent, UsageEventName } from "@ui/components/core/telemetry/usage-event";
 import { ElementId } from "@ui/utils/dom-contract";
 
 export const ContactStatusTone = {
@@ -109,6 +110,9 @@ const validate = (field: Field): boolean => {
 	return failure === null;
 };
 
+const recordContactMessage = (outcome: ContactMessageOutcome): void =>
+	recordUsageEvent({ event: UsageEventName.ContactMessageSent, properties: { outcome } });
+
 const collectFields = (): Field[] =>
 	FIELD_SPECS.flatMap(({ name, controlId, errorId, rule }) => {
 		const control = document.getElementById(controlId) as Control | null;
@@ -189,12 +193,15 @@ export function initContactForm(): void {
 			if (response.ok) {
 				reset();
 				announce({ status, text: SENT_MESSAGE, tone: ContactStatusTone.Sent });
+				recordContactMessage(ContactMessageOutcome.Sent);
 			} else {
 				const body = await response.json().catch(() => null);
 				if (!pointAt(body)) announce({ status, text: messageFrom(body), tone: ContactStatusTone.Failed });
+				recordContactMessage(ContactMessageOutcome.Rejected);
 			}
 		} catch {
 			announce({ status, text: FALLBACK_ERROR, tone: ContactStatusTone.Failed });
+			recordContactMessage(ContactMessageOutcome.Failed);
 		} finally {
 			inFlight = false;
 			submit.disabled = false;

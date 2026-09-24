@@ -3,6 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initThemeToggle } from "./theme-toggle";
 
+const recordUsageEvent = vi.hoisted(() => vi.fn());
+
+vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@ui/components/core/telemetry/usage-event")>()),
+	recordUsageEvent,
+}));
+
 const createMemoryStorage = (): Storage => {
 	const store = new Map<string, string>();
 	return {
@@ -189,5 +196,46 @@ describe("a stored value that names no scheme", () => {
 		expect(document.documentElement.classList.contains("theme-dark")).toBe(false);
 		expect(document.querySelector("meta")?.getAttribute("content")).toBe("light dark");
 		expect(button.dataset.effective).toBe("light");
+	});
+});
+
+describe("the Usage Event the toggle records", () => {
+	beforeEach(() => {
+		vi.stubGlobal("localStorage", createMemoryStorage());
+		document.documentElement.className = "";
+		recordUsageEvent.mockClear();
+	});
+
+	afterEach(() => vi.unstubAllGlobals());
+
+	it("names the scheme pinned on a click, then system once the pin is lifted", () => {
+		const button = setupDom();
+		initThemeToggle();
+
+		button.click();
+		expect(recordUsageEvent).toHaveBeenLastCalledWith({ event: "theme_changed", properties: { theme: "dark" } });
+
+		button.click();
+		expect(recordUsageEvent).toHaveBeenLastCalledWith({ event: "theme_changed", properties: { theme: "system" } });
+	});
+
+	it("names light when the click pins light against a dark OS", () => {
+		stubMediaQuery({ matches: true });
+		const button = setupDom();
+		initThemeToggle();
+
+		button.click();
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "theme_changed", properties: { theme: "light" } });
+	});
+
+	it("records nothing on init or when the OS scheme changes on its own", () => {
+		const { switchTo } = stubMediaQuery({ matches: false });
+		setupDom();
+		initThemeToggle();
+
+		switchTo(true);
+
+		expect(recordUsageEvent).not.toHaveBeenCalled();
 	});
 });

@@ -1,10 +1,18 @@
 ---
 import "./footer.css";
+import { StoreLinkPlacement, StoreName, UsageEventName } from "@ui/components/core/telemetry/usage-event";
+import { usageEventAttributes } from "@ui/components/core/telemetry/usage-event-links";
 import Apple from "@ui/components/icons/Apple.astro";
 import GitHub from "@ui/components/icons/GitHub.astro";
 import PlayStore from "@ui/components/icons/PlayStore.astro";
 import { PLAY_STORE_URL } from "@ui/utils/app-links";
 import pkg from "../../../../../package.json";
+
+const playStoreUsage = usageEventAttributes({
+	event: UsageEventName.StoreLinkOpened,
+	store: StoreName.Play,
+	placement: StoreLinkPlacement.Footer,
+});
 ---
 
 <footer class="footer">
@@ -23,7 +31,7 @@ import pkg from "../../../../../package.json";
           <Apple />
           app store <small aria-hidden="true">(soon)</small>
         </button>
-        <a href={PLAY_STORE_URL} class="foot-link link-action" target="_blank" rel="noopener noreferrer">
+        <a href={PLAY_STORE_URL} class="foot-link link-action" target="_blank" rel="noopener noreferrer" {...playStoreUsage}>
           <PlayStore />
           play store
         </a>

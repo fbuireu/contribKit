@@ -7,8 +7,13 @@ import { getDays, getUsername } from "./state";
 
 const seedUsernameCookie = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const writeUsernameCookie = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+const recordUsageEvent = vi.hoisted(() => vi.fn());
 
 vi.mock("./cookie", () => ({ seedUsernameCookie, writeUsernameCookie }));
+vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@ui/components/core/telemetry/usage-event")>()),
+	recordUsageEvent,
+}));
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const selectById = (id: string) => document.getElementById(id) as HTMLSelectElement | null;
@@ -54,6 +59,7 @@ const goTo = (search: string) => {
 beforeEach(() => {
 	seedUsernameCookie.mockClear();
 	writeUsernameCookie.mockClear();
+	recordUsageEvent.mockClear();
 	goTo("");
 });
 
@@ -646,5 +652,204 @@ describe("the username field", () => {
 		const gaearon = document.querySelector<HTMLElement>('.sug-btn[data-username="gaearon"]');
 
 		expect(gaearon?.getAttribute("aria-pressed")).toBe("true");
+	});
+});
+
+describe("the Usage Event a render records", () => {
+	it("names the form as the source and the year it asked for on success", async () => {
+		document.body.innerHTML = HERO;
+
+		await renderFromGitHub({ username: "torvalds", updateHistory: false, request: okFetch });
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "calendar_rendered",
+			properties: { source: "form", year: CURRENT_YEAR },
+		});
+	});
+
+	it("carries the source it was handed", async () => {
+		document.body.innerHTML = HERO;
+
+		await renderFromGitHub({ username: "torvalds", updateHistory: false, request: okFetch, source: "history" });
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "calendar_rendered",
+			properties: { source: "history", year: CURRENT_YEAR },
+		});
+	});
+
+	it("records a refused status as a closed reason, never the username", async () => {
+		document.body.innerHTML = HERO;
+
+		await renderFromGitHub({ username: "torvalsd", updateHistory: false, request: notFoundFetch });
+
+		expect(recordUsageEvent).toHaveBeenCalledOnce();
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "calendar_render_failed",
+			properties: { reason: "not_found", year: CURRENT_YEAR },
+		});
+		expect(JSON.stringify(recordUsageEvent.mock.calls)).not.toContain("torvalsd");
+	});
+
+	it("records an unreachable server as its own reason", async () => {
+		document.body.innerHTML = HERO;
+
+		await renderFromGitHub({
+			username: "torvalds",
+			updateHistory: false,
+			request: () => Promise.reject(new Error("offline")),
+		});
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "calendar_render_failed",
+			properties: { reason: "unreachable", year: CURRENT_YEAR },
+		});
+	});
+
+	it("records nothing when the page has no render button to drive", async () => {
+		document.body.innerHTML = `<div id="hero-grid-container"></div>`;
+
+		await renderFromGitHub({ username: "torvalds", updateHistory: false, request: okFetch });
+
+		expect(recordUsageEvent).not.toHaveBeenCalled();
+	});
+});
+
+describe("the source each control reports", () => {
+	const TWO_YEARS = `<option value="${CURRENT_YEAR - 1}">${CURRENT_YEAR - 1}</option><option value="${CURRENT_YEAR}" selected>${CURRENT_YEAR}</option>`;
+
+	interface RenderedParams {
+		source: string;
+		year?: number;
+	}
+
+	const rendered = ({ source, year = CURRENT_YEAR }: RenderedParams) =>
+		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "calendar_rendered", properties: { source, year } });
+
+	it("is form for the render button", async () => {
+		vi.stubGlobal("fetch", vi.fn(okFetch));
+		document.body.innerHTML = HERO;
+		initPage();
+		(byId("hero-username") as HTMLInputElement).value = "torvalds";
+
+		(byId("hero-render-btn") as HTMLButtonElement).click();
+		await settle();
+
+		rendered({ source: "form" });
+	});
+
+	it("is form for the submitted form", async () => {
+		vi.stubGlobal("fetch", vi.fn(okFetch));
+		document.body.innerHTML = `<form id="username-form">${HERO}</form>`;
+		initPage();
+		(byId("hero-username") as HTMLInputElement).value = "torvalds";
+
+		byId("username-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+		await settle();
+
+		rendered({ source: "form" });
+	});
+
+	it("is suggestion for a suggestion button", async () => {
+		vi.stubGlobal("fetch", vi.fn(okFetch));
+		document.body.innerHTML = HERO + SUGGESTIONS;
+		initPage();
+
+		document.querySelector<HTMLElement>('.sug-btn[data-username="gaearon"]')?.click();
+		await settle();
+
+		rendered({ source: "suggestion" });
+	});
+
+	it("is year for the year select", async () => {
+		vi.stubGlobal("fetch", vi.fn(okFetch));
+		document.body.innerHTML = HERO;
+		byId("hero-year").innerHTML = TWO_YEARS;
+		initPage();
+		(byId("hero-username") as HTMLInputElement).value = "torvalds";
+
+		const select = selectById("hero-year") as HTMLSelectElement;
+		select.value = String(CURRENT_YEAR - 1);
+		select.dispatchEvent(new Event("change", { bubbles: true }));
+		await settle();
+
+		rendered({ source: "year", year: CURRENT_YEAR - 1 });
+	});
+
+	it("is history for a popstate", async () => {
+		vi.stubGlobal("fetch", vi.fn(okFetch));
+		document.body.innerHTML = HERO;
+		initPage();
+
+		goTo("?user=gaearon");
+		globalThis.dispatchEvent(new PopStateEvent("popstate"));
+		await settle();
+
+		rendered({ source: "history" });
+	});
+
+	it("records nothing when an empty submission is refused", () => {
+		vi.stubGlobal("fetch", vi.fn(okFetch));
+		document.body.innerHTML = HERO;
+		initPage();
+
+		(byId("hero-render-btn") as HTMLButtonElement).click();
+
+		expect(recordUsageEvent).not.toHaveBeenCalled();
+	});
+});
+
+describe("the Usage Events the customize controls record", () => {
+	const CUSTOMIZE = `
+		<div id="palette-list">
+			<button class="palette-row active" data-key="github"></button>
+			<button class="palette-row" data-key="nord"></button>
+		</div>
+		<div id="shape-list">
+			<button class="shape-btn active" data-key="rounded"></button>
+			<button class="shape-btn" data-key="square"></button>
+		</div>
+		<div id="export-tabs">
+			<button data-key="png" aria-selected="true"></button>
+			<button data-key="svg" aria-selected="false"></button>
+			<button data-key="pdf" aria-selected="false"></button>
+		</div>
+		<div id="export-preview"></div>
+	`;
+
+	beforeEach(() => {
+		document.body.innerHTML = `<div id="hero-grid-container"></div>${CUSTOMIZE}`;
+		initPage();
+	});
+
+	it("names the Palette key after a palette row is picked", () => {
+		document.querySelector<HTMLElement>('.palette-row[data-key="nord"]')?.click();
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "palette_chosen", properties: { palette: "nord" } });
+	});
+
+	it("names the Cell Shape after a shape button is picked", () => {
+		document.querySelector<HTMLElement>('.shape-btn[data-key="square"]')?.click();
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "cell_shape_chosen",
+			properties: { cellShape: "square" },
+		});
+	});
+
+	it("names the Export Format after a tab is picked", () => {
+		document.querySelector<HTMLElement>('#export-tabs [data-key="svg"]')?.click();
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "export_format_chosen", properties: { format: "svg" } });
+	});
+
+	it("records no format for a tab whose key is not an Export Format", () => {
+		document.querySelector<HTMLElement>('#export-tabs [data-key="pdf"]')?.click();
+
+		expect(recordUsageEvent).not.toHaveBeenCalled();
+	});
+
+	it("records nothing on load, before anything is picked", () => {
+		expect(recordUsageEvent).not.toHaveBeenCalled();
 	});
 });
