@@ -55,8 +55,8 @@ The layer's rules (props in / markup out, colocated CSS, Palette colours and Cel
   resolved through `paletteByKey`. **It reaches a vendor only when that vendor's consent service is accepted**:
   `acceptedService("ga4", …)` gates `gtag`, `acceptedService("betterstack", …)` gates the Better Stack tag, each
   checked on every call rather than once, so a consent change takes effect on the next event without a reload.
-  It never throws: a missing global or a vendor that throws is swallowed, because a Usage Event is never worth
-  breaking the click it describes. The markup side spells its attributes through `usageEventAttributes`, spread
+  It never throws: a missing global or a vendor that throws is swallowed, because recording an event must never
+  break the click it records. The markup side spells its attributes through `usageEventAttributes`, spread
   onto the anchor, so a store name, a placement or a section the closed set does not contain fails `astro check`
   rather than reaching the listener; and the listener re-validates what it reads, so hand-written markup cannot
   forward a free value either.

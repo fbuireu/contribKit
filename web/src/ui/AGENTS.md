@@ -96,18 +96,18 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 - **`renderFromGitHub` takes its `request`,** defaulting to `fetch`. That one optional parameter is the seam the
   whole refresh is tested through: the year clamp, the grid build, the recognised-status sentence, the unreachable
   server, and the render button being re-enabled either way. The default is what every event handler in this file
-  uses. **It also takes a `source`**, a `CalendarRequestSource` defaulting to `form`, which is the one thing about
-  the render the Usage Event it records cannot read off the DOM: the form and the render button pass `form`, a
+  uses. **It also takes a `source`**, a `CalendarRequestSource` defaulting to `form`, because the DOM does not say
+  what asked for the render: the form and the render button pass `form`, a
   suggestion button `suggestion`, the year select `year` and `popstate` `history`. The event is `calendar_rendered`
   with that source and the Year on success, `calendar_render_failed` with a reason `contributionFailureReason`
   derives from the status, or `unreachable` from the catch; the username is never on it.
-- **The controllers record their Usage Events after the render, never instead of it.** `initRadioList` takes an
+- **The controllers record their Usage Events after the render.** `initRadioList` takes an
   `onChosen` beside its selector and calls it after `renderCustomize`, so the palette and shape events read
   `getActivePalette().key` and `getActiveShape()`, the same guarded values the renderer just used, rather than the
   raw `data-key`; `initExportTabs` records the tab only when `isExportFormatKey` accepts it. The copy button in
   [`render.ts`](./utils/render.ts) records `export_copied` after the clipboard settles, with the format it copied
-  and whether it succeeded. The names, the property shapes and the consent gate are the
-  [components guide](./components/AGENTS.md)'s to explain, under `core/telemetry/`.
+  and whether it succeeded. The names, the property shapes and the consent gate are in the
+  [components guide](./components/AGENTS.md), under `core/telemetry/`.
 - **A link that only needs to be counted declares it in the markup.** The Google Play anchors and the header's
   section links carry `data-usage-event` (with `data-usage-store` / `data-usage-placement` or `data-usage-section`),
   written through `usageEventAttributes` in the frontmatter and read by the one listener `Telemetry.astro`

@@ -128,7 +128,7 @@ The browser records a Usage Event when a person reaches one point in the product
 | `theme_changed` | `theme`: `light` \| `dark` \| `system` | The colour-scheme toggle was clicked |
 | `contact_message_sent` | `outcome`: `sent` \| `rejected` \| `failed` | A Contact Message left the form: accepted, refused by the server, or never delivered |
 
-Both GA4 and Better Stack receive every event, and each only once its own consent service (`ga4`, `betterstack`, under the `analytics` category) has been accepted; with neither accepted, nothing is sent. The links carry their event declaratively, as `data-usage-event` attributes read by one delegated click listener, so a value the markup could not spell from the closed set is ignored rather than forwarded.
+Both GA4 and Better Stack receive every event, and each only once its own consent service (`ga4`, `betterstack`, under the `analytics` category) has been accepted; with neither accepted, nothing is sent. The links carry their event declaratively, as `data-usage-event` attributes read by one delegated click listener, so a value outside the closed set is ignored rather than forwarded.
 
 ---
 
