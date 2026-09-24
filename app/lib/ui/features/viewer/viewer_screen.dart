@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
+import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
@@ -59,7 +60,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     super.dispose();
   }
 
-  void _onSubmit(String raw) {
+  void _onSubmit(String raw, {required CalendarRequestSource source}) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) return;
 
@@ -69,7 +70,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
       final year = ref.read(viewerProvider).effectiveYear;
       ref
           .read(viewerProvider.notifier)
-          .fetchContributions(username: username, year: year);
+          .fetchContributions(username: username, year: year, source: source);
     } on ArgumentError catch (e) {
       setState(() => _inputError = e.message.toString());
     }
@@ -108,7 +109,12 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                       controller: _usernameController,
                       focusNode: _usernameFocusNode,
                       error: _inputError,
-                      onSubmit: _onSubmit,
+                      onSubmit: (raw) =>
+                          _onSubmit(raw, source: CalendarRequestSource.typed),
+                      onSuggestion: (name) => _onSubmit(
+                        name,
+                        source: CalendarRequestSource.suggestion,
+                      ),
                       isLoading: state.isBusy,
                     ),
                     const _YearPills(),
@@ -164,7 +170,12 @@ class _Header extends ConsumerWidget {
             ),
           ),
           AppButton.ghost(
-            onPressed: () => PrivacySheet.show(context),
+            onPressed: () {
+              ref
+                  .read(usageEventRepositoryProvider)
+                  .record(UsageEvent.privacyOpened);
+              PrivacySheet.show(context);
+            },
             size: AppButtonSize.sm,
             semanticLabel: 'Privacy settings',
             iconOnly: true,
@@ -227,6 +238,7 @@ class _UsernameInput extends StatelessWidget {
     required this.focusNode,
     required this.error,
     required this.onSubmit,
+    required this.onSuggestion,
     required this.isLoading,
   });
 
@@ -234,6 +246,7 @@ class _UsernameInput extends StatelessWidget {
   final FocusNode focusNode;
   final String error;
   final ValueChanged<String> onSubmit;
+  final ValueChanged<String> onSuggestion;
   final bool isLoading;
 
   @override
@@ -283,7 +296,7 @@ class _UsernameInput extends StatelessWidget {
         _Suggestions(
           onSelect: (username) {
             controller.text = username;
-            onSubmit(username);
+            onSuggestion(username);
           },
           enabled: !isLoading,
         ),
@@ -647,13 +660,18 @@ class _ActionRow extends ConsumerWidget {
         ),
         Expanded(
           child: AppButton.outline(
-            onPressed: () => ExportSheet.show(
-              context,
-              calendar: calendar,
-              palette: palette,
-              cellShape: state.cellShape,
-              cellSize: state.cellSize,
-            ),
+            onPressed: () {
+              ref
+                  .read(usageEventRepositoryProvider)
+                  .record(UsageEvent.exportOpened);
+              ExportSheet.show(
+                context,
+                calendar: calendar,
+                palette: palette,
+                cellShape: state.cellShape,
+                cellSize: state.cellSize,
+              );
+            },
             semanticLabel: 'Export',
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,

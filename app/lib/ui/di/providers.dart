@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:contribkit/application/use_cases/export_calendar.dart';
 import 'package:contribkit/application/use_cases/fetch_contributions.dart';
 import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
@@ -16,6 +18,7 @@ import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/repositories/usage_event_repository.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/infrastructure/assets/asset_palette_repository.dart';
 import 'package:contribkit/infrastructure/assets/asset_suggested_username_repository.dart';
 import 'package:contribkit/infrastructure/contact/http_contact_message_repository.dart';
@@ -146,7 +149,13 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
     final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     _chosen = true;
     state = next;
-    await ref.read(settingsRepositoryProvider).saveThemeMode(_toDomain(next));
+    final mode = _toDomain(next);
+    unawaited(
+      ref
+          .read(usageEventRepositoryProvider)
+          .record(UsageEvent.themeChanged(mode: mode)),
+    );
+    await ref.read(settingsRepositoryProvider).saveThemeMode(mode);
   }
 
   ThemeMode _toFlutter(AppThemeMode m) => switch (m) {

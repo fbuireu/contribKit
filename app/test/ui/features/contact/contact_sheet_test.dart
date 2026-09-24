@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:contribkit/domain/failures/failure.dart';
+import 'package:contribkit/domain/value_objects/contact_outcome.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/contact/contact_sheet.dart';
 import 'package:contribkit/ui/widgets/app_text_field.dart';
@@ -13,10 +15,11 @@ const _body = 'a message long enough to send';
 
 Future<void> _openSheet(
   WidgetTester tester,
-  FakeContactMessageRepository repository,
-) => pumpSheet(
+  FakeContactMessageRepository repository, {
+  FakeUsageEventRepository? usageEvents,
+}) => pumpSheet(
   tester,
-  overrides: appOverrides(contact: repository),
+  overrides: appOverrides(contact: repository, usageEvents: usageEvents),
   builder: (_) => const ContactSheet(),
 );
 
@@ -110,6 +113,48 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining('destination not verified'), findsNothing);
+    });
+
+    testWidgets('records the outcome of a send, and nothing typed', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+      await _openSheet(
+        tester,
+        FakeContactMessageRepository(),
+        usageEvents: usageEvents,
+      );
+
+      await _fillIn(tester);
+      await tester.tap(find.text('Send'));
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.contactMessageSent(outcome: ContactOutcome.sent),
+      ]);
+      expect(
+        usageEvents.recorded.single.properties.values,
+        isNot(contains(_body)),
+      );
+    });
+
+    testWidgets('records a refused send as failed', (tester) async {
+      final usageEvents = FakeUsageEventRepository();
+      await _openSheet(
+        tester,
+        FakeContactMessageRepository(
+          failure: const DeliveryFailure(message: 'destination not verified'),
+        ),
+        usageEvents: usageEvents,
+      );
+
+      await _fillIn(tester);
+      await tester.tap(find.text('Send'));
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.contactMessageSent(outcome: ContactOutcome.failed),
+      ]);
     });
 
     testWidgets('sends once however many times Send is tapped', (tester) async {

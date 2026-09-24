@@ -4,7 +4,9 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/export_delivery.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
@@ -24,6 +26,7 @@ Future<void> _openSheet(
   FakeExportRepository? svg,
   FakeExportRepository? png,
   FakeExportRepository? markdown,
+  FakeUsageEventRepository? usageEvents,
   CellSize cellSize = CellSize.normal,
   List<Override> extraOverrides = const [],
 }) async {
@@ -31,6 +34,9 @@ Future<void> _openSheet(
     tester,
     overrides: [
       exportDeliveryProvider.overrideWithValue(delivery),
+      usageEventRepositoryProvider.overrideWithValue(
+        usageEvents ?? FakeUsageEventRepository(),
+      ),
       svgExportRepositoryProvider.overrideWithValue(
         svg ?? FakeExportRepository(),
       ),
@@ -216,6 +222,72 @@ void main() {
         expect(find.text(FailureMessage.of(failure)), findsOneWidget);
       },
     );
+
+    testWidgets('records a shared Export with its format and delivery', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+
+      await _openSheet(
+        tester,
+        delivery: FakeExportDelivery(),
+        usageEvents: usageEvents,
+      );
+      await _tapAction(tester);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ExportFormat.markdown.label));
+      await tester.pumpAndSettle();
+      await _tapAction(tester);
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.exportShared(
+          format: ExportFormat.png,
+          delivery: ExportDelivery.share,
+        ),
+        UsageEvent.exportShared(
+          format: ExportFormat.markdown,
+          delivery: ExportDelivery.clipboard,
+        ),
+      ]);
+    });
+
+    testWidgets('records nothing when the share sheet is dismissed', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+
+      await _openSheet(
+        tester,
+        delivery: FakeExportDelivery(dismissed: true),
+        usageEvents: usageEvents,
+      );
+      await _tapAction(tester);
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, isEmpty);
+    });
+
+    testWidgets('records a failed Export by its format, never its message', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+
+      await _openSheet(
+        tester,
+        delivery: FakeExportDelivery(),
+        png: FakeExportRepository(
+          failure: const ExportFailure(message: 'no canvas'),
+        ),
+        usageEvents: usageEvents,
+      );
+      await _tapAction(tester);
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.exportFailed(format: ExportFormat.png),
+      ]);
+    });
 
     testWidgets('clears the last error when a new Export starts', (
       tester,

@@ -14,15 +14,17 @@ void main() {
   late List<MethodCall> shareCalls;
   late List<MethodCall> platformCalls;
   late Directory scratch;
+  late String shareResult;
 
   setUp(() {
     shareCalls = [];
     platformCalls = [];
+    shareResult = 'dev.fluttercommunity.plus/share/success';
     scratch = Directory.systemTemp.createTempSync('contribkit_delivery');
 
     messenger.setMockMethodCallHandler(_shareChannel, (call) async {
       shareCalls.add(call);
-      return 'dev.fluttercommunity.plus/share/success';
+      return shareResult;
     });
     messenger.setMockMethodCallHandler(
       _pathProviderChannel,
@@ -81,5 +83,42 @@ void main() {
         isEmpty,
       );
     });
+
+    test('reports a share the person completed as delivered', () async {
+      final delivered = await const PlatformExportDelivery().shareFile(
+        bytes: const [1],
+        fileName: 'octocat_2024.png',
+        mimeType: 'image/png',
+      );
+
+      expect(delivered, isTrue);
+    });
+
+    test('reports a dismissed share sheet as not delivered', () async {
+      shareResult = '';
+
+      final delivered = await const PlatformExportDelivery().shareFile(
+        bytes: const [1],
+        fileName: 'octocat_2024.png',
+        mimeType: 'image/png',
+      );
+
+      expect(delivered, isFalse);
+    });
+
+    test(
+      'counts a platform that cannot report the outcome as delivered',
+      () async {
+        shareResult = 'dev.fluttercommunity.plus/share/unavailable';
+
+        final delivered = await const PlatformExportDelivery().shareFile(
+          bytes: const [1],
+          fileName: 'octocat_2024.png',
+          mimeType: 'image/png',
+        );
+
+        expect(delivered, isTrue);
+      },
+    );
   });
 }

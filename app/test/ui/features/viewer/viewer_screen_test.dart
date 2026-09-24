@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/app_settings.dart';
+import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
 import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/contact/contact_sheet.dart';
+import 'package:contribkit/ui/features/export/export_sheet.dart';
+import 'package:contribkit/ui/features/privacy/privacy_sheet.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/features/viewer/widgets/stats_panel.dart';
@@ -305,6 +308,86 @@ void main() {
         expect(usageEvents.recorded, [UsageEvent.contactOpened]);
       },
     );
+
+    testWidgets(
+      'the shield button opens the Privacy sheet and records only that',
+      (tester) async {
+        final usageEvents = FakeUsageEventRepository();
+        await _pumpViewer(
+          tester,
+          overrides: appOverrides(usageEvents: usageEvents),
+        );
+
+        await tester.tap(find.byIcon(LucideIcons.shield));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PrivacySheet), findsOneWidget);
+        expect(usageEvents.recorded, [UsageEvent.privacyOpened]);
+      },
+    );
+
+    testWidgets('the Export button opens the sheet and records that', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+      await _pumpViewer(
+        tester,
+        overrides: appOverrides(usageEvents: usageEvents),
+      );
+      await _submit(tester, 'octocat');
+      usageEvents.recorded.clear();
+
+      await tester.ensureVisible(find.text('Export'));
+      await tester.tap(find.text('Export'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ExportSheet), findsOneWidget);
+      expect(usageEvents.recorded, [UsageEvent.exportOpened]);
+    });
+
+    testWidgets('a typed username and a tapped suggestion name their source', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+      await _pumpViewer(
+        tester,
+        overrides: appOverrides(usageEvents: usageEvents),
+      );
+
+      await _submit(tester, 'octocat');
+      await tester.tap(find.text('gaearon'));
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.calendarViewed(
+          year: Year.current,
+          source: CalendarRequestSource.typed,
+          fromCache: false,
+        ),
+        UsageEvent.calendarViewed(
+          year: Year.current,
+          source: CalendarRequestSource.suggestion,
+          fromCache: false,
+        ),
+      ]);
+    });
+
+    testWidgets('the theme toggle records the theme it moved to', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+      await _pumpViewer(
+        tester,
+        overrides: appOverrides(usageEvents: usageEvents),
+      );
+
+      await tester.tap(find.byIcon(LucideIcons.moon));
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.themeChanged(mode: AppThemeMode.light),
+      ]);
+    });
 
     testWidgets('the theme toggle swaps the icon it offers', (tester) async {
       await _pumpViewer(tester);

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_state.dart';
@@ -53,17 +56,25 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
     final started = ready.beginning(product);
     if (started == null) return;
     _to(started);
+    final usageEvents = ref.read(usageEventRepositoryProvider);
 
     try {
       final outcome = await ref.read(giveTipProvider).call(product);
+      final completed = outcome == TipOutcome.completed;
+      unawaited(
+        usageEvents.record(
+          completed
+              ? UsageEvent.tipGiven(product: product)
+              : UsageEvent.tipCancelled(product: product),
+        ),
+      );
       _to(
         started.settling(
-          outcome == TipOutcome.completed
-              ? TipCompleted(product)
-              : TipCancelled(product),
+          completed ? TipCompleted(product) : TipCancelled(product),
         ),
       );
     } catch (e) {
+      unawaited(usageEvents.record(UsageEvent.tipFailed(product: product)));
       _to(
         started.settling(
           TipFailed(product: product, message: FailureMessage.ofAny(e)),

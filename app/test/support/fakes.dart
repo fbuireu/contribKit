@@ -259,21 +259,23 @@ final class FakeUsageEventRepository implements UsageEventRepository {
 }
 
 final class FakeExportDelivery implements ExportDeliveryRepository {
-  FakeExportDelivery({this.failure});
+  FakeExportDelivery({this.failure, this.dismissed = false});
 
   final Object? failure;
+  final bool dismissed;
 
   final shared = <({List<int> bytes, String fileName, String mimeType})>[];
   final copied = <String>[];
 
   @override
-  Future<void> shareFile({
+  Future<bool> shareFile({
     required List<int> bytes,
     required String fileName,
     required String mimeType,
   }) async {
     if (failure case final error?) throw error;
     shared.add((bytes: bytes, fileName: fileName, mimeType: mimeType));
+    return !dismissed;
   }
 
   @override

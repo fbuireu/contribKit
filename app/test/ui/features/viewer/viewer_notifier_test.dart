@@ -8,12 +8,16 @@ import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
+import 'package:contribkit/domain/value_objects/background_preset.dart';
+import 'package:contribkit/domain/value_objects/calendar_failure_kind.dart';
+import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
@@ -21,6 +25,8 @@ import 'package:contribkit/ui/features/viewer/viewer_notifier.dart';
 import 'package:contribkit/ui/features/viewer/viewer_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/fakes.dart';
 
 const _nord = Palette(
   key: 'nord',
@@ -156,6 +162,7 @@ ProviderContainer _container({
   _FakeSettingsRepository? settings,
   _FakePaletteRepository? palettes,
   _FakeContributionRepository? contributions,
+  FakeUsageEventRepository? usageEvents,
 }) {
   final container = ProviderContainer(
     overrides: [
@@ -167,6 +174,9 @@ ProviderContainer _container({
       ),
       contributionRepositoryProvider.overrideWithValue(
         contributions ?? _FakeContributionRepository(),
+      ),
+      usageEventRepositoryProvider.overrideWithValue(
+        usageEvents ?? FakeUsageEventRepository(),
       ),
     ],
   );
@@ -226,12 +236,14 @@ void main() {
       await notifier.fetchContributions(
         username: Username('torvalds'),
         year: Year(2024),
+        source: CalendarRequestSource.typed,
       );
       expect(container.read(viewerProvider).calendar, isNotNull);
 
       final pending = notifier.fetchContributions(
         username: Username('gaearon'),
         year: Year(2023),
+        source: CalendarRequestSource.typed,
       );
 
       expect(
@@ -257,10 +269,12 @@ void main() {
       final first = notifier.fetchContributions(
         username: Username('torvalds'),
         year: Year(2023),
+        source: CalendarRequestSource.typed,
       );
       final second = notifier.fetchContributions(
         username: Username('torvalds'),
         year: Year(2024),
+        source: CalendarRequestSource.typed,
       );
 
       fast.complete((calendar: _calendar(year: 2024), fromCache: false));
@@ -293,6 +307,7 @@ void main() {
       await notifier.fetchContributions(
         username: Username('torvalds'),
         year: Year(2024),
+        source: CalendarRequestSource.typed,
       );
 
       final state = container.read(viewerProvider);
@@ -312,6 +327,7 @@ void main() {
       await notifier.fetchContributions(
         username: Username('ghost'),
         year: Year(2024),
+        source: CalendarRequestSource.typed,
       );
 
       expect(container.read(viewerProvider).error, isA<NotFoundFailure>());
@@ -326,6 +342,7 @@ void main() {
       await notifier.fetchContributions(
         username: Username('ghost'),
         year: Year(2024),
+        source: CalendarRequestSource.typed,
       );
 
       expect(container.read(viewerProvider).error, isA<UnexpectedFailure>());
@@ -497,7 +514,11 @@ void main() {
 
       final pending = container
           .read(viewerProvider.notifier)
-          .fetchContributions(username: Username('torvalds'), year: Year(2024));
+          .fetchContributions(
+            username: Username('torvalds'),
+            year: Year(2024),
+            source: CalendarRequestSource.typed,
+          );
 
       container.dispose();
       answer.complete((calendar: _calendar(), fromCache: false));
@@ -518,7 +539,11 @@ void main() {
 
       final pending = container
           .read(viewerProvider.notifier)
-          .fetchContributions(username: Username('torvalds'), year: Year(2024));
+          .fetchContributions(
+            username: Username('torvalds'),
+            year: Year(2024),
+            source: CalendarRequestSource.typed,
+          );
 
       container.dispose();
       answer.completeError(const NetworkFailure(message: 'down'));
@@ -540,10 +565,229 @@ void main() {
       await notifier.fetchContributions(
         username: Username('torvalds'),
         year: Year(2024),
+        source: CalendarRequestSource.typed,
       );
       await notifier.refreshContributions();
 
       expect(contributions.invalidations, 1);
+    });
+  });
+
+  group('the Usage Events it records', () {
+    test('a viewed calendar carries its Year, source and cache flag', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = _container(
+        usageEvents: usageEvents,
+        contributions: _FakeContributionRepository(
+          answer: (username, year) => Future.value((
+            calendar: _calendar(year: year.value),
+            fromCache: true,
+          )),
+        ),
+      );
+      final notifier = await _ready(container);
+
+      await notifier.fetchContributions(
+        username: Username('torvalds'),
+        year: Year(2023),
+        source: CalendarRequestSource.suggestion,
+      );
+
+      expect(usageEvents.recorded, [
+        UsageEvent.calendarViewed(
+          year: Year(2023),
+          source: CalendarRequestSource.suggestion,
+          fromCache: true,
+        ),
+      ]);
+    });
+
+    test('a restored username is fetched as restored', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = _container(
+        usageEvents: usageEvents,
+        settings: _FakeSettingsRepository(
+          settings: AppSettings(
+            lastUsername: Username('torvalds'),
+            lastYear: Year(2022),
+          ),
+        ),
+      );
+      await _ready(container);
+
+      expect(usageEvents.recorded, [
+        UsageEvent.calendarViewed(
+          year: Year(2022),
+          source: CalendarRequestSource.restored,
+          fromCache: false,
+        ),
+      ]);
+    });
+
+    test(
+      'a typed Failure is recorded by its kind, never its message',
+      () async {
+        final usageEvents = FakeUsageEventRepository();
+        final container = _container(
+          usageEvents: usageEvents,
+          contributions: _FakeContributionRepository(
+            failure: NotFoundFailure(username: Username('ghost')),
+          ),
+        );
+        final notifier = await _ready(container);
+
+        await notifier.fetchContributions(
+          username: Username('ghost'),
+          year: Year(2024),
+          source: CalendarRequestSource.typed,
+        );
+
+        expect(usageEvents.recorded, [
+          UsageEvent.calendarRequestFailed(
+            source: CalendarRequestSource.typed,
+            reason: CalendarFailureKind.notFound,
+          ),
+        ]);
+        for (final event in usageEvents.recorded) {
+          expect(event.properties.values, isNot(contains(contains('ghost'))));
+        }
+      },
+    );
+
+    test('anything that is not a Failure is recorded as unexpected', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = _container(
+        usageEvents: usageEvents,
+        contributions: _FakeContributionRepository(failure: StateError('boom')),
+      );
+      final notifier = await _ready(container);
+
+      await notifier.fetchContributions(
+        username: Username('ghost'),
+        year: Year(2024),
+        source: CalendarRequestSource.retry,
+      );
+
+      expect(usageEvents.recorded, [
+        UsageEvent.calendarRequestFailed(
+          source: CalendarRequestSource.retry,
+          reason: CalendarFailureKind.unexpected,
+        ),
+      ]);
+    });
+
+    test('a stale answer records nothing, viewed or failed', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final slow = Completer<_Fetched>();
+      final container = _container(
+        usageEvents: usageEvents,
+        contributions: _FakeContributionRepository(
+          answer: (username, year) => year.value == 2023
+              ? slow.future
+              : Future.value((
+                  calendar: _calendar(year: 2024),
+                  fromCache: false,
+                )),
+        ),
+      );
+      final notifier = await _ready(container);
+
+      final first = notifier.fetchContributions(
+        username: Username('torvalds'),
+        year: Year(2023),
+        source: CalendarRequestSource.typed,
+      );
+      await notifier.fetchContributions(
+        username: Username('torvalds'),
+        year: Year(2024),
+        source: CalendarRequestSource.typed,
+      );
+      slow.completeError(const NetworkFailure(message: 'down'));
+      await first;
+
+      expect(usageEvents.recorded, [
+        UsageEvent.calendarViewed(
+          year: Year(2024),
+          source: CalendarRequestSource.typed,
+          fromCache: false,
+        ),
+      ]);
+    });
+
+    test('choosing a Year records the choice and fetches it as year', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = _container(usageEvents: usageEvents);
+      final notifier = await _ready(container);
+      await notifier.fetchContributions(
+        username: Username('torvalds'),
+        year: Year(2024),
+        source: CalendarRequestSource.typed,
+      );
+      usageEvents.recorded.clear();
+
+      notifier.setYear(Year(2021));
+      await _settle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.yearChosen(year: Year(2021)),
+        UsageEvent.calendarViewed(
+          year: Year(2021),
+          source: CalendarRequestSource.year,
+          fromCache: false,
+        ),
+      ]);
+    });
+
+    test('choosing a Year with nobody to look up records only that', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = _container(usageEvents: usageEvents);
+      final notifier = await _ready(container);
+
+      notifier.setYear(Year(2021));
+      await _settle();
+
+      expect(usageEvents.recorded, [UsageEvent.yearChosen(year: Year(2021))]);
+      expect(container.read(viewerProvider).year, Year(2021));
+    });
+
+    test('a refresh and a retry each name themselves as the source', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = _container(usageEvents: usageEvents);
+      final notifier = await _ready(container);
+      await notifier.fetchContributions(
+        username: Username('torvalds'),
+        year: Year(2024),
+        source: CalendarRequestSource.typed,
+      );
+      usageEvents.recorded.clear();
+
+      await notifier.refreshContributions();
+      await notifier.retry();
+
+      expect(usageEvents.recorded.map((event) => event.properties['source']), [
+        'refresh',
+        'retry',
+      ]);
+    });
+
+    test('every Customizer choice carries the option chosen', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = _container(usageEvents: usageEvents);
+      final notifier = await _ready(container);
+
+      notifier
+        ..setPalette(_nord)
+        ..setCellShape(CellShape.hex)
+        ..setCellSize(CellSize.large)
+        ..setBackgroundPreset(BackgroundPreset.navy);
+      await _settle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.paletteChosen(palette: _nord),
+        UsageEvent.cellShapeChosen(shape: CellShape.hex),
+        UsageEvent.cellSizeChosen(size: CellSize.large),
+        UsageEvent.backgroundChosen(preset: BackgroundPreset.navy),
+      ]);
     });
   });
 }

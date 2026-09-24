@@ -39,7 +39,7 @@ Flutter widgets, and must never import from `ui/`.
 | `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown, plus `PlatformExportDelivery`, the only file that names `share_plus` or `Clipboard` |
 | `tip/` | The RevenueCat implementation of `TipRepository` |
-| `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read. **Both SDKs are configured in Dart and never from the platform manifests**: PostHog would otherwise initialise itself from `onAttachedToEngine`, ahead of the consent gate ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). The Sentry adapter records a replay only around an error, masks every text and image, and masks whole any widget whose `Type` is in its `maskedWidgets`; it cannot name those types itself, because they live in `ui/`, so the composition roots pass them in ([ADR 0029](../../../docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)). `maskingDecision` is the callback itself and is public, so its test hands it real elements from a pumped tree rather than a lookalike |
+| `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read. `record` sends `event.name` and `event.properties`, omitting the map when it is empty, and nothing else: the properties are whatever the domain constructor put there, which is typed and closed, and the adapter adds no context of its own. **Both SDKs are configured in Dart and never from the platform manifests**: PostHog would otherwise initialise itself from `onAttachedToEngine`, ahead of the consent gate ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). The Sentry adapter records a replay only around an error, masks every text and image, and masks whole any widget whose `Type` is in its `maskedWidgets`; it cannot name those types itself, because they live in `ui/`, so the composition roots pass them in ([ADR 0029](../../../docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)). `maskingDecision` is the callback itself and is public, so its test hands it real elements from a pumped tree rather than a lookalike |
 
 ## `github/`: the second scraper
 
@@ -253,7 +253,9 @@ is already the default. That also makes it match the glossary: an Embed re-rende
 it existed.** `ExportSheet` used to call `SharePlus.instance` and `Clipboard.setData` from inside `setState`, which
 is a widget doing platform I/O and, because `SharePlus.instance` is a `static final` memoised from
 `SharePlatform.instance`, a call no test could stand in front of. It goes through `ExportDeliveryRepository` now,
-two methods wide, and `exportDeliveryProvider` is what a test overrides.
+two methods wide, and `exportDeliveryProvider` is what a test overrides. `shareFile` answers whether the share went
+through: `false` only when the person dismissed the sheet, `true` for a completed share and for a platform that
+cannot report the outcome, so `exportShared` counts Exports that left the app rather than sheets that were opened.
 
 Standing a test in front of it found the bug immediately: **`XFile.fromData(name: …)` does not name the file.** On
 the io implementation `XFile.name` is a getter over `_file.path`, and a data-backed `XFile` has no path, so

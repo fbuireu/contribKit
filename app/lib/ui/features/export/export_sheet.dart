@@ -6,8 +6,10 @@ import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
+import 'package:contribkit/domain/value_objects/export_delivery.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
@@ -95,31 +97,47 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
 
   Future<void> _save() async {
     if (_exporting) return;
+    final format = _selected;
+    final usageEvents = ref.read(usageEventRepositoryProvider);
     setState(() {
       _exporting = true;
       _exportError = null;
     });
     try {
-      final bytes = await ref.read(exportCalendarProvider(_selected))(
+      final bytes = await ref.read(exportCalendarProvider(format))(
         calendar: widget.calendar,
         options: _options,
       );
 
       final delivery = ref.read(exportDeliveryProvider);
-      if (_selected.isCopiedAsText) {
+      var delivered = true;
+      if (format.isCopiedAsText) {
         await delivery.copyText(utf8.decode(bytes));
         if (mounted) _showCopied();
       } else {
-        await delivery.shareFile(
+        delivered = await delivery.shareFile(
           bytes: bytes,
-          fileName: _selected.fileNameFor(
+          fileName: format.fileNameFor(
             username: widget.calendar.username,
             year: widget.calendar.year,
           ),
-          mimeType: _selected.mimeType,
+          mimeType: format.mimeType,
+        );
+      }
+      if (delivered) {
+        unawaited(
+          usageEvents.record(
+            UsageEvent.exportShared(
+              format: format,
+              delivery: format.isCopiedAsText
+                  ? ExportDelivery.clipboard
+                  : ExportDelivery.share,
+            ),
+          ),
         );
       }
     } catch (error) {
+      unawaited(usageEvents.record(UsageEvent.exportFailed(format: format)));
       if (mounted) {
         setState(() => _exportError = FailureMessage.ofAny(error));
       }

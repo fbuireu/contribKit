@@ -1,5 +1,5 @@
 abstract interface class ExportDeliveryRepository {
-  Future<void> shareFile({
+  Future<bool> shareFile({
     required List<int> bytes,
     required String fileName,
     required String mimeType,
