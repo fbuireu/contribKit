@@ -309,8 +309,8 @@ the other direction.
 
 **The entry point is a ghost icon button in the Viewer header**, `LucideIcons.mail`, labelled `Contact`,
 recording `UsageEvent.contactOpened`, and `_send` records `UsageEvent.contactMessageSent` with a `ContactOutcome`
-of `sent` or `failed`. Neither constructor takes a `String`, so opening the sheet and how the send went are recorded
-and **nothing about the message ever is**
+of `sent` or `failed`. Neither constructor takes a `String`, so the sheet records that it opened and how the send ended,
+and **never the message**
 ([ADR 0027](../../../docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
 
 **The Privacy sheet's first sentence had to change, and that is not cosmetic.** It said ContribKit never sends

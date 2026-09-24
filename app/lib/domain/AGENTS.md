@@ -51,8 +51,8 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   `CalendarRequestSource` (`restored` / `typed` / `suggestion` / `year` / `refresh` / `retry`) says what asked for
   a calendar, `CalendarFailureKind.of(failure)` maps a `Failure` to the kind a request failed as with an exhaustive
   switch (the kinds a calendar request never raises fold into `unexpected`), `ExportDelivery` is `share` or
-  `clipboard`, and `ContactOutcome` is `sent` or `failed`. Neither the failure's message nor anything typed is a
-  parameter, which is the point of mapping to a kind. `TelemetryConsent` beside it holds two `ConsentChoice` values read
+  `clipboard`, and `ContactOutcome` is `sent` or `failed`. Mapping to a kind keeps the failure's message, and anything
+  typed, out of the event. `TelemetryConsent` beside it holds two `ConsentChoice` values read
   asymmetrically: `mayReportDiagnostics` is `!= denied` and `mayRecordUsageEvents` is `== granted`, so unasked
   means yes for one and no for the other
   ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). Never
