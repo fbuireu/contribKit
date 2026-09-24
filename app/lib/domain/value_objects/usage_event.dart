@@ -53,10 +53,10 @@ final class UsageEvent {
       UsageEvent._('paletteChosen', {'palette': palette.key});
 
   static UsageEvent cellShapeChosen({required CellShape shape}) =>
-      UsageEvent._('cellShapeChosen', {'shape': shape.name});
+      UsageEvent._('cellShapeChosen', {'cellShape': shape.name});
 
   static UsageEvent cellSizeChosen({required CellSize size}) =>
-      UsageEvent._('cellSizeChosen', {'size': size.name});
+      UsageEvent._('cellSizeChosen', {'cellSize': size.name});
 
   static UsageEvent backgroundChosen({required BackgroundPreset preset}) =>
       UsageEvent._('backgroundChosen', {'background': preset.name});

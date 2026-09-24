@@ -61,12 +61,12 @@ final List<_Expected> _catalogue = [
   (
     event: UsageEvent.cellShapeChosen(shape: CellShape.hex),
     name: 'cellShapeChosen',
-    properties: {'shape': 'hex'},
+    properties: {'cellShape': 'hex'},
   ),
   (
     event: UsageEvent.cellSizeChosen(size: CellSize.large),
     name: 'cellSizeChosen',
-    properties: {'size': 'large'},
+    properties: {'cellSize': 'large'},
   ),
   (
     event: UsageEvent.backgroundChosen(preset: BackgroundPreset.navy),

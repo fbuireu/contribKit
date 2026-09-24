@@ -252,6 +252,22 @@ void main() {
       ]);
     });
 
+    testWidgets('records nothing when the share sheet is dismissed', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+
+      await _openSheet(
+        tester,
+        delivery: FakeExportDelivery(dismissed: true),
+        usageEvents: usageEvents,
+      );
+      await _tapAction(tester);
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, isEmpty);
+    });
+
     testWidgets('records a failed Export by its format, never its message', (
       tester,
     ) async {

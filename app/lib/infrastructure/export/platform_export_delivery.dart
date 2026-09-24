@@ -6,12 +6,12 @@ final class PlatformExportDelivery implements ExportDeliveryRepository {
   const PlatformExportDelivery();
 
   @override
-  Future<void> shareFile({
+  Future<bool> shareFile({
     required List<int> bytes,
     required String fileName,
     required String mimeType,
   }) async {
-    await SharePlus.instance.share(
+    final result = await SharePlus.instance.share(
       ShareParams(
         files: [
           XFile.fromData(
@@ -23,6 +23,7 @@ final class PlatformExportDelivery implements ExportDeliveryRepository {
         fileNameOverrides: [fileName],
       ),
     );
+    return result.status != ShareResultStatus.dismissed;
   }
 
   @override

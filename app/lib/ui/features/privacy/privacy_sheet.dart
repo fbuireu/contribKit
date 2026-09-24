@@ -48,10 +48,11 @@ class PrivacySheet extends ConsumerWidget {
           _ConsentRow(
             title: 'Usage events',
             description:
-                'Sends the name of a screen or action you reached, and the '
-                'option it concerns when there is one: the palette, shape, '
-                'format or year you chose. Never the username you looked up, '
-                'anything you typed or the calendar itself.',
+                'Sends the name of a screen or action you reached, and what '
+                'it concerns, such as the palette, shape, format or year you '
+                'chose, or whether an export or a message went through. Never '
+                'the username you looked up, anything you typed or the '
+                'calendar itself.',
             granted: consent.mayRecordUsageEvents,
             onChanged: (granted) => notifier.setUsageEvents(granted: granted),
           ),

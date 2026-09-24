@@ -253,7 +253,9 @@ is already the default. That also makes it match the glossary: an Embed re-rende
 it existed.** `ExportSheet` used to call `SharePlus.instance` and `Clipboard.setData` from inside `setState`, which
 is a widget doing platform I/O and, because `SharePlus.instance` is a `static final` memoised from
 `SharePlatform.instance`, a call no test could stand in front of. It goes through `ExportDeliveryRepository` now,
-two methods wide, and `exportDeliveryProvider` is what a test overrides.
+two methods wide, and `exportDeliveryProvider` is what a test overrides. `shareFile` answers whether the share went
+through: `false` only when the person dismissed the sheet, `true` for a completed share and for a platform that
+cannot report the outcome, so `exportShared` counts Exports that left the app rather than sheets that were opened.
 
 Standing a test in front of it found the bug immediately: **`XFile.fromData(name: …)` does not name the file.** On
 the io implementation `XFile.name` is a getter over `_file.path`, and a data-backed `XFile` has no path, so

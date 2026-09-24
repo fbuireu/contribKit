@@ -137,11 +137,11 @@ Usage Events are off until a person turns them on in the Privacy sheet ([ADR 002
 | `yearChosen` | `year` | a Year pill is tapped |
 | `customizerOpened` | none | the Customizer sheet opens |
 | `paletteChosen` | `palette` (the Palette key) | a Palette is picked |
-| `cellShapeChosen` | `shape` | a Cell Shape is picked |
-| `cellSizeChosen` | `size` | a Cell Size is picked |
+| `cellShapeChosen` | `cellShape` | a Cell Shape is picked |
+| `cellSizeChosen` | `cellSize` | a Cell Size is picked |
 | `backgroundChosen` | `background` (the Background Preset) | a Background Preset is picked |
 | `exportOpened` | none | the Export sheet opens |
-| `exportShared` | `format` (`png` / `svg` / `markdown`), `delivery` (`share` / `clipboard`) | an Export reaches the share sheet or the clipboard |
+| `exportShared` | `format` (`png` / `svg` / `markdown`), `delivery` (`share` / `clipboard`) | an Export reaches the clipboard, or leaves through the share sheet; a dismissed sheet records nothing |
 | `exportFailed` | `format` | an Export fails to render or to deliver |
 | `tipJarOpened` | none | the Tip Jar opens |
 | `tipGiven` · `tipCancelled` · `tipFailed` | `product` (the store's Tip Product id) | the store answers a Tip |

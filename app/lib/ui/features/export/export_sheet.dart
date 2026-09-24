@@ -110,11 +110,12 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
       );
 
       final delivery = ref.read(exportDeliveryProvider);
+      var delivered = true;
       if (format.isCopiedAsText) {
         await delivery.copyText(utf8.decode(bytes));
         if (mounted) _showCopied();
       } else {
-        await delivery.shareFile(
+        delivered = await delivery.shareFile(
           bytes: bytes,
           fileName: format.fileNameFor(
             username: widget.calendar.username,
@@ -123,16 +124,18 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
           mimeType: format.mimeType,
         );
       }
-      unawaited(
-        usageEvents.record(
-          UsageEvent.exportShared(
-            format: format,
-            delivery: format.isCopiedAsText
-                ? ExportDelivery.clipboard
-                : ExportDelivery.share,
+      if (delivered) {
+        unawaited(
+          usageEvents.record(
+            UsageEvent.exportShared(
+              format: format,
+              delivery: format.isCopiedAsText
+                  ? ExportDelivery.clipboard
+                  : ExportDelivery.share,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (error) {
       unawaited(usageEvents.record(UsageEvent.exportFailed(format: format)));
       if (mounted) {
