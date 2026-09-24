@@ -89,7 +89,7 @@ jobs:
     name: App
     needs: [changes]
     if: ${{ needs.changes.outputs.app == 'true' }}
-    uses: ./.github/workflows/_ci-app.yml
+    uses: $/.github/workflows/_ci-app.yml
     secrets: inherit
 
   verify-web:
@@ -120,7 +120,7 @@ jobs:
     name: Deploy to production
     needs: [changes, verify-web]
     if: ${{ needs.changes.outputs.web == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-    uses: ./.github/workflows/_deploy.yml
+    uses: $/.github/workflows/_deploy.yml
     with:
       environment: web-production
       url: ${{ vars.SITE_URL }}
@@ -242,7 +242,7 @@ jobs:
     name: Deploy to development
     needs: [changes, verify-web]
     if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
-    uses: ./.github/workflows/_deploy.yml
+    uses: $/.github/workflows/_deploy.yml
     with:
       environment: web-development
       worker_name: pr-${{ github.event.pull_request.number }}-contribkit-development
