@@ -1,10 +1,12 @@
 import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
+import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/export_delivery.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/telemetry/posthog_usage_event_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 
@@ -57,7 +59,11 @@ PostHogUsageEventRepository _repository(
   optOut: recorder.optOut,
 );
 
+const _sdkChannel = MethodChannel('posthog_flutter');
+
 void main() {
+  final messenger =
+      TestWidgetsFlutterBinding.ensureInitialized().defaultBinaryMessenger;
   group('start', () {
     test('does nothing without a project token', () async {
       final recorder = _Recorder();
@@ -203,5 +209,67 @@ void main() {
 
       expect(recorder.optOuts, isEmpty);
     });
+  });
+
+  group('the SDK entry points it uses by default', () {
+    late List<MethodCall> sdkCalls;
+
+    setUp(() {
+      sdkCalls = [];
+      messenger.setMockMethodCallHandler(_sdkChannel, (call) async {
+        sdkCalls.add(call);
+        return null;
+      });
+    });
+
+    tearDown(() => messenger.setMockMethodCallHandler(_sdkChannel, null));
+
+    PostHogUsageEventRepository defaults() =>
+        PostHogUsageEventRepository(config: _configured, setUp: (_) async {});
+
+    test('hands the SDK the name and the typed properties', () async {
+      final repository = defaults();
+      await repository.start();
+
+      await repository.record(UsageEvent.cellShapeChosen(shape: CellShape.hex));
+
+      final capture = sdkCalls.singleWhere((call) => call.method == 'capture');
+      final arguments = capture.arguments as Map;
+      expect(arguments['eventName'], 'cellShapeChosen');
+      expect(arguments['properties'], {'cellShape': 'hex'});
+    });
+
+    test(
+      'hands the SDK no properties map for an event that has none',
+      () async {
+        final repository = defaults();
+        await repository.start();
+
+        await repository.record(UsageEvent.exportOpened);
+
+        final capture = sdkCalls.singleWhere(
+          (call) => call.method == 'capture',
+        );
+        expect(capture.arguments as Map, {'eventName': 'exportOpened'});
+      },
+    );
+
+    test(
+      'opts the SDK out when consent is withdrawn and back in when granted',
+      () async {
+        final repository = defaults();
+        await repository.start();
+
+        await repository.applyConsent(granted: false);
+        await repository.applyConsent(granted: true);
+
+        expect(
+          sdkCalls
+              .map((call) => call.method)
+              .where((method) => method == 'disable' || method == 'enable'),
+          ['disable', 'enable'],
+        );
+      },
+    );
   });
 }
