@@ -1,3 +1,10 @@
+# [contribkit-web-v1.21.0](https://github.com/fbuireu/contribKit/compare/web-v1.20.0...web-v1.21.0) (2026-09-24)
+
+
+### Features
+
+* **contribkit-web:** record Usage Events with typed properties ([#155](https://github.com/fbuireu/contribKit/issues/155)) ([c1e216d](https://github.com/fbuireu/contribKit/commit/c1e216dbeb8bcd868e3992ec17e3c7fcf4bb63ca))
+
 # [contribkit-web-v1.20.0](https://github.com/fbuireu/contribKit/compare/web-v1.19.1...web-v1.20.0) (2026-09-17)
 
 
