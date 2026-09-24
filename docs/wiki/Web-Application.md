@@ -109,7 +109,26 @@ Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bind
 - **Server logs:** `logger` writes one JSON line per 5xx failure and unhandled 500 through `console`; Cloudflare exports it.
 - **Worker telemetry:** Cloudflare observability (logs + traces, full head sampling), per env in `wrangler.toml`.
 - **Export:** Cloudflare ships both logs and traces to Better Stack over OTLP, named as `destinations` in `wrangler.toml`.
-- **Browser RUM + analytics:** Better Stack telemetry and GA4, loaded only after cookie consent.
+- **Browser RUM:** Better Stack telemetry and GA4, loaded only after cookie consent.
+
+### Usage Events
+
+The browser records a Usage Event when a person reaches one point in the product. Each one is a name from a closed set plus properties drawn from closed sets of their own: a Palette key, a Cell Shape, an Export Format, a Year, an outcome. **No event carries the Username, a typed value or any free text.** The full list, and the one function that sends them, is `web/src/ui/components/core/telemetry/usage-event.ts`.
+
+| Event | Properties | Fires when |
+| --- | --- | --- |
+| `calendar_rendered` | `source`: `form` \| `suggestion` \| `year` \| `history` · `year`: number | A Contribution Calendar was fetched and drawn |
+| `calendar_render_failed` | `reason`: `invalid_username` \| `not_found` \| `rate_limited` \| `upstream` \| `unreachable` \| `unknown` · `year`: number | The fetch answered a non-ok status, or never answered |
+| `palette_chosen` | `palette`: a Palette key | A Palette row was picked |
+| `cell_shape_chosen` | `cellShape`: a Cell Shape | A Cell Shape button was picked |
+| `export_format_chosen` | `format`: `png` \| `svg` \| `md` | An Export Format tab was picked |
+| `export_copied` | `format`: `svg` \| `md` · `outcome`: `copied` \| `failed` | The copy button settled |
+| `store_link_opened` | `store`: `play` · `placement`: `hero` \| `header` \| `footer` | A Google Play link was clicked |
+| `section_navigated` | `section`: `how` \| `custom` \| `export` \| `widget` | A header section link was clicked |
+| `theme_changed` | `theme`: `light` \| `dark` \| `system` | The colour-scheme toggle was clicked |
+| `contact_message_sent` | `outcome`: `sent` \| `rejected` \| `failed` | A Contact Message left the form: accepted, refused by the server, or never delivered |
+
+Both GA4 and Better Stack receive every event, and each only once its own consent service (`ga4`, `betterstack`, under the `analytics` category) has been accepted; with neither accepted, nothing is sent. The links carry their event declaratively, as `data-usage-event` attributes read by one delegated click listener, so a value the markup could not spell from the closed set is ignored rather than forwarded.
 
 ---
 

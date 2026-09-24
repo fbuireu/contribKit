@@ -46,6 +46,20 @@ The layer's rules (props in / markup out, colocated CSS, Palette colours and Cel
   reader never announces it. A `type="hidden"` input is the version bots know to leave alone.
 - `core/` renders on every page; `BaseLayout` composes `header` + `footer` + the head integrations (`seo`,
   `telemetry`, `cookie-consent`).
+- **`core/telemetry/` is the only place the browser talks to a vendor.** `telemetry.ts` loads the two tags and
+  syncs Google's consent state; `usage-event.ts` is `recordUsageEvent` and the closed sets every Usage Event is
+  built from; `usage-event-links.ts` is the declarative half, one delegated click listener over
+  `data-usage-event` links. **A Usage Event carries a name and typed properties drawn from closed sets, never the
+  username or free text**: `UsageEventProperties` is keyed by event name, so a property the map does not declare
+  is a type error, and the only `string`-typed property is the Palette key, which `getActivePalette` has already
+  resolved through `paletteByKey`. **It reaches a vendor only when that vendor's consent service is accepted**:
+  `acceptedService("ga4", …)` gates `gtag`, `acceptedService("betterstack", …)` gates the Better Stack tag, each
+  checked on every call rather than once, so a consent change takes effect on the next event without a reload.
+  It never throws: a missing global or a vendor that throws is swallowed, because a Usage Event is never worth
+  breaking the click it describes. The markup side spells its attributes through `usageEventAttributes`, spread
+  onto the anchor, so a store name, a placement or a section the closed set does not contain fails `astro check`
+  rather than reaching the listener; and the listener re-validates what it reads, so hand-written markup cannot
+  forward a free value either.
 
 ## `grid/`: the client renderer, and how it differs from the server's
 

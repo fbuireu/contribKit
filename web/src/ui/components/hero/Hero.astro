@@ -5,6 +5,8 @@ import { MIN_YEAR } from "@domain/value-objects/year";
 import { ClassName, ElementId } from "@ui/utils/dom-contract";
 import "./hero.css";
 import type { ContributionStats } from "@domain/services/contribution-stats";
+import { StoreLinkPlacement, StoreName, UsageEventName } from "@ui/components/core/telemetry/usage-event";
+import { usageEventAttributes } from "@ui/components/core/telemetry/usage-event-links";
 import { formatTotalContributions } from "@ui/components/grid/contribution";
 import AppStore from "@ui/components/icons/AppStore.astro";
 import ArrowRight from "@ui/components/icons/ArrowRight.astro";
@@ -15,6 +17,11 @@ import { formatHeroError } from "@ui/utils/contribution-errors";
 
 const currentYear = new Date().getFullYear();
 const appVersion = __APP_VERSION__;
+const playStoreUsage = usageEventAttributes({
+	event: UsageEventName.StoreLinkOpened,
+	store: StoreName.Play,
+	placement: StoreLinkPlacement.Hero,
+});
 
 interface Props {
 	heroSVG: string;
@@ -54,7 +61,7 @@ const { heroSVG, stats, palette, username, year = currentYear, error = null } = 
           App Store
         </span>
       </button>
-      <a href={PLAY_STORE_URL} class="btn btn-store" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play">
+      <a href={PLAY_STORE_URL} class="btn btn-store" target="_blank" rel="noopener noreferrer" aria-label="Get it on Google Play" {...playStoreUsage}>
         <GooglePlay />
         <span>
           <small>Get it on</small>

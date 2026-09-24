@@ -6,12 +6,22 @@ import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import { toIsoDate } from "@domain/services/dates";
 import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
+import {
+	CalendarFailureReason,
+	CalendarRequestSource,
+	recordUsageEvent,
+	UsageEventName,
+} from "@ui/components/core/telemetry/usage-event";
+import { isExportFormatKey } from "@ui/components/export/export-formats";
 import { generateData } from "@ui/components/grid/calendar";
-import { contributionError } from "@ui/utils/contribution-errors";
+import { contributionError, contributionFailureReason } from "@ui/utils/contribution-errors";
 import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
 import {
+	getActiveExportTab,
+	getActivePalette,
+	getActiveShape,
 	renderCustomize,
 	renderExportPreview,
 	renderWidget,
@@ -54,12 +64,14 @@ export interface RenderFromGitHubParams {
 	username: string;
 	updateHistory?: boolean;
 	request?: ContributionsRequest;
+	source?: CalendarRequestSource;
 }
 
 export async function renderFromGitHub({
 	username,
 	updateHistory = true,
 	request = sendRequest,
+	source = CalendarRequestSource.Form,
 }: RenderFromGitHubParams) {
 	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
 	const renderLabel = document.getElementById(ElementId.HeroRenderLabel);
@@ -88,6 +100,10 @@ export async function renderFromGitHub({
 				message: contributionError({ status: response.status, serverMessage: data.error }),
 				year,
 			});
+			recordUsageEvent({
+				event: UsageEventName.CalendarRenderFailed,
+				properties: { reason: contributionFailureReason(response.status), year },
+			});
 		} else {
 			void writeUsernameCookie(username);
 			const days = data.days
@@ -107,30 +123,57 @@ export async function renderFromGitHub({
 			renderExportPreview();
 			const howWidget = document.getElementById(ElementId.HowItWorksUsername);
 			if (howWidget) howWidget.textContent = username;
+			recordUsageEvent({ event: UsageEventName.CalendarRendered, properties: { source, year } });
 		}
 	} catch {
 		showErrorState({ message: "could not reach the server, try again", year });
+		recordUsageEvent({
+			event: UsageEventName.CalendarRenderFailed,
+			properties: { reason: CalendarFailureReason.Unreachable, year },
+		});
 	}
 
 	renderButton.disabled = false;
 	if (renderLabel) renderLabel.textContent = "render";
 }
 
-function initRadioList(selector: string) {
+interface InitRadioListParams {
+	selector: string;
+	onChosen: () => void;
+}
+
+function initRadioList({ selector, onChosen }: InitRadioListParams) {
 	const buttons = document.querySelectorAll<HTMLElement>(selector);
 	initRovingGroup({
 		elements: buttons,
 		activate: (target) => activateRadio({ buttons, target }),
-		onActivate: renderCustomize,
+		onActivate: () => {
+			renderCustomize();
+			onChosen();
+		},
 	});
 }
+
+const recordPaletteChosen = (): void =>
+	recordUsageEvent({ event: UsageEventName.PaletteChosen, properties: { palette: getActivePalette().key } });
+
+const recordCellShapeChosen = (): void =>
+	recordUsageEvent({ event: UsageEventName.CellShapeChosen, properties: { cellShape: getActiveShape() } });
+
+const recordExportFormatChosen = (): void => {
+	const format = getActiveExportTab();
+	if (isExportFormatKey(format)) recordUsageEvent({ event: UsageEventName.ExportFormatChosen, properties: { format } });
+};
 
 function initExportTabs() {
 	const tabs = document.querySelectorAll<HTMLElement>(Selector.ExportTabKeys);
 	initRovingGroup({
 		elements: tabs,
 		activate: (target) => activateTab({ tabs, target }),
-		onActivate: renderExportPreview,
+		onActivate: () => {
+			renderExportPreview();
+			recordExportFormatChosen();
+		},
 		orientation: RovingOrientation.Horizontal,
 	});
 }
@@ -153,19 +196,19 @@ function initUsernameStrip() {
 	const yearSelect = document.getElementById(ElementId.HeroYear) as HTMLSelectElement | null;
 	if (!input || !renderButton || !usernameDisplay) return;
 
-	const submitRender = () => {
+	const submitRender = (source: CalendarRequestSource) => {
 		const username = input.value.trim().toLowerCase();
 		if (!username) {
 			setHeroError("enter a GitHub username");
 			input.focus();
 			return;
 		}
-		renderFromGitHub({ username });
+		renderFromGitHub({ username, source });
 	};
 
 	form?.addEventListener("submit", (event) => {
 		event.preventDefault();
-		submitRender();
+		submitRender(CalendarRequestSource.Form);
 	});
 	input.addEventListener("input", () => {
 		const lowered = input.value.toLowerCase();
@@ -179,15 +222,15 @@ function initUsernameStrip() {
 		syncSuggestionSelection(value);
 		if (value) setHeroError(null);
 	});
-	renderButton.addEventListener("click", submitRender);
-	yearSelect?.addEventListener("change", submitRender);
+	renderButton.addEventListener("click", () => submitRender(CalendarRequestSource.Form));
+	yearSelect?.addEventListener("change", () => submitRender(CalendarRequestSource.Year));
 	document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons).forEach((button) => {
 		button.addEventListener("click", () => {
 			const username = button.dataset.username;
 			if (!username) return;
 			input.value = username;
 			usernameDisplay.textContent = username;
-			renderFromGitHub({ username });
+			renderFromGitHub({ username, source: CalendarRequestSource.Suggestion });
 		});
 	});
 }
@@ -201,7 +244,7 @@ function initHistoryNav() {
 		if (input) input.value = username;
 		if (usernameDisplay) usernameDisplay.textContent = username;
 		if (yearSelect) yearSelect.value = String(readYearFromUrl(CURRENT_YEAR));
-		renderFromGitHub({ username, updateHistory: false });
+		renderFromGitHub({ username, updateHistory: false, source: CalendarRequestSource.History });
 	});
 }
 
@@ -231,8 +274,8 @@ export function initPage() {
 	renderCustomize();
 	renderWidget();
 	renderExportPreview();
-	initRadioList(Selector.PaletteRows);
-	initRadioList(Selector.ShapeButtons);
+	initRadioList({ selector: Selector.PaletteRows, onChosen: recordPaletteChosen });
+	initRadioList({ selector: Selector.ShapeButtons, onChosen: recordCellShapeChosen });
 	initExportTabs();
 	initUsernameStrip();
 	initHistoryNav();

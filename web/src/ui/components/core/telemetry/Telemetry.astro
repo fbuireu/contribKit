@@ -30,6 +30,7 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 <script>
   import { acceptedService } from "vanilla-cookieconsent";
   import { getTelemetry } from "@ui/components/core/telemetry/telemetry";
+  import { initUsageEventLinks } from "@ui/components/core/telemetry/usage-event-links";
 
   function applyConsent() {
     const telemetry = getTelemetry();
@@ -42,4 +43,5 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
   applyConsent();
   window.addEventListener("cc:onConsent", applyConsent);
   window.addEventListener("cc:onChange", applyConsent);
+  initUsageEventLinks();
 </script>

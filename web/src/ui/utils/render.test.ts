@@ -16,6 +16,13 @@ import {
 } from "./render";
 import { setDays, setUsername } from "./state";
 
+const recordUsageEvent = vi.hoisted(() => vi.fn());
+
+vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@ui/components/core/telemetry/usage-event")>()),
+	recordUsageEvent,
+}));
+
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const $ = (selector: string) => document.querySelector(selector) as HTMLElement;
 
@@ -33,6 +40,7 @@ const days: ContributionDay[] = Array.from({ length: 371 }, () => day({ date: "2
 
 beforeEach(() => {
 	document.body.innerHTML = "";
+	recordUsageEvent.mockClear();
 	setDays(days);
 	setUsername("torvalds");
 });
@@ -171,6 +179,24 @@ describe("the copy button", () => {
 		expect(button?.textContent).toBe("copy");
 	});
 
+	it("records the copy with the Export Format it copied", async () => {
+		await clickCopy(async () => {});
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "export_copied",
+			properties: { format: "svg", outcome: "copied" },
+		});
+	});
+
+	it("records a refused clipboard as a failed copy", async () => {
+		await clickCopy(() => Promise.reject(new Error("denied")));
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "export_copied",
+			properties: { format: "svg", outcome: "failed" },
+		});
+	});
+
 	it("does not claim success when the second click is the one that failed", async () => {
 		let refuse = false;
 		const button = await clickCopy(async () => {
@@ -289,6 +315,22 @@ describe("renderExportPreview on the markdown tab", () => {
 		renderExportPreview();
 
 		expect($("#export-preview .preview-tag").textContent).toBe("README.md");
+	});
+
+	it("records a copy as markdown, and never the username the snippet carries", async () => {
+		vi.stubGlobal("navigator", { clipboard: { writeText: async () => {} } });
+		document.body.innerHTML = MARKDOWN_DOM;
+		renderExportPreview();
+
+		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
+		await vi.waitFor(() => expect(recordUsageEvent).toHaveBeenCalledOnce());
+
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "export_copied",
+			properties: { format: "md", outcome: "copied" },
+		});
+		expect(JSON.stringify(recordUsageEvent.mock.calls)).not.toContain("torvalds");
+		vi.unstubAllGlobals();
 	});
 
 	it("shows a code block naming the viewer, the Palette and the Cell Shape", () => {

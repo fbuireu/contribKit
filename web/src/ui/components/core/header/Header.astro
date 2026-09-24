@@ -1,5 +1,7 @@
 ---
 import "./header.css";
+import { SiteSection, StoreLinkPlacement, StoreName, UsageEventName } from "@ui/components/core/telemetry/usage-event";
+import { usageEventAttributes } from "@ui/components/core/telemetry/usage-event-links";
 import Download from "@ui/components/icons/Download.astro";
 import Moon from "@ui/components/icons/Moon.astro";
 import Sun from "@ui/components/icons/Sun.astro";
@@ -7,6 +9,17 @@ import { PLAY_STORE_URL } from "@ui/utils/app-links";
 import { ElementId } from "@ui/utils/dom-contract";
 
 const base = Astro.url.pathname === "/" ? "" : "/";
+const sectionUsage = {
+	how: usageEventAttributes({ event: UsageEventName.SectionNavigated, section: SiteSection.How }),
+	custom: usageEventAttributes({ event: UsageEventName.SectionNavigated, section: SiteSection.Custom }),
+	export: usageEventAttributes({ event: UsageEventName.SectionNavigated, section: SiteSection.Export }),
+	widget: usageEventAttributes({ event: UsageEventName.SectionNavigated, section: SiteSection.Widget }),
+};
+const playStoreUsage = usageEventAttributes({
+	event: UsageEventName.StoreLinkOpened,
+	store: StoreName.Play,
+	placement: StoreLinkPlacement.Header,
+});
 ---
 
 <nav class="header">
@@ -16,10 +29,10 @@ const base = Astro.url.pathname === "/" ? "" : "/";
       <span class="brand-name">ContribKit</span>
     </a>
     <div class="nav-links">
-      <a class="link-action" href={`${base}#how`} data-section="how" data-astro-prefetch="false">how it works</a>
-      <a class="link-action" href={`${base}#custom`} data-section="custom" data-astro-prefetch="false">customize</a>
-      <a class="link-action" href={`${base}#export`} data-section="export" data-astro-prefetch="false">export</a>
-      <a class="link-action" href={`${base}#widget`} data-section="widget" data-astro-prefetch="false">widget</a>
+      <a class="link-action" href={`${base}#how`} data-section="how" data-astro-prefetch="false" {...sectionUsage.how}>how it works</a>
+      <a class="link-action" href={`${base}#custom`} data-section="custom" data-astro-prefetch="false" {...sectionUsage.custom}>customize</a>
+      <a class="link-action" href={`${base}#export`} data-section="export" data-astro-prefetch="false" {...sectionUsage.export}>export</a>
+      <a class="link-action" href={`${base}#widget`} data-section="widget" data-astro-prefetch="false" {...sectionUsage.widget}>widget</a>
       <button
         type="button"
         class="theme-toggle"
@@ -31,7 +44,7 @@ const base = Astro.url.pathname === "/" ? "" : "/";
         <Sun class="ti sun" />
         <Moon class="ti moon" />
       </button>
-      <a class="nav-cta" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">
+      <a class="nav-cta" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" {...playStoreUsage}>
         <Download />
         get app
       </a>

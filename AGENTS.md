@@ -144,10 +144,12 @@ Both clients use the same layered architecture with a strict inward dependency d
   stored nowhere: no database, no log line, no queue. `logContactFailure` takes the failure's kind and the
   platform's reason and **never the name, the address or the message**
   ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
-- **Telemetry carries no Username, ever.** A Usage Event is an enum case and has no payload; a Diagnostic Report
-  carries the error's type and stack and never its message, because half the app's `Failure` messages interpolate a
-  Username or a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
-  Widening either signature deletes the guarantee. The masked replay a foreground report carries keeps it only
+- **Telemetry carries no Username, ever.** A Usage Event is a name plus typed properties drawn from closed sets
+  (a Palette key, a Cell Shape, an Export Format, a Year, an outcome), and no constructor on either client takes a
+  free string, so there is no parameter through which a Username could travel; a Diagnostic Report carries the
+  error's type and stack and never its message, because half the app's `Failure` messages interpolate a Username or
+  a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
+  Adding a `String` parameter to a Usage Event, or a message to a report, deletes the guarantee. The masked replay a foreground report carries keeps it only
   while every widget that shows Contribution Data is a `Text`, an `Image` or listed in `contributionDataWidgets`
   ([ADR 0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)).
 - **Edit `shared/`, never `app/assets/`.** The copies are generated.

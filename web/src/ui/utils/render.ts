@@ -2,6 +2,7 @@ import type { ContributionDay } from "@domain/entities/types";
 import type { ContributionStats } from "@domain/services/contribution-stats";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, type Palette, paletteByKey } from "@domain/value-objects/palette";
+import { ExportCopyOutcome, recordUsageEvent, UsageEventName } from "@ui/components/core/telemetry/usage-event";
 import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "@ui/components/export/code-preview";
 import { DEFAULT_EXPORT_FORMAT, ExportFormatKey } from "@ui/components/export/export-formats";
 import { formatTotalContributions } from "@ui/components/grid/contribution";
@@ -130,9 +131,14 @@ export function renderExportPreview(): void {
 		const copyButton = document.createElement("button");
 		copyButton.className = `${ClassName.CopyButton} mono`;
 		copyButton.textContent = COPY_LABEL;
+		const format = isSvgTab ? ExportFormatKey.Svg : ExportFormatKey.Md;
 		copyButton.addEventListener("click", () => {
 			void copyToClipboard(plainText).then((copied) => {
 				flash({ button: copyButton, message: copied ? "copied!" : "copy failed" });
+				recordUsageEvent({
+					event: UsageEventName.ExportCopied,
+					properties: { format, outcome: copied ? ExportCopyOutcome.Copied : ExportCopyOutcome.Failed },
+				});
 			});
 		});
 		card.appendChild(copyButton);

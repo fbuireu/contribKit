@@ -5,6 +5,13 @@ import { ElementId } from "@ui/utils/dom-contract";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initContactForm } from "./contact-form";
 
+const recordUsageEvent = vi.hoisted(() => vi.fn());
+
+vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@ui/components/core/telemetry/usage-event")>()),
+	recordUsageEvent,
+}));
+
 const MARKUP = `
 	<form id="${ElementId.ContactForm}">
 		<input id="${ElementId.ContactName}" name="${ElementId.ContactName}" />
@@ -57,6 +64,7 @@ const fill = (): void => {
 
 beforeEach(() => {
 	document.body.innerHTML = MARKUP;
+	recordUsageEvent.mockClear();
 	initContactForm();
 });
 
@@ -285,5 +293,81 @@ describe("validation", () => {
 
 		expect(byId(ElementId.ContactEmailError).hidden).toBe(true);
 		expect(byId(ElementId.ContactEmail).hasAttribute("aria-invalid")).toBe(false);
+	});
+});
+
+describe("the Usage Event a submit records", () => {
+	const sentWith = (outcome: string) =>
+		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "contact_message_sent", properties: { outcome } });
+
+	it("is sent when the server accepted the message", async () => {
+		fill();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => answer({ body: { status: "accepted" } })),
+		);
+
+		await submit();
+
+		sentWith("sent");
+		expect(recordUsageEvent).toHaveBeenCalledOnce();
+	});
+
+	it("is rejected when the server answered with an error that names a field", async () => {
+		fill();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => answer({ body: { error: "Enter a valid email address", field: "email" }, status: 400 })),
+		);
+
+		await submit();
+
+		sentWith("rejected");
+	});
+
+	it("is rejected when the server answered with anything else that is not ok", async () => {
+		fill();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("<!doctype html>", { status: 502 })),
+		);
+
+		await submit();
+
+		sentWith("rejected");
+	});
+
+	it("is failed when the request never reached the server", async () => {
+		fill();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(() => Promise.reject(new Error("offline"))),
+		);
+
+		await submit();
+
+		sentWith("failed");
+	});
+
+	it("is not recorded at all when validation blocked the submit", async () => {
+		vi.stubGlobal("fetch", vi.fn());
+
+		await submit();
+
+		expect(recordUsageEvent).not.toHaveBeenCalled();
+	});
+
+	it("never carries what was typed into the form", async () => {
+		fill();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => answer({ body: { status: "accepted" } })),
+		);
+
+		await submit();
+
+		const recorded = JSON.stringify(recordUsageEvent.mock.calls);
+		expect(recorded).not.toContain("Ada");
+		expect(recorded).not.toContain("ada@example.com");
 	});
 });
