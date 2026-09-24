@@ -50,7 +50,7 @@ class PrivacySheet extends ConsumerWidget {
             description:
                 'Sends the name of a screen or action you reached, and what '
                 'it concerns, such as the palette, shape, format or year you '
-                'chose, or whether an export or a message went through. Never '
+                'chose, or whether an export, a message or a tip went through. Never '
                 'the username you looked up, anything you typed or the '
                 'calendar itself.',
             granted: consent.mayRecordUsageEvents,

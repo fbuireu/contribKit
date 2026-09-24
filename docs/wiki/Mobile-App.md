@@ -144,7 +144,7 @@ Usage Events are off until a person turns them on in the Privacy sheet ([ADR 002
 | `exportShared` | `format` (`png` / `svg` / `markdown`), `delivery` (`share` / `clipboard`) | an Export reaches the clipboard, or leaves through the share sheet; a dismissed sheet records nothing |
 | `exportFailed` | `format` | an Export fails to render or to deliver |
 | `tipJarOpened` | none | the Tip Jar opens |
-| `tipGiven` · `tipCancelled` · `tipFailed` | `product` (the store's Tip Product id) | the store answers a Tip |
+| `tipGiven` · `tipCancelled` · `tipFailed` | `product` (the store's Tip Product id) | the store answers a Tip; declared on Google Play as purchase history ([ADR 0028](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)) |
 | `contactOpened` | none | the Contact sheet opens |
 | `contactMessageSent` | `outcome` (`sent` / `failed`) | a Contact Message is sent or refused |
 | `privacyOpened` | none | the Privacy sheet opens |
