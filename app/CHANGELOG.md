@@ -1,3 +1,18 @@
+# [contribkit-app-v1.6.0](https://github.com/fbuireu/contribKit/compare/app-v1.5.3...app-v1.6.0) (2026-09-24)
+
+
+### Bug Fixes
+
+* **contribkit-app:** update dependency flutter_riverpod to v3.4.3 ([#149](https://github.com/fbuireu/contribKit/issues/149)) ([3a092ca](https://github.com/fbuireu/contribKit/commit/3a092caf6594367bca40a554aec6e13f64dfca11))
+* **contribkit-app:** update dependency shadcn_ui to v0.56.3 ([#152](https://github.com/fbuireu/contribKit/issues/152)) ([ff35781](https://github.com/fbuireu/contribKit/commit/ff35781c6e603a0db71c571246dfe4b9cc80b740))
+* **contribkit-app:** update dependency workmanager to v0.10.10 ([#153](https://github.com/fbuireu/contribKit/issues/153)) ([60aa2b7](https://github.com/fbuireu/contribKit/commit/60aa2b7dfc786bc2d45087216895b14f496e2764))
+
+
+### Features
+
+* contact form ([#154](https://github.com/fbuireu/contribKit/issues/154)) ([48b669e](https://github.com/fbuireu/contribKit/commit/48b669e8fe8b1beff8adc9c28af6033109951524))
+* **contribkit-app:** widen Usage Events to typed properties ([#156](https://github.com/fbuireu/contribKit/issues/156)) ([bafe5c3](https://github.com/fbuireu/contribKit/commit/bafe5c349ffcb8a80b616f0b474ddd723dcd8e4c))
+
 # [contribkit-app-v1.5.3](https://github.com/fbuireu/contribKit/compare/app-v1.5.2...app-v1.5.3) (2026-09-15)
 
 
