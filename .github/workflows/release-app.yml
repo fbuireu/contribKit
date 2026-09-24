@@ -40,7 +40,7 @@ jobs:
           token: ${{ secrets.PAT }}
           persist-credentials: false
 
-      - uses: ./.github/actions/prepare-env
+      - uses: $/.github/actions/prepare-env
 
       - name: Semantic Release
         id: release
