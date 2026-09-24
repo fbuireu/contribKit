@@ -1,4 +1,8 @@
+import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
+import 'package:contribkit/domain/value_objects/export_delivery.dart';
+import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/usage_event.dart';
+import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/telemetry/posthog_usage_event_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,17 +24,22 @@ const _unconfigured = TelemetryConfig(
   release: '',
 );
 
+typedef _Captured = ({String eventName, Map<String, Object>? properties});
+
 final class _Recorder {
   PostHogConfig? config;
-  final List<String> captured = [];
+  final List<_Captured> captured = [];
   final List<bool> optOuts = [];
 
   Future<void> setUp(PostHogConfig value) async {
     config = value;
   }
 
-  Future<void> capture(String eventName) async {
-    captured.add(eventName);
+  Future<void> capture({
+    required String eventName,
+    Map<String, Object>? properties,
+  }) async {
+    captured.add((eventName: eventName, properties: properties));
   }
 
   Future<void> optOut({required bool optOut}) async {
@@ -98,24 +107,44 @@ void main() {
       await _repository(
         recorder,
         config: _unconfigured,
-      ).record(UsageEvent.exportShared);
+      ).record(UsageEvent.tipJarOpened);
 
       expect(recorder.captured, isEmpty);
     });
 
-    test(
-      'sends the event name and nothing else, so no payload can carry data',
-      () async {
-        final recorder = _Recorder();
-        final repository = _repository(recorder);
-        await repository.start();
+    test('sends the name and its typed properties, and nothing else', () async {
+      final recorder = _Recorder();
+      final repository = _repository(recorder);
+      await repository.start();
 
-        await repository.record(UsageEvent.tipJarOpened);
-        await repository.record(UsageEvent.exportShared);
+      await repository.record(UsageEvent.tipJarOpened);
+      await repository.record(
+        UsageEvent.exportShared(
+          format: ExportFormat.svg,
+          delivery: ExportDelivery.share,
+        ),
+      );
 
-        expect(recorder.captured, ['tipJarOpened', 'exportShared']);
-      },
-    );
+      expect(recorder.captured.map((call) => call.eventName), [
+        'tipJarOpened',
+        'exportShared',
+      ]);
+      expect(recorder.captured.first.properties, isNull);
+      expect(recorder.captured.last.properties, {
+        'format': 'svg',
+        'delivery': 'share',
+      });
+    });
+
+    test('omits the properties map when an event carries none', () async {
+      final recorder = _Recorder();
+      final repository = _repository(recorder);
+      await repository.start();
+
+      await repository.record(UsageEvent.customizerOpened);
+
+      expect(recorder.captured.single.properties, isNull);
+    });
 
     test(
       'swallows its own failure, because telemetry may never break the app',
@@ -123,13 +152,20 @@ void main() {
         final repository = PostHogUsageEventRepository(
           config: _configured,
           setUp: (_) async {},
-          capture: (_) async => throw StateError('posthog down'),
+          capture: ({required eventName, properties}) async =>
+              throw StateError('posthog down'),
           optOut: ({required bool optOut}) async {},
         );
         await repository.start();
 
         await expectLater(
-          repository.record(UsageEvent.calendarViewed),
+          repository.record(
+            UsageEvent.calendarViewed(
+              year: Year(2024),
+              source: CalendarRequestSource.typed,
+              fromCache: false,
+            ),
+          ),
           completes,
         );
       },

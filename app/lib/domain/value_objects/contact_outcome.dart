@@ -1,0 +1,1 @@
+enum ContactOutcome { sent, failed }

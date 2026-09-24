@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:contribkit/domain/value_objects/contact_message.dart';
+import 'package:contribkit/domain/value_objects/contact_outcome.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/contact/contact_sheet_state.dart';
@@ -70,11 +74,22 @@ class _ContactSheetState extends ConsumerState<ContactSheet> {
       _inputError = '';
       _state = const ContactSending();
     });
+    final usageEvents = ref.read(usageEventRepositoryProvider);
 
     try {
       await ref.read(sendContactMessageProvider).call(message);
+      unawaited(
+        usageEvents.record(
+          UsageEvent.contactMessageSent(outcome: ContactOutcome.sent),
+        ),
+      );
       _to(const ContactSent());
     } catch (e) {
+      unawaited(
+        usageEvents.record(
+          UsageEvent.contactMessageSent(outcome: ContactOutcome.failed),
+        ),
+      );
       _to(ContactFailed(message: FailureMessage.ofAny(e)));
     }
   }

@@ -5,7 +5,10 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 
 typedef PostHogSetUp = Future<void> Function(PostHogConfig config);
 
-typedef PostHogCapture = Future<void> Function(String eventName);
+typedef PostHogCapture = Future<void> Function({
+  required String eventName,
+  Map<String, Object>? properties,
+});
 
 typedef PostHogOptOut = Future<void> Function({required bool optOut});
 
@@ -28,8 +31,10 @@ final class PostHogUsageEventRepository implements UsageEventRepository {
 
   bool get isStarted => _started;
 
-  static Future<void> _defaultCapture(String eventName) =>
-      Posthog().capture(eventName: eventName);
+  static Future<void> _defaultCapture({
+    required String eventName,
+    Map<String, Object>? properties,
+  }) => Posthog().capture(eventName: eventName, properties: properties);
 
   static Future<void> _defaultOptOut({required bool optOut}) =>
       optOut ? Posthog().disable() : Posthog().enable();
@@ -56,7 +61,10 @@ final class PostHogUsageEventRepository implements UsageEventRepository {
   Future<void> record(UsageEvent event) async {
     if (!_started) return;
     try {
-      await _capture(event.name);
+      await _capture(
+        eventName: event.name,
+        properties: event.properties.isEmpty ? null : event.properties,
+      );
     } catch (_) {
       return;
     }

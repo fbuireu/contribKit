@@ -1,0 +1,1 @@
+enum ExportDelivery { share, clipboard }

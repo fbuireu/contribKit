@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/tip_outcome.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
@@ -18,12 +19,20 @@ const _products = [
   TipProduct(id: 'tip.croissant', title: 'Croissant', priceString: r'$5.00'),
 ];
 
-Future<void> _openJar(WidgetTester tester, FakeTipRepository repository) =>
-    pumpSheet(
-      tester,
-      overrides: [tipRepositoryProvider.overrideWithValue(repository)],
-      builder: (_) => const TipJarSheet(),
-    );
+Future<void> _openJar(
+  WidgetTester tester,
+  FakeTipRepository repository, {
+  FakeUsageEventRepository? usageEvents,
+}) => pumpSheet(
+  tester,
+  overrides: [
+    tipRepositoryProvider.overrideWithValue(repository),
+    usageEventRepositoryProvider.overrideWithValue(
+      usageEvents ?? FakeUsageEventRepository(),
+    ),
+  ],
+  builder: (_) => const TipJarSheet(),
+);
 
 void main() {
   group('TipJarSheet', () {
@@ -165,6 +174,60 @@ void main() {
 
       expect(find.byIcon(LucideIcons.alertCircle), findsOneWidget);
       expect(find.text(FailureMessage.of(failure)), findsOneWidget);
+    });
+
+    testWidgets('records each outcome against the Tip Product it concerns', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+      final repository = FakeTipRepository(products: _products);
+
+      await _openJar(tester, repository, usageEvents: usageEvents);
+      await tester.tap(find.text('Coffee'));
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.tipGiven(product: _products.first),
+      ]);
+    });
+
+    testWidgets('a cancelled Tip is recorded as cancelled, not failed', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+      final repository = FakeTipRepository(
+        products: _products,
+        outcome: TipOutcome.cancelled,
+      );
+
+      await _openJar(tester, repository, usageEvents: usageEvents);
+      await tester.tap(find.text('Croissant'));
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.tipCancelled(product: _products.last),
+      ]);
+    });
+
+    testWidgets('a failed Tip is recorded by its product, never its message', (
+      tester,
+    ) async {
+      final usageEvents = FakeUsageEventRepository();
+
+      await _openJar(
+        tester,
+        FakeTipRepository(
+          products: _products,
+          giveFailure: const TipFailure(message: 'card declined'),
+        ),
+        usageEvents: usageEvents,
+      );
+      await tester.tap(find.text('Croissant'));
+      await tester.pumpAndSettle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.tipFailed(product: _products.last),
+      ]);
     });
 
     testWidgets('a Tip in flight blocks a second one, so nobody pays twice', (

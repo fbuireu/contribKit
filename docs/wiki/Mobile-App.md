@@ -27,7 +27,7 @@ Same DDD-ish layers as the web (see **[Architecture](Architecture)**):
 app/lib/
 ├── domain/          entities, value objects, repository interfaces, services, failures
 ├── application/     use cases: fetch_contributions, invalidate_contribution_cache, export_calendar, fetch_tip_products, give_tip, send_contact_message
-├── infrastructure/  github repo, asset repos, export (png/svg/markdown), persistence, tip, contact
+├── infrastructure/  github repo, asset repos, export (png/svg/markdown), persistence, tip, contact, telemetry
 └── ui/              features (viewer, customizer, export, tip, contact, privacy), widgets, theme, DI (Riverpod)
 ```
 
@@ -124,7 +124,31 @@ The message is posted to [`POST /api/contact`](API-Reference) on `contribkit.app
 
 `ContactMessage` validates before anything is sent, so a bad address or a message under ten characters is refused on the device rather than by the server. Its length limits are the same numbers the web's own value object declares, and the documentation-consistency test diffs the two.
 
-Opening the sheet records `UsageEvent.contactOpened`, which is a name from a fixed list and carries nothing else: no part of the message is ever Telemetry. The Privacy sheet names this sheet as the one exception to "ContribKit never sends anything you type".
+Opening the sheet records `UsageEvent.contactOpened`, and sending records `contactMessageSent` with an outcome of `sent` or `failed`: a name from a fixed list and an outcome from another, so no part of the message is ever Telemetry. The Privacy sheet names this sheet as the one exception to "ContribKit never sends anything you type".
+
+## Usage Events
+
+Usage Events are off until a person turns them on in the Privacy sheet ([ADR 0028](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). Each one is a name from this list plus the properties beside it, every one drawn from a closed set: an enum's name, a Palette key, a store product id, a Year, a boolean. `UsageEvent` in `domain/value_objects/` has one constructor per row and none of them takes a string, which is what keeps the username, anything typed and the calendar out ([ADR 0027](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
+
+| Event | Properties | Recorded when |
+|-------|------------|---------------|
+| `calendarViewed` | `year`, `source` (`restored` / `typed` / `suggestion` / `year` / `refresh` / `retry`), `fromCache` | a Contribution Calendar arrives in the Viewer |
+| `calendarRequestFailed` | `source`, `reason` (`network` / `notFound` / `rateLimited` / `parse` / `cache` / `unexpected`) | a request for one fails |
+| `yearChosen` | `year` | a Year pill is tapped |
+| `customizerOpened` | none | the Customizer sheet opens |
+| `paletteChosen` | `palette` (the Palette key) | a Palette is picked |
+| `cellShapeChosen` | `shape` | a Cell Shape is picked |
+| `cellSizeChosen` | `size` | a Cell Size is picked |
+| `backgroundChosen` | `background` (the Background Preset) | a Background Preset is picked |
+| `exportOpened` | none | the Export sheet opens |
+| `exportShared` | `format` (`png` / `svg` / `markdown`), `delivery` (`share` / `clipboard`) | an Export reaches the share sheet or the clipboard |
+| `exportFailed` | `format` | an Export fails to render or to deliver |
+| `tipJarOpened` | none | the Tip Jar opens |
+| `tipGiven` · `tipCancelled` · `tipFailed` | `product` (the store's Tip Product id) | the store answers a Tip |
+| `contactOpened` | none | the Contact sheet opens |
+| `contactMessageSent` | `outcome` (`sent` / `failed`) | a Contact Message is sent or refused |
+| `privacyOpened` | none | the Privacy sheet opens |
+| `themeChanged` | `mode` (`light` / `dark`) | the theme toggle is tapped |
 
 ## Development
 

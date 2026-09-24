@@ -19,6 +19,7 @@ import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
+import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
@@ -142,6 +143,28 @@ void main() {
         reason: 'nothing was stored, so the unconditional write of the default bounced the toggle back',
       );
       expect(repository.written, AppThemeMode.light);
+    });
+
+    test('records the theme it moved to, as a Usage Event', () async {
+      final usageEvents = FakeUsageEventRepository();
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWithValue(
+            _SlowSettingsRepository(Future.value()),
+          ),
+          usageEventRepositoryProvider.overrideWithValue(usageEvents),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(themeModeProvider, (_, _) {});
+
+      await container.read(themeModeProvider.notifier).cycle();
+      await container.read(themeModeProvider.notifier).cycle();
+
+      expect(usageEvents.recorded, [
+        UsageEvent.themeChanged(mode: AppThemeMode.light),
+        UsageEvent.themeChanged(mode: AppThemeMode.dark),
+      ]);
     });
   });
 

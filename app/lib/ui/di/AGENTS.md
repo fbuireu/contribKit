@@ -69,7 +69,9 @@ retry would help.
 **`ThemeModeNotifier` also lives here, and it is the one thing in this file that holds state.** It belongs beside a
 feature by the rule below; it is here because the theme is app-wide chrome that [`main.dart`](../../main.dart) watches before any
 feature exists, and because moving it means regenerating [`providers.g.dart`](./providers.g.dart). Treat it as the documented exception,
-not as a precedent: the next stateful thing goes in its feature.
+not as a precedent: the next stateful thing goes in its feature. `cycle()` records `UsageEvent.themeChanged` with
+the `AppThemeMode` it moved to, read from `usageEventRepositoryProvider` before the settings write is awaited; the
+notifier is auto-dispose, so reading a `keepAlive` provider from it is the direction `riverpod_lint` allows.
 
 ## Gotchas
 

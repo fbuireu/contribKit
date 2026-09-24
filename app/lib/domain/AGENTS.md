@@ -39,9 +39,20 @@ identifier that says something an `_Avoid_` list names is the thing that is wron
   all**: a method on either catches everything and returns, because telemetry that breaks the
   app is worse than no telemetry and no caller could act on the failure anyway
   ([ADR 0027](../../../docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
-- **`UsageEvent` is an enum and must stay one.** `record` takes a `UsageEvent`, never a string with a properties
-  map, so there is no parameter through which a Username could reach an analytics vendor. That is the guarantee,
-  and widening the signature deletes it. `TelemetryConsent` beside it holds two `ConsentChoice` values read
+- **`UsageEvent` is a final class whose constructors take only domain enums, value objects and numbers, and the
+  guarantee is that no parameter is a `String`.** It was an enum with no payload, which could say that the
+  Customizer was opened and not which Palette was chosen; it carries a `name` and a `Map<String, Object>` of
+  `properties` now, but the constructor is private and every static constructor takes a closed type: a `Palette`
+  contributes its `key`, a `TipProduct` its `id`, a `Year` its number, an enum its `name`, `fromCache` a bool.
+  `record` still takes a `UsageEvent`, never a string with a properties map, so there is still no parameter
+  through which a Username or free text could reach an analytics vendor; adding a `String` parameter to any
+  constructor deletes that, and `usage_event_test.dart` asserts every property value is a `String` from a closed
+  set, an `int` or a `bool`. The wire names are the enum's old `.name`s, so PostHog's history continues.
+  `CalendarRequestSource` (`restored` / `typed` / `suggestion` / `year` / `refresh` / `retry`) says what asked for
+  a calendar, `CalendarFailureKind.of(failure)` maps a `Failure` to the kind a request failed as with an exhaustive
+  switch (the kinds a calendar request never raises fold into `unexpected`), `ExportDelivery` is `share` or
+  `clipboard`, and `ContactOutcome` is `sent` or `failed`. Neither the failure's message nor anything typed is a
+  parameter, which is the point of mapping to a kind. `TelemetryConsent` beside it holds two `ConsentChoice` values read
   asymmetrically: `mayReportDiagnostics` is `!= denied` and `mayRecordUsageEvents` is `== granted`, so unasked
   means yes for one and no for the other
   ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). Never
@@ -90,6 +101,8 @@ it is handled. **Never widen one with `_` to silence the compiler.**
 | `CellSize` | `compact` / `normal` / `large`, each mapping to a `pixels` and a `gap` |
 | `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
 | `TipOutcome` | `completed` / `cancelled`: what came back from the store when a Tip was offered |
+| `UsageEvent` | a `name` and typed `properties`, built only through static constructors over closed types; value `==` over both, with the map compared entry by entry because Dart's `Map` `==` is identity. See the rule above |
+| `CalendarRequestSource` · `CalendarFailureKind` · `ExportDelivery` · `ContactOutcome` | the closed sets a Usage Event's properties are drawn from; `CalendarFailureKind.of` is the one place a `Failure` becomes one of them |
 | `ContactMessage` | validates on construction like `Username`: every field trimmed, an empty name becomes `null`, and the email pattern is the same strict one the web uses. Carries its length limits as `static const` ints, which the docs contract diffs against the TypeScript. Value `==` |
 | `Embed` | the one spelling of an Embed URL: origin, segment, extension, and which options are worth a query param. It has a TypeScript twin the docs contract diffs it against; see below |
 | `AppSettings` | everything the app remembers, already defaulted. `SettingsRepository.load()` returns one, and `year` is `lastYear ?? Year.current` so no caller re-decides that. **No `==`**: nothing compares one, so it would be surface with no reader |

@@ -4,6 +4,8 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/services/palette_service.dart';
+import 'package:contribkit/domain/value_objects/calendar_failure_kind.dart';
+import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
@@ -65,7 +67,11 @@ class ViewerNotifier extends _$ViewerNotifier {
 
       final username = settings.lastUsername;
       if (username != null) {
-        await fetchContributions(username: username, year: settings.year);
+        await fetchContributions(
+          username: username,
+          year: settings.year,
+          source: CalendarRequestSource.restored,
+        );
       }
     } catch (_) {
     } finally {
@@ -76,6 +82,7 @@ class ViewerNotifier extends _$ViewerNotifier {
   Future<void> fetchContributions({
     required Username username,
     required Year year,
+    required CalendarRequestSource source,
   }) async {
     if (!ref.mounted) return;
     final generation = ++_generation;
@@ -105,13 +112,33 @@ class ViewerNotifier extends _$ViewerNotifier {
       );
       await _remember(username: username, year: year);
 
-      _record(UsageEvent.calendarViewed);
+      _record(
+        UsageEvent.calendarViewed(
+          year: year,
+          source: source,
+          fromCache: fromCache,
+        ),
+      );
       _updateWidget();
     } on Failure catch (f) {
-      if (_stillOurs(generation)) state = state.copyWith(error: f);
+      if (_stillOurs(generation)) {
+        state = state.copyWith(error: f);
+        _record(
+          UsageEvent.calendarRequestFailed(
+            source: source,
+            reason: CalendarFailureKind.of(f),
+          ),
+        );
+      }
     } catch (e) {
       if (_stillOurs(generation)) {
         state = state.copyWith(error: UnexpectedFailure(message: e.toString()));
+        _record(
+          UsageEvent.calendarRequestFailed(
+            source: source,
+            reason: CalendarFailureKind.unexpected,
+          ),
+        );
       }
     } finally {
       if (_stillOurs(generation)) {
@@ -167,33 +194,38 @@ class ViewerNotifier extends _$ViewerNotifier {
   void setPalette(Palette palette) {
     state = state.copyWith(palette: palette);
     _persist((repository) => repository.savePaletteKey(palette.key));
-    _record(UsageEvent.paletteChosen);
+    _record(UsageEvent.paletteChosen(palette: palette));
     _updateWidget();
   }
 
   void setCellShape(CellShape shape) {
     state = state.copyWith(cellShape: shape);
     _persist((repository) => repository.saveCellShape(shape));
-    _record(UsageEvent.cellShapeChosen);
+    _record(UsageEvent.cellShapeChosen(shape: shape));
     _updateWidget();
   }
 
   void setCellSize(CellSize size) {
     state = state.copyWith(cellSize: size);
     _persist((repository) => repository.saveCellSize(size));
-    _record(UsageEvent.cellSizeChosen);
+    _record(UsageEvent.cellSizeChosen(size: size));
   }
 
   void setBackgroundPreset(BackgroundPreset bg) {
     state = state.copyWith(backgroundPreset: bg);
     _persist((repository) => repository.saveBackgroundPreset(bg.name));
-    _record(UsageEvent.backgroundChosen);
+    _record(UsageEvent.backgroundChosen(preset: bg));
   }
 
   void setYear(Year year) {
+    _record(UsageEvent.yearChosen(year: year));
     final username = state.username;
     if (username != null) {
-      fetchContributions(username: username, year: year);
+      fetchContributions(
+        username: username,
+        year: year,
+        source: CalendarRequestSource.year,
+      );
     } else {
       state = state.copyWith(year: year);
     }
@@ -219,7 +251,11 @@ class ViewerNotifier extends _$ViewerNotifier {
     final year = state.effectiveYear;
     await ref.read(invalidateContributionCacheProvider)(username);
     if (!ref.mounted) return;
-    await fetchContributions(username: username, year: year);
+    await fetchContributions(
+      username: username,
+      year: year,
+      source: CalendarRequestSource.refresh,
+    );
   }
 
   Future<void> retry() async {
@@ -227,7 +263,11 @@ class ViewerNotifier extends _$ViewerNotifier {
     if (!ref.mounted) return;
     final username = state.username;
     if (username == null) return;
-    await fetchContributions(username: username, year: state.effectiveYear);
+    await fetchContributions(
+      username: username,
+      year: state.effectiveYear,
+      source: CalendarRequestSource.retry,
+    );
   }
 
   void _updateWidget() {
