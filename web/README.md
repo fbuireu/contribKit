@@ -87,7 +87,7 @@ flowchart TD
     request(["Request"])
     middleware["Middleware: rate limit + security headers"]
     validate["Validate input (Zod + value objects)"]
-    usecase["Use case: fetchContributions"]
+    usecase["loadContributions (bound in _contributions.ts)"]
     scrape["Fetch GitHub contributions HTML"]
     parse["Parse Contribution Days (date, level, count)"]
     grid["Build 53×7 calendar grid"]
@@ -137,11 +137,11 @@ pnpm install
 | `pnpm dev`               | Local dev server (generates wrangler types) |
 | `pnpm wrangler:dev`      | Build + run under the Workers runtime       |
 | `pnpm build`             | Production build                            |
-| `pnpm test`              | Vitest unit tests                           |
+| `pnpm test:ut`           | Vitest unit tests                           |
 | `pnpm test:e2e`          | Playwright e2e tests                        |
 | `pnpm lint:all`          | Biome lint                                  |
 | `pnpm check`             | `astro check` (Astro diagnostics)           |
-| `pnpm lint:ts:typecheck` | `tsc --noEmit`                              |
+| `pnpm typecheck`         | wrangler types + astro sync + `tsc --noEmit` |
 | `pnpm format:all`        | Biome format (write)                        |
 | `pnpm format:check`      | Biome format check (read-only, runs in CI)  |
 
@@ -172,7 +172,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined). The Be
 | ----------------------------------- | --------------- | -------------------------------------------- | ------------------------------- |
 | `PUBLIC_GOOGLE_ANALYTICS_ID`        | build-time      | GA (browser)                                 | GitHub Environment **variable** |
 | `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time     | Better Stack browser tag (RUM), from the app's **Frontend** tab | GitHub Environment **variable** |
-| `API_RATE_LIMITER`                  | runtime binding | rate limiter for `/api/*`                    | `wrangler.toml`, top level and per env |
+| `API_RATE_LIMITER`                  | runtime binding | rate limiter for `/api/*`                    | `wrangler.toml` per env         |
 | `CONTACT_RATE_LIMITER`              | runtime binding | rate limiter for `POST /api/contact`         | `wrangler.toml` per env         |
 | `CONTACT_EMAIL`                     | runtime binding | `send_email`, sending from `contact@contribkit.app` | `wrangler.toml`, top level and per env |
 | `MAINTAINER_EMAIL`               | build-time      | the verified mailbox a Contact Message is delivered to; required by the `astro:env` schema, so a build without it fails | GitHub **repository variable** |

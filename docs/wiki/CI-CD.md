@@ -12,7 +12,7 @@ CI is one workflow with **no path filter**, and a `changes` job that gates each 
 
 | Workflow | Triggers on | Does |
 |----------|-------------|------|
-| `ci.yml` | every push and PR to `main`, plus manual dispatch, where the dispatch redeploys production and the smoke run behind it (the build inlines the public env, so a rotated analytics token reaches nothing until something redeploys) and cuts no release. The web release job fast-forwards onto the head of `main` before releasing, so a merge landing mid-run joins the release in flight rather than refusing its push, and what still stands it down, `main` rewritten under the run or a merge in the seconds between that fast-forward and the push, is released by the run the newer head queued | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the two per-client workflows, then deploy, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates them all |
+| `ci.yml` | every push and PR to `main`, plus manual dispatch, where the dispatch redeploys production and the smoke run behind it (the build inlines the public env, so a rotated analytics token reaches nothing until something redeploys) and cuts no release. The web release job fast-forwards onto the head of `main` before releasing, so a merge landing mid-run joins the release in flight rather than refusing its push, and what still stands it down, `main` rewritten under the run or a merge in the seconds between that fast-forward and the push, is released by the run the newer head queued | a `changes` job diffs the range and exposes `app`, `web` and `cross_package`; everything else is gated on it. Docs contract, the app workflow and the inline `Verify (web)` job, then deploy, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates them all |
 | [`_ci-app.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/_ci-app.yml) | reusable, called by `ci.yml` | Flutter format check, analyze, test with coverage, debug APK. Its jobs show as `App / Analyze`, `App / Test`, `App / Build`, and none of them can be a required check: see `Check` below |
 | [`_deploy.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/_deploy.yml) | reusable | shared web deploy steps. Takes the GitHub Environment (`web-production` / `web-development`) and derives `CLOUDFLARE_ENV` from it by stripping the `<component>-` prefix |
 | [`release-app.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/release-app.yml) | manual (`workflow_dispatch`) | semantic-release **+ automatic Google Play delivery** |
@@ -20,7 +20,7 @@ CI is one workflow with **no path filter**, and a `changes` job that gates each 
 | [`dependency-review.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/dependency-review.yml) | every PR | fails a PR that introduces a dependency with a known vulnerability |
 | [`dependabot-auto-merge.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/dependabot-auto-merge.yml) | Dependabot PRs | merges the security updates; Renovate merges its own once `Check` is green |
 | [`sync-wiki.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/sync-wiki.yml) | push to `main` under `docs/wiki/**` | publishes this wiki |
-| [`commit-message.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/commit-message.yml) | PR opened / edited | commitlint on the PR title: the message a squash-merge actually commits |
+| [`commit-message.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/commit-message.yml) | PR opened, edited, reopened or synchronised | commitlint on the PR title: the message a squash-merge actually commits |
 | [`zizmor.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/zizmor.yml) | push / PR | GitHub Actions security linting |
 
 ---
@@ -42,7 +42,7 @@ flowchart LR
   dev --> e2e["e2e (preview)"]
 ```
 
-- **verify-web:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck`, `check` and the Vitest coverage run; then upload coverage to Codecov, whether or not `verify` passed, so a threshold failure still reports. The same command runs on `pre-push`, so a green push is a green check.
+- **verify-web:** one `pnpm verify`, covering `format:check` (Biome, no writes), `typecheck`, `check` and the Vitest coverage run; then upload coverage to Codecov, whether or not `verify` passed, so a threshold failure still reports. `pre-push` runs `pnpm verify:changed`, the same gate without the coverage floor, which only the full run can hold.
 
 `check` is inside `verify` because `tsc --noEmit` does not typecheck `.astro` files: only `astro check` does. It used to run solely in a `web-build` job, so a type error in a component's props passed `verify`, passed `pre-push`, and failed a later CI job. A prop typed `readonly string[]` that started receiving a value object is exactly how that was found. That job is gone: once `verify` typechecked everything, it only rebuilt what the deploy job builds again.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. The `--env` is load-bearing and was missing until 2026-08-28: without it wrangler ships the top level of `wrangler.toml`, which declares no routes and no rate limiter. It does declare observability, its export destinations and placement, mirroring production, because wrangler switches observability off on a deploy whose config omits it and the top-level `name` is production's.
@@ -86,7 +86,7 @@ flowchart LR
 - **flutter-build:** builds a debug APK to catch build breakages early.
 
 **The e2e suite runs against a deployed preview Worker in CI, and against a local one everywhere else.** `BASE_URL`
-points the run at `pr-<n>-contribkit-development.workers.dev`, which is the only place the Workers runtime is real:
+points the run at `pr-<n>-contribkit-development.fbuireu.workers.dev`, which is the only place the Workers runtime is real:
 the rate-limiter binding, the security headers and the SVG route's `Cross-Origin-Resource-Policy` exemption do not
 exist in a plain Astro dev server. With `BASE_URL` unset, Playwright's `webServer` starts `pnpm wrangler:dev` on
 `localhost:8787` instead, so `pnpm test:e2e` works on a laptop. That fallback used to be declared in `baseURL` and
@@ -94,7 +94,7 @@ wired to nothing, so a local run pointed at an empty port.
 
 Both `dart analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
 
-Coverage thresholds live in [`.github/codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/codecov.yml): the project status allows a 1% drop against the base, and a patch must reach 80%. That file used to declare `ignore` and nothing else, so enforcement rested on Codecov's undeclared defaults and the bar could be moved from a web UI without leaving a trace in the tree.
+Codecov is configured in the root [`codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/codecov.yml): each flag's project status allows a 1% drop against the base, and every status, the patch one included, is `informational: true`, so Codecov never fails a build. The floors that do are `MIN_THRESHOLD` in `web/vitest.config.ts` and `minThreshold` in `app/tool/check_coverage.dart`.
 
 ---
 

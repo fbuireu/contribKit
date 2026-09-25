@@ -22,7 +22,7 @@
 - [Architecture](#architecture)
 - [Development](#development)
 - [Home-Screen Widgets](#home-screen-widgets)
-- [In-App Purchases](#in-app-purchases)
+- [Tip Jar](#tip-jar)
 - [Releases](#releases)
 
 ---
@@ -48,7 +48,7 @@
 | Persistence         | Hive (cache + settings)                                             |
 | Widgets & refresh   | `home_widget` + `workmanager`                                       |
 | UI primitives       | `shadcn_ui` (wrapped in `AppXxx` widgets) + `flutter_animate`       |
-| In-app purchases    | RevenueCat (`purchases_flutter`)                                    |
+| Tips                | RevenueCat (`purchases_flutter`)                                    |
 
 ---
 
@@ -100,9 +100,9 @@ Widgets render with whatever palette you set in the app and refresh once a day i
 
 ---
 
-## In-App Purchases
+## Tip Jar
 
-A simple **tip jar** ($1 / $5 / $10) built with the RevenueCat SDK and a custom Flutter UI (no RevenueCat Paywall builder, and `purchases_ui_flutter` is not a dependency: the docs contract asserts it stays out). Tips are one-time, unlock nothing, and the app is fully functional without them.
+A simple **Tip Jar** ($1 / $5 / $10) built with the RevenueCat SDK and a custom Flutter UI (no RevenueCat Paywall builder, and `purchases_ui_flutter` is not a dependency: the docs contract asserts it stays out). Tips are one-time, unlock nothing, and the app is fully functional without them.
 
 ---
 

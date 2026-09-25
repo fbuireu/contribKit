@@ -40,7 +40,7 @@ GitHub renders each day as a `<td>` carrying data attributes, and exposes the ex
 3. **Enrich:** for each day, attach the exact `count` by looking up its `id` in the map; `level` is run through `clampLevel` to guarantee it's in `0`–`4`. Days whose id isn't in the map (or that have no id) get `count: null`.
 4. **Total:** sum every Count, but return `null` the moment a day at level 1 or above has no Count, because a sum that skipped it would be a lower bound presented as exact. A level-0 day with no Count does not void it: GitHub's level 0 *is* zero.
 
-The result is `{ days, total }`, where each day is `{ date, level, count }`.
+The result is `{ days, totalContributions }`, where each day is `{ date, level, count }`.
 
 ### Worked example
 

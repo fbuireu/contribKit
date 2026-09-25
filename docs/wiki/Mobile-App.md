@@ -66,7 +66,7 @@ Three repositories implement the `ExportRepository` interface, each producing a 
 
 [Riverpod](https://riverpod.dev) is the app's **DI container and reactive state layer**, living entirely inside `ui/`: it's the only layer that knows Flutter or Riverpod exist. It does not replace the DDD layering; it's the mechanism that wires that layering together and exposes it to widgets.
 
-**Composition root.** [`ui/di/providers.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/di/providers.dart) (code-generated [`providers.g.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/di/providers.g.dart)) is the single place allowed to import `infrastructure/` and `application/` at the same time. It instantiates the concrete repositories (GitHub, assets, settings, tip, export), passes them into the curried use cases, and exposes each as an `@riverpod` provider:
+**Composition root.** [`ui/di/providers.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/di/providers.dart) (code-generated [`providers.g.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/di/providers.g.dart)) is the single place allowed to import `infrastructure/` and `application/` at the same time. It instantiates the concrete repositories (GitHub, assets, settings, tip, export), passes them into the use-case classes, and exposes each as an `@riverpod` provider:
 
 ```dart
 @riverpod
@@ -166,7 +166,7 @@ Build-time config is supplied via `dart-defines.json` (dev) and `dart-defines.pr
 
 ## Shared design tokens
 
-The app uses generated copies in `app/assets/*.json`. See **[shared/](https://github.com/fbuireu/contribKit/blob/main/shared/README.md)** and [ADR 0002](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) for why. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets) by hand. Note that this moves **palettes and suggested usernames only**: nothing in Dart reads `shapes.json`, so adding a shape there changes the web and does nothing here. [`release-app.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/release-app.yml) re-copies them before building the AAB, but `ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
+The app uses generated copies in `app/assets/*.json`. See **[shared/](https://github.com/fbuireu/contribKit/blob/main/shared/README.md)** and [ADR 0002](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md) for why. Always edit `shared/*.json` and run `pnpm sync:assets` (or rely on the lefthook pre-commit hook, which does it when you stage the change), and never edit [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets) by hand. Note that this moves **palettes and suggested usernames only**: nothing in Dart reads `shapes.json`, so adding a shape there changes the web and does nothing here. [`release-app.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/release-app.yml) re-copies them before building the AAB, but `_ci-app.yml` does not, so a stale mirror reaches CI unnoticed except through the docs-consistency test. See **[Project Structure](Project-Structure)**.
 
 ---
 

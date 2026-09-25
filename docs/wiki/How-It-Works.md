@@ -29,12 +29,12 @@ flowchart TD
 
 ## Step by step
 
-1. **Middleware** runs first on every request. For `/api/*` paths it applies per-IP rate limiting via the Cloudflare `API_RATE_LIMITER` binding (keyed on `CF-Connecting-IP`); over the limit it returns `429` with `Retry-After: 60`. On every response it attaches the security headers (CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, COOP/CORP, `Referrer-Policy`, `Permissions-Policy`). See **[Web Application](Web-Application)** for the full header list.
+1. **Middleware** runs first on every request. For `/api/*` paths it applies per-IP rate limiting via the Cloudflare `API_RATE_LIMITER` binding, or `CONTACT_RATE_LIMITER` for `POST /api/contact` (keyed on `CF-Connecting-IP`); over the limit it returns `429` with `Retry-After: 60`. On every response it attaches the security headers (CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, COOP/CORP, `Referrer-Policy`, `Permissions-Policy`). See **[Web Application](Web-Application)** for the full header list.
 2. **Validation** parses query/route params with Zod, then constructs domain value objects:
    - `parseUsername` trims input and tests it against a deliberately looser approximation of GitHub's rules: alphanumeric, hyphens allowed inside, 1–39 chars. It does **not** reject consecutive hyphens, so `a--b` passes here and 404s at GitHub. If a `Username` exists, it is valid.
    - `parseYear` accepts `null`/empty (→ latest rolling year), rejects non-integers, and bounds the year to `2005 … currentYear`.
    - Any invalid input becomes a typed `Failure` **before any network call**.
-3. **`loadContributions({ username, year })`** reaches the repository. It is a one-line arrow over `githubHtmlContributionsRepository.fetch`, bound once at the module scope of [`pages/_contributions.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/_contributions.ts). There is no use case between the route and the repository, because the one that used to sit there was `repository => params => repository.fetch(params)` and asserted only that JavaScript forwards arguments.
+3. **`loadContributions({ username, year })`** reaches the repository. It is a one-line arrow over `githubHtmlContributionRepository.fetchCalendar`, bound once at the module scope of [`pages/_contributions.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/_contributions.ts). There is no use case between the route and the repository, because the one that used to sit there was `repository => params => repository.fetchCalendar(params)` and asserted only that JavaScript forwards arguments.
 4. **Fetching** requests the public contributions HTML from GitHub with browser-like headers. See **[Fetching Contributions](Fetching-Contributions)**.
 5. **Parsing** extracts each day's `date`, `level` (0–4, run through `clampLevel`), and exact `count` (from the linked `<tool-tip>`) via regex over the HTML. See **[HTML Parsing](HTML-Parsing)**.
 6. **Grid building** maps the parsed days onto a fixed 53×7 (371-cell) grid aligned to week boundaries. See **[Calendar Grid](Calendar-Grid)**.
@@ -47,15 +47,16 @@ The `/api/contributions` and `/user/:username.svg` routes instantiate the reposi
 
 ## Errors never throw
 
-Every function that can fail returns `T | Failure` and never throws. A `Failure` is a typed discriminated union created by small constructors (`notFound`, `invalidInput`, `network`, `parse`, `rateLimited`) and narrowed with the `isFailure` guard:
+Every function that can fail returns `T | Failure` and never throws. A `Failure` is a typed discriminated union created by small constructors (`notFound`, `invalidInput`, `network`, `parse`, `rateLimited`, `delivery`) and narrowed with the `isFailure` guard:
 
 ```ts
 type Failure =
   | { kind: "NotFound"; username: string }
-  | { kind: "InvalidInput"; field: "username" | "year"; message: string }
+  | { kind: "InvalidInput"; field: "username" | "year" | "name" | "email" | "message"; message: string }
   | { kind: "Network"; status?: number; message: string }
   | { kind: "Parse"; message: string }
-  | { kind: "RateLimited"; message: string; retryAfterSeconds: number | null };
+  | { kind: "RateLimited"; message: string; retryAfterSeconds: number | null }
+  | { kind: "Delivery"; message: string };
 ```
 
 At the HTTP boundary, `statusFor` and `messageFor` (in [`application/http/failure-http.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/application/http/failure-http.ts)) map a `Failure` to a status code and a user-facing message. This is the **only** place that mapping lives:
@@ -67,6 +68,7 @@ At the HTTP boundary, `statusFor` and `messageFor` (in [`application/http/failur
 | `Network` | GitHub unreachable or non-OK status | `502` | the failure's `message` |
 | `Parse` | HTML structure changed, no Contribution Days found | `502` | the failure's `message` |
 | `RateLimited` | GitHub answered `429` | `429` | the failure's `message` |
+| `Delivery` | Email Routing refused a Contact Message | `502` | `"Could not send your message"` |
 
 A `RateLimited` also emits a `Retry-After`, through `retryAfterHeader`: the figure GitHub named, in whichever of the two RFC forms it used, and no header at all when it named none.
 

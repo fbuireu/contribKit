@@ -55,7 +55,7 @@ The repository never throws. Network and HTTP outcomes are converted to a domain
 | OK but no Contribution Days parsed | `parse("Could not parse contributions")` |
 | OK with Contribution Days | `ContributionCalendar` |
 
-A successful result is `{ username, days, total }`, where `days` are the parsed `ContributionDay`s and `total` is the summed yearly count, or `null` the moment an active day's Count could not be read.
+A successful result is `{ username, year, days, totalContributions }`, where `days` are the parsed `ContributionDay`s and `totalContributions` is the summed yearly count, or `null` the moment an active day's Count could not be read.
 
 ---
 

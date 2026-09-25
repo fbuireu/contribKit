@@ -34,7 +34,7 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 | **[SVG Rendering](SVG-Rendering)** | Geometry, shapes, and the string renderer |
 | **[Deterministic Randomness](Mulberry32)** | The Mulberry32 PRNG used for placeholder grids |
 | **[Git Hooks](Git-Hooks)** | lefthook, commitlint, asset sync |
-| **[CI/CD](CI-CD)** | Path-filtered workflows, environments, releases |
+| **[CI/CD](CI-CD)** | One unfiltered CI workflow, environments, releases |
 | **[Troubleshooting](Troubleshooting)** | Common issues and fixes |
 
 ---

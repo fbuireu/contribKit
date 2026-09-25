@@ -63,7 +63,6 @@ pnpm verify:static       # format:check + typecheck + check: everything verify d
 pnpm verify              # verify:static + coverage: what CI runs
 pnpm verify:changed      # verify:static + test:ut:changed: what pre-push runs
 
-`verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference: `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
 pnpm lint:all                    # biome lint over web, docs and .github
 pnpm format:all                  # biome check --write, the same three
 pnpm format:check                # biome check, read-only: what CI runs
@@ -77,6 +76,8 @@ flutter test
 flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 dart run build_runner build      # after touching a @freezed / @riverpod / DTO class
 ```
+
+`verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference: `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
 
 **`web-verify` runs `verify:changed`, and the coverage floor is why it cannot run `verify`.** `web/vitest.config.ts` sets `coverage.include` over all of `web/src`, which is what makes the provider report a file no test loaded as zero, so a changed-only subset drags the global average under the floor and fails on a clean tree: a scoped run and the threshold cannot both hold. Coverage is therefore a CI concern, which costs nothing because CI runs the full `pnpm verify` on the pushed sha. The `app` half of the hook needed none of this: its commands are already glob-gated, so `flutter-test` fires only when a `*.dart`, `pubspec.yaml` or `analysis_options.yaml` file is in the push, while `web-verify` carries no glob and ran the whole web gate whatever had changed.
 
@@ -282,7 +283,7 @@ the tag, the GitHub release and the changelog entry did not even wait for the de
 published a version. `release` needs `deploy-production` and `smoke` now, which is what makes a tag mean *the
 version is live and answering*. Both the deploy and the smoke run take the address from the **`SITE_URL` repository variable** rather than
 repeating the domain, and a first step fails `smoke` when it is empty: Playwright falls back to
-`http://localhost:4321` when `BASE_URL` is unset, and a smoke run against nothing is worse than none. It has to be a
+`http://localhost:8787` when `BASE_URL` is unset, and a smoke run against nothing is worse than none. It has to be a
 **repository** variable rather than one on `web-production`: neither a job that declares no `environment:` nor a job
 that calls a reusable workflow can read an environment-scoped `vars`, and both would see an empty string. It was
 declared on the two `web-*` environments first, which is exactly how that was found. The build reads it as
@@ -336,9 +337,9 @@ shaped this way.** A Contact Message leaves through Cloudflare's `send_email` bi
 `contact@contribkit.app` to the mailbox the **`MAINTAINER_EMAIL` repository variable** names; anti-abuse is a
 honeypot field plus `CONTACT_RATE_LIMITER`, a second rate limit at five a minute, rather than Turnstile, which
 would need a verification secret
-([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). Both bindings are
-declared at the top level **and** in each named environment, for the reason the first paragraph of this section
-gives. The variable takes the `SITE_URL` route: `_deploy.yml` passes it to the build, `astro.config.ts` declares
+([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). `CONTACT_EMAIL` is
+declared at the top level **and** in each named environment, and `CONTACT_RATE_LIMITER`, like `API_RATE_LIMITER`,
+in each named environment, for the reason the first paragraph of this section gives. The variable takes the `SITE_URL` route: `_deploy.yml` passes it to the build, `astro.config.ts` declares
 it as a `server`, `public` field, and Astro inlines it, so a changed mailbox reaches nothing until something
 redeploys. The schema field is **not** optional, so a build without it fails the way one without
 `PUBLIC_GOOGLE_ANALYTICS_ID` already does; there is no guard step in the workflow, because the sibling

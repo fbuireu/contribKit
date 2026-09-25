@@ -11,7 +11,7 @@ A second renderer (`ui/components/grid/render-svg.ts`) runs in the browser for t
 ## Inputs
 
 ```
-svgStringRenderer({ calendar, options })
+svgStringRenderer({ days, options })
 ```
 
 `options` carries:
@@ -33,11 +33,11 @@ The last three are declared, forwarded to `calendarLayout`, and assigned by nobo
 
 ```
 cellWidth   = size + gap
-totalWidth  = 53 × cellWidth + labelWidth + 2·padX
+totalWidth  = weeks × cellWidth + labelWidth + 2·padX
 totalHeight = 7  × cellWidth + labelHeight + 2·padY
 ```
 
-with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The grid is drawn inside a `<g>` translated past the labels.
+where `weeks` is how many weeks the days chunk into (53, or 54 for a Year that needs it), with `SVG_PAD_X/Y = 12`, `SVG_LABEL_WIDTH = 28`, `SVG_LABEL_HEIGHT = 18`. The grid is drawn inside a `<g>` translated past the labels.
 
 ### Labels
 
@@ -149,7 +149,7 @@ initRadioList("#shape-list .shape-btn");       // pick shape   → renderCustomi
 
 Activating a button moves the `.active` class (`activateRadio`) and fires `renderCustomize`, which re-reads the new selection from the DOM.
 
-**4. New data.** When a username is rendered, `renderFromGitHub` fetches `/api/contributions`, calls `setDays(buildGridFromApi(...))`, then `renderCustomize()`. The grid shape (53×7) is always rebuilt by [Calendar Grid](Calendar-Grid); the fetch only fills `level`/`count`.
+**4. New data.** When a username is rendered, `renderFromGitHub` fetches `/api/contributions`, calls `setDays(buildGridFromApi(...))`, then `renderCustomize()`. The grid shape (whole weeks covering the Year, 53 or 54 of them) is always rebuilt by [Calendar Grid](Calendar-Grid); the fetch only fills `level`/`count`.
 
 In one line: **change shape/palette → `activateRadio` flips `.active` → `onActivate` runs `renderCustomize` → it reads selection from the DOM + cells from the singleton → `renderCalendarString` regenerates each grid's `innerHTML`.** The same flow runs after a fetch, just triggered by new data instead of a click.
 

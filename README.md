@@ -102,7 +102,7 @@ Both apps also share one vocabulary: **[CONTEXT.md](CONTEXT.md)** is the domain 
 Tooling that applies to the whole repo:
 
 - **Package manager:** pnpm workspaces ([`pnpm-workspace.yaml`](pnpm-workspace.yaml))
-- **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)). Install once with `brew install lefthook && lefthook install`
+- **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)), a root devDependency wired up by `pnpm install` through the root `prepare` script
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
 - **CI:** one [`ci.yml`](.github/workflows/ci.yml) on every push and pull request, with no path filter. A `changes` job decides which client was touched and every other job is gated on its output, so an app-only pull request skips the web jobs rather than never starting them. The documentation-consistency contract runs ungated, because it asserts things about both clients and the root
@@ -130,7 +130,7 @@ Component-specific setup, commands, and deploy flows live in **[web/README.md](w
 | **[Contributing](.github/CONTRIBUTING.md)**         | Setup, the checks, commit rules, and how a change gets released |
 | **[Domain glossary](CONTEXT.md)**                   | The canonical name for every domain concept, and the ones to avoid |
 | **[Web](web/README.md)**                            | API reference, embedding guide, architecture, deploys        |
-| **[App](app/README.md)**                            | Flutter setup, widgets, in-app purchases, releases           |
+| **[App](app/README.md)**                            | Flutter setup, widgets, the Tip Jar, releases                |
 | **[Shared tokens](shared/README.md)**              | Palettes, shapes, and usernames consumed by both apps        |
 | **[Legal notice](https://contribkit.app/legal-notice)** | [Privacy](https://contribkit.app/privacy) · [Terms](https://contribkit.app/terms) |
 

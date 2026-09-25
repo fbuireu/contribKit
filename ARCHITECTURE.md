@@ -59,7 +59,7 @@ cost and the revisit trigger; the exit plan is written out in
 The two components are released independently ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)),
 and `semantic-release-monorepo` attributes a commit by the paths it
 touches, so a commit spanning both is filed in both changelogs and can cut both releases. That is the right answer
-for a change which genuinely spans the two clients, so it is advisory rather than blocked: [`commit-message.yml`](./.github/workflows/commit-message.yml)
+for a change which genuinely spans the two clients, so it is advisory rather than blocked: [`ci.yml`](./.github/workflows/ci.yml)
 carries a `cross-package-notice` job that comments on the pull request.
 
 ## 2. Layer map
@@ -129,7 +129,7 @@ in [§7](#7-where-things-live).
 | 2 | `loadContributions({ username, year: null })` | pages | Bound once in [`web/src/pages/_contributions.ts`](./web/src/pages/_contributions.ts), which every data route imports: the repository method is captured at module load, the call takes the request |
 | 3 | `githubHtmlContributionRepository.fetchCalendar(...)` fetches and parses | infrastructure | Regexes over the rendered page: there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
 | 4 | `querySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
-| 5 | `buildRollingGrid(...)` then `svgStringRenderer({ calendar, options })` | domain → infrastructure | The lattice first, then string concatenation: no DOM |
+| 5 | `buildRollingGrid(...)` then `svgStringRenderer({ days, options })` | domain → infrastructure | The lattice first, then string concatenation: no DOM |
 | 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Elsewhere it differs: `/api/health` is `no-store`, and the landing page is `private` either way (one hour once a visitor has asked for someone, `no-store` for the default view) |
 
 Any failure short-circuits: `isFailure` guards the result and `statusFor` / `messageFor` in
@@ -224,7 +224,8 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 - **Hooks.** lefthook, composed from [`lefthook.yml`](./lefthook.yml) plus [`app/lefthook.yml`](./app/lefthook.yml) and [`web/lefthook.yml`](./web/lefthook.yml). `pre-commit`
   formats staged Dart and web files and re-stages them, runs `dart analyze --fatal-infos`, and syncs
   `shared/*.json`; `commit-msg` runs commitlint; `pre-push` runs
-  `dart analyze --fatal-infos` and `pnpm check`.
+  `pnpm verify:changed` for the web, and `dart analyze --fatal-infos` plus the app's coverage run when a Dart file,
+  `pubspec.yaml` or `analysis_options.yaml` is in the push.
   **The `cross-package-notice` job ignores `app/assets/`**, because the pre-commit sync stages those mirrors
   whenever `shared/*.json` changes. Without that, editing [`shared/palettes.json`](./shared/palettes.json) alongside
   [`web/src/domain/value-objects/palette.ts`](./web/src/domain/value-objects/palette.ts), the most natural shared change there is, would read as touching both
@@ -236,7 +237,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `ci.yml` | push/PR to `main`, and manual dispatch. **No path filter** | A `changes` job diffs the range and exposes `app`, `web` and `cross_package`; every other job is gated on those. It calls the two per-client workflows, then runs the deploys, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates every one of them, and is the only context the ruleset names |
+| `ci.yml` | push/PR to `main`, and manual dispatch. **No path filter** | A `changes` job diffs the range and exposes `app`, `web` and `cross_package`; every other job is gated on those. It calls the app workflow and runs the web's `Verify (web)` inline, then runs the deploys, the preview comment, the preview e2e, the production smoke run and the release. A final `Check` job aggregates every one of them, and is the only context the ruleset names |
 | [`_ci-app.yml`](./.github/workflows/_ci-app.yml) | called by `ci.yml` | The Flutter half, so its three jobs do not crowd the web ones. **They appear as `App / Analyze`, `App / Test` and `App / Build`**, because a called workflow's jobs are prefixed with the calling job's name, and **none of the three can be a required check**, for the reason given under the table. The web half is one job, `Verify (web)`, inline in `ci.yml`: it used to be a called workflow of its own with a second `Build` job that rebuilt what the deploy rebuilds and typechecked what `verify` typechecks |
 | `_deploy.yml` | called by `ci.yml` | Reusable Cloudflare deploy, parameterised by the GitHub Environment alone. **The wrangler env is derived from it**, not passed: `CLOUDFLARE_ENV` is the stage half of `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)), and it used to be a second input nothing stopped a caller mismatching. That stage reaches `wrangler deploy` as `--env`, which it did not until 2026-08-28: it was passed to the build alone, so every deploy shipped the bare top level of `wrangler.toml` and left the routes and the rate limiter under `[env.*]` unapplied, and observability, placement and the export destinations with them until the top level came to mirror production's. It groups on the Environment and the Worker name so two deploys at one Worker queue instead of interleaving, and both `astro build` and `wrangler deploy` run **unwrapped**: the deploy's argv is built from workflow inputs, and a retry cannot tell a bad flag from a bad network, so a malformed `--name` used to be reported three attempts late, and the build's retry is gone for the reason in the *Build & release* section |
 | [`release-app.yml`](./.github/workflows/release-app.yml) | manual dispatch with a `track` input | semantic-release, then fastlane to the chosen Google Play track |
@@ -244,7 +245,7 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | [`sync-wiki.yml`](./.github/workflows/sync-wiki.yml) | push to `main` under `docs/wiki/**` | Publishes [`docs/wiki/`](./docs/wiki) to the GitHub Wiki |
 | `commit-message.yml` | PR opened, edited, reopened or synchronised | Runs commitlint on the **pull request title**, which is what a squash-merge commits. The `commit-msg` hook only sees what is typed locally, so this is the copy that guards `main` |
 | [`dependency-review.yml`](./.github/workflows/dependency-review.yml) | every PR | Fails a pull request that introduces a dependency with a known vulnerability |
-| [`zizmor.yml`](./.github/workflows/zizmor.yml) | - | Static analysis of the workflow files themselves |
+| [`zizmor.yml`](./.github/workflows/zizmor.yml) | push to `main`, every PR | Static analysis of the workflow files themselves |
 | [`dependabot-auto-merge.yml`](./.github/workflows/dependabot-auto-merge.yml) | Dependabot PRs | Auto-merges the low-risk security updates GitHub raises; Renovate merges its own through the platform once `Check` is green, since the ruleset requires no approval |
 
 **`ci.yml` carries no path filter, and that is the point.** The docs-consistency contract asserts things about
@@ -257,8 +258,8 @@ The `Docs Contract` job is ungated inside `ci.yml` now, so it runs on every push
 **`Check` is how the ruleset names everything gated, because none of the gated jobs can be named directly.**
 A job skipped by its own `if:` still reports, as skipped, which a required check counts as a success. A
 skipped *call* to a reusable workflow does not report its children at all: it publishes a single context
-under the calling job's name, `App`, and the five prefixed contexts never appear. When the call runs the
-reverse holds, and there is no bare `App` or `Web` context. So which name reports depends on whether the job
+under the calling job's name, `App`, and the three prefixed contexts never appear. When the call runs the
+reverse holds, and there is no bare `App` context. So which name reports depends on whether the job
 ran, and neither spelling can be required without leaving half the pull requests waiting on a context nobody
 will publish. `Check` needs every gated job, runs under `always()`, and fails if any of them failed or was
 cancelled.
@@ -312,15 +313,6 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md) | The app keeps its own scraper for now |
 | [0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md) | The light-theme palette variant is app-only |
 | [0013](./docs/adr/0013-the-app-grid-is-always-53-by-7.md) | The app's calendar grid is always 53 by 7 |
-| [0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md) | The grid covers the Year, in 53 or 54 weeks |
-| [0024](./docs/adr/0024-calendar-labels-are-a-web-only-surface.md) | Calendar Labels are a web-only surface |
-| [0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md) | How much DDD, and where it stops |
-| [0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md) | Observability is Cloudflare's, exported to Better Stack |
-| [0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) | The app sends Telemetry through two ports with no failure channel |
-| [0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) | Telemetry Consent is asked twice and answered asymmetrically |
-| [0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) | Diagnostic Reports carry a masked Session Replay |
-| [0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) | Contact Messages leave through Cloudflare's send_email binding |
-| [0031](./docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md) | The web keeps its hand-written Failure union instead of Effect |
 | [0014](./docs/adr/0014-cached-calendars-are-versioned.md) | Cached calendars are versioned by box name |
 | [0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md) | The maintenance contract is enforced by a test |
 | [0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) | Cell Size is a named choice in the app and fixed geometry on the web |
@@ -330,6 +322,15 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0020](./docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) | The Cell geometry is the app's, in three languages |
 | [0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md) | The source carries no comments and the documents carry the reasons |
 | [0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md) | The app has no build flavors and the stage is a dart-defines file |
+| [0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md) | The grid covers the Year, in 53 or 54 weeks |
+| [0024](./docs/adr/0024-calendar-labels-are-a-web-only-surface.md) | Calendar Labels are a web-only surface |
+| [0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md) | How much DDD, and where it stops |
+| [0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md) | Observability is Cloudflare's, exported to Better Stack |
+| [0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md) | The app sends Telemetry through two ports with no failure channel |
+| [0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md) | Telemetry Consent is asked twice and answered asymmetrically |
+| [0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) | Diagnostic Reports carry a masked Session Replay |
+| [0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) | Contact Messages leave through Cloudflare's send_email binding |
+| [0031](./docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md) | The web keeps its hand-written Failure union instead of Effect |
 
 Every one of them follows [0000, the template](./docs/adr/0000-adr-template.md): `# N. Title`, a date, a status,
 then *Context*, *Decision*, *Consequences*. A new ADR starts by copying that file, not by writing one from scratch,

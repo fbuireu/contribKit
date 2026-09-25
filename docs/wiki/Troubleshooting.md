@@ -47,7 +47,7 @@ This usually means GitHub is unreachable or changed the structure of its contrib
 
 A 429 does not always mean the same thing, and the **body** is what tells the cases apart: the headers look the same either way.
 
-**`{"error":"Too many requests"}`** is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute**, refused by the middleware before the route runs, with a fixed `Retry-After: 60`. Back off and retry.
+**`{"error":"Too many requests"}`** is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute** (**5** for `POST /api/contact`), refused by the middleware before the route runs, with a fixed `Retry-After: 60`. Back off and retry.
 
 **`GitHub is rate-limiting this Worker`** is upstream, forwarded to you rather than disguised as an outage. It used to come back as a `502` saying GitHub was unreachable, about a service that had answered perfectly well and said *slow down*. When GitHub names a wait, that figure is passed straight through as `Retry-After`; when it names none, no header is sent, because a fabricated one is worse than none. Retrying sooner will not help either way; the whole Worker is throttled upstream, not just you.
 
@@ -63,7 +63,7 @@ The environment is chosen twice and both have to say the same thing: `CLOUDFLARE
 
 ## Mobile: palettes look stale (and shapes never change)
 
-The app uses generated copies of the design tokens in [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets). If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `ci-app.yml` does not.
+The app uses generated copies of the design tokens in [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets). If you edited `shared/*.json` but the app still shows old data, run `pnpm sync:assets` (or let the lefthook pre-commit hook do it when you stage the change). Never edit `app/assets/` by hand. Only the release workflow re-copies them in CI; `_ci-app.yml` does not.
 
 **Syncing will never change a Cell Shape**, however. `shapes.json` is mirrored and bundled but no Dart file reads it: the app's shapes are a hardcoded `CellShape` enum ([ADR 0002](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)). Adding a shape there changes the web only. See **[Project Structure](Project-Structure)**.
 

@@ -23,16 +23,17 @@ ContribKit/
 
 ```
 domain/
-  value-objects/   Username, Year, ContributionLevel, Palette, CellShape, calendar-labels
+  value-objects/   Username, Year, ContributionLevel, Palette, CellShape, Color, IsoDate, Embed, ContactMessage, calendar-labels
   entities/        ContributionDay, ContributionCalendar (types.ts)
-  repositories/    ContributionsRepository (interface only)
+  repositories/    ContributionRepository, ContactMessageRepository (interfaces only)
   services/        calendar-grid, svg-geometry, cell-shapes, dates, contribution-stats, SvgRenderer type
   failures/        Failure union + constructors + isFailure
 application/
-  use-cases/       loadInitialContributions (the one use case); resolve-initial-view.ts, which is request policy rather than a use case
+  use-cases/       loadInitialContributions, sendContactMessage; resolve-initial-view.ts, which is request policy rather than a use case
   http/            failure-http (statusFor, messageFor, retryAfterHeader); failure-log (logContributionsFailure, logServerError, SERVER_ERROR_STATUS)
 infrastructure/
-  github/          githubHtmlContributionsRepository (HTML scraping)
+  github/          githubHtmlContributionRepository (HTML scraping)
+  email/           the send_email Contact Message repository, its React Email template and MIME
   rendering/       svgStringRenderer
   logging/         the log contract and the console writer Cloudflare exports
 ui/
@@ -41,11 +42,11 @@ ui/
   styles/          @layer-based global CSS
 pages/             every non-underscore file here is a public URL, .md included
   index.astro      landing page (SSR + client interactivity)
-  api/             contributions.ts, health.ts
+  api/             contributions.ts, contact.ts, health.ts
   user/            [username].svg.ts
-  _contributions.ts  shared composition, not a route
+  _contributions.ts, _contact.ts  shared compositions, not routes
   _tests/          the route tests, kept out of the namespace
-  404.astro, 500.astro, legal-notice/privacy/terms
+  404.astro, 500.astro, contact.astro, legal-notice/privacy/terms
 middleware.ts      rate limiting + security headers
 ```
 

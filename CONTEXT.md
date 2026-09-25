@@ -94,7 +94,7 @@ The month strip along the top of the Contribution Grid and the weekday strip dow
 _Avoid_: axis, headers, legend, DOW
 
 **Contribution Grid**:
-The fixed lattice of Contribution Weeks the calendar is laid out on, including the leading and trailing days needed to make whole weeks. Always the same dimensions regardless of the Year requested.
+The lattice of whole Contribution Weeks the calendar is laid out on, including the leading and trailing days needed to make whole weeks. Always covers the Year requested: 53 weeks, or 54 for a Year that needs one more.
 _Avoid_: matrix, board, layout, table
 
 ## Delivery

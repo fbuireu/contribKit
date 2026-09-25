@@ -67,7 +67,7 @@ that bump.
 | pnpm | root `packageManager`, and nowhere else: always pnpm, never npm or yarn |
 | Node | root `engines`, `web/engines` and [`.nvmrc`](../.nvmrc): the same version in each |
 | Flutter | `environment.flutter` in [`app/pubspec.yaml`](../app/pubspec.yaml), which CI installs from |
-| Dart | not pinned: `environment.sdk` is a floor, and the Dart you get is the one your Flutter ships |
+| Dart | not pinned: `environment.sdk` is a range bounded to the minor, and the Dart you get is the one your Flutter ships |
 | Ruby | [`app/android/.ruby-version`](../app/android/.ruby-version), which `setup-ruby` reads for the fastlane run |
 
 Do not "fix" a version mismatch by editing the pin.
@@ -114,7 +114,7 @@ Everything CI runs, you can run locally. For the web, from `web/`:
 ```bash
 pnpm lint:all             # biome lint over web, docs and .github (append :fix to autofix)
 pnpm format:all           # biome check --write, the same three
-pnpm typecheck            # wrangler types + tsc --noEmit
+pnpm typecheck            # wrangler types + astro sync + tsc --noEmit
 pnpm check                # astro check: the only thing that typechecks .astro files
 pnpm test:ut              # vitest, the docs contract included
 pnpm test:docs            # the docs contract alone
@@ -130,7 +130,7 @@ flutter test
 flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI and pre-push enforce
 ```
 
-lefthook runs Biome and `dart format` on `pre-commit`, commitlint on `commit-msg`, and on `pre-push`
+lefthook runs Biome, `dart format`, `dart analyze --fatal-infos` and the shared-token sync on `pre-commit`, commitlint on `commit-msg`, and on `pre-push`
 `pnpm verify:changed` for the web plus `dart analyze --fatal-infos` and the coverage run for the app, the
 latter only when a Dart file, `pubspec.yaml` or `analysis_options.yaml` is in the push. The web hook runs the
 changed-only variant rather than `verify` because the coverage floor and a subset run cannot both hold; CI

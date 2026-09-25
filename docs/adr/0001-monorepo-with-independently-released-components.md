@@ -14,7 +14,7 @@ Sharing a repository invites the opposite mistake: one version, one pipeline, on
 
 ## Decision
 
-One repository, releases per component. `semantic-release` runs separately for each with its own tag series (`web-vX.Y.Z`, `app-vX.Y.Z`, configured in [`web/.releaserc.json`](../../web/.releaserc.json) and [`app/.releaserc.json`](../../app/.releaserc.json)), and CI is path-filtered so `ci-web.yml` and `ci-app.yml` only run when their component changes.
+One repository, releases per component. `semantic-release` runs separately for each with its own tag series (`web-vX.Y.Z`, `app-vX.Y.Z`, configured in [`web/.releaserc.json`](../../web/.releaserc.json) and [`app/.releaserc.json`](../../app/.releaserc.json)), and CI runs a component's jobs only when a `changes` job in [`ci.yml`](../../.github/workflows/ci.yml) sees that component touched.
 
 The rejected alternative is a single version for the monorepo. It would force a mobile release for every web copy fix, and tie the web's cadence to store review.
 

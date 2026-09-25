@@ -58,8 +58,9 @@ flowchart TD
     cm --> lint["commitlint --edit"]
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
-    pp --> webcheck["web-verify: pnpm verify + astro check"]
+    pp --> webcheck["web-verify: pnpm verify:changed"]
     pp --> dartcheck["dart-analyze --fatal-infos (only if Dart changed)"]
+    pp --> fluttertest["flutter-test + coverage floor (only if Dart changed)"]
 ```
 
 ---
@@ -123,15 +124,14 @@ Runs heavier checks before pushing, so a broken branch never reaches the remote.
 
 | Command | Runs on | Runs |
 |---------|---------|------|
-| `web-verify` | every push | `pnpm verify` (format check, typecheck, `astro check`, coverage) |
+| `web-verify` | every push | `pnpm verify:changed` (format check, typecheck, `astro check`, and the unit tests touched since `origin/main`; no coverage floor, which CI enforces) |
 | `dart-analyze` | a pushed `*.dart`, [`pubspec.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/pubspec.yaml) or [`analysis_options.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/analysis_options.yaml) | `dart analyze --fatal-infos` |
 | `flutter-test` | the same three | `flutter test --coverage`, then `dart run tool/check_coverage.dart` |
 
 **`dart-analyze` carries a `glob` and `web-verify` deliberately does not.** Without one it ran on every
 push, so a change to a workflow file or a markdown page paid for a full Flutter analysis that could not
-possibly be affected by it. `web-verify` has no equivalent filter because `pnpm verify` runs the
-docs-consistency contract, which asserts things about the whole repository and must not be gated on which
-client changed. Filtering it would need a copy of [`ci.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/ci.yml)'s `WEB_PATHS`, and a second copy of that filter is
+possibly be affected by it. `web-verify` has no equivalent filter: the web set covers `docs/`, `shared/`,
+`scripts/`, the root manifests and `.github/` as well as `web/`, so filtering it would need a copy of [`ci.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/workflows/ci.yml)'s `WEB_PATHS`, and a second copy of that filter is
 the mistake this repository has already made three times.
 
 ---
