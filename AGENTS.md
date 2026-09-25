@@ -90,7 +90,7 @@ the figure every sibling repository uses and stays there; the app's is higher be
 repository constrains it and a floor ten points under the real figure catches nothing. CI runs it as its own step
 after `flutter test --coverage`, and the `flutter-test` pre-push hook runs it too. Uploading to Codecov was never
 a gate: `fail_ci_if_error: false` means a failed upload is quiet, and Codecov's own statuses are
-`informational: true` in [`codecov.yml`](./codecov.yml). The floor is what fails a build.
+`informational: true` in [`.github/codecov.yml`](./.github/codecov.yml). The floor is what fails a build.
 
 **What the app floor does not cover is [`main.dart`](./app/lib/main.dart)'s bootstrap, on purpose.** `main` and `callbackDispatcher` reach
 `Hive.initFlutter`, `SystemChrome`, `FlutterNativeSplash`, `Purchases`, Sentry and WorkManager's Pigeon API in a

@@ -94,7 +94,7 @@ wired to nothing, so a local run pointed at an empty port.
 
 Both `dart analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
 
-Codecov is configured in the root [`codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/codecov.yml): each flag's project status allows a 1% drop against the base, and every status, the patch one included, is `informational: true`, so Codecov never fails a build. The floors that do are `MIN_THRESHOLD` in `web/vitest.config.ts` and `minThreshold` in `app/tool/check_coverage.dart`.
+Codecov is configured in [`.github/codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/codecov.yml): each flag's project status allows a 1% drop against the base, and every status, the patch one included, is `informational: true`, so Codecov never fails a build. The floors that do are `MIN_THRESHOLD` in `web/vitest.config.ts` and `minThreshold` in `app/tool/check_coverage.dart`.
 
 ---
 
