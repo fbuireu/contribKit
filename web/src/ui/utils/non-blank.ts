@@ -1,6 +1,6 @@
-import { z } from "zod/mini";
+import { z } from "astro/zod";
 
-const nonBlankText = z.string().check(z.trim(), z.minLength(1));
+const nonBlankText = z.string().trim().min(1);
 
 export const nonBlank = (raw: unknown): string | null => {
 	const result = nonBlankText.safeParse(raw);

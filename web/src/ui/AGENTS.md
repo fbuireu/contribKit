@@ -30,23 +30,22 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 - **Icons are inline SVG.** No icon font, no CDN: the CSP in [`web/src/middleware.ts`](../middleware.ts) would block one anyway.
 - **`failure-http` is the only `Failure` → HTTP mapping,** and `isFailure` the only guard. Never redeclare either.
 - **Every page goes through `BaseLayout`.**
-- **What reaches the client from outside its own bundle is checked with `zod/mini` before it is typed.** That is
+- **What reaches the client from outside its own bundle is checked with `astro/zod` before it is typed.** That is
   the `/api/contributions` body, `window.__INITIAL_DAYS__`, the `/api/contact` error body, the `ck_user` cookie and
-  the `user` / `year` query parameters. `z.validate(schema, value)` answers the yes-or-no cases and narrows the value
+  the `user` / `year` query parameters. `schema.validate(value)` answers the yes-or-no cases and narrows the value
   it was given untouched; `safeParse` / `parse` are for the ones that need an output (a trim, a coercion, a
-  `z.catch` fallback). Nothing is cast: `__INITIAL_DAYS__` is declared `unknown` in [`env.d.ts`](../env.d.ts), and
+  `.catch` fallback). Nothing is cast: `__INITIAL_DAYS__` is declared `unknown` in [`env.d.ts`](../env.d.ts), and
   `response.json()` lands in an `unknown` too. Zod checks the *shape*; a day still goes through `contributionDay`, so
   the domain decides what a calendar date is and clamps the level, and one bad date drops that day rather than the
-  whole answer. **The import is `zod/mini`, not `astro/zod`, and that is a measured choice.** `astro/zod` re-exports
-  classic Zod, whose methods hang off every schema and cannot be tree-shaken: the same two schemas cost 23.4 KB gzip
-  on `/` (doubling its client JS) and on `/contact` (2.5×), against 6.6 to 6.8 KB with `zod/mini`. That is why `zod`
-  is a direct dependency of this package, pinned to the version Astro already resolves so the lockfile holds one
-  copy; server code keeps `astro/zod`, where a Worker bundle does not pay per byte the way a visitor does
+  whole answer. **The import is `astro/zod`, never `zod` or `zod/mini`.** A direct `zod` dependency is a second Zod
+  beside the one Astro ships, and its types stop matching `astro/zod`'s. The price is known: `astro/zod` re-exports
+  classic Zod, which cannot be tree-shaken, so these schemas cost 23.4 KB gzip on `/` and on `/contact`, where
+  `zod/mini` would have cost 6.6 to 6.8 KB
   ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)).
   **The layout's own scripts stay Zod-free on purpose.** `theme-toggle`'s `localStorage` read and
-  `usage-event-links`' attribute read are two membership tests over closed sets; moving them to Zod pulled the
-  chunk into `Header` and `Telemetry`, so every legal, 404 and 500 page grew 7.5 KB gzip (+54%) for no behaviour it
-  did not already have. The two `is:inline` scripts in `BaseLayout.astro` and `Telemetry.astro` cannot import at all.
+  `usage-event-links`' attribute read are two membership tests over closed sets; moving them to Zod would pull the
+  Zod chunk into `Header` and `Telemetry`, so every legal, 404 and 500 page would grow for no behaviour it does not
+  already have. The two `is:inline` scripts in `BaseLayout.astro` and `Telemetry.astro` cannot import at all.
 
 ## The client controller
 

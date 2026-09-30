@@ -1,4 +1,4 @@
-import { z } from "zod/mini";
+import { z } from "astro/zod";
 
 export const ExportFormatKey = {
 	Png: "png",
@@ -12,4 +12,4 @@ export const DEFAULT_EXPORT_FORMAT: ExportFormatKey = ExportFormatKey.Png;
 
 const exportFormatKey = z.enum(ExportFormatKey);
 
-export const isExportFormatKey = (value: unknown): value is ExportFormatKey => z.validate(exportFormatKey, value);
+export const isExportFormatKey = (value: unknown): value is ExportFormatKey => exportFormatKey.validate(value);

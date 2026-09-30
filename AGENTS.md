@@ -8,7 +8,7 @@ A monorepo with two clients over one domain. **`web/`** is an Astro SSR site on 
 
 ## Stack
 
-- **web**: Astro (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Zod (`astro/zod` on the server, `zod/mini` in the browser, see the [ui guide](./web/src/ui/AGENTS.md)), Biome, Vitest, Playwright, and React only for the one email the site sends, rendered with React Email ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md))
+- **web**: Astro (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Zod (always through `astro/zod`, never a direct `zod` dependency, see the [ui guide](./web/src/ui/AGENTS.md)), Biome, Vitest, Playwright, and React only for the one email the site sends, rendered with React Email ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md))
 - **app**: Flutter / Dart ([`app/pubspec.yaml`](./app/pubspec.yaml)), Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
 - **shared**: plain JSON, imported by web at build time and mirrored into [`app/assets/`](./app/assets) ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - **repo**: pnpm workspaces, lefthook, commitlint, semantic-release per component

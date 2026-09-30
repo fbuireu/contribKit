@@ -14,7 +14,6 @@ import { generateData } from "@ui/components/grid/calendar";
 import { contributionError, contributionFailureReason } from "@ui/utils/contribution-errors";
 import { contributionsBody, errorBody, injectedDays, toContributionDays } from "@ui/utils/contributions-body";
 import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
-import { z } from "zod/mini";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
 import {
@@ -36,7 +35,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 
 const initialDays = (): ContributionDay[] => {
 	const injected = window.__INITIAL_DAYS__;
-	return z.validate(injectedDays, injected) ? toContributionDays(injected) : generateData();
+	return injectedDays.validate(injected) ? toContributionDays(injected) : generateData();
 };
 
 export type ContributionsRequest = (url: string) => Promise<Response>;
@@ -90,11 +89,11 @@ export async function renderFromGitHub({
 		const response = await request(`/api/contributions?user=${encodeURIComponent(username)}&year=${year}`);
 		const body: unknown = await response.json().catch(() => null);
 
-		if (!response.ok || !z.validate(contributionsBody, body)) {
+		if (!response.ok || !contributionsBody.validate(body)) {
 			showErrorState({
 				message: contributionError({
 					status: response.status,
-					serverMessage: z.validate(errorBody, body) ? body.error : null,
+					serverMessage: errorBody.validate(body) ? body.error : null,
 				}),
 				year,
 			});

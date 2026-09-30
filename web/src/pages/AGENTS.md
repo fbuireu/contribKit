@@ -21,8 +21,8 @@ It is also the only entry point for HTTP traffic.
   `Astro.cookies.get` are already typed `string | null` / `string | undefined`, nothing is cast, and both values go
   straight into `resolveViewerIdentity` and `loadInitial`, whose `parseUsername` and `parseYear` are the checks; a
   Zod schema there would be a second spelling of the value objects' rule, which is the drift the Embed contract
-  already suffered (see the domain guide). Server code imports `astro/zod`; the browser's `zod/mini` and why it
-  differs are in the [ui guide](../ui/AGENTS.md).
+  already suffered (see the domain guide). Server and browser code both import `astro/zod`; why
+  nothing imports `zod` directly is in the [ui guide](../ui/AGENTS.md).
 - **Map `Failure` to HTTP only through `@application/http/failure-http`** (`statusFor`, `messageFor`,
   `retryAfterHeader`), guarded by `isFailure` from `@domain/failures/failure`. Never inline a status, a message or
   a `Retry-After` (**with one exemption, and it is the only one**): a request that fails the Zod shape check has

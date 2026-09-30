@@ -7,7 +7,7 @@ import {
 } from "@domain/value-objects/contact-message";
 import { ContactMessageOutcome, recordUsageEvent, UsageEventName } from "@ui/components/core/telemetry/usage-event";
 import { ElementId } from "@ui/utils/dom-contract";
-import { z } from "zod/mini";
+import { z } from "astro/zod";
 
 export const ContactStatusTone = {
 	Sent: "sent",
@@ -61,13 +61,12 @@ const FIELD_SPECS: readonly FieldSpec[] = [
 	},
 ];
 
-const errorBody = z.catch(
-	z.object({
-		error: z.catch(z.optional(z.string().check(z.minLength(1))), undefined),
-		field: z.catch(z.optional(z.enum(FailureField)), undefined),
-	}),
-	{},
-);
+const errorBody = z
+	.object({
+		error: z.string().min(1).optional().catch(undefined),
+		field: z.enum(FailureField).optional().catch(undefined),
+	})
+	.catch({});
 
 type ErrorBody = z.output<typeof errorBody>;
 
