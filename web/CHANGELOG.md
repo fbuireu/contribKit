@@ -1,3 +1,10 @@
+# [contribkit-web-v1.22.0](https://github.com/fbuireu/contribKit/compare/web-v1.21.0...web-v1.22.0) (2026-09-30)
+
+
+### Features
+
+* **contribkit-web:** validate the API inputs with zod 4.6's boolean check ([22cab2b](https://github.com/fbuireu/contribKit/commit/22cab2bd9dc62d6adba0cc134d9ec122226ef379))
+
 # [contribkit-web-v1.21.0](https://github.com/fbuireu/contribKit/compare/web-v1.20.0...web-v1.21.0) (2026-09-24)
 
 
