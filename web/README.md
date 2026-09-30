@@ -82,6 +82,7 @@ Unknown values silently fall back to the default, so the image never breaks.
 ---
 config:
   look: handDrawn
+  layout: dagre
 ---
 flowchart TD
     request(["Request"])

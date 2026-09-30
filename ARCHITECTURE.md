@@ -17,6 +17,7 @@ the web does?" stays a cheap question to answer.
 ---
 config:
   look: handDrawn
+  layout: dagre
 ---
 flowchart TD
     gh["github.com/users/:login/contributions<br/>public HTML, no token"]
@@ -71,6 +72,7 @@ shell that owns the side effects.
 ---
 config:
   look: handDrawn
+  layout: dagre
 ---
 flowchart TD
     subgraph W["web/src: TypeScript"]

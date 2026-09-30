@@ -47,6 +47,7 @@ lefthook merges the `pre-commit` and `pre-push` stages from every file, so a sin
 ---
 config:
   look: handDrawn
+  layout: dagre
 ---
 flowchart TD
     commit(["git commit"]) --> pc["pre-commit"]

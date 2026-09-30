@@ -6,6 +6,7 @@ GitHub's contribution calendar is a lattice of whole Sunday-aligned weeks. Contr
 ---
 config:
   look: handDrawn
+  layout: dagre
 ---
 flowchart LR
     start["year-01-01"] --> sunday["shift back to the<br/>Sunday on/before"]
@@ -49,6 +50,7 @@ Parsed days are first turned into a lookup map keyed by ISO date:
 ---
 config:
   look: handDrawn
+  layout: dagre
 ---
 flowchart LR
     days["buildGridFromApi<br/>({ days, year })"] --> map["map: date →<br/>{ level, count }"]

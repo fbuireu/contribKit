@@ -11,6 +11,10 @@ The scraper exists twice. GitHub's markup is the most fragile input in the proje
 Today both clients are independent all the way down:
 
 ```mermaid
+---
+config:
+  layout: dagre
+---
 flowchart LR
     web["web"] --> gh["github.com"]
     app["app"] --> gh
@@ -19,6 +23,10 @@ flowchart LR
 The target moves the app behind the API, which makes the web deployment a hard dependency of the mobile app:
 
 ```mermaid
+---
+config:
+  layout: dagre
+---
 flowchart LR
     web["web"] --> api["/api/contributions"]
     app["app"] --> api

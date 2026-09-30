@@ -10,6 +10,7 @@ ContribKit never touches the GitHub API. It reads the **public** contributions p
 ---
 config:
   look: handDrawn
+  layout: dagre
 ---
 flowchart TD
     request(["Request"])
