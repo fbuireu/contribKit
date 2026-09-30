@@ -514,7 +514,12 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 	});
 
 	it("omits the same default Palette", () => {
-		expect(dartConstant("defaultPaletteKey")).toBe("github");
+		const webDefault = /export const DEFAULT_PALETTE_KEY = PALETTES\.(\w+)\.key;/.exec(
+			read(join(REPO, "web/src/domain/value-objects/palette.ts")),
+		)?.[1];
+
+		expect(webDefault, "palette.ts no longer names its default as PALETTES.<key>.key").toBeDefined();
+		expect(dartConstant("defaultPaletteKey")).toBe(webDefault);
 		expect(read(WEB_EMBED)).toContain("DEFAULT_PALETTE_KEY");
 	});
 });

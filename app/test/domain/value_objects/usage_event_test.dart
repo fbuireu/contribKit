@@ -154,7 +154,7 @@ void main() {
       }
     });
 
-    test('compares by name and properties, whatever the map order', () {
+    test('compares by name and properties', () {
       final one = UsageEvent.calendarViewed(
         year: Year(2024),
         source: CalendarRequestSource.typed,
@@ -181,7 +181,7 @@ void main() {
       expect(UsageEvent.customizerOpened, isNot(UsageEvent.exportOpened));
     });
 
-    test('a missing key and a differing value both read as unequal', () {
+    test('a differing value, or a different event, reads as unequal', () {
       final shared = UsageEvent.exportShared(
         format: ExportFormat.svg,
         delivery: ExportDelivery.share,

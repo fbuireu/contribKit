@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/failures/failure.dart';
+import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
@@ -248,7 +249,7 @@ void main() {
 
   group('GitHubContributionRepository grid', () {
     test(
-      'always builds 53 whole weeks of 7 days regardless of the year',
+      'builds whole Sunday-first weeks, as many as the Year needs',
       () async {
         final html =
             _day(id: 'a', date: '2023-03-06', level: '2') +
@@ -258,7 +259,10 @@ void main() {
           httpClient: _clientReturning(html),
         ).fetchCalendar(username: username, year: year);
 
-        expect(result.calendar.weeks.length, 53);
+        expect(
+          result.calendar.weeks.length,
+          ContributionGridService.weeksFor(year.value),
+        );
         expect(
           result.calendar.weeks.every((week) => week.days.length == 7),
           isTrue,

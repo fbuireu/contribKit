@@ -15,10 +15,11 @@ describe("unshuffle", () => {
 	it("preserves spaces and punctuation", () => {
 		const data: ShuffledData[] = [
 			{ letter: "b", order: 2 },
+			{ letter: "!", order: 3 },
 			{ letter: " ", order: 1 },
 			{ letter: "a", order: 0 },
 		];
-		expect(unshuffle(data)).toBe("a b");
+		expect(unshuffle(data)).toBe("a b!");
 	});
 
 	it("does not mutate the input array", () => {

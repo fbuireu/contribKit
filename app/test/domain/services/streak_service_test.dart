@@ -198,21 +198,4 @@ void main() {
       },
     );
   });
-
-  test(
-    'the Viewer and the Home Screen Widget agree, because both ask this module',
-    () {
-      final calendar = calendarFor(
-        year: 2019,
-        isActive: (date) => date.isAfter(DateTime(2019, 12, 25)),
-      );
-      final today = DateTime(2026, 8, 14);
-
-      expect(
-        StreakService.currentFor(calendar: calendar, today: today),
-        StreakService.currentFor(calendar: calendar, today: today),
-      );
-      expect(StreakService.currentFor(calendar: calendar, today: today), 6);
-    },
-  );
 }

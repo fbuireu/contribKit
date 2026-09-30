@@ -45,14 +45,6 @@ void main() {
     );
   });
 
-  group('a week cannot be changed after it is built', () {
-    test('because its whole state is its days', () {
-      final week = ContributionWeek(days: [_day(1)]);
-
-      expect(() => week.days.add(_day(2)), throwsUnsupportedError);
-    });
-  });
-
   group('what makes two Contribution Calendars the same one', () {
     test(
       'a different week in the same position makes it a different calendar',

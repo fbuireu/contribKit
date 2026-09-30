@@ -4,12 +4,15 @@ import { contributionError, contributionFailureReason } from "./contribution-err
 const MENTIONS_INVALID = /invalid/i;
 const MENTIONS_NOT_FOUND = /not found/i;
 const MENTIONS_GITHUB = /github/i;
+const MENTIONS_TOO_MANY = /too many requests/i;
 const FALLBACK = "something went wrong";
 
 describe("contributionError", () => {
 	it("maps known statuses to a message", () => {
 		expect(contributionError({ status: 400 })).toMatch(MENTIONS_INVALID);
 		expect(contributionError({ status: 404 })).toMatch(MENTIONS_NOT_FOUND);
+		expect(contributionError({ status: 429 })).toMatch(MENTIONS_TOO_MANY);
+		expect(contributionError({ status: 429 })).not.toMatch(MENTIONS_GITHUB);
 		expect(contributionError({ status: 502 })).toMatch(MENTIONS_GITHUB);
 	});
 

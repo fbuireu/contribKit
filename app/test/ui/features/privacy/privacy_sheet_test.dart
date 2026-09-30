@@ -81,8 +81,9 @@ void main() {
 
       expect(find.byType(PrivacySheet), findsOneWidget);
       expect(
-        (settings.writes['telemetryConsent'] as TelemetryConsent).usageEvents,
-        ConsentChoice.granted,
+        settings.writes['telemetryConsent'],
+        const TelemetryConsent(usageEvents: ConsentChoice.granted),
+        reason: 'the Crash reports half is still unasked',
       );
     });
   });

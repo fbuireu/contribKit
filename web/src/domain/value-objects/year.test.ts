@@ -1,7 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { currentYear, isYear, parseYear } from "./year";
 
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = 2026;
+
+beforeAll(() => {
+	vi.useFakeTimers({ toFake: ["Date"] });
+	vi.setSystemTime(new Date(CURRENT_YEAR, 11, 31, 23, 59, 59));
+});
+
+afterAll(() => {
+	vi.useRealTimers();
+});
 
 describe("parseYear", () => {
 	it("returns null for null, undefined or empty", () => {
@@ -11,7 +20,8 @@ describe("parseYear", () => {
 	});
 
 	it("parses a numeric year", () => {
-		expect(isYear(parseYear(2020)) && (parseYear(2020) as { value: number }).value).toBe(2020);
+		const result = parseYear(2020);
+		expect(isYear(result) && result.value).toBe(2020);
 	});
 
 	it("parses a string year", () => {

@@ -84,7 +84,6 @@ void main() {
     test('the same numbers compare equal and hash alike', () {
       expect(full(), full());
       expect(full().hashCode, full().hashCode);
-      expect(full(), full());
     });
 
     test('every field is part of the answer', () {

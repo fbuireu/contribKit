@@ -11,9 +11,7 @@ import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
-import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
-import 'package:contribkit/domain/repositories/suggested_username_repository.dart';
 import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
@@ -187,17 +185,10 @@ void main() {
       return container;
     }
 
-    test('every repository provider hands back the domain interface', () {
-      final container = containerWith();
+    test('every production repository provider builds with no platform', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
 
-      expect(
-        container.read(paletteRepositoryProvider),
-        isA<PaletteRepository>(),
-      );
-      expect(
-        container.read(suggestedUsernameRepositoryProvider),
-        isA<SuggestedUsernameRepository>(),
-      );
       expect(
         container.read(contributionRepositoryProvider),
         isA<ContributionRepository>(),
@@ -305,12 +296,5 @@ void main() {
         );
       },
     );
-
-    test('the contribution repository is closed when its provider is', () {
-      final container = ProviderContainer();
-      container.read(contributionRepositoryProvider);
-
-      expect(container.dispose, returnsNormally);
-    });
   });
 }

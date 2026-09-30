@@ -61,7 +61,9 @@ describe("chunkWeeks", () => {
 		expect(chunkWeeks(Array.from({ length: 54 * DAYS_PER_WEEK }, (_, index) => index))).toHaveLength(54);
 		expect(chunkWeeks([])).toEqual([]);
 	});
+});
 
+describe("weeksFor", () => {
 	it("needs a 54th week only when a leap Year opens on a Saturday", () => {
 		const wide: number[] = [];
 		for (let year = 2005; year <= 2060; year++) if (weeksFor(year) !== WEEKS_PER_YEAR) wide.push(year);

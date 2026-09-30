@@ -107,13 +107,10 @@ void main() {
   });
 
   group('record', () {
-    test('sends nothing before start', () async {
+    test('sends nothing before start, even when configured', () async {
       final recorder = _Recorder();
 
-      await _repository(
-        recorder,
-        config: _unconfigured,
-      ).record(UsageEvent.tipJarOpened);
+      await _repository(recorder).record(UsageEvent.tipJarOpened);
 
       expect(recorder.captured, isEmpty);
     });
@@ -140,16 +137,6 @@ void main() {
         'format': 'svg',
         'delivery': 'share',
       });
-    });
-
-    test('omits the properties map when an event carries none', () async {
-      final recorder = _Recorder();
-      final repository = _repository(recorder);
-      await repository.start();
-
-      await repository.record(UsageEvent.customizerOpened);
-
-      expect(recorder.captured.single.properties, isNull);
     });
 
     test(

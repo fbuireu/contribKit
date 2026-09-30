@@ -239,15 +239,22 @@ void main() {
     test(
       'nothing here reports entitlement, because a Tip unlocks nothing',
       () async {
-        answerWith(
-          (_) async => _offerings(
-            packages: [
-              _package(id: 'tip.small', price: 1, priceString: r'$1.00'),
-            ],
-          ),
-        );
+        answerWith((call) async {
+          if (call.method == 'getOfferings') {
+            return _offerings(
+              packages: [
+                _package(id: 'tip.small', price: 1, priceString: r'$1.00'),
+              ],
+            );
+          }
+          throw PlatformException(code: '1', message: 'Purchase was cancelled');
+        });
 
-        await RevenueCatTipRepository().getProducts();
+        final repository = RevenueCatTipRepository();
+        await repository.getProducts();
+        await repository.give(product);
+
+        expect(calls.map((call) => call.method), contains('purchasePackage'));
 
         expect(
           calls.map((call) => call.method),

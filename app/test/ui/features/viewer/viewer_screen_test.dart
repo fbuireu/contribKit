@@ -238,6 +238,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(contributions.invalidated, [Username('octocat')]);
+      expect(contributions.fetches, 2);
     });
 
     testWidgets('offers every year back to the first one GitHub has', (

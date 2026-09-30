@@ -1,5 +1,8 @@
 // @vitest-environment happy-dom
 
+import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
+import type { ContributionDay } from "@domain/entities/types";
+import { isFailure } from "@domain/failures/failure";
 import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { Selector } from "@ui/utils/dom-contract";
@@ -26,10 +29,6 @@ vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => (
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const $ = (selector: string) => document.querySelector(selector) as HTMLElement;
 
-import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
-import type { ContributionDay } from "@domain/entities/types";
-import { isFailure } from "@domain/failures/failure";
-
 const day = (params: ContributionDayParams): ContributionDay => {
 	const built = contributionDay(params);
 	if (isFailure(built)) throw new Error(`fixture is not a Contribution Day: ${params.date}`);
@@ -43,6 +42,10 @@ beforeEach(() => {
 	recordUsageEvent.mockClear();
 	setDays(days);
 	setUsername("torvalds");
+});
+
+afterEach(() => {
+	vi.unstubAllGlobals();
 });
 
 describe("setHeroError", () => {
@@ -71,15 +74,6 @@ describe("updateYearRange", () => {
 		document.body.innerHTML = `<span id="hero-year-range"></span>`;
 		updateYearRange(days);
 		expect(byId("hero-year-range").textContent).toBe("2024");
-	});
-});
-
-describe("renderCustomize", () => {
-	it("renders the grid svg and a palette label", () => {
-		document.body.innerHTML = `<div id="custom-grid-container"></div><span id="custom-palette-label"></span>`;
-		renderCustomize();
-		expect(byId("custom-grid-container").innerHTML).toContain("<svg");
-		expect(byId("custom-palette-label").textContent?.length).toBeGreaterThan(0);
 	});
 });
 
@@ -149,7 +143,6 @@ describe("the copy button", () => {
 
 	afterEach(() => {
 		vi.useRealTimers();
-		vi.unstubAllGlobals();
 	});
 
 	it("says it copied, then goes back to offering to", async () => {
@@ -330,7 +323,6 @@ describe("renderExportPreview on the markdown tab", () => {
 			properties: { format: "md", outcome: "copied" },
 		});
 		expect(JSON.stringify(recordUsageEvent.mock.calls)).not.toContain("torvalds");
-		vi.unstubAllGlobals();
 	});
 
 	it("shows a code block naming the viewer, the Palette and the Cell Shape", () => {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { LOG_LEVEL, LOG_SERVICE, type LogLevel } from "./contract";
 import { logger } from "./logger";
 
@@ -12,6 +12,10 @@ const lineFrom = (level: LogLevel) => JSON.parse(spies[level].mock.calls[0]?.[0]
 
 beforeEach(() => {
 	vi.clearAllMocks();
+});
+
+afterAll(() => {
+	vi.restoreAllMocks();
 });
 
 describe("the platform is the transport", () => {
@@ -34,12 +38,6 @@ describe("the platform is the transport", () => {
 		expect(lineFrom(level as LogLevel)).toMatchObject({ level, field: 1 });
 		for (const other of Object.values(LOG_LEVEL)) {
 			if (other !== level) expect(spies[other as LogLevel]).not.toHaveBeenCalled();
-		}
-	});
-
-	it("has a method for every level the log contract names", () => {
-		for (const level of Object.values(LOG_LEVEL)) {
-			expect(typeof logger[level as LogLevel]).toBe("function");
 		}
 	});
 
@@ -69,10 +67,11 @@ describe("a caller cannot relabel its own line", () => {
 		expect(lineFrom(LOG_LEVEL.INFO).service).toBe(LOG_SERVICE);
 	});
 
-	it("still carries a level a logError caller put in its context under a different key", () => {
-		logger.logError({ message: "boom", error: new Error("x"), context: { attemptedLevel: LOG_LEVEL.INFO } });
+	it("keeps the error level on the logError path too, whatever the context says", () => {
+		logger.logError({ message: "boom", error: new Error("x"), context: { level: LOG_LEVEL.INFO } });
 
-		expect(lineFrom(LOG_LEVEL.ERROR).attemptedLevel).toBe(LOG_LEVEL.INFO);
+		expect(spies.info).not.toHaveBeenCalled();
+		expect(lineFrom(LOG_LEVEL.ERROR).level).toBe(LOG_LEVEL.ERROR);
 	});
 });
 
@@ -117,7 +116,9 @@ describe("logger.logError", () => {
 		logger.logError({ message: "test", error: { size: 1n } });
 
 		expect(spies.error).toHaveBeenCalledTimes(2);
-		expect(lineFrom(LOG_LEVEL.ERROR).error.message).toBe("[object Object]");
+		for (const [line] of spies.error.mock.calls) {
+			expect(JSON.parse(line as string).error.message).toBe("[object Object]");
+		}
 	});
 
 	it("merges caller context with error context", () => {

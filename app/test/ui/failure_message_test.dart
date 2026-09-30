@@ -7,6 +7,7 @@ final _everyFailure = <Failure>[
   const NetworkFailure(message: 'offline'),
   NotFoundFailure(username: Username('octocat')),
   const RateLimitedFailure(),
+  const AssetFailure(asset: 'assets/palettes.json'),
   const ParseFailure(message: 'markup changed'),
   const CacheFailure(message: 'box closed'),
   const DeliveryFailure(message: 'destination not verified'),
@@ -57,6 +58,10 @@ void main() {
       expect(
         FailureMessage.of(const UnexpectedFailure(message: 'boom')),
         isNot(contains('boom')),
+      );
+      expect(
+        FailureMessage.of(const AssetFailure(asset: 'assets/palettes.json')),
+        isNot(contains('assets/palettes.json')),
       );
     });
 

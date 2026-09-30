@@ -1,7 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { ClassName, ElementId, Selector } from "../src/ui/utils/dom-contract";
 
-const ANY_NON_EMPTY_TITLE = /.+/;
 const RESOLVED_THEME_CLASS = /theme-(light|dark)/;
 const ACTIVE_ROW_CLASS = new RegExp(ClassName.Active);
 const HEX_BACKGROUND = /^background:#[0-9a-f]{6}$/i;
@@ -11,14 +10,6 @@ const byId = (id: string) => `#${id}`;
 test.describe("homepage", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto("/");
-	});
-
-	test("has a non-empty title", async ({ page }) => {
-		await expect(page).toHaveTitle(ANY_NON_EMPTY_TITLE);
-	});
-
-	test("renders main#main-content", async ({ page }) => {
-		await expect(page.locator("main#main-content")).toBeVisible();
 	});
 
 	test("renders the hero with the username input", async ({ page }) => {
@@ -130,10 +121,13 @@ test.describe("rendering a username", () => {
 			route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "bad" }) }),
 		);
 
+		await expect(page.locator(`${byId(ElementId.HeroGrid)} [data-count]`).first()).toBeAttached();
+
 		await page.locator(byId(ElementId.HeroUsername)).fill("not-a-real-user");
 		await page.locator(byId(ElementId.HeroRenderButton)).click();
 
 		await expect(page.locator(byId(ElementId.HeroError))).toContainText("invalid username");
+		await expect(page.locator(`${byId(ElementId.HeroGrid)} [data-count]`)).toHaveCount(0);
 	});
 
 	test("an unreachable server says so rather than leaving stale numbers", async ({ page }) => {
@@ -143,9 +137,11 @@ test.describe("rendering a username", () => {
 		await page.locator(byId(ElementId.HeroRenderButton)).click();
 
 		await expect(page.locator(byId(ElementId.HeroError))).toContainText("could not reach the server");
+		await expect(page.locator(Selector.BarTag)).toContainText("unknown");
+		await expect(page.locator(`${byId(ElementId.HeroGrid)} [data-count]`)).toHaveCount(0);
 	});
 
-	test("re-enables the render button whether the fetch worked or not", async ({ page }) => {
+	test("re-enables the render button after a request that failed", async ({ page }) => {
 		await page.route("**/api/contributions**", (route) => route.abort());
 		const button = page.locator(byId(ElementId.HeroRenderButton));
 
@@ -156,24 +152,28 @@ test.describe("rendering a username", () => {
 	});
 
 	test("a successful render fills the grid and names the user", async ({ page }) => {
+		const date = `${new Date().getFullYear()}-06-01`;
 		await page.route("**/api/contributions**", (route) =>
 			route.fulfill({
 				status: 200,
 				contentType: "application/json",
 				body: JSON.stringify({
 					username: "octocat",
-					days: [{ date: "2026-06-01", level: 3, count: 7 }],
+					days: [{ date, level: 3, count: 7 }],
 					total: 7,
 				}),
 			}),
 		);
+		const button = page.locator(byId(ElementId.HeroRenderButton));
 
 		await page.locator(byId(ElementId.HeroUsername)).fill("octocat");
-		await page.locator(byId(ElementId.HeroRenderButton)).click();
+		await button.click();
 
 		await expect(page.locator(byId(ElementId.HeroUsernameDisplay))).toHaveText("octocat");
-		await expect(page.locator(`${byId(ElementId.HeroGrid)} svg`)).toBeVisible();
+		await expect(page.locator(`${byId(ElementId.HeroGrid)} [data-date="${date}"][data-count="7"]`)).toBeAttached();
+		await expect(page.locator(`${byId(ElementId.HeroGrid)} [data-count]`)).toHaveCount(1);
 		await expect(page.locator(byId(ElementId.HeroError))).toBeEmpty();
+		await expect(button).toBeEnabled();
 	});
 });
 

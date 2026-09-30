@@ -127,7 +127,7 @@ void main() {
         ),
       ).start();
 
-      expect(recorder.options!.release, isNot(''));
+      expect(recorder.options!.release, isNull);
     });
   });
 

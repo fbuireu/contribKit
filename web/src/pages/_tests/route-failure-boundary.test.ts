@@ -19,7 +19,6 @@ import { GET as svgGet } from "../user/[username].svg";
 
 afterEach(() => {
 	logServerError.mockClear();
-	vi.unstubAllGlobals();
 });
 
 describe("an unexpected throw never escapes a public route", () => {

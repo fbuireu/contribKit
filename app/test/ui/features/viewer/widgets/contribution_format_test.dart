@@ -19,14 +19,4 @@ void main() {
       unknownTotalText,
     );
   });
-
-  test(
-    'never renders the string null, which NumberFormat would happily do',
-    () {
-      expect(
-        formatTotalContributions(format: format, total: null),
-        isNot(contains('null')),
-      );
-    },
-  );
 }

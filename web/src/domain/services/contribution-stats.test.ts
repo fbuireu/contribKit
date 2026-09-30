@@ -87,24 +87,6 @@ describe("computeContributionStats", () => {
 		expect(stats.longestStreak).toBe(4);
 		expect(stats.currentStreak).toBe(1);
 	});
-
-	it("reports an unknown total rather than a lower bound when an active day has no count", () => {
-		const stats = computeContributionStats({
-			year: 2024,
-			today: iso("2024-01-02"),
-			days: [day({ date: "2024-01-01", level: 4, count: null }), day({ date: "2024-01-02", level: 2, count: 5 })],
-		});
-		expect(stats.totalContributions).toBeNull();
-	});
-
-	it("treats an unknown count on a level-0 day as the zero it must be", () => {
-		const stats = computeContributionStats({
-			year: 2024,
-			today: iso("2024-01-02"),
-			days: [day({ date: "2024-01-01", level: 0, count: null }), day({ date: "2024-01-02", level: 2, count: 5 })],
-		});
-		expect(stats.totalContributions).toBe(5);
-	});
 });
 
 describe("statsWithScrapedTotal", () => {
@@ -166,15 +148,23 @@ describe("totalContributionsFor", () => {
 		).toBe(5);
 	});
 
-	it("agrees with the total computeContributionStats reports", () => {
-		const days = [
+	it("is the total computeContributionStats reports, known or not", () => {
+		const known = [
 			day({ date: "2024-01-01", level: 1, count: 2 }),
 			day({ date: "2024-01-02", level: 0, count: null }),
 			day({ date: "2024-01-03", level: 3, count: 7 }),
-		] as const;
+		];
+		const unknown = [
+			day({ date: "2024-01-01", level: 4, count: null }),
+			day({ date: "2024-01-02", level: 2, count: 5 }),
+		];
 
-		expect(computeContributionStats({ days: [...days], year: 2024, today: iso("2024-01-03") }).totalContributions).toBe(
-			totalContributionsFor([...days]),
-		);
+		for (const days of [known, unknown]) {
+			expect(computeContributionStats({ days, year: 2024, today: iso("2024-01-03") }).totalContributions).toBe(
+				totalContributionsFor(days),
+			);
+		}
+		expect(totalContributionsFor(known)).toBe(9);
+		expect(totalContributionsFor(unknown)).toBeNull();
 	});
 });

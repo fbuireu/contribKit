@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initCellTooltip } from "./cell-tooltip";
 
 const UNKNOWN_COUNT_LABEL = /^Contributions unknown on /;
@@ -10,7 +10,27 @@ const TOOLTIP_WIDTH = 100;
 const TOOLTIP_HEIGHT = 40;
 const CELL_SIZE = 10;
 
+interface InstalledListener {
+	target: EventTarget;
+	type: string;
+	listener: EventListenerOrEventListenerObject;
+}
+
+const installed: InstalledListener[] = [];
+
+beforeEach(() => {
+	for (const target of [document, globalThis] as EventTarget[]) {
+		const add = target.addEventListener.bind(target);
+		vi.spyOn(target, "addEventListener").mockImplementation((type, listener, options) => {
+			if (listener) installed.push({ target, type, listener });
+			add(type, listener, options);
+		});
+	}
+});
+
 afterEach(() => {
+	for (const { target, type, listener } of installed.splice(0)) target.removeEventListener(type, listener);
+	vi.restoreAllMocks();
 	document.body.innerHTML = "";
 	vi.unstubAllGlobals();
 });
@@ -287,13 +307,13 @@ describe("initCellTooltip against events that name no cell", () => {
 		expect(tooltip.hidePopover).toHaveBeenCalled();
 	});
 
-	it("says the date is unknown rather than rendering nothing when a cell carries none", () => {
+	it("still opens and names the Count on a cell whose date attribute is empty", () => {
 		const tooltip = mountTooltip(`<div id="cell" data-date="" data-count="5"></div>`);
 		initCellTooltip();
 
 		hover(place({ left: 100, top: 200 }));
 
 		expect(tooltip.showPopover).toHaveBeenCalled();
-		expect(tooltip.element.textContent).not.toBe("");
+		expect(tooltip.element.textContent).toMatch(/^5 contributions on /);
 	});
 });

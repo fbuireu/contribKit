@@ -17,7 +17,17 @@ const stubFetch = (impl: typeof fetch): void => {
 	vi.stubGlobal("fetch", vi.fn(impl));
 };
 
-afterEach(() => vi.unstubAllGlobals());
+const NOW = new Date(Date.UTC(2026, 8, 30, 12, 0, 0));
+
+const freezeClock = (): void => {
+	vi.useFakeTimers({ toFake: ["Date"] });
+	vi.setSystemTime(NOW);
+};
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+	vi.useRealTimers();
+});
 
 describe("githubHtmlContributionRepository.fetchCalendar", () => {
 	it("reads a grouped Count in full rather than truncating it at the separator", async () => {
@@ -92,15 +102,23 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 	});
 
 	it("reads the other Retry-After form, an HTTP date", async () => {
-		const at = new Date(Date.now() + 60_000).toUTCString();
+		freezeClock();
+		const at = new Date(NOW.getTime() + 60_000).toUTCString();
 		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": at } }));
 
 		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
-		expect(result).toMatchObject({ kind: FailureKind.RateLimited });
-		if (!("retryAfterSeconds" in result)) return;
-		expect(result.retryAfterSeconds).toBeGreaterThan(50);
-		expect(result.retryAfterSeconds).toBeLessThanOrEqual(60);
+		expect(result).toMatchObject({ kind: FailureKind.RateLimited, retryAfterSeconds: 60 });
+	});
+
+	it("reads an HTTP date already in the past as a wait of zero, never a negative one", async () => {
+		freezeClock();
+		const at = new Date(NOW.getTime() - 60_000).toUTCString();
+		stubFetch(async () => new Response("", { status: 429, headers: { "retry-after": at } }));
+
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
+
+		expect(result).toMatchObject({ kind: FailureKind.RateLimited, retryAfterSeconds: 0 });
 	});
 
 	it("survives a 429 with no Retry-After at all", async () => {
@@ -258,9 +276,10 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 	});
 
 	it("leaves the current year open-ended so it ends today", async () => {
+		freezeClock();
 		const fetchMock = vi.fn<typeof fetch>(async () => new Response(HTML, { status: 200 }));
 		vi.stubGlobal("fetch", fetchMock);
-		const year = { _tag: "Year", value: new Date().getFullYear() } as Year;
+		const year = { _tag: "Year", value: NOW.getFullYear() } as Year;
 
 		await githubHtmlContributionRepository.fetchCalendar({ username, year });
 

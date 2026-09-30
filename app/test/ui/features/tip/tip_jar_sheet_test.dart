@@ -36,9 +36,7 @@ Future<void> _openJar(
 
 void main() {
   group('TipJarSheet', () {
-    testWidgets('says what a Tip is for, and that it unlocks nothing', (
-      tester,
-    ) async {
+    testWidgets('says what a Tip is for', (tester) async {
       await _openJar(tester, FakeTipRepository(products: _products));
 
       expect(find.text('Support ContribKit'), findsOneWidget);
@@ -176,7 +174,7 @@ void main() {
       expect(find.text(FailureMessage.of(failure)), findsOneWidget);
     });
 
-    testWidgets('records each outcome against the Tip Product it concerns', (
+    testWidgets('records a completed Tip against the Tip Product it concerns', (
       tester,
     ) async {
       final usageEvents = FakeUsageEventRepository();

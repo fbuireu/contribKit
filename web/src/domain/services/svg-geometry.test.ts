@@ -156,15 +156,6 @@ describe("calendarLayout: cells", () => {
 		expect(cell?.level).toBe(3);
 	});
 
-	it("draws the level the day carries, which contributionDay already bounded", () => {
-		const cell = calendarLayout({
-			days: [day({ date: "2024-06-15", level: 9, count: 1 })],
-			shape: "rounded",
-		}).cells[0];
-
-		expect(cell.level).toBe(4);
-	});
-
 	it("keeps an unknown Count null rather than turning it into a zero", () => {
 		expect(layoutFor().cells.every(({ count }) => count === null)).toBe(true);
 	});

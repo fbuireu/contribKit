@@ -2,6 +2,7 @@ import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/entities/contribution_week.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
+import 'package:contribkit/domain/services/contribution_stats_service.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
@@ -101,43 +102,43 @@ version in the same commit, or do not change the order.''',
       final colors = HomeScreenWidgetPayload.encodeColors(_palette).split(',');
 
       expect(colors, hasLength(ContributionLevel.values.length));
-      expect(colors.first, _palette.none.argb.toString());
+      expect(
+        colors.first,
+        _palette.none.argb.toString(),
+        reason: 'the dark none, so noneLight never reaches the widget',
+      );
       expect(colors.last, _palette.veryHigh.argb.toString());
-    });
-
-    test('sends the dark none, so noneLight never reaches the widget', () {
-      final colors = HomeScreenWidgetPayload.encodeColors(_palette).split(',');
-
-      expect(colors.first, isNot(_palette.noneLight.argb.toString()));
     });
   });
 
   group('from', () {
-    test('carries the week count the Kotlin side lays the grid out with', () {
-      final payload = HomeScreenWidgetPayload.from(
-        calendar: _calendar(),
-        palette: _palette,
-        cellShape: CellShape.rounded,
-        today: DateTime(2026, 8, 14),
-      );
+    test(
+      'sends the streak the Viewer shows, because both ask StreakService',
+      () {
+        final calendar = _calendar(level: ContributionLevel.high);
+        final today = DateTime(2026, 8, 14);
 
-      expect(payload.weeks, ContributionGridService.weeksFor(2024));
-      expect(
-        payload.levels,
-        hasLength(payload.weeks * ContributionGridService.daysPerWeek),
-      );
-    });
+        final payload = HomeScreenWidgetPayload.from(
+          calendar: calendar,
+          palette: _palette,
+          cellShape: CellShape.rounded,
+          today: today,
+        );
 
-    test('names the Cell Shape by its enum name, which Kotlin matches on', () {
-      final payload = HomeScreenWidgetPayload.from(
-        calendar: _calendar(),
-        palette: _palette,
-        cellShape: CellShape.hex,
-        today: DateTime(2026, 8, 14),
-      );
-
-      expect(payload.shape, 'hex');
-    });
+        expect(
+          payload.streak,
+          366,
+          reason: 'every day of leap 2024 was active',
+        );
+        expect(
+          payload.streak,
+          ContributionStatsService.compute(
+            calendar,
+            today: today,
+          ).currentStreak,
+        );
+      },
+    );
 
     test('sends the wording for an unknown Total, not an absent value', () {
       final calendar = _calendar();
@@ -154,7 +155,6 @@ version in the same commit, or do not change the order.''',
       );
 
       expect(payload.totalContributionsText, unknownTotalPhrase);
-      expect(payload.totalContributionsText, isNotEmpty);
     });
 
     test('sends a measured Total as a finished sentence', () {
@@ -207,11 +207,14 @@ version in the same commit, or do not change the order.''',
   });
   group('levels and weeks agree inside one payload, which is what bounds a torn write', () {
     test("sends the calendar's own week count, whatever it holds", () {
-      for (final year in [2019, 2020, 2023, 2024]) {
+      for (final gridYear in [2019, 2020, 2023, 2024, 2028]) {
         final calendar = ContributionCalendar(
           username: Username('octocat'),
-          year: Year(year),
-          weeks: ContributionGridService.buildFor(days: const [], year: year),
+          year: Year(2024),
+          weeks: ContributionGridService.buildFor(
+            days: const [],
+            year: gridYear,
+          ),
           totalContributions: null,
         );
 
@@ -219,13 +222,18 @@ version in the same commit, or do not change the order.''',
           calendar: calendar,
           palette: _palette,
           cellShape: CellShape.rounded,
-          today: DateTime(year, 6, 15),
+          today: DateTime(2024, 6, 15),
         );
 
         expect(
           payload.weeks,
-          ContributionGridService.weeksFor(2024),
-          reason: '$year',
+          ContributionGridService.weeksFor(gridYear),
+          reason: '$gridYear',
+        );
+        expect(
+          payload.levels.length,
+          payload.weeks * ContributionGridService.daysPerWeek,
+          reason: '$gridYear',
         );
       }
     });

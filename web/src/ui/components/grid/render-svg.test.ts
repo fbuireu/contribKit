@@ -26,6 +26,7 @@ describe("renderCalendarString", () => {
 		expect(svg).not.toContain("data-count");
 		expect(renderCalendarString({ days, palette, shape: CellShape.Square })).toContain('data-count="4"');
 	});
+
 	it("produces an <svg> with rects for square shapes", () => {
 		const svg = renderCalendarString({ days, palette, shape: CellShape.Square });
 		expect(svg.startsWith("<svg")).toBe(true);
@@ -40,12 +41,6 @@ describe("renderCalendarString", () => {
 	it("includes labels when showLabels is on and omits them when off", () => {
 		expect(renderCalendarString({ days, palette, showLabels: true })).toContain("<text");
 		expect(renderCalendarString({ days, palette, showLabels: false })).not.toContain("<text");
-	});
-
-	it("embeds data-date and data-count on days", () => {
-		const svg = renderCalendarString({ days, palette });
-		expect(svg).toContain('data-date="2024-01-01"');
-		expect(svg).toContain("data-count=");
 	});
 });
 

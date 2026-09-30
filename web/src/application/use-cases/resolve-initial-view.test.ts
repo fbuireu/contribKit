@@ -101,15 +101,11 @@ describe("daySourceFor", () => {
 		expect(daySourceFor({ loaded: true, isExplicit: true })).toBe(DaySource.Loaded);
 	});
 
-	it("shows an empty grid when someone asked for a user and the fetch failed", () => {
+	it("shows an empty grid, never the placeholder, when someone asked for a user and the fetch failed", () => {
 		expect(daySourceFor({ loaded: false, isExplicit: true })).toBe(DaySource.Empty);
 	});
 
 	it("shows the placeholder when nobody asked for anyone", () => {
 		expect(daySourceFor({ loaded: false, isExplicit: false })).toBe(DaySource.Placeholder);
-	});
-
-	it("never shows the placeholder to a visitor who asked, which would invent data for them", () => {
-		expect(daySourceFor({ loaded: false, isExplicit: true })).not.toBe(DaySource.Placeholder);
 	});
 });

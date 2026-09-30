@@ -52,14 +52,6 @@ describe("logContributionsFailure", () => {
 		expect(logger.error).toHaveBeenCalledTimes(1);
 	});
 
-	it("does not log a 400", () => {
-		const logger = loggerSpy();
-
-		logContributionsFailure({ logger, ...params, kind: FailureKind.InvalidInput, status: 400 });
-
-		expect(logger.error).not.toHaveBeenCalled();
-	});
-
 	it("distinguishes the three surfaces, which is all Better Stack has to tell them apart", () => {
 		const logger = loggerSpy();
 

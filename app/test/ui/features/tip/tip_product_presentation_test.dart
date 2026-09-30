@@ -29,8 +29,6 @@ void main() {
       final look = TipProductPresentation.of(_product('com.example.mystery'));
 
       expect(look, TipProductPresentation.fallback);
-      expect(look.emoji, isNotEmpty);
-      expect(look.label, isNotEmpty);
     });
 
     test('gives every known Tip Product its own emoji and label', () {

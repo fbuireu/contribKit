@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type Limiter = { limit: (args: { key: string }) => Promise<{ success: boolean }> };
 
@@ -30,9 +30,13 @@ const run = ({ path, next, ip = "1.2.3.4" }: RunParams): Promise<Response> =>
 
 const ok = () => Promise.resolve(new Response("ok"));
 
+beforeEach(() => {
+	env.API_RATE_LIMITER = undefined;
+	env.CONTACT_RATE_LIMITER = undefined;
+});
+
 describe("security headers", () => {
 	it("are added to every response", async () => {
-		env.API_RATE_LIMITER = undefined;
 		const response = await run({ path: "/", next: ok });
 		expect(response.headers.get("X-Frame-Options")).toBe("DENY");
 		expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
@@ -41,7 +45,6 @@ describe("security headers", () => {
 	});
 
 	const cspDirective = async (name: string) => {
-		env.API_RATE_LIMITER = undefined;
 		const csp = await run({ path: "/", next: ok }).then((response) => response.headers.get("Content-Security-Policy"));
 
 		return csp?.split("; ").find((part) => part.startsWith(`${name} `)) ?? "";
@@ -61,7 +64,6 @@ describe("security headers", () => {
 	});
 
 	it("keep the resource policy at same-origin everywhere but the SVG route", async () => {
-		env.API_RATE_LIMITER = undefined;
 		for (const path of ["/", "/api/health", "/user/torvalds.svg/extra", "/user/torvalds.png"]) {
 			const response = await run({ path, next: ok });
 			expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("same-origin");
@@ -69,13 +71,11 @@ describe("security headers", () => {
 	});
 
 	it("open the resource policy on the SVG route so it embeds cross-origin", async () => {
-		env.API_RATE_LIMITER = undefined;
 		const response = await run({ path: "/user/torvalds.svg", next: ok });
 		expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("cross-origin");
 	});
 
 	it("open it with query parameters too", async () => {
-		env.API_RATE_LIMITER = undefined;
 		const response = await run({ path: "/user/torvalds.svg?palette=nord&shape=hex", next: ok });
 		expect(response.headers.get("Cross-Origin-Resource-Policy")).toBe("cross-origin");
 	});
@@ -83,7 +83,6 @@ describe("security headers", () => {
 
 describe("the pages-layer agent guide", () => {
 	it("is not reachable, because Astro turns src/pages/AGENTS.md into a route", async () => {
-		env.API_RATE_LIMITER = undefined;
 		const next = vi.fn(ok);
 		const response = await run({ path: "/AGENTS", next });
 		expect(response.status).toBe(404);
@@ -92,7 +91,6 @@ describe("the pages-layer agent guide", () => {
 	});
 
 	it("does not block a real route that merely starts the same way", async () => {
-		env.API_RATE_LIMITER = undefined;
 		const response = await run({ path: "/AGENTSX", next: ok });
 		expect(response.status).toBe(200);
 	});
@@ -169,7 +167,6 @@ describe("the contact endpoint is limited on its own bucket", () => {
 	});
 
 	it("answers the same 429 with the same Retry-After, so a form can back off the same way", async () => {
-		env.API_RATE_LIMITER = undefined;
 		env.CONTACT_RATE_LIMITER = { limit: () => Promise.resolve({ success: false }) };
 		const next = vi.fn(ok);
 

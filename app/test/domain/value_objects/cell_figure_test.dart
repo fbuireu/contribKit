@@ -11,11 +11,6 @@ void main() {
     test('what figureFor returns compares equal to an identical call', () {
       for (final shape in CellShape.values) {
         expect(_figure(shape), _figure(shape), reason: shape.name);
-        expect(
-          _figure(shape).hashCode,
-          _figure(shape).hashCode,
-          reason: shape.name,
-        );
       }
     });
 

@@ -80,6 +80,10 @@ void main() {
       await tester.tap(find.text(CellShape.hex.label));
       await tester.pumpAndSettle();
 
+      expect(
+        tester.widget<ContributionGrid>(find.byType(ContributionGrid)).shape,
+        CellShape.hex,
+      );
       expect(settings.writes['cellShape'], CellShape.hex);
     });
 
@@ -89,6 +93,10 @@ void main() {
       await tester.tap(find.text(CellSize.large.label));
       await tester.pumpAndSettle();
 
+      expect(
+        tester.widget<ContributionGrid>(find.byType(ContributionGrid)).cellSize,
+        CellSize.large,
+      );
       expect(settings.writes['cellSize'], CellSize.large);
     });
 

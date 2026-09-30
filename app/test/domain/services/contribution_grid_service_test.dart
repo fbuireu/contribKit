@@ -13,19 +13,25 @@ ContributionDay day(String iso, {int? count, ContributionLevel? level}) =>
 
 void main() {
   group('ContributionGridService.buildFor', () {
-    test('always emits 53 weeks of 7 days, whatever it is given', () {
-      for (final days in [
-        <ContributionDay>[],
-        [day('2024-06-15', count: 3)],
-      ]) {
-        final weeks = ContributionGridService.buildFor(days: days, year: 2024);
+    test(
+      'emits whole weeks of 7 days, 53 of them for a Year that needs 53',
+      () {
+        for (final days in [
+          <ContributionDay>[],
+          [day('2024-06-15', count: 3)],
+        ]) {
+          final weeks = ContributionGridService.buildFor(
+            days: days,
+            year: 2024,
+          );
 
-        expect(weeks, hasLength(53));
-        for (final week in weeks) {
-          expect(week.days, hasLength(7));
+          expect(weeks, hasLength(53));
+          for (final week in weeks) {
+            expect(week.days, hasLength(7));
+          }
         }
-      }
-    });
+      },
+    );
 
     test('starts on the Sunday on or before 1 January', () {
       for (var year = Year.minYear; year <= 2060; year++) {

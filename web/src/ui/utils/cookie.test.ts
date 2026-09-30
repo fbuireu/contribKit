@@ -2,9 +2,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readUsernameCookie, seedUsernameCookie, writeUsernameCookie } from "./cookie";
 
-describe("username-cookie", () => {
-	afterEach(() => vi.unstubAllGlobals());
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
+beforeEach(async () => {
+	vi.stubGlobal("cookieStore", undefined);
+	await writeUsernameCookie("");
+	vi.unstubAllGlobals();
+});
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+	vi.useRealTimers();
+});
+
+describe("username-cookie", () => {
 	it("reads a trimmed cookie value", async () => {
 		vi.stubGlobal("cookieStore", { get: vi.fn().mockResolvedValue({ value: " torvalds " }) });
 		expect(await readUsernameCookie()).toBe("torvalds");
@@ -21,10 +32,18 @@ describe("username-cookie", () => {
 	});
 
 	it("writes the cookie with a one-week expiry", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(Date.UTC(2026, 8, 30, 12, 0, 0)));
 		const set = vi.fn().mockResolvedValue(undefined);
 		vi.stubGlobal("cookieStore", { set });
 		await writeUsernameCookie("torvalds");
-		expect(set).toHaveBeenCalledWith(expect.objectContaining({ name: "ck_user", value: "torvalds", path: "/" }));
+		expect(set).toHaveBeenCalledWith({
+			name: "ck_user",
+			value: "torvalds",
+			expires: Date.UTC(2026, 8, 30, 12, 0, 0) + ONE_WEEK_MS,
+			path: "/",
+			sameSite: "lax",
+		});
 	});
 
 	it("seeds only when no cookie exists yet", async () => {
@@ -43,6 +62,7 @@ describe("username-cookie", () => {
 
 	it("falls back to document.cookie where the Cookie Store API is absent", async () => {
 		vi.stubGlobal("cookieStore", undefined);
+		expect(await readUsernameCookie()).toBeNull();
 		await writeUsernameCookie("torvalds");
 		expect(document.cookie).toContain("ck_user=torvalds");
 		expect(await readUsernameCookie()).toBe("torvalds");
@@ -53,8 +73,6 @@ describe("username-cookie without the Cookie Store API", () => {
 	beforeEach(() => {
 		vi.stubGlobal("cookieStore", undefined);
 	});
-
-	afterEach(() => vi.unstubAllGlobals());
 
 	it("reads a stored blank as nobody, so the SSR page is not asked for an empty username", async () => {
 		await writeUsernameCookie("");
@@ -84,14 +102,12 @@ describe("username-cookie without the Cookie Store API", () => {
 });
 
 describe("username-cookie when the Cookie Store API refuses", () => {
-	afterEach(() => vi.unstubAllGlobals());
-
 	it("gives up rather than falling through to the document, which would half-write it", async () => {
 		vi.stubGlobal("cookieStore", { set: vi.fn().mockRejectedValue(new Error("denied")) });
 
 		await expect(writeUsernameCookie("gaearon")).resolves.toBeUndefined();
 
 		vi.stubGlobal("cookieStore", undefined);
-		expect(await readUsernameCookie()).not.toBe("gaearon");
+		expect(await readUsernameCookie()).toBeNull();
 	});
 });

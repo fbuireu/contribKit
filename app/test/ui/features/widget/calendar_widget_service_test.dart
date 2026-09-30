@@ -65,6 +65,10 @@ void main() {
       final data = savedData();
 
       expect(data[HomeScreenWidgetKey.weeks], 3);
+      expect(
+        data[HomeScreenWidgetKey.totalContributions],
+        '1,234 contributions this year',
+      );
       expect(data[HomeScreenWidgetKey.username], 'octocat');
       expect(data[HomeScreenWidgetKey.shape], CellShape.hex.name);
       expect(

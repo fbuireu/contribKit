@@ -7,11 +7,6 @@ test.describe("user svg endpoint", () => {
 		expect(await response.text()).toContain("<polygon");
 	});
 
-	test("rejects an invalid username with 400", async ({ request }) => {
-		const response = await request.get("/user/foo_bar.svg");
-		expect(response.status()).toBe(400);
-	});
-
 	test("honors the palette query param", async ({ request }) => {
 		const nord = await request.get("/user/torvalds.svg?palette=nord");
 		const github = await request.get("/user/torvalds.svg");
@@ -47,7 +42,7 @@ test.describe("user svg endpoint", () => {
 		expect(response.headers()["cache-control"]).toBe("public, max-age=3600, stale-while-revalidate=86400");
 	});
 
-	test("says no-store when it could not answer, so nobody's README caches a failure", async ({ request }) => {
+	test("rejects an invalid username with a 400 nobody's README caches", async ({ request }) => {
 		const response = await request.get("/user/foo_bar.svg");
 
 		expect(response.status()).toBe(400);

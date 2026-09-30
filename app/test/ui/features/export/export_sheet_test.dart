@@ -13,7 +13,6 @@ import 'package:contribkit/ui/features/export/export_sheet.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:contribkit/ui/widgets/app_button.dart';
-import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fakes.dart';
@@ -28,7 +27,6 @@ Future<void> _openSheet(
   FakeExportRepository? markdown,
   FakeUsageEventRepository? usageEvents,
   CellSize cellSize = CellSize.normal,
-  List<Override> extraOverrides = const [],
 }) async {
   await pumpSheet(
     tester,
@@ -46,7 +44,6 @@ Future<void> _openSheet(
       markdownExportRepositoryProvider.overrideWithValue(
         markdown ?? FakeExportRepository(bytes: utf8.encode('![](embed)')),
       ),
-      ...extraOverrides,
     ],
     builder: (_) => ExportSheet(
       calendar: testCalendar(weeks: 3),

@@ -49,6 +49,11 @@ const decodedParts = (raw: string): string[] => {
 		);
 };
 
+const subjectOf = (raw: string): string => {
+	const encoded = /^Subject: =\?UTF-8\?B\?([A-Za-z0-9+/=]+)\?=$/m.exec(headersOf(raw))?.[1] ?? "";
+	return new TextDecoder().decode(Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0)));
+};
+
 const kindOf = (value: unknown): string => {
 	expect(isFailure(value)).toBe(true);
 	return (value as { kind: string }).kind;
@@ -88,11 +93,17 @@ describe("cloudflareContactMessageRepository", () => {
 		expect(html).toContain("mailto:ada@example.com");
 	});
 
-	it("says so rather than inventing a name when none was given", async () => {
+	it("says so rather than inventing a name when none was given, and subjects it by the address", async () => {
 		await repository.deliver(message({ name: null }));
 
 		expect(decodedParts(sent[0].raw)[0]).toContain("(not given)");
-		expect(headersOf(sent[0].raw)).toContain("=?UTF-8?B?");
+		expect(subjectOf(sent[0].raw)).toBe("ContribKit contact: ada@example.com");
+	});
+
+	it("subjects a named message by the name", async () => {
+		await repository.deliver(message());
+
+		expect(subjectOf(sent[0].raw)).toBe("ContribKit contact: Ada");
 	});
 
 	it("cannot have a name add a header, because every header value loses its line breaks", async () => {

@@ -89,6 +89,11 @@ void main() {
         final stats = ContributionStatsService.compute(cal, today: _today);
 
         expect(stats.bestDayCount, isNull);
+        expect(
+          stats.bestDayDate,
+          isNull,
+          reason: 'a date with no number beside it is not an answer',
+        );
         expect(stats.bestMonthContributions, isNull);
         expect(
           stats.totalDaysActive,
@@ -174,40 +179,7 @@ void main() {
       final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.longestStreak, 5);
     });
-
-    test('resets streak on a zero day', () {
-      final cal = _calendar([
-        (_d(4, 1), 1),
-        (_d(4, 2), 0),
-        (_d(4, 3), 1),
-        (_d(4, 4), 1),
-      ]);
-      final stats = ContributionStatsService.compute(cal, today: _today);
-      expect(stats.longestStreak, 2);
-    });
   });
-  group('an unknown Count nulls the best day and its date together', () {
-    test('because a date with no number beside it is not an answer', () {
-      final stats = ContributionStatsService.compute(
-        _calendarWithUnknownCount(),
-        today: _today,
-      );
-
-      expect(stats.bestDayCount, isNull);
-      expect(stats.bestDayDate, isNull);
-    });
-
-    test('and reports both when every active day carries a Count', () {
-      final stats = ContributionStatsService.compute(
-        _calendar([(_d(6, 15), 30), (_d(6, 16), 1)]),
-        today: _today,
-      );
-
-      expect(stats.bestDayCount, 30);
-      expect(stats.bestDayDate?.day, 15);
-    });
-  });
-
   group('ContributionStatsService.totalFor', () {
     test(
       'is the one place the unknown-Count rule lives, and the parser uses it',

@@ -56,14 +56,34 @@ const goTo = (search: string) => {
 	globalThis.history.replaceState(null, "", `/${search}`);
 };
 
+interface InstalledListener {
+	target: EventTarget;
+	type: string;
+	listener: EventListenerOrEventListenerObject;
+}
+
+const installed: InstalledListener[] = [];
+
+const trackListenersOn = (target: EventTarget): void => {
+	const add = target.addEventListener.bind(target);
+	vi.spyOn(target, "addEventListener").mockImplementation((type, listener, options) => {
+		if (listener) installed.push({ target, type, listener });
+		add(type, listener, options);
+	});
+};
+
 beforeEach(() => {
 	seedUsernameCookie.mockClear();
 	writeUsernameCookie.mockClear();
 	recordUsageEvent.mockClear();
+	trackListenersOn(document);
+	trackListenersOn(globalThis);
 	goTo("");
 });
 
 afterEach(() => {
+	for (const { target, type, listener } of installed.splice(0)) target.removeEventListener(type, listener);
+	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
 	document.body.innerHTML = "";
 });
@@ -374,12 +394,6 @@ describe("the username strip", () => {
 
 		expect(byId("hero-error").textContent).toBe("");
 	});
-
-	it("is not wired at all when the strip is not on the page", () => {
-		document.body.innerHTML = `<div id="hero-grid-container"></div>`;
-
-		expect(() => initPage()).not.toThrow();
-	});
 });
 
 describe("the year select", () => {
@@ -436,6 +450,8 @@ describe("history navigation", () => {
 		expect(byId("hero-username-display").textContent).toBe("gaearon");
 		expect(selectById("hero-year")?.value).toBe(String(CURRENT_YEAR - 1));
 		expect(new URLSearchParams(globalThis.location.search).get("user")).toBe("gaearon");
+		expect(fetchStub).toHaveBeenCalledOnce();
+		expect(fetchStub).toHaveBeenCalledWith(expect.stringContaining(`user=gaearon&year=${CURRENT_YEAR - 1}`));
 	});
 });
 
@@ -453,9 +469,13 @@ describe("a successful render", () => {
 	it("prints the scraped total rather than recomputing one", async () => {
 		document.body.innerHTML = `${HERO}<span class="bar-tag"></span><span class="legend-stats"></span>`;
 
-		await renderFromGitHub({ username: "torvalds", updateHistory: false, request: okFetch });
+		await renderFromGitHub({
+			username: "torvalds",
+			updateHistory: false,
+			request: () => Promise.resolve(jsonResponse({ body: { ...okPayload, total: 42 } })),
+		});
 
-		expect(document.querySelector(".bar-tag")?.textContent).toContain("9");
+		expect(document.querySelector(".bar-tag")?.textContent).toBe("42 contributions");
 	});
 });
 
@@ -616,8 +636,9 @@ describe("the customize controls", () => {
 });
 
 describe("history navigation on a half-rendered page", () => {
-	it("restores nothing it cannot find, rather than throwing", async () => {
-		vi.stubGlobal("fetch", vi.fn(okFetch));
+	it("restores nothing it cannot find, rather than throwing, and still renders the username", async () => {
+		const fetchStub = vi.fn(okFetch);
+		vi.stubGlobal("fetch", fetchStub);
 		document.body.innerHTML = `<button id="hero-render-btn"></button><div id="hero-grid-container"></div>`;
 		initPage();
 
@@ -625,6 +646,9 @@ describe("history navigation on a half-rendered page", () => {
 
 		expect(() => globalThis.dispatchEvent(new PopStateEvent("popstate"))).not.toThrow();
 		await settle();
+
+		expect(fetchStub).toHaveBeenCalledOnce();
+		expect(fetchStub).toHaveBeenCalledWith(expect.stringContaining("user=gaearon"));
 	});
 });
 

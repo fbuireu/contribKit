@@ -1,16 +1,15 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
-import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
-import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
-import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/features/widget/home_screen_widget_refresh.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/fakes.dart';
 
 const _github = Palette(
   key: 'github',
@@ -33,48 +32,6 @@ const _dracula = Palette(
   high: Color(0xFF100005),
   veryHigh: Color(0xFF100006),
 );
-
-final class _FakeSettingsRepository implements SettingsRepository {
-  _FakeSettingsRepository({this.settings = const AppSettings()});
-
-  final AppSettings settings;
-
-  @override
-  Future<AppSettings> load() async => settings;
-
-  @override
-  Future<void> saveLastUsername(Username username) async {}
-
-  @override
-  Future<void> saveLastYear(Year year) async {}
-
-  @override
-  Future<void> savePaletteKey(String key) async {}
-
-  @override
-  Future<void> saveCellShape(CellShape shape) async {}
-
-  @override
-  Future<void> saveCellSize(CellSize size) async {}
-
-  @override
-  Future<void> saveBackgroundPreset(String presetName) async {}
-
-  @override
-  Future<void> saveThemeMode(AppThemeMode mode) async {}
-
-  @override
-  Future<void> saveTelemetryConsent(TelemetryConsent consent) async {}
-}
-
-final class _FakePaletteRepository implements PaletteRepository {
-  _FakePaletteRepository(this._palettes);
-
-  final List<Palette> _palettes;
-
-  @override
-  Future<List<Palette>> loadAll() async => _palettes;
-}
 
 final class _FakeContributionRepository implements ContributionRepository {
   _FakeContributionRepository(this._calendar);
@@ -128,13 +85,13 @@ void main() {
   );
 
   HomeScreenWidgetRefresh subject({
-    required _FakeSettingsRepository settings,
+    required FakeSettingsRepository settings,
     required _FakeContributionRepository contributions,
     required _RecordingWriter writer,
     List<Palette> palettes = const [_github, _dracula],
   }) => HomeScreenWidgetRefresh(
     settings: settings,
-    palettes: _FakePaletteRepository(palettes),
+    palettes: FakePaletteRepository(palettes: palettes),
     contributions: contributions,
     write: writer.write,
   );
@@ -145,7 +102,7 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(
+        settings: FakeSettingsRepository(
           settings: AppSettings(
             lastUsername: username,
             lastYear: Year(2024),
@@ -169,7 +126,7 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(
+        settings: FakeSettingsRepository(
           settings: AppSettings(lastUsername: username),
         ),
         contributions: contributions,
@@ -183,7 +140,7 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(
+        settings: FakeSettingsRepository(
           settings: AppSettings(lastUsername: username),
         ),
         contributions: _FakeContributionRepository(calendar),
@@ -197,7 +154,7 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(
+        settings: FakeSettingsRepository(
           settings: AppSettings(lastUsername: username, paletteKey: 'Dracula'),
         ),
         contributions: _FakeContributionRepository(calendar),
@@ -212,7 +169,7 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(),
+        settings: FakeSettingsRepository(),
         contributions: contributions,
         writer: writer,
       )();
@@ -226,7 +183,7 @@ void main() {
       final writer = _RecordingWriter();
 
       await subject(
-        settings: _FakeSettingsRepository(
+        settings: FakeSettingsRepository(
           settings: AppSettings(lastUsername: username),
         ),
         contributions: contributions,

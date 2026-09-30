@@ -193,7 +193,6 @@ void main() {
         child: PalettePicker(selected: testPalette, onSelected: (_) {}),
       );
 
-      expect(find.byType(SizedBox), findsWidgets);
       expect(find.text('Palette'), findsNothing);
       expect(find.byType(SettingSwatch), findsNothing);
     });

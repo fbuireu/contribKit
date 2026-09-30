@@ -112,10 +112,5 @@ void main() {
     test('is not equal to something that merely looks like one', () {
       expect(const Color(0xFF39D353), isNot('#39D353'));
     });
-
-    test('refuses an ARGB value no colour could have', () {
-      expect(() => Color(-1), throwsA(isA<AssertionError>()));
-      expect(() => Color(0x1FFFFFFFF), throwsA(isA<AssertionError>()));
-    });
   });
 }

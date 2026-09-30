@@ -51,12 +51,15 @@ describe("svgStringRenderer", () => {
 		expect(render({ shape: "hex" })).toContain("<polygon");
 	});
 
-	it("paints a background rect when not transparent", () => {
-		expect(render({ shape: "square", overrides: { background: "#101010" } })).toContain('fill="#101010"');
+	it("paints a background rect when not transparent, and none when it is", () => {
+		const painted = render({ shape: "square", overrides: { background: "#101010" } });
+
+		expect(painted).toMatch(/<rect width="[\d.]+" height="[\d.]+" fill="#101010"\/>/);
+		expect(render({ shape: "square" })).not.toContain('<rect width="');
 	});
 
 	it("includes labels by default and omits them when disabled", () => {
-		expect(render({ shape: "square", overrides: { showLabels: true } })).toContain("<text");
+		expect(render({ shape: "square" })).toContain("<text");
 		expect(render({ shape: "square", overrides: { showLabels: false } })).not.toContain("<text");
 	});
 });

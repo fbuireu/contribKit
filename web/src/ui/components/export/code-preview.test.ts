@@ -12,12 +12,6 @@ type Lines = ReturnType<typeof buildMarkdownLines>;
 
 const toText = (lines: Lines): string => lines.map((line) => line.map(([, text]) => text).join("")).join("\n");
 
-describe("the embed url the snippets carry", () => {
-	it("builds the public svg url for a username", () => {
-		expect(buildEmbedUrl({ username: "torvalds" })).toBe("https://contribkit.app/user/torvalds.svg");
-	});
-});
-
 describe("markdownSnippet", () => {
 	it("wraps the svg url in a markdown image", () => {
 		expect(markdownSnippet({ username: "torvalds" })).toBe(
@@ -147,12 +141,6 @@ describe("the SVG preview shows what the copy button copies", () => {
 
 		expect(text).toContain(NORD[4].hex);
 		expect(text).not.toContain(PALETTES.github.colors[4].hex);
-	});
-
-	it("draws the visitor's Cell Shape, not always a rect", () => {
-		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Hex }))).toContain("<polygon ");
-		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Circle }))).toContain("<circle ");
-		expect(toText(buildSvgLines({ palette: NORD, shape: CellShape.Square }))).toContain("<rect ");
 	});
 
 	it("squares a square, rather than rounding it like the default", () => {

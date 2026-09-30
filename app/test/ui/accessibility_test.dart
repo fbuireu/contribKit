@@ -1,5 +1,6 @@
 import 'dart:ui' show Tristate;
 
+import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/app_settings.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
@@ -187,6 +188,16 @@ void main() {
             reason: '${format.name} has no announced label',
           );
         }
+        final pixels = ExportGeometryService.pngPixelSizeFor(
+          cellSize: CellSize.normal,
+          weeks: 3,
+        );
+        expect(
+          labels,
+          contains(
+            'PNG export, ${pixels.width}×${pixels.height} · transparent',
+          ),
+        );
         _expectEveryButtonAnnounced(tester);
         await _expectMeetsGuidelines(tester);
       });

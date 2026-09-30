@@ -109,7 +109,13 @@ void main() {
 
         expect(
           () => repository.deliver(_message),
-          throwsA(isA<RateLimitedFailure>()),
+          throwsA(
+            isA<RateLimitedFailure>().having(
+              (failure) => failure.resetAt,
+              'resetAt',
+              isNotNull,
+            ),
+          ),
         );
       },
     );
@@ -175,14 +181,27 @@ void main() {
       },
     );
 
-    test('closes only the client it owns', () {
-      final injected = MockClient((_) async => http.Response('', 202));
+    test('leaves an injected client open, because the caller owns it', () {
+      final injected = _TrackingClient();
 
-      expect(
-        HttpContactMessageRepository(httpClient: injected).close,
-        returnsNormally,
-      );
+      HttpContactMessageRepository(httpClient: injected).close();
+
+      expect(injected.closed, isFalse);
+    });
+
+    test('closes the client it built without complaint', () {
       expect(HttpContactMessageRepository().close, returnsNormally);
     });
   });
+}
+
+final class _TrackingClient extends http.BaseClient {
+  bool closed = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      MockClient((_) async => http.Response('', 202)).send(request);
+
+  @override
+  void close() => closed = true;
 }

@@ -78,23 +78,6 @@ void main() {
       expect(svg.trimRight(), endsWith('</svg>'));
     });
 
-    test('sizes the document with ExportGeometryService, not a second formula', () async {
-      final svg = await _render();
-      final size = ExportGeometryService.logicalSizeFor(
-        cellSize: CellSize.fallback,
-        weeks: ContributionGridService.weeksFor(2024),
-      );
-
-      expect(svg, contains('width="${size.width.toStringAsFixed(1)}"'));
-      expect(svg, contains('height="${size.height.toStringAsFixed(1)}"'));
-      expect(
-        svg,
-        contains(
-          'viewBox="0 0 ${size.width.toStringAsFixed(1)} ${size.height.toStringAsFixed(1)}"',
-        ),
-      );
-    });
-
     test(
       'takes every dimension from ExportGeometryService, at every Cell Size',
       () async {
@@ -123,6 +106,14 @@ void main() {
                 'both dimensions follow the service at every Cell Size. The '
                 'literal 7 it replaced is not itself testable, because '
                 'daysPerWeek is 7',
+          );
+          expect(
+            svg,
+            contains(
+              'viewBox="0 0 ${logical.width.toStringAsFixed(1)} '
+              '${logical.height.toStringAsFixed(1)}"',
+            ),
+            reason: cellSize.name,
           );
         }
       },
@@ -177,7 +168,9 @@ void main() {
       'rounds a corner with the shared Cell geometry, not its own number',
       () async {
         final svg = await _render();
-        final radius = CellGeometryService.cornerRadiusFor(11.0);
+        final radius = CellGeometryService.cornerRadiusFor(
+          CellSize.fallback.pixels,
+        );
 
         expect(svg, contains('rx="${radius.toStringAsFixed(1)}"'));
       },

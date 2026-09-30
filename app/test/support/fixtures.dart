@@ -4,7 +4,6 @@ import 'package:contribkit/domain/entities/contribution_week.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
-import 'package:contribkit/domain/value_objects/contribution_stats.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/tip_product.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
@@ -30,17 +29,6 @@ const otherTestPalette = Palette(
   medium: Color(0xFF300002),
   high: Color(0xFF300003),
   veryHigh: Color(0xFF300004),
-);
-
-final testStats = ContributionStats(
-  currentStreak: 4,
-  longestStreak: 12,
-  bestDayCount: 9,
-  bestDayDate: DateTime.utc(2024, 5, 12),
-  totalDaysActive: 40,
-  weeklyAverage: 7.5,
-  bestMonthContributions: 60,
-  bestMonth: 3,
 );
 
 const testTipProducts = [

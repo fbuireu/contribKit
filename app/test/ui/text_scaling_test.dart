@@ -36,6 +36,9 @@ Future<void> _atEveryScale(
   WidgetTester tester,
   Future<void> Function(WidgetTester tester) pump,
 ) async {
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+
   for (final screen in _screens) {
     for (final scale in _scales) {
       tester.platformDispatcher.textScaleFactorTestValue = scale;
@@ -51,9 +54,6 @@ Future<void> _atEveryScale(
       );
     }
   }
-
-  tester.platformDispatcher.clearTextScaleFactorTestValue();
-  await tester.binding.setSurfaceSize(null);
 }
 
 void main() {

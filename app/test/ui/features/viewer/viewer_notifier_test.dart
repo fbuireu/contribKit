@@ -1,20 +1,15 @@
 import 'dart:async';
 
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
-import 'package:contribkit/domain/entities/contribution_day.dart';
-import 'package:contribkit/domain/entities/contribution_week.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/palette_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
-import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/value_objects/background_preset.dart';
 import 'package:contribkit/domain/value_objects/calendar_failure_kind.dart';
 import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
-import 'package:contribkit/domain/value_objects/color.dart';
-import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/domain/value_objects/usage_event.dart';
@@ -27,46 +22,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fakes.dart';
-
-const _nord = Palette(
-  key: 'nord',
-  name: 'Nord',
-  none: Color(0xFF200000),
-  noneLight: Color(0xFF2FFFFF),
-  low: Color(0xFF200001),
-  medium: Color(0xFF200002),
-  high: Color(0xFF200003),
-  veryHigh: Color(0xFF200004),
-);
+import '../../../support/fixtures.dart';
 
 typedef _Fetched = ({ContributionCalendar calendar, bool fromCache});
 
-ContributionCalendar _calendar({int year = 2024}) {
-  final grid = ContributionGridService.buildFor(days: const [], year: year);
-  return ContributionCalendar(
-    username: Username('octocat'),
-    year: Year(year),
-    weeks: grid
-        .map(
-          (week) => ContributionWeek(
-            days: week.days
-                .map(
-                  (day) => ContributionDay(
-                    date: day.date,
-                    count: 1,
-                    level: ContributionLevel.low,
-                  ),
-                )
-                .toList(),
-          ),
-        )
-        .toList(),
-    totalContributions: 371,
-  );
-}
-
 final class _FakePaletteRepository implements PaletteRepository {
-  _FakePaletteRepository({this.palettes = const [_nord], this.failure});
+  _FakePaletteRepository({this.palettes = const [testPalette], this.failure});
 
   final List<Palette> palettes;
   final Object? failure;
@@ -98,7 +59,7 @@ final class _FakeContributionRepository implements ContributionRepository {
     if (failure != null) return Future.error(failure!);
     if (answer != null) return answer!(username, year);
     return Future.value((
-      calendar: _calendar(year: year.value),
+      calendar: testCalendar(year: year.value),
       fromCache: false,
     ));
   }
@@ -223,7 +184,7 @@ void main() {
 
       expect(state.cellShape, CellShape.hex);
       expect(state.cellSize, CellSize.large);
-      expect(state.palette, _nord);
+      expect(state.palette, testPalette);
       expect(state.isLoadingSettings, isFalse);
     });
   });
@@ -277,9 +238,9 @@ void main() {
         source: CalendarRequestSource.typed,
       );
 
-      fast.complete((calendar: _calendar(year: 2024), fromCache: false));
+      fast.complete((calendar: testCalendar(year: 2024), fromCache: false));
       await second;
-      slow.complete((calendar: _calendar(year: 2023), fromCache: true));
+      slow.complete((calendar: testCalendar(year: 2023), fromCache: true));
       await first;
 
       final state = container.read(viewerProvider);
@@ -521,9 +482,9 @@ void main() {
           );
 
       container.dispose();
-      answer.complete((calendar: _calendar(), fromCache: false));
+      answer.complete((calendar: testCalendar(), fromCache: false));
 
-      await pending;
+      await expectLater(pending, completes);
       await _settle();
     });
 
@@ -548,7 +509,7 @@ void main() {
       container.dispose();
       answer.completeError(const NetworkFailure(message: 'down'));
 
-      await pending;
+      await expectLater(pending, completes);
       await _settle();
     });
   });
@@ -580,7 +541,7 @@ void main() {
         usageEvents: usageEvents,
         contributions: _FakeContributionRepository(
           answer: (username, year) => Future.value((
-            calendar: _calendar(year: year.value),
+            calendar: testCalendar(year: year.value),
             fromCache: true,
           )),
         ),
@@ -685,7 +646,7 @@ void main() {
           answer: (username, year) => year.value == 2023
               ? slow.future
               : Future.value((
-                  calendar: _calendar(year: 2024),
+                  calendar: testCalendar(year: 2024),
                   fromCache: false,
                 )),
         ),
@@ -776,14 +737,14 @@ void main() {
       final notifier = await _ready(container);
 
       notifier
-        ..setPalette(_nord)
+        ..setPalette(testPalette)
         ..setCellShape(CellShape.hex)
         ..setCellSize(CellSize.large)
         ..setBackgroundPreset(BackgroundPreset.navy);
       await _settle();
 
       expect(usageEvents.recorded, [
-        UsageEvent.paletteChosen(palette: _nord),
+        UsageEvent.paletteChosen(palette: testPalette),
         UsageEvent.cellShapeChosen(shape: CellShape.hex),
         UsageEvent.cellSizeChosen(size: CellSize.large),
         UsageEvent.backgroundChosen(preset: BackgroundPreset.navy),

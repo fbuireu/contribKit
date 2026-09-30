@@ -99,6 +99,15 @@ void main() {
     }
   });
 
+  group('CellShape', () {
+    test('every Cell Shape has a label, and no two share one', () {
+      final labels = CellShape.values.map((shape) => shape.label).toList();
+
+      expect(labels.every((label) => label.isNotEmpty), isTrue);
+      expect(labels.toSet(), hasLength(CellShape.values.length));
+    });
+  });
+
   group('figureFor', () {
     test('gives every Cell Shape exactly one primitive', () {
       final figures = {
@@ -144,22 +153,14 @@ void main() {
         cellSize: 10,
       ) as CircleFigure).radius;
 
+      double circleRadius(int level) => (CellGeometryService.figureFor(
+        shape: CellShape.circle,
+        levelIndex: level,
+        cellSize: 10,
+      ) as CircleFigure).radius;
+
       expect(dotRadius(4), greaterThan(dotRadius(1)));
-      expect(
-        CellGeometryService.figureFor(
-          shape: CellShape.circle,
-          levelIndex: 0,
-          cellSize: 10,
-        ),
-        isA<CircleFigure>().having((f) => f.radius, 'radius', 5),
-      );
-    });
-
-    test('every Cell Shape has a label, and no two share one', () {
-      final labels = CellShape.values.map((shape) => shape.label).toList();
-
-      expect(labels.every((label) => label.isNotEmpty), isTrue);
-      expect(labels.toSet(), hasLength(CellShape.values.length));
+      expect(circleRadius(0), circleRadius(4));
     });
 
     test('a rounded corner is the ratio, and the hex is cell-local', () {

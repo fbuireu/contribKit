@@ -60,6 +60,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.delivered, isEmpty);
+      expect(find.text('must be a valid address'), findsOneWidget);
       expect(find.text('Send'), findsOneWidget);
     });
 
@@ -74,6 +75,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.delivered, isEmpty);
+      expect(find.text('must be at least 10 characters'), findsOneWidget);
     });
 
     testWidgets('hands the repository a trimmed message and says it went', (

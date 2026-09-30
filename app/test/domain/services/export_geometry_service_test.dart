@@ -75,19 +75,5 @@ void main() {
         (width: 2694, height: 348),
       );
     });
-
-    test('a larger Cell Size makes a larger PNG, so the tile cannot lie', () {
-      final compact = ExportGeometryService.pngPixelSizeFor(
-        cellSize: CellSize.compact,
-        weeks: 53,
-      );
-      final large = ExportGeometryService.pngPixelSizeFor(
-        cellSize: CellSize.large,
-        weeks: 53,
-      );
-
-      expect(large.width, greaterThan(compact.width));
-      expect(large.height, greaterThan(compact.height));
-    });
   });
 }

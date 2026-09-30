@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('CellSize', () {
     test(
-      'names every case, so a new one is a compile error and not a crash',
+      'gives every Cell Size a label of its own, so each one can be picked',
       () {
         for (final size in CellSize.values) {
           expect(size.label, isNotEmpty, reason: size.name);

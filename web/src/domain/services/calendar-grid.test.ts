@@ -20,26 +20,14 @@ const iso = (raw: string): IsoDate => {
 };
 
 describe("buildGridFromApi", () => {
-	it("builds a full 53×7 grid", () => {
+	it("builds 53 weeks of 7 days for a Year that needs 53", () => {
 		expect(buildGridFromApi({ days: [], year: 2024 })).toHaveLength(53 * 7);
-	});
-
-	it("maps api days into the grid", () => {
-		const grid = buildGridFromApi({ days: [day({ date: "2024-06-15", level: 4, count: 16 })], year: 2024 });
-		expect(grid).toHaveLength(53 * 7);
-		expect(grid.find((cell) => cell.date === "2024-06-15")?.level).toBe(4);
 	});
 
 	it("fills levels from the days given and defaults the rest to 0", () => {
 		const grid = buildGridFromApi({ days: [day({ date: "2024-06-15", level: 3, count: 9 })], year: 2024 });
 		expect(grid.find((cell) => cell.date === "2024-06-15")?.level).toBe(3);
 		expect(grid.find((cell) => cell.date === "2024-06-16")?.level).toBe(0);
-	});
-
-	it("carries the level it was handed, because the day was already clamped when it was built", () => {
-		const grid = buildGridFromApi({ days: [day({ date: "2024-06-15", level: 9, count: 1 })], year: 2024 });
-
-		expect(grid.find((cell) => cell.date === "2024-06-15")?.level).toBe(4);
 	});
 
 	it("pads a day it was never given with an unknown Count, not a zero", () => {
