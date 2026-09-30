@@ -30,15 +30,14 @@ const accepted = (): Response =>
 	Response.json({ status: "accepted" }, { status: ACCEPTED_STATUS, headers: uncacheable });
 
 const handle: APIRoute = async ({ request }) => {
-	const payload = await request.json().catch(() => null);
-	const data = bodySchema.safeParse(payload);
-	if (!data.success) {
+	const payload: unknown = await request.json().catch(() => null);
+	if (!bodySchema.validate(payload)) {
 		return Response.json({ error: "Invalid request body" }, { status: INVALID_BODY_STATUS, headers: uncacheable });
 	}
 
-	if ((data.data.website ?? "").trim() !== "") return accepted();
+	if ((payload.website ?? "").trim() !== "") return accepted();
 
-	const result = await sendContact({ name: data.data.name, email: data.data.email, body: data.data.message });
+	const result = await sendContact({ name: payload.name, email: payload.email, body: payload.message });
 	if (isFailure(result)) {
 		const status = statusFor(result);
 		logContactFailure({

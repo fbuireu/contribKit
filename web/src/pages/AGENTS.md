@@ -13,7 +13,10 @@ It is also the only entry point for HTTP traffic.
 - **Validate every external input before it reaches the domain.** Query strings go through Zod, in the API
   routes that take one, and `/api/contact` runs it over the request **body** for the same reason: shape first, meaning second; the `:username` route param and the `ck_user` cookie go through `parseUsername`, which
   is the domain's own validator and returns a `Failure` rather than throwing. Zod is for the *shape* of a query
-  string, not a substitute for a value object.
+  string, not a substitute for a value object. Those two routes call `schema.validate(input)`, not `safeParse`:
+  they only need a yes or no, and it stops at the first problem without building issues or a copy. It narrows
+  the input it was given and returns it **untouched**, so it runs no `.default`, `.catch`, `.transform` or
+  coercion; a schema that gains one of those goes back to `safeParse`, as the SVG route's `.catch` schema never left it.
 - **Map `Failure` to HTTP only through `@application/http/failure-http`** (`statusFor`, `messageFor`,
   `retryAfterHeader`), guarded by `isFailure` from `@domain/failures/failure`. Never inline a status, a message or
   a `Retry-After` (**with one exemption, and it is the only one**): a request that fails the Zod shape check has

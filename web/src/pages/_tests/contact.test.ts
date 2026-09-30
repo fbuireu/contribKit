@@ -32,12 +32,21 @@ beforeEach(() => {
 
 describe("POST /api/contact", () => {
 	it("400s a body that fails the shape check, which is the one hand-written status here", async () => {
-		for (const body of ["not json", {}, { email: "ada@example.com" }, { email: 1, message: 2 }]) {
+		for (const body of ["not json", "null", "[]", {}, { email: "ada@example.com" }, { email: 1, message: 2 }]) {
 			const response = await post(body);
 
 			expect(response.status, JSON.stringify(body)).toBe(400);
 			expect(await response.json()).toEqual({ error: "Invalid request body" });
 		}
+		expect(send).not.toHaveBeenCalled();
+	});
+
+	it("reads only the fields it names, so an unknown key neither rejects the body nor reaches the email", async () => {
+		const response = await post({ ...VALID, extra: "should-not-be-sent" });
+
+		expect(response.status).toBe(202);
+		expect(send).toHaveBeenCalledOnce();
+		expect(JSON.stringify(send.mock.calls)).not.toContain("should-not-be-sent");
 	});
 
 	it("names the field a value object rejected, so the form can point at it", async () => {

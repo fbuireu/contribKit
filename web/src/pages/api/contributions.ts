@@ -23,15 +23,15 @@ const querySchema = z.object({
 });
 
 const handle: APIRoute = async ({ url }) => {
-	const data = querySchema.safeParse(Object.fromEntries(url.searchParams));
-	if (!data.success) {
+	const query = Object.fromEntries(url.searchParams);
+	if (!querySchema.validate(query)) {
 		return Response.json(
 			{ error: "Missing required parameter: user" },
 			{ status: 400, headers: { "Cache-Control": NOT_CACHEABLE } },
 		);
 	}
 
-	const username = parseUsername(data.data.user);
+	const username = parseUsername(query.user);
 	if (isFailure(username)) {
 		return Response.json(
 			{ error: messageFor(username), ...fieldFor(username) },
@@ -39,7 +39,7 @@ const handle: APIRoute = async ({ url }) => {
 		);
 	}
 
-	const year = parseYear(data.data.year);
+	const year = parseYear(query.year);
 	if (isFailure(year)) {
 		return Response.json(
 			{ error: messageFor(year), ...fieldFor(year) },

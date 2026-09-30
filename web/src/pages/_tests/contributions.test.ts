@@ -16,6 +16,17 @@ describe("GET /api/contributions", () => {
 		expect(await res.json()).toEqual({ error: "Missing required parameter: user" });
 	});
 
+	it("400 when user is present but empty, which the shape check rejects before any value object", async () => {
+		const fetch = vi.fn();
+		vi.stubGlobal("fetch", fetch);
+
+		const res = await call("?user=&year=2024");
+
+		expect(res.status).toBe(400);
+		expect(await res.json()).toEqual({ error: "Missing required parameter: user" });
+		expect(fetch).not.toHaveBeenCalled();
+	});
+
 	it("names the parameter it rejected, because a machine consumer cannot guess", async () => {
 		const badUser = await call("?user=foo_bar");
 		const badYear = await call("?user=torvalds&year=1999");
