@@ -1,3 +1,10 @@
+# [contribkit-web-v1.22.1](https://github.com/fbuireu/contribKit/compare/web-v1.22.0...web-v1.22.1) (2026-09-30)
+
+
+### Bug Fixes
+
+* **contribkit-web:** validate the browser reads and the scraped counts with zod mini ([737fcf4](https://github.com/fbuireu/contribKit/commit/737fcf4bfe4ce772ceae65b63746a1f94f665761))
+
 # [contribkit-web-v1.22.0](https://github.com/fbuireu/contribKit/compare/web-v1.21.0...web-v1.22.0) (2026-09-30)
 
 
