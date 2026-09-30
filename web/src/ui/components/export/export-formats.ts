@@ -1,3 +1,5 @@
+import { z } from "zod/mini";
+
 export const ExportFormatKey = {
 	Png: "png",
 	Svg: "svg",
@@ -8,5 +10,6 @@ export type ExportFormatKey = (typeof ExportFormatKey)[keyof typeof ExportFormat
 
 export const DEFAULT_EXPORT_FORMAT: ExportFormatKey = ExportFormatKey.Png;
 
-export const isExportFormatKey = (value: string): value is ExportFormatKey =>
-	(Object.values(ExportFormatKey) as string[]).includes(value);
+const exportFormatKey = z.enum(ExportFormatKey);
+
+export const isExportFormatKey = (value: unknown): value is ExportFormatKey => z.validate(exportFormatKey, value);

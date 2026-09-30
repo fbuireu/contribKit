@@ -7,6 +7,7 @@ import {
 } from "@domain/value-objects/contact-message";
 import { ContactMessageOutcome, recordUsageEvent, UsageEventName } from "@ui/components/core/telemetry/usage-event";
 import { ElementId } from "@ui/utils/dom-contract";
+import { z } from "zod/mini";
 
 export const ContactStatusTone = {
 	Sent: "sent",
@@ -60,20 +61,17 @@ const FIELD_SPECS: readonly FieldSpec[] = [
 	},
 ];
 
-interface ErrorBody {
-	error?: unknown;
-	field?: unknown;
-}
+const errorBody = z.catch(
+	z.object({
+		error: z.catch(z.optional(z.string().check(z.minLength(1))), undefined),
+		field: z.catch(z.optional(z.enum(FailureField)), undefined),
+	}),
+	{},
+);
 
-const messageFrom = (body: unknown): string => {
-	const named = (body as ErrorBody | null)?.error;
-	return typeof named === "string" && named !== "" ? named.toLowerCase() : FALLBACK_ERROR;
-};
+type ErrorBody = z.output<typeof errorBody>;
 
-const fieldFrom = (body: unknown): string | null => {
-	const named = (body as ErrorBody | null)?.field;
-	return typeof named === "string" ? named : null;
-};
+const messageFrom = ({ error }: ErrorBody): string => error?.toLowerCase() ?? FALLBACK_ERROR;
 
 interface AnnounceParams {
 	status: HTMLElement;
@@ -150,8 +148,8 @@ export function initContactForm(): void {
 		}
 	};
 
-	const pointAt = (body: unknown): boolean => {
-		const field = fields.find((candidate) => candidate.name === fieldFrom(body));
+	const pointAt = (body: ErrorBody): boolean => {
+		const field = fields.find((candidate) => candidate.name === body.field);
 		if (!field) return false;
 		showFieldError({ field, sentence: messageFrom(body) });
 		field.control.focus();
@@ -195,7 +193,7 @@ export function initContactForm(): void {
 				announce({ status, text: SENT_MESSAGE, tone: ContactStatusTone.Sent });
 				recordContactMessage(ContactMessageOutcome.Sent);
 			} else {
-				const body = await response.json().catch(() => null);
+				const body = errorBody.parse(await response.json().catch(() => null));
 				if (!pointAt(body)) announce({ status, text: messageFrom(body), tone: ContactStatusTone.Failed });
 				recordContactMessage(ContactMessageOutcome.Rejected);
 			}

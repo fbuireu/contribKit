@@ -158,6 +158,39 @@ describe("initContactForm", () => {
 		expect(byId(ElementId.ContactStatus).textContent).toContain("could not send your message");
 	});
 
+	it.each([
+		["null", null],
+		["a list", ["Enter a valid email address"]],
+		["an error that is not a string", { error: 400 }],
+		["an empty error", { error: "" }],
+	])("falls back to its own sentence when the error body is %s", async (_, body) => {
+		fill();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => answer({ body, status: 400 })),
+		);
+
+		await submit();
+
+		expect(byId(ElementId.ContactStatus).textContent).toBe("could not send your message, try again in a moment.");
+	});
+
+	it.each([
+		["a field no control carries", "website"],
+		["a field that is not a string", 7],
+	])("keeps a usable error on the status node when the body names %s", async (_, field) => {
+		fill();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => answer({ body: { error: "Rejected", field }, status: 400 })),
+		);
+
+		await submit();
+
+		expect(byId(ElementId.ContactStatus).textContent).toBe("rejected");
+		expect(byId(ElementId.ContactEmailError).hidden).toBe(true);
+	});
+
 	it("says the same thing when the request never reaches the server at all", async () => {
 		fill();
 		vi.stubGlobal(

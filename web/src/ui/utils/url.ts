@@ -1,10 +1,20 @@
+import { MIN_YEAR } from "@domain/value-objects/year";
+import { z } from "zod/mini";
+import { nonBlank } from "./non-blank";
+
+const queryParam = (name: string): string | null => new URLSearchParams(globalThis.location.search).get(name);
+
+export const readRequestedUsername = (): string | null => nonBlank(queryParam("user"));
+
 export function readUsernameFromUrl(fallback: string): string {
-	return new URLSearchParams(globalThis.location.search).get("user")?.trim() || fallback;
+	return readRequestedUsername() ?? fallback;
 }
 
 export function readYearFromUrl(currentYear: number): number {
-	const year = Number(new URLSearchParams(globalThis.location.search).get("year"));
-	return year && year <= currentYear ? year : currentYear;
+	const year = z
+		.pipe(z.coerce.number(), z.int().check(z.minimum(MIN_YEAR), z.maximum(currentYear)))
+		.safeParse(queryParam("year"));
+	return year.success ? year.data : currentYear;
 }
 
 export interface SyncUrlParams {

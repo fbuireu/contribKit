@@ -23,6 +23,13 @@ describe("readUsernameFromUrl", () => {
 		stubLocation({ search: "" });
 		expect(readUsernameFromUrl("default")).toBe("default");
 	});
+
+	it("trims the param and falls back when nothing but whitespace is left", () => {
+		stubLocation({ search: "?user=%20torvalds%20" });
+		expect(readUsernameFromUrl("default")).toBe("torvalds");
+		stubLocation({ search: "?user=%20%20" });
+		expect(readUsernameFromUrl("default")).toBe("default");
+	});
 });
 
 describe("readYearFromUrl", () => {
@@ -40,6 +47,11 @@ describe("readYearFromUrl", () => {
 
 	it("uses the current year when missing", () => {
 		stubLocation({ search: "" });
+		expect(readYearFromUrl(2024)).toBe(2024);
+	});
+
+	it.each(["abc", "", "2022.5", "-1", "1999"])("uses the current year for %j, which names no Year", (year) => {
+		stubLocation({ search: `?year=${year}` });
 		expect(readYearFromUrl(2024)).toBe(2024);
 	});
 });

@@ -503,6 +503,64 @@ describe("an error state", () => {
 	});
 });
 
+describe("a body that is not the shape the endpoint promises", () => {
+	const renderWith = (response: Response) =>
+		renderFromGitHub({ username: "torvalds", updateHistory: false, request: () => Promise.resolve(response) });
+
+	it.each([
+		["no days", { total: 9 }],
+		["days that are not a list", { days: "none", total: 9 }],
+		["a Count that is a string", { days: [{ date: `${CURRENT_YEAR}-06-15`, level: 3, count: "9" }], total: 9 }],
+		["a negative Count", { days: [{ date: `${CURRENT_YEAR}-06-15`, level: 3, count: -1 }], total: null }],
+		["a total that is a string", { ...okPayload, total: "lots" }],
+		["null", null],
+	])("refuses a 200 with %s: an error state, not a garbage calendar", async (_, body) => {
+		document.body.innerHTML = `${HERO}<span class="bar-tag"></span>`;
+
+		await renderWith(jsonResponse({ body }));
+
+		expect(byId("hero-error").textContent).toContain("something went wrong");
+		expect(document.querySelector(".bar-tag")?.textContent).toContain("unknown");
+		expect(getDays().every((day) => day.count === null)).toBe(true);
+		expect(writeUsernameCookie).not.toHaveBeenCalled();
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "calendar_render_failed",
+			properties: { reason: "unknown", year: CURRENT_YEAR },
+		});
+	});
+
+	it("names the status of an error body that is not JSON, instead of calling the server unreachable", async () => {
+		document.body.innerHTML = HERO;
+
+		await renderWith(new Response("<!DOCTYPE html><title>Too Many Requests</title>", { status: 429 }));
+
+		expect(byId("hero-error").textContent).toMatch(/too many requests/i);
+		expect(recordUsageEvent).toHaveBeenCalledWith({
+			event: "calendar_render_failed",
+			properties: { reason: "rate_limited", year: CURRENT_YEAR },
+		});
+	});
+
+	it("ignores an error field that is not a string and falls back to its own sentence", async () => {
+		document.body.innerHTML = HERO;
+
+		await renderWith(jsonResponse({ body: { error: 418 }, status: 418 }));
+
+		expect(byId("hero-error").textContent).toContain("something went wrong");
+	});
+
+	it("drops a day whose date is not a calendar date and keeps the rest", async () => {
+		document.body.innerHTML = HERO;
+		const days = [...okPayload.days, { date: `${CURRENT_YEAR}-02-30`, level: 2, count: 1 }];
+
+		await renderWith(jsonResponse({ body: { days, total: null } }));
+
+		expect(byId("hero-error").hidden).toBe(true);
+		expect(getDays().find((day) => day.date === `${CURRENT_YEAR}-06-15`)?.count).toBe(9);
+		expect(getDays().some((day) => day.date === `${CURRENT_YEAR}-02-30`)).toBe(false);
+	});
+});
+
 describe("renderFromGitHub with a half-rendered page", () => {
 	it("does nothing at all when the render button is missing", async () => {
 		const request = vi.fn(okFetch);
@@ -570,6 +628,15 @@ describe("the grid the page starts with", () => {
 
 	it("falls back to a placeholder when the server injected an empty list", () => {
 		vi.stubGlobal("__INITIAL_DAYS__", []);
+		document.body.innerHTML = `<div id="hero-grid-container"></div>`;
+
+		initPage();
+
+		expect(getDays()).toHaveLength(53 * 7);
+	});
+
+	it("falls back to a placeholder when an injected day is not a Contribution Day", () => {
+		vi.stubGlobal("__INITIAL_DAYS__", [...injected, { date: `${CURRENT_YEAR}-01-03`, level: "2", count: null }]);
 		document.body.innerHTML = `<div id="hero-grid-container"></div>`;
 
 		initPage();

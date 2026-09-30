@@ -16,5 +16,7 @@ describe("isExportFormatKey", () => {
 		expect(Object.values(ExportFormatKey).every(isExportFormatKey)).toBe(true);
 		expect(isExportFormatKey("pdf")).toBe(false);
 		expect(isExportFormatKey("")).toBe(false);
+		expect(isExportFormatKey(undefined)).toBe(false);
+		expect(isExportFormatKey("PNG")).toBe(false);
 	});
 });

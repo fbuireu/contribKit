@@ -51,6 +51,16 @@ them is how this starts silently returning a full HTML page that the regexes the
    before the number), every Count on the page would have come back `null` at once. The app's parser trims before
    matching and never had this; it is exactly the "a fix in one is a bug left in the other" case
    [ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md) exists to catch.
+   **A parsed Count enters the map only if `scrapedCount.validate` accepts it**, a non-negative safe integer
+   (`astro/zod`). The captured run can be separators alone: `\s*` gives a trailing no-break space back to the digit
+   class, so `<tool-tip …>&nbsp;No contributions` captured `"\u00a0"`, `parseInt` answered `NaN`, and `NaN` was
+   stored as an exact Count and summed into a total that printed as `NaN`. It is `null` now, an unknown Count,
+   which is what the app's `int.tryParse` already produced for the same markup.
+   **The rest of a scraped day is not given a Zod schema, and should not be.** The regexes already fix the shape
+   (`\d{4}-\d{2}-\d{2}` for a date, one digit for a level), and meaning belongs to the domain: `contributionDay`
+   rejects a date that is not on the calendar and clamps the level, and it is the same constructor the client's
+   JSON goes through ([ADR 0025](../../../docs/adr/0025-how-much-ddd-and-where-it-stops.md)). A `z.iso.date()`
+   beside it would be a second calendar rule to keep in step; the domain cannot import Zod to share one.
 
 **Levels come from GitHub.** `data-level` is authoritative and is only run through `clampLevel`. This layer never
 derives a level from a count; the app does, and only when the attribute is missing. That divergence is recorded in

@@ -1,12 +1,22 @@
+import { nonBlank } from "./non-blank";
+
 export const USERNAME_COOKIE = "ck_user";
 const ONE_WEEK = 60 * 60 * 24 * 7;
 
 const USERNAME_COOKIE_VALUE = new RegExp(`(?:^|; )${USERNAME_COOKIE}=([^;]*)`);
 
+const decoded = (raw: string): string | null => {
+	try {
+		return decodeURIComponent(raw);
+	} catch {
+		return null;
+	}
+};
+
 const readFromDocument = (): string | null => {
 	if (typeof document === "undefined") return null;
 	const match = document.cookie.match(USERNAME_COOKIE_VALUE);
-	return match ? decodeURIComponent(match[1]).trim() || null : null;
+	return match ? nonBlank(decoded(match[1])) : null;
 };
 
 const writeToDocument = (username: string): void => {
@@ -18,7 +28,7 @@ export async function readUsernameCookie(): Promise<string | null> {
 	try {
 		if (globalThis.cookieStore) {
 			const cookie = await cookieStore.get(USERNAME_COOKIE);
-			return cookie?.value?.trim() || null;
+			return nonBlank(cookie?.value);
 		}
 	} catch {
 		return null;

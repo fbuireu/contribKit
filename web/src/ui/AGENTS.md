@@ -13,7 +13,7 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 | Directory | Contents |
 |---|---|
 | `components/` | Every Astro component, grouped by role. See [`components/AGENTS.md`](./components/AGENTS.md). |
-| `utils/` | The browser-side half: `page-init` (the page controller), `state` + `render`, `roving` (keyboard navigation), `cookie` / `url` (username and year persistence), `cell-tooltip`, `contribution-errors`, `mulberry` (seeded PRNG), `app-links`, `unshuffle`. |
+| `utils/` | The browser-side half: `page-init` (the page controller), `state` + `render`, `roving` (keyboard navigation), `cookie` / `url` (username and year persistence), `contributions-body` (the Zod shapes of what `/api/contributions` and the SSR page hand the client), `non-blank` (the one trimmed, non-empty text check the cookie and the query string share), `cell-tooltip`, `contribution-errors`, `mulberry` (seeded PRNG), `app-links`, `unshuffle`. |
 | `styles/` | Global CSS in `@layer` order: `index.css` is the entry, imported by `BaseLayout`. |
 
 ## Invariants & rules
@@ -30,6 +30,23 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 - **Icons are inline SVG.** No icon font, no CDN: the CSP in [`web/src/middleware.ts`](../middleware.ts) would block one anyway.
 - **`failure-http` is the only `Failure` → HTTP mapping,** and `isFailure` the only guard. Never redeclare either.
 - **Every page goes through `BaseLayout`.**
+- **What reaches the client from outside its own bundle is checked with `zod/mini` before it is typed.** That is
+  the `/api/contributions` body, `window.__INITIAL_DAYS__`, the `/api/contact` error body, the `ck_user` cookie and
+  the `user` / `year` query parameters. `z.validate(schema, value)` answers the yes-or-no cases and narrows the value
+  it was given untouched; `safeParse` / `parse` are for the ones that need an output (a trim, a coercion, a
+  `z.catch` fallback). Nothing is cast: `__INITIAL_DAYS__` is declared `unknown` in [`env.d.ts`](../env.d.ts), and
+  `response.json()` lands in an `unknown` too. Zod checks the *shape*; a day still goes through `contributionDay`, so
+  the domain decides what a calendar date is and clamps the level, and one bad date drops that day rather than the
+  whole answer. **The import is `zod/mini`, not `astro/zod`, and that is a measured choice.** `astro/zod` re-exports
+  classic Zod, whose methods hang off every schema and cannot be tree-shaken: the same two schemas cost 23.4 KB gzip
+  on `/` (doubling its client JS) and on `/contact` (2.5×), against 6.6 to 6.8 KB with `zod/mini`. That is why `zod`
+  is a direct dependency of this package, pinned to the version Astro already resolves so the lockfile holds one
+  copy; server code keeps `astro/zod`, where a Worker bundle does not pay per byte the way a visitor does
+  ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)).
+  **The layout's own scripts stay Zod-free on purpose.** `theme-toggle`'s `localStorage` read and
+  `usage-event-links`' attribute read are two membership tests over closed sets; moving them to Zod pulled the
+  chunk into `Header` and `Telemetry`, so every legal, 404 and 500 page grew 7.5 KB gzip (+54%) for no behaviour it
+  did not already have. The two `is:inline` scripts in `BaseLayout.astro` and `Telemetry.astro` cannot import at all.
 
 ## The client controller
 
@@ -83,7 +100,8 @@ ever needs `@application/*`, that is a signal the page should be passing the res
 - **`render.ts` re-reads state and rewrites the DOM**: `renderCustomize`, `renderExportPreview`, `renderWidget`,
   `updateHeroStats`, `updateYearRange`, `setHeroError`. They are idempotent by construction.
 - **The initial grid comes from `window.__INITIAL_DAYS__`,** injected by the SSR page, falling back to
-  `generateData()` when it is absent or empty; the page is never blank. **That read happens inside `initPage`,
+  `generateData()` when it is absent, empty, or not a list of Contribution Day shapes (`injectedDays` in
+  [`contributions-body.ts`](./utils/contributions-body.ts)); the page is never blank. **That read happens inside `initPage`,
   not at module scope.** It used to run on import, along with the first `setDays` / `setUsername`, so merely
   importing this module touched `window` and generated a grid. That is most of why the module with the real risk
   in it was barely asserted while `roving.ts` and [`url.ts`](./utils/url.ts), both trivially correct, had more test than
@@ -95,7 +113,16 @@ ever needs `@application/*`, that is a signal the page should be passing the res
   neither failure branch, which is the gotcha below stated as a test rather than as a paragraph.
 - **`renderFromGitHub` takes its `request`,** defaulting to `fetch`. That one optional parameter is the seam the
   whole refresh is tested through: the year clamp, the grid build, the recognised-status sentence, the unreachable
-  server, and the render button being re-enabled either way. The default is what every event handler in this file
+  server, a body of the wrong shape, and the render button being re-enabled either way.
+- **A body of the wrong shape is an error state, never a calendar.** A 200 whose body fails `contributionsBody`
+  (no `days`, a Count or total that is not a non-negative integer or `null`, or not JSON at all) goes down the
+  same branch as a refused status: `showErrorState` with `something went wrong`, `calendar_render_failed` with
+  reason `unknown`, and no cookie written. It used to throw inside the `try` on `data.days.map` and be reported as
+  `could not reach the server` with reason `unreachable`, or, when only a type was wrong, print a string total
+  straight into the hero. The body is read with `.catch(() => null)`, so **`unreachable` now means the request
+  itself rejected**: a 429 or 502 answered with an HTML page (the zone's bot rule does exactly that, see the root
+  guide's Deploy section) gets the sentence its status maps to instead. An error body's `error` is used only when
+  `errorBody` says it is a string. The default is what every event handler in this file
   uses. **It also takes a `source`**, a `CalendarRequestSource` defaulting to `form`, because the DOM does not say
   what asked for the render: the form and the render button pass `form`, a
   suggestion button `suggestion`, the year select `year` and `popstate` `history`. The event is `calendar_rendered`
@@ -197,6 +224,13 @@ them together, because the CSS and the screen reader must not disagree.
   `document.cookie` where it is missing: Safari and Firefox, where the whole feature was silently dead before,
   since the SSR page reads that cookie on every request. Biome's `noDocumentCookie` is turned off for that one file
   in [`biome.json`](../../biome.json); the fallback is the point, not an oversight.
+- **A cookie value that is not valid percent-encoding reads as nobody.** `decodeURIComponent` throws a `URIError`
+  on one, and on the `document.cookie` path that throw escaped `readUsernameCookie` and rejected the
+  `void seedUsernameCookie(...)` the controller fires, as an unhandled rejection that also left the bad value in
+  place. It is caught now and the value goes through `nonBlank` like the Cookie Store's, so the seed overwrites it.
+- **A `?year=` that names no Year opens on the current one.** `readYearFromUrl` coerces the parameter and accepts
+  an integer from the domain's `MIN_YEAR` to the current year; it used to accept anything truthy up to the current
+  year, so `2022.5`, `-1` or `1999` were written into the select, which has no such option and went blank.
 - **`showErrorState` clears the numbers** rather than leaving the previous user's on screen. Stale numbers next to an
   error message read as real ones.
 - **The `year` query is always sent now.** It is the select's value clamped to the current year, so the endpoint is
@@ -216,7 +250,9 @@ them together, because the CSS and the screen reader must not disagree.
   other page loads it. It intercepts `submit`, posts JSON to `/api/contact`, disables the button and refuses a
   second submit while one is in flight, and writes the outcome into an `aria-live` status node. The sentence it
   writes is the response's own `error` when there is one, so the server's wording reaches the visitor, and
-  its own fallback otherwise ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+  its own fallback otherwise. The error body is read through one Zod schema whose `error` (a non-empty string) and
+  `field` (a `FailureField`) each `z.catch` to `undefined` on their own, so a wrong `field` still leaves a usable
+  `error` on the status node, exactly as the two hand-written `typeof` checks it replaced did ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
   **It validates the way a form library does, and the browser's own bubbles are switched off.** The controller sets
   `noValidate` on the form and runs the domain's own per-field rules (`validateContactName`, `validateContactEmail`,
   `validateContactBody`, the three `parseContactMessage` is composed of) in the *touched* mode: a field is first

@@ -26,6 +26,11 @@ describe("username-cookie", () => {
 		expect(await readUsernameCookie()).toBeNull();
 	});
 
+	it("returns null when the Cookie Store hands back a value that is not a string", async () => {
+		vi.stubGlobal("cookieStore", { get: vi.fn().mockResolvedValue({ value: 42 }) });
+		expect(await readUsernameCookie()).toBeNull();
+	});
+
 	it("returns null when cookieStore throws", async () => {
 		vi.stubGlobal("cookieStore", { get: vi.fn().mockRejectedValue(new Error("no")) });
 		expect(await readUsernameCookie()).toBeNull();
@@ -90,6 +95,15 @@ describe("username-cookie without the Cookie Store API", () => {
 		await writeUsernameCookie("a b");
 
 		expect(await readUsernameCookie()).toBe("a b");
+	});
+
+	it("reads a value that is not valid percent-encoding as nobody, rather than throwing out of the seed", async () => {
+		const stored = vi.spyOn(document, "cookie", "get").mockReturnValue("ck_user=%E0%A4%A");
+
+		expect(await readUsernameCookie()).toBeNull();
+		await expect(seedUsernameCookie("torvalds")).resolves.toBeUndefined();
+		stored.mockRestore();
+		expect(await readUsernameCookie()).toBe("torvalds");
 	});
 
 	it("seeds through the fallback once the stored value reads as nobody", async () => {

@@ -234,6 +234,28 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 		expect(result.days[0].count).toBe(5);
 	});
 
+	it("reads a tool-tip whose digits are only separators as an unknown Count, never NaN", async () => {
+		stubFetch(
+			async () =>
+				new Response(
+					[
+						'<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="0" id="a"></td>',
+						'<td class="ContributionCalendar-day" data-date="2024-01-02" data-level="0" id="b"></td>',
+						'<tool-tip for="a"> No contributions on January 1st</tool-tip>',
+						'<tool-tip for="b">, No contributions on January 2nd</tool-tip>',
+					].join(""),
+					{ status: 200 },
+				),
+		);
+
+		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
+
+		expect("days" in result).toBe(true);
+		if (!("days" in result)) return;
+		expect(result.days.map((day) => day.count)).toEqual([null, null]);
+		expect(result.totalContributions, "a NaN Count used to reach the sum and print as NaN").toBe(0);
+	});
+
 	it("voids the total when only some tool-tips parse, rather than understating it", async () => {
 		stubFetch(
 			async () =>

@@ -1,10 +1,7 @@
-import { contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
-import { isFailure } from "@domain/failures/failure";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import { toIsoDate } from "@domain/services/dates";
-import type { ContributionLevel } from "@domain/value-objects/contribution-level";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
 import {
 	CalendarFailureReason,
@@ -15,7 +12,9 @@ import {
 import { isExportFormatKey } from "@ui/components/export/export-formats";
 import { generateData } from "@ui/components/grid/calendar";
 import { contributionError, contributionFailureReason } from "@ui/utils/contribution-errors";
+import { contributionsBody, errorBody, injectedDays, toContributionDays } from "@ui/utils/contributions-body";
 import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
+import { z } from "zod/mini";
 import { initCellTooltip } from "./cell-tooltip";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
 import {
@@ -31,18 +30,14 @@ import {
 } from "./render";
 import { activateRadio, activateTab, initRovingGroup, RovingOrientation } from "./roving";
 import { getDays, setDays, setUsername } from "./state";
-import { readUsernameFromUrl, readYearFromUrl, syncUrl } from "./url";
-
-interface ContributionsResponse {
-	days: { date: string; level: ContributionLevel; count: number | null }[];
-	total: number | null;
-	error?: string;
-}
+import { readRequestedUsername, readUsernameFromUrl, readYearFromUrl, syncUrl } from "./url";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-const initialDays = (): ContributionDay[] =>
-	Array.isArray(window.__INITIAL_DAYS__) && window.__INITIAL_DAYS__.length ? window.__INITIAL_DAYS__ : generateData();
+const initialDays = (): ContributionDay[] => {
+	const injected = window.__INITIAL_DAYS__;
+	return z.validate(injectedDays, injected) ? toContributionDays(injected) : generateData();
+};
 
 export type ContributionsRequest = (url: string) => Promise<Response>;
 
@@ -93,11 +88,14 @@ export async function renderFromGitHub({
 
 	try {
 		const response = await request(`/api/contributions?user=${encodeURIComponent(username)}&year=${year}`);
-		const data: ContributionsResponse = await response.json();
+		const body: unknown = await response.json().catch(() => null);
 
-		if (!response.ok) {
+		if (!response.ok || !z.validate(contributionsBody, body)) {
 			showErrorState({
-				message: contributionError({ status: response.status, serverMessage: data.error }),
+				message: contributionError({
+					status: response.status,
+					serverMessage: z.validate(errorBody, body) ? body.error : null,
+				}),
 				year,
 			});
 			recordUsageEvent({
@@ -106,9 +104,7 @@ export async function renderFromGitHub({
 			});
 		} else {
 			void writeUsernameCookie(username);
-			const days = data.days
-				.map((day) => contributionDay(day))
-				.filter((day): day is ContributionDay => !isFailure(day));
+			const days = toContributionDays(body.days);
 			setDays(buildGridFromApi({ days, year }));
 			renderCustomize();
 			if (usernameDisplay) usernameDisplay.textContent = username;
@@ -116,7 +112,7 @@ export async function renderFromGitHub({
 				days,
 				year,
 				today: toIsoDate(new Date()),
-				scrapedTotal: data.total,
+				scrapedTotal: body.total,
 			});
 			updateHeroStats(stats);
 			updateYearRange(getDays());
@@ -253,7 +249,7 @@ function initUsernameState() {
 	const ssrUsername = input?.value.trim() || DEFAULT_USERNAME;
 	setUsername(ssrUsername);
 
-	const urlUser = new URLSearchParams(globalThis.location.search).get("user")?.trim();
+	const urlUser = readRequestedUsername();
 	if (!urlUser) void seedUsernameCookie(ssrUsername);
 
 	if (urlUser !== ssrUsername) {
