@@ -22,7 +22,7 @@
 	"osvVulnerabilityAlerts": true,
 	"semanticCommits": "enabled",
 	"semanticCommitScope": "global",
-	"includePaths": ["package.json", "app/**", "web/**", ".github/**"],
+	"includePaths": ["package.json", ".nvmrc", "app/**", "web/**", ".github/**"],
 	"packageRules": [
 		{
 			"matchFileNames": ["web/**"],
