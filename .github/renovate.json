@@ -74,7 +74,6 @@
 				"analyzer"
 			],
 			"groupName": "flutter codegen",
-			"automerge": false,
 			"addLabels": ["codegen"]
 		},
 		{
