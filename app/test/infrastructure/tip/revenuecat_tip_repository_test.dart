@@ -70,8 +70,8 @@ void main() {
   setUp(() => calls = []);
   tearDown(() => messenger.setMockMethodCallHandler(_channel, null));
 
-  group('RevenueCatTipRepository.getProducts', () {
-    test('offers the current offering, cheapest tier first', () async {
+  group('RevenueCatTipRepository.getTipProducts', () {
+    test('offers the current offering, cheapest Tip Product first', () async {
       answerWith(
         (_) async => _offerings(
           packages: [
@@ -82,14 +82,14 @@ void main() {
         ),
       );
 
-      final products = await RevenueCatTipRepository().getProducts();
+      final tipProducts = await RevenueCatTipRepository().getTipProducts();
 
-      expect(products.map((product) => product.id), [
+      expect(tipProducts.map((tipProduct) => tipProduct.id), [
         'tip.small',
         'tip.medium',
         'tip.large',
       ]);
-      expect(products.map((product) => product.priceString), [
+      expect(tipProducts.map((tipProduct) => tipProduct.priceString), [
         r'$1.00',
         r'$5.00',
         r'$10.00',
@@ -102,7 +102,7 @@ void main() {
         (_) async => _offerings(packages: const [], withCurrent: false),
       );
 
-      expect(await RevenueCatTipRepository().getProducts(), isEmpty);
+      expect(await RevenueCatTipRepository().getTipProducts(), isEmpty);
     });
 
     test(
@@ -110,7 +110,7 @@ void main() {
       () async {
         answerWith((_) async => _offerings(packages: const []));
 
-        expect(await RevenueCatTipRepository().getProducts(), isEmpty);
+        expect(await RevenueCatTipRepository().getTipProducts(), isEmpty);
       },
     );
 
@@ -119,12 +119,15 @@ void main() {
         (_) async => throw PlatformException(code: '2', message: 'store down'),
       );
 
-      expect(RevenueCatTipRepository().getProducts, throwsA(isA<TipFailure>()));
+      expect(
+        RevenueCatTipRepository().getTipProducts,
+        throwsA(isA<TipFailure>()),
+      );
     });
   });
 
   group('RevenueCatTipRepository.give', () {
-    const product = TipProduct(
+    const tipProduct = TipProduct(
       id: 'tip.small',
       title: 'Small tip',
       priceString: r'$1.00',
@@ -140,7 +143,7 @@ void main() {
       );
 
       await expectLater(
-        RevenueCatTipRepository().give(product),
+        RevenueCatTipRepository().give(tipProduct),
         throwsA(
           isA<TipFailure>().having(
             (failure) => failure.message,
@@ -158,7 +161,7 @@ void main() {
       );
 
       await expectLater(
-        RevenueCatTipRepository().give(product),
+        RevenueCatTipRepository().give(tipProduct),
         throwsA(isA<TipFailure>()),
       );
     });
@@ -176,7 +179,7 @@ void main() {
       });
 
       expect(
-        await RevenueCatTipRepository().give(product),
+        await RevenueCatTipRepository().give(tipProduct),
         TipOutcome.cancelled,
       );
       expect(calls.map((call) => call.method), [
@@ -200,7 +203,7 @@ void main() {
         });
 
         await expectLater(
-          RevenueCatTipRepository().give(product),
+          RevenueCatTipRepository().give(tipProduct),
           throwsA(
             isA<TipFailure>().having(
               (failure) => failure.message,
@@ -225,7 +228,7 @@ void main() {
       });
 
       await expectLater(
-        RevenueCatTipRepository().give(product),
+        RevenueCatTipRepository().give(tipProduct),
         throwsA(
           isA<TipFailure>().having(
             (failure) => failure.message,
@@ -251,8 +254,8 @@ void main() {
         });
 
         final repository = RevenueCatTipRepository();
-        await repository.getProducts();
-        await repository.give(product);
+        await repository.getTipProducts();
+        await repository.give(tipProduct);
 
         expect(calls.map((call) => call.method), contains('purchasePackage'));
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CELL_SHAPES, CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "./cell-shape";
 
 describe("shape", () => {
-	it("exposes at least one shape kind", () => {
+	it("exposes at least one Cell Shape", () => {
 		expect(CELL_SHAPES.length).toBeGreaterThan(0);
 	});
 
@@ -12,7 +12,7 @@ describe("shape", () => {
 	});
 
 	it("isCellShape accepts every known shape", () => {
-		for (const kind of CELL_SHAPES) expect(isCellShape(kind)).toBe(true);
+		for (const shape of CELL_SHAPES) expect(isCellShape(shape)).toBe(true);
 	});
 
 	it("isCellShape rejects unknown values", () => {
@@ -22,7 +22,7 @@ describe("shape", () => {
 
 	it("drops a shared token that no CellShape implements", () => {
 		const known = new Set<string>(Object.values(CellShape));
-		for (const kind of CELL_SHAPES) expect(known.has(kind)).toBe(true);
+		for (const shape of CELL_SHAPES) expect(known.has(shape)).toBe(true);
 		expect(CELL_SHAPES).toEqual(shapes.map((shape) => shape.key).filter((key) => known.has(key)));
 	});
 });

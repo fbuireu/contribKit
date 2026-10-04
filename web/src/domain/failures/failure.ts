@@ -38,6 +38,9 @@ export type Failure =
 
 const FAILURE_KINDS: ReadonlySet<string> = new Set(Object.values(FailureKind));
 
+export const isFailureKind = (value: unknown): value is FailureKind =>
+	typeof value === "string" && FAILURE_KINDS.has(value);
+
 export const isFailure = (value: unknown): value is Failure =>
 	typeof value === "object" && value !== null && "kind" in value && FAILURE_KINDS.has(String(value.kind));
 

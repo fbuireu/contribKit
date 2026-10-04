@@ -8,9 +8,9 @@ import 'package:contribkit/infrastructure/telemetry/sentry_diagnostics_repositor
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
 import 'package:contribkit/ui/contribution_data_widgets.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/features/home_screen_widget/home_screen_widget_refresh.dart';
 import 'package:contribkit/ui/features/privacy/telemetry_consent_notifier.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
-import 'package:contribkit/ui/features/widget/home_screen_widget_refresh.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/tokens.dart';
 import 'package:flutter/material.dart' show Material, ThemeMode;
@@ -25,12 +25,12 @@ import 'package:sentry_flutter/sentry_flutter.dart' show SentryWidget;
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:workmanager/workmanager.dart';
 
-const _widgetRefreshTask = 'contribkit.widgetRefresh';
+const _homeScreenWidgetRefreshTask = 'contribkit.widgetRefresh';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, _) async {
-    if (task != _widgetRefreshTask) return true;
+    if (task != _homeScreenWidgetRefreshTask) return true;
 
     WidgetsFlutterBinding.ensureInitialized();
 
@@ -70,11 +70,11 @@ void callbackDispatcher() {
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  await _bestEffort(_enableEdgeToEdge);
   await Hive.initFlutter();
 
   await _bestEffort(_dropLegacyCaches);
-  await _bestEffort(_scheduleWidgetRefresh);
+  await _bestEffort(_scheduleHomeScreenWidgetRefresh);
   await _bestEffort(_initRevenueCat);
 
   await _runGuardedByConsent();
@@ -112,17 +112,20 @@ Future<void> _bestEffort(Future<void> Function() step) async {
   } catch (_) {}
 }
 
+Future<void> _enableEdgeToEdge() =>
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
 Future<void> _dropLegacyCaches() async {
   for (final box in legacyContributionCacheBoxNames) {
     await Hive.deleteBoxFromDisk(box);
   }
 }
 
-Future<void> _scheduleWidgetRefresh() async {
+Future<void> _scheduleHomeScreenWidgetRefresh() async {
   await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(
-    _widgetRefreshTask,
-    _widgetRefreshTask,
+    _homeScreenWidgetRefreshTask,
+    _homeScreenWidgetRefreshTask,
     frequency: const Duration(hours: 24),
     constraints: Constraints(networkType: NetworkType.connected),
     existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
@@ -136,7 +139,7 @@ Future<void> _initRevenueCat() async {
   await Purchases.configure(PurchasesConfiguration(key));
 }
 
-class ContribKitApp extends ConsumerWidget {
+final class ContribKitApp extends ConsumerWidget {
   const ContribKitApp({super.key});
 
   @override

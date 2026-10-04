@@ -11,6 +11,7 @@ import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/features/contact/contact_sheet.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
+import 'package:contribkit/ui/features/privacy/privacy_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
 import 'package:contribkit/ui/theme/background_presets.dart';
@@ -55,6 +56,20 @@ List<SemanticsNode> _buttons(WidgetTester tester) {
 Set<String> _buttonLabels(WidgetTester tester) =>
     _buttons(tester).map((node) => node.label).toSet();
 
+Set<String> _switchLabels(WidgetTester tester) {
+  final found = <String>{};
+  void visit(SemanticsNode node) {
+    if (node.flagsCollection.isToggled != Tristate.none) found.add(node.label);
+    node.visitChildren((child) {
+      visit(child);
+      return true;
+    });
+  }
+
+  visit(_semanticsRoot(tester));
+  return found;
+}
+
 void _expectEveryButtonAnnounced(WidgetTester tester) {
   expect(
     _buttonLabels(tester),
@@ -70,9 +85,9 @@ Future<void> _expectMeetsGuidelines(WidgetTester tester) async {
 }
 
 Future<void> _withSemantics(
-  WidgetTester tester,
-  Future<void> Function() body,
-) async {
+  WidgetTester tester, {
+  required Future<void> Function() body,
+}) async {
   final handle = tester.ensureSemantics();
   try {
     await body();
@@ -102,137 +117,188 @@ void main() {
     testWidgets('the Viewer names its year pills, suggestions and icons', (
       tester,
     ) async {
-      await _withSemantics(tester, () async {
-        await _pumpViewer(
-          tester,
-          usernames: FakeSuggestedUsernameRepository(names: const ['torvalds']),
-        );
+      await _withSemantics(
+        tester,
+        body: () async {
+          await _pumpViewer(
+            tester,
+            usernames: FakeSuggestedUsernameRepository(
+              names: const ['torvalds'],
+            ),
+          );
 
-        final labels = _buttonLabels(tester);
+          final labels = _buttonLabels(tester);
 
-        expect(labels, contains('torvalds'));
-        expect(labels, contains('Year ${DateTime.now().year}'));
-        expect(labels, contains('Year ${Year.minYear}'));
-        expect(labels, contains('Contact'));
-        expect(labels, contains('Support ContribKit'));
-        expect(labels, contains('Switch to the light theme'));
-        expect(labels, contains('Show contributions'));
-        _expectEveryButtonAnnounced(tester);
-        await _expectMeetsGuidelines(tester);
-        await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-      });
+          expect(labels, contains('torvalds'));
+          expect(labels, contains('Year ${testToday.year}'));
+          expect(labels, contains('Year ${Year.minYear}'));
+          expect(labels, contains('Contact'));
+          expect(labels, contains('Support ContribKit'));
+          expect(labels, contains('Switch to the light theme'));
+          expect(labels, contains('Show contributions'));
+          _expectEveryButtonAnnounced(tester);
+          await _expectMeetsGuidelines(tester);
+          await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+        },
+      );
     });
 
     testWidgets('the Customizer names every swatch by the thing it picks', (
       tester,
     ) async {
-      await _withSemantics(tester, () async {
-        await pumpSheet(
-          tester,
-          overrides: appOverrides(
-            settings: FakeSettingsRepository(
-              settings: AppSettings(
-                lastUsername: Username('octocat'),
-                lastYear: Year(2024),
+      await _withSemantics(
+        tester,
+        body: () async {
+          await pumpSheet(
+            tester,
+            overrides: appOverrides(
+              settings: FakeSettingsRepository(
+                settings: AppSettings(
+                  lastUsername: Username('octocat'),
+                  lastYear: Year(2024, today: testToday),
+                ),
+              ),
+              palettes: FakePaletteRepository(
+                palettes: const [testPalette, otherTestPalette],
+              ),
+              contributions: FakeContributionRepository(
+                answer: testCalendar(weeks: 3),
               ),
             ),
-            palettes: FakePaletteRepository(
-              palettes: const [testPalette, otherTestPalette],
-            ),
-            contributions: FakeContributionRepository(
-              answer: testCalendar(weeks: 3),
-            ),
-          ),
-          builder: (_) => const CustomizerSheet(),
-        );
+            builder: (_) => const CustomizerSheet(),
+          );
 
-        final labels = _buttonLabels(tester);
+          final labels = _buttonLabels(tester);
 
-        expect(labels, containsAll([testPalette.name, otherTestPalette.name]));
-        expect(
-          labels,
-          containsAll(BackgroundPreset.values.map((preset) => preset.label)),
-        );
-        expect(
-          labels,
-          containsAll(CellShape.values.map((shape) => shape.label)),
-        );
-        expect(labels, containsAll(CellSize.values.map((size) => size.label)));
-        expect(labels, containsAll(['Apply', 'Close']));
-        _expectEveryButtonAnnounced(tester);
-        await _expectMeetsGuidelines(tester);
-      });
+          expect(
+            labels,
+            containsAll([testPalette.name, otherTestPalette.name]),
+          );
+          expect(
+            labels,
+            containsAll(BackgroundPreset.values.map((preset) => preset.label)),
+          );
+          expect(
+            labels,
+            containsAll(CellShape.values.map((shape) => shape.label)),
+          );
+          expect(
+            labels,
+            containsAll(CellSize.values.map((size) => size.label)),
+          );
+          expect(labels, containsAll(['Apply', 'Close']));
+          _expectEveryButtonAnnounced(tester);
+          await _expectMeetsGuidelines(tester);
+        },
+      );
     });
 
     testWidgets('the Export sheet names each format and the size it makes', (
       tester,
     ) async {
-      await _withSemantics(tester, () async {
-        await pumpSheet(
-          tester,
-          overrides: appOverrides(),
-          builder: (_) => ExportSheet(
-            calendar: testCalendar(weeks: 3),
-            palette: testPalette,
-            cellShape: CellShape.rounded,
-            cellSize: CellSize.normal,
-          ),
-        );
-
-        final labels = _buttonLabels(tester);
-
-        for (final format in ExportFormat.values) {
-          expect(
-            labels.any((label) => label.startsWith('${format.label} export')),
-            isTrue,
-            reason: '${format.name} has no announced label',
+      await _withSemantics(
+        tester,
+        body: () async {
+          await pumpSheet(
+            tester,
+            overrides: appOverrides(),
+            builder: (_) => ExportSheet(
+              calendar: testCalendar(weeks: 3),
+              palette: testPalette,
+              cellShape: CellShape.rounded,
+              cellSize: CellSize.normal,
+            ),
           );
-        }
-        final pixels = ExportGeometryService.pngPixelSizeFor(
-          cellSize: CellSize.normal,
-          weeks: 3,
-        );
-        expect(
-          labels,
-          contains(
-            'PNG export, ${pixels.width}×${pixels.height} · transparent',
-          ),
-        );
-        _expectEveryButtonAnnounced(tester);
-        await _expectMeetsGuidelines(tester);
-      });
+
+          final labels = _buttonLabels(tester);
+
+          for (final format in ExportFormat.values) {
+            expect(
+              labels.any((label) => label.startsWith('${format.label} export')),
+              isTrue,
+              reason: '${format.name} has no announced label',
+            );
+          }
+          final pixels = ExportGeometryService.pngPixelSizeFor(
+            cellSize: CellSize.normal,
+            weeks: 3,
+          );
+          expect(
+            labels,
+            contains(
+              'PNG export, ${pixels.width}×${pixels.height} · transparent',
+            ),
+          );
+          _expectEveryButtonAnnounced(tester);
+          await _expectMeetsGuidelines(tester);
+        },
+      );
     });
 
     testWidgets('the Contact sheet names its send, cancel and close controls', (
       tester,
     ) async {
-      await _withSemantics(tester, () async {
-        await pumpSheet(
-          tester,
-          overrides: appOverrides(),
-          builder: (_) => const ContactSheet(),
-        );
+      await _withSemantics(
+        tester,
+        body: () async {
+          await pumpSheet(
+            tester,
+            overrides: appOverrides(),
+            builder: (_) => const ContactSheet(),
+          );
 
-        expect(_buttonLabels(tester), containsAll(['Send', 'Cancel', 'Close']));
-        _expectEveryButtonAnnounced(tester);
-        await _expectMeetsGuidelines(tester);
-      });
+          expect(
+            _buttonLabels(tester),
+            containsAll(['Send', 'Cancel', 'Close']),
+          );
+          _expectEveryButtonAnnounced(tester);
+          await _expectMeetsGuidelines(tester);
+        },
+      );
     });
 
-    testWidgets('the Tip Jar names each tier with its price', (tester) async {
-      await _withSemantics(tester, () async {
-        await pumpSheet(
-          tester,
-          overrides: appOverrides(
-            tips: FakeTipRepository(products: _tipProducts),
-          ),
-          builder: (_) => const TipJarSheet(),
-        );
+    testWidgets('the Tip Jar names each Tip Product with its price', (
+      tester,
+    ) async {
+      await _withSemantics(
+        tester,
+        body: () async {
+          await pumpSheet(
+            tester,
+            overrides: appOverrides(
+              tips: FakeTipRepository(tipProducts: _tipProducts),
+            ),
+            builder: (_) => const TipJarSheet(),
+          );
 
-        expect(_buttonLabels(tester), contains(r'Coffee, $1.00'));
-        _expectEveryButtonAnnounced(tester);
-        await _expectMeetsGuidelines(tester);
-      });
+          expect(_buttonLabels(tester), contains(r'Coffee, $1.00'));
+          _expectEveryButtonAnnounced(tester);
+          await _expectMeetsGuidelines(tester);
+        },
+      );
+    });
+
+    testWidgets('the Privacy sheet names both switches and its buttons', (
+      tester,
+    ) async {
+      await _withSemantics(
+        tester,
+        body: () async {
+          await pumpSheet(
+            tester,
+            overrides: appOverrides(),
+            builder: (_) => const PrivacySheet(),
+          );
+
+          expect(
+            _buttonLabels(tester),
+            containsAll(['Reject all', 'Accept all', 'Close']),
+          );
+          expect(_switchLabels(tester), {'Diagnostic reports', 'Usage events'});
+          _expectEveryButtonAnnounced(tester);
+          await _expectMeetsGuidelines(tester);
+        },
+      );
     });
   });
 
@@ -240,47 +306,60 @@ void main() {
     testWidgets('the selected year is the only one marked selected', (
       tester,
     ) async {
-      await _withSemantics(tester, () async {
-        await _pumpViewer(tester);
+      await _withSemantics(
+        tester,
+        body: () async {
+          await _pumpViewer(tester);
 
-        final selected = _buttons(tester)
-            .where((node) => node.flagsCollection.isSelected == Tristate.isTrue)
-            .map((node) => node.label)
-            .toList();
+          final selected = _buttons(tester)
+              .where(
+                (node) => node.flagsCollection.isSelected == Tristate.isTrue,
+              )
+              .map((node) => node.label)
+              .toList();
 
-        expect(selected, ['Year ${DateTime.now().year}']);
-      });
+          expect(selected, ['Year ${testToday.year}']);
+        },
+      );
     });
 
     testWidgets('a suggestion carries an enabled state, so a reader can tell', (
       tester,
     ) async {
-      await _withSemantics(tester, () async {
-        await _pumpViewer(
-          tester,
-          usernames: FakeSuggestedUsernameRepository(names: const ['torvalds']),
-        );
+      await _withSemantics(
+        tester,
+        body: () async {
+          await _pumpViewer(
+            tester,
+            usernames: FakeSuggestedUsernameRepository(
+              names: const ['torvalds'],
+            ),
+          );
 
-        final suggestion = _buttons(tester)
-            .firstWhere((node) => node.label == 'torvalds');
+          final suggestion = _buttons(tester)
+              .firstWhere((node) => node.label == 'torvalds');
 
-        expect(suggestion.flagsCollection.isEnabled, Tristate.isTrue);
-      });
+          expect(suggestion.flagsCollection.isEnabled, Tristate.isTrue);
+        },
+      );
     });
 
     testWidgets('the theme toggle names the theme it would move to', (
       tester,
     ) async {
-      await _withSemantics(tester, () async {
-        await _pumpViewer(tester);
+      await _withSemantics(
+        tester,
+        body: () async {
+          await _pumpViewer(tester);
 
-        expect(_buttonLabels(tester), contains('Switch to the light theme'));
+          expect(_buttonLabels(tester), contains('Switch to the light theme'));
 
-        await tester.tap(find.bySemanticsLabel('Switch to the light theme'));
-        await tester.pumpAndSettle();
+          await tester.tap(find.bySemanticsLabel('Switch to the light theme'));
+          await tester.pumpAndSettle();
 
-        expect(_buttonLabels(tester), contains('Switch to the dark theme'));
-      });
+          expect(_buttonLabels(tester), contains('Switch to the dark theme'));
+        },
+      );
     });
   });
 }

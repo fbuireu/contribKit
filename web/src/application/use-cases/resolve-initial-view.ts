@@ -1,4 +1,12 @@
+import type { ContributionDay } from "@domain/entities/types";
+import {
+	type ContributionStats,
+	statsWithScrapedTotal,
+	UNKNOWN_CONTRIBUTION_STATS,
+} from "@domain/services/contribution-stats";
+import type { IsoDate } from "@domain/value-objects/iso-date";
 import { DEFAULT_USERNAME, isUsername, MAX_USERNAME_LENGTH, parseUsername } from "@domain/value-objects/username";
+import { PRIVATE_CACHEABLE_ANSWER, PRIVATE_NOT_CACHEABLE } from "../http/cache-control";
 
 export const DaySource = {
 	Loaded: "loaded",
@@ -7,9 +15,6 @@ export const DaySource = {
 } as const;
 
 export type DaySource = (typeof DaySource)[keyof typeof DaySource];
-
-const CACHE_CONTROL_EXPLICIT = "private, max-age=3600, stale-while-revalidate=86400";
-const CACHE_CONTROL_DEFAULT = "private, no-store";
 
 const OVERLONG_USERNAME_LIMIT = MAX_USERNAME_LENGTH + 1;
 
@@ -21,7 +26,6 @@ export interface ResolveViewerIdentityParams {
 export interface ViewerIdentity {
 	username: string;
 	isExplicit: boolean;
-	cacheControl: string;
 }
 
 const asRequested = (raw?: string | null): string | undefined => {
@@ -37,8 +41,6 @@ const asSaved = (raw?: string | null): string | undefined => {
 	return isUsername(parsed) ? parsed.value : undefined;
 };
 
-const isServeable = (username: string): boolean => isUsername(parseUsername(username));
-
 export const resolveViewerIdentity = ({
 	requestedUsername,
 	savedUsername,
@@ -48,7 +50,6 @@ export const resolveViewerIdentity = ({
 	return {
 		username: chosen ?? DEFAULT_USERNAME,
 		isExplicit: chosen !== undefined,
-		cacheControl: chosen !== undefined && isServeable(chosen) ? CACHE_CONTROL_EXPLICIT : CACHE_CONTROL_DEFAULT,
 	};
 };
 
@@ -61,3 +62,28 @@ export const daySourceFor = ({ loaded, isExplicit }: DaySourceForParams): DaySou
 	if (loaded) return DaySource.Loaded;
 	return isExplicit ? DaySource.Empty : DaySource.Placeholder;
 };
+
+export interface CacheControlForParams {
+	loaded: boolean;
+	isExplicit: boolean;
+}
+
+export const cacheControlFor = ({ loaded, isExplicit }: CacheControlForParams): string =>
+	loaded && isExplicit ? PRIVATE_CACHEABLE_ANSWER : PRIVATE_NOT_CACHEABLE;
+
+export interface InitialStatsForParams {
+	source: DaySource;
+	days: readonly ContributionDay[];
+	year: number;
+	today: IsoDate;
+	scrapedTotal: number | null;
+}
+
+export const initialStatsFor = ({
+	source,
+	days,
+	year,
+	today,
+	scrapedTotal,
+}: InitialStatsForParams): ContributionStats =>
+	source === DaySource.Empty ? UNKNOWN_CONTRIBUTION_STATS : statsWithScrapedTotal({ days, year, today, scrapedTotal });

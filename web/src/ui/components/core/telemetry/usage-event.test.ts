@@ -28,8 +28,8 @@ describe("recordUsageEvent", () => {
 
 		recordUsageEvent(PALETTE_CHOSEN);
 
-		expect(gtag).toHaveBeenCalledWith("event", "palette_chosen", { palette: "nord" });
-		expect(betterstack).toHaveBeenCalledWith("track", "palette_chosen", { palette: "nord" });
+		expect(gtag.mock.calls).toEqual([["event", "palette_chosen", { palette: "nord" }]]);
+		expect(betterstack.mock.calls).toEqual([["track", "palette_chosen", { palette: "nord" }]]);
 	});
 
 	it("asks consent for each vendor by its service name under the analytics category", () => {
@@ -50,7 +50,7 @@ describe("recordUsageEvent", () => {
 
 		recordUsageEvent({ event: UsageEventName.ThemeChanged, properties: { theme: "dark" } });
 
-		expect(gtag).toHaveBeenCalledWith("event", "theme_changed", { theme: "dark" });
+		expect(gtag.mock.calls).toEqual([["event", "theme_changed", { theme: "dark" }]]);
 		expect(betterstack).not.toHaveBeenCalled();
 	});
 
@@ -62,7 +62,7 @@ describe("recordUsageEvent", () => {
 
 		recordUsageEvent({ event: UsageEventName.SectionNavigated, properties: { section: "how" } });
 
-		expect(betterstack).toHaveBeenCalledWith("track", "section_navigated", { section: "how" });
+		expect(betterstack.mock.calls).toEqual([["track", "section_navigated", { section: "how" }]]);
 		expect(gtag).not.toHaveBeenCalled();
 	});
 
@@ -104,7 +104,7 @@ describe("recordUsageEvent", () => {
 		accept(["ga4", "betterstack"]);
 
 		expect(() => recordUsageEvent(PALETTE_CHOSEN)).not.toThrow();
-		expect(betterstack).toHaveBeenCalledOnce();
+		expect(betterstack.mock.calls).toEqual([["track", "palette_chosen", { palette: "nord" }]]);
 	});
 
 	it("swallows a consent lookup that throws rather than breaking the caller", () => {

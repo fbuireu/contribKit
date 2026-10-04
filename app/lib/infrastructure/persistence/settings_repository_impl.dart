@@ -21,6 +21,11 @@ const _keyDiagnosticsConsent = 'telemetryDiagnosticReports';
 const _keyUsageEventsConsent = 'telemetryUsageEvents';
 
 final class HiveSettingsRepository implements SettingsRepository {
+  HiveSettingsRepository({DateTime Function()? now})
+    : _now = now ?? DateTime.now;
+
+  final DateTime Function() _now;
+
   Future<Box<dynamic>> get _box => Hive.openBox<dynamic>(_settingsBoxName);
 
   Future<void> _write(Future<void> Function(Box<dynamic> box) write) async {
@@ -31,11 +36,11 @@ final class HiveSettingsRepository implements SettingsRepository {
     }
   }
 
-  static T? _enumByName<T extends Enum>(
-    Box<dynamic> box,
-    String key,
-    List<T> values,
-  ) {
+  static T? _enumByName<T extends Enum>({
+    required Box<dynamic> box,
+    required String key,
+    required List<T> values,
+  }) {
     final raw = box.get(key) as String?;
     if (raw == null) return null;
     return values.where((value) => value.name == raw).firstOrNull;
@@ -62,7 +67,7 @@ final class HiveSettingsRepository implements SettingsRepository {
   @override
   Future<AppSettings> load() async {
     try {
-      return _settingsIn(await _box);
+      return _settingsIn(await _box, today: _now());
     } catch (_) {
       return const AppSettings();
     }
@@ -76,7 +81,7 @@ final class HiveSettingsRepository implements SettingsRepository {
     }
   }
 
-  static AppSettings _settingsIn(Box<dynamic> box) {
+  static AppSettings _settingsIn(Box<dynamic> box, {required DateTime today}) {
     final username = _tolerating(() => box.get(_keyLastUsername) as String?);
     final year = _tolerating(() => box.get(_keyLastYear) as int?);
 
@@ -84,7 +89,9 @@ final class HiveSettingsRepository implements SettingsRepository {
       lastUsername: _tolerating(
         () => username == null ? null : Username(username),
       ),
-      lastYear: _tolerating(() => year == null ? null : Year(year)),
+      lastYear: _tolerating(
+        () => year == null ? null : Year(year, today: today),
+      ),
       paletteKey: _tolerating(
         () => _readWithLegacy(
           box: box,
@@ -94,11 +101,21 @@ final class HiveSettingsRepository implements SettingsRepository {
       ),
       cellShape:
           _tolerating(
-            () => _enumByName(box, _keyCellShape, CellShape.values),
+            () => _enumByName(
+              box: box,
+              key: _keyCellShape,
+              values: CellShape.values,
+            ),
           ) ??
           CellShape.fallback,
       cellSize:
-          _tolerating(() => _enumByName(box, _keyCellSize, CellSize.values)) ??
+          _tolerating(
+            () => _enumByName(
+              box: box,
+              key: _keyCellSize,
+              values: CellSize.values,
+            ),
+          ) ??
           CellSize.fallback,
       backgroundPresetName: _tolerating(
         () => _readWithLegacy(
@@ -109,25 +126,29 @@ final class HiveSettingsRepository implements SettingsRepository {
       ),
       themeMode:
           _tolerating(
-            () => _enumByName(box, _keyThemeMode, AppThemeMode.values),
+            () => _enumByName(
+              box: box,
+              key: _keyThemeMode,
+              values: AppThemeMode.values,
+            ),
           ) ??
           AppThemeMode.system,
       telemetryConsent: TelemetryConsent(
         diagnosticReports:
             _tolerating(
               () => _enumByName(
-                box,
-                _keyDiagnosticsConsent,
-                ConsentChoice.values,
+                box: box,
+                key: _keyDiagnosticsConsent,
+                values: ConsentChoice.values,
               ),
             ) ??
             ConsentChoice.unasked,
         usageEvents:
             _tolerating(
               () => _enumByName(
-                box,
-                _keyUsageEventsConsent,
-                ConsentChoice.values,
+                box: box,
+                key: _keyUsageEventsConsent,
+                values: ConsentChoice.values,
               ),
             ) ??
             ConsentChoice.unasked,

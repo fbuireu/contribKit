@@ -7,16 +7,16 @@ abstract final class FailureMessage {
   static final _resetTime = DateFormat('HH:mm');
 
   static String of(Failure failure) => switch (failure) {
-    NotFoundFailure(:final username) => 'User "$username" not found.',
+    NotFoundFailure(:final username) => 'Username "$username" not found.',
     RateLimitedFailure(:final resetAt) => _rateLimited(resetAt),
     ParseFailure() =>
       'GitHub changed its contributions page. Please update the app.',
     AssetFailure() => 'ContribKit could not read its own design tokens. Reinstalling should fix it.',
-    NetworkFailure(:final message) => 'Network error: $message',
+    NetworkFailure() => 'Could not reach the server. Please try again.',
     CacheFailure() => 'Could not read saved data. Please try again.',
     DeliveryFailure() => 'Could not send your message. Please try again.',
-    ExportFailure(:final message) => 'Export failed: $message',
-    TipFailure(:final message) => 'Tip failed: $message',
+    ExportFailure() => 'Export failed. Please try again.',
+    TipFailure() => 'Tip failed. Please try again.',
     UnexpectedFailure() => fallback,
   };
 

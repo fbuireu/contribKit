@@ -1,7 +1,8 @@
 import type { CellShape } from "@domain/value-objects/cell-shape";
-import { ANALYTICS_CATEGORY } from "@ui/components/core/cookie-consent/config";
-import type { ExportFormatKey } from "@ui/components/export/export-formats";
 import { acceptedService } from "vanilla-cookieconsent";
+import { ElementId } from "../../../utils/dom-contract";
+import type { ExportFormatKey } from "../../export/export-formats";
+import { ConsentCategory, ConsentService } from "../cookie-consent/config";
 
 export const UsageEventName = {
 	CalendarRendered: "calendar_rendered",
@@ -60,10 +61,10 @@ export const StoreLinkPlacement = {
 export type StoreLinkPlacement = (typeof StoreLinkPlacement)[keyof typeof StoreLinkPlacement];
 
 export const SiteSection = {
-	How: "how",
-	Custom: "custom",
-	Export: "export",
-	Widget: "widget",
+	How: ElementId.HowItWorksSection,
+	Custom: ElementId.CustomizerSection,
+	Export: ElementId.ExportSection,
+	Widget: ElementId.HomeScreenWidgetSection,
 } as const;
 
 export type SiteSection = (typeof SiteSection)[keyof typeof SiteSection];
@@ -102,9 +103,6 @@ export interface RecordUsageEventParams<E extends UsageEventName> {
 	properties: UsageEventProperties[E];
 }
 
-const GOOGLE_ANALYTICS_SERVICE = "ga4";
-const BETTER_STACK_SERVICE = "betterstack";
-
 const attempt = (send: () => void): void => {
 	try {
 		send();
@@ -116,9 +114,11 @@ const attempt = (send: () => void): void => {
 export function recordUsageEvent<E extends UsageEventName>({ event, properties }: RecordUsageEventParams<E>): void {
 	if (typeof window === "undefined") return;
 	attempt(() => {
-		if (acceptedService(GOOGLE_ANALYTICS_SERVICE, ANALYTICS_CATEGORY)) window.gtag?.("event", event, properties);
+		if (acceptedService(ConsentService.GoogleAnalytics, ConsentCategory.Analytics))
+			window.gtag?.("event", event, properties);
 	});
 	attempt(() => {
-		if (acceptedService(BETTER_STACK_SERVICE, ANALYTICS_CATEGORY)) window.betterstack?.("track", event, properties);
+		if (acceptedService(ConsentService.BetterStack, ConsentCategory.Analytics))
+			window.betterstack?.("track", event, properties);
 	});
 }

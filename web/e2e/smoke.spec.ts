@@ -23,11 +23,11 @@ test.describe("smoke", () => {
 		expect(response.headers()["content-type"]).toContain("text/plain");
 	});
 
-	test("the SVG endpoint answers with an image @smoke", async ({ request }) => {
-		const response = await request.get("/user/torvalds.svg");
+	test("the SVG endpoint refuses a malformed Username from the Worker @smoke", async ({ request }) => {
+		const response = await request.get("/user/foo_bar.svg");
 
-		expect(response.status()).toBe(200);
-		expect(response.headers()["content-type"]).toContain("svg");
-		expect(await response.text()).toContain("<svg");
+		expect(response.status()).toBe(400);
+		expect(response.headers()["content-type"]).toBe("text/plain");
+		expect(await response.text()).toBe("Invalid GitHub username");
 	});
 });

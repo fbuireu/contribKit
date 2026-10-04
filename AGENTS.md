@@ -2,51 +2,21 @@
 
 Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [CONTEXT.md](./CONTEXT.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
+Reviewing a diff: [CODING_STANDARDS.md](./CODING_STANDARDS.md).
+
 ## What this is
 
-A monorepo with two clients over one domain. **`web/`** is an Astro SSR site on Cloudflare Workers that also serves the public SVG and JSON endpoints. **`app/`** is a Flutter iOS/Android app with home-screen widgets. **`shared/`** holds the design tokens both consume. Neither client needs a GitHub token: both read the public contributions page. See [ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md).
-
-## Stack
-
-- **web**: Astro (`output: "server"`), `@astrojs/cloudflare`, TypeScript, Zod (always through `astro/zod`, never a direct `zod` dependency, see the [ui guide](./web/src/ui/AGENTS.md)), Biome, Vitest, Playwright, and React only for the one email the site sends, rendered with React Email ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md))
-- **app**: Flutter / Dart ([`app/pubspec.yaml`](./app/pubspec.yaml)), Riverpod + `riverpod_generator`, `freezed`, Hive (cache + settings), RevenueCat, `home_widget` + `workmanager`
-- **shared**: plain JSON, imported by web at build time and mirrored into [`app/assets/`](./app/assets) ([ADR 0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
-- **repo**: pnpm workspaces, lefthook, commitlint, semantic-release per component
+A monorepo with two clients over one domain. **`web/`** is an Astro SSR site on Cloudflare Workers that also serves the public SVG and JSON endpoints. **`app/`** is a Flutter iOS/Android app with Home Screen Widgets. **`shared/`** holds the design tokens both consume. Neither client needs a GitHub token: both read the public contributions page ([ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md)).
 
 ## Versions
 
-**This section names where each runtime is pinned and never what the pin says.** A digit written here is a
-claim a bot invalidates on its own, and neither way of keeping it honest works: asserting it against the
-manifest failed every dependency pull request on a line the bot cannot edit, and not asserting it let the
-digit rot in place. Read the file named beside each runtime; the docs guard asserts only what a bump cannot
-change, which is that each one is pinned exactly once, exactly, and re-pinned in no workflow.
+This section names where each runtime is pinned and never what the pin says: read the file named beside each one. Each runtime is pinned exactly once, exactly, and re-pinned in no workflow; `pnpm test:docs` asserts all three.
 
-- pnpm ([root `packageManager`](./package.json)): always pnpm, never npm/yarn. The root `packageManager` is the **only** pin: it is what
-  `pnpm/action-setup` resolves everywhere it runs, because every job, [`release-app.yml`](./.github/workflows/release-app.yml) included, goes through the `prepare-env` composite action, which passes nothing and so defaults to the root manifest. [`ci.yml`](./.github/workflows/ci.yml)'s `release` job and `release-app.yml` each used to set up pnpm, Node and the install by hand, which was the composite written out again against one lockfile, so they did the same install twice and skipped the `.nvmrc` guard. [`app/package.json`](./app/package.json) deliberately declares none, which a docs guard asserts.
-  It used to carry the second pin, and because Renovate's `includePaths` did not list the root manifest, that copy
-  was the one it kept current. Consolidating onto the root pin silently rolled the package manager back three
-  minors, until this was caught and the root was bumped to match
-- Node, stated three times and always the same: the root `engines`, `web/engines` and [`.nvmrc`](./.nvmrc), which
-  is the one CI installs. It sat in `web/` until the composite action was made identical to the sibling repositories', which read it at the root. They used to differ (v26.3.0 at the root against 26.5.1 in web) for no recorded reason.
-- Flutter (`environment.flutter` in [`app/pubspec.yaml`](./app/pubspec.yaml)), which is the pin
-  [`_ci-app.yml`](./.github/workflows/_ci-app.yml) installs from through `flutter-version-file`. A mismatched local Flutter blocks
-  `pub get` and codegen; do not "fix" it by editing the pin
-- Dart is a **range**, not a pin: `environment.sdk` is bounded to the minor, which is as tight as it can be
-  and still work. Nothing installs Dart from here; the Dart you run is whichever one the pinned Flutter ships,
-  so the Flutter pin is what makes it reproducible and this line only says which language features the code
-  needs. Bounding it to the minor keeps a Flutter patch inside the range and still fails loudly if Flutter
-  ever jumps a Dart minor, which is a change worth stopping on, and a human widens the bound then. Renovate is
-  told not to manage this line at all: `rangeStrategy` is `pin` for the whole repository and it collapsed the
-  range back to an exact version the day it was written, which the docs guard then refused. It tracks Dart
-  against the Dart SDK and knows nothing about which one a Flutter release bundles, so any update it proposed
-  here could raise the floor above what the pinned Flutter ships. It used to be exact, and
-  that made one fact two declarations of which a bot updates only half: Renovate raised Flutter to 3.47.2,
-  which ships Dart 3.13.2, and `pub get` refused against a `3.13.0` that nothing had told it to move. A docs
-  rule keeps the constraint a range so it cannot be pinned again
-- Ruby ([`app/android/.ruby-version`](./app/android/.ruby-version)), which `setup-ruby` in
-  [`release-app.yml`](./.github/workflows/release-app.yml) reads from its working directory before `bundle install`
-  brings in fastlane. It used to be a `ruby-version:` literal in that workflow, the one pin no bot could see; a
-  `.ruby-version` file is what Renovate's `ruby-version` manager keeps current
+- pnpm (root `packageManager`, the only pin, which `pnpm/action-setup` resolves in every job through the `prepare-env` composite action): always pnpm, never npm/yarn. [`app/package.json`](./app/package.json) declares none
+- Node (the root `engines`, `web/engines` and [`.nvmrc`](./.nvmrc), which is the one CI installs): the three say the same thing
+- Flutter (`environment.flutter` in [`app/pubspec.yaml`](./app/pubspec.yaml), which [`_ci-app.yml`](./.github/workflows/_ci-app.yml) installs from through `flutter-version-file`): a mismatched local Flutter blocks `pub get` and codegen, so install the pinned one rather than editing the pin
+- Dart is a **range**, not a pin: `environment.sdk` is bounded to the minor, the Dart you run is whichever one the pinned Flutter ships, and Renovate is told not to manage the line. A human widens the bound when a Flutter bump crosses a Dart minor; the docs test rejects an exact version there
+- Ruby ([`app/android/.ruby-version`](./app/android/.ruby-version)), which `setup-ruby` in [`release-app.yml`](./.github/workflows/release-app.yml) reads before `bundle install` brings in fastlane
 
 ## Commands
 
@@ -63,8 +33,8 @@ pnpm verify:static       # format:check + typecheck + check: everything verify d
 pnpm verify              # verify:static + coverage: what CI runs
 pnpm verify:changed      # verify:static + test:ut:changed: what pre-push runs
 
-pnpm lint:all                    # biome lint over web, docs and .github
-pnpm format:all                  # biome check --write, the same three
+pnpm lint:all                    # biome lint over web, docs, .github and scripts
+pnpm format:all                  # biome check --write, the same four
 pnpm format:check                # biome check, read-only: what CI runs
 pnpm test:ut                        # vitest
 pnpm test:docs                   # the maintenance contract alone (also runs inside pnpm test:ut)
@@ -77,30 +47,19 @@ flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI an
 dart run build_runner build      # after touching a @freezed / @riverpod / DTO class
 ```
 
-`verify`'s coverage step carries a floor of 85 on all four metrics, declared from one `MIN_THRESHOLD` const in [`web/vitest.config.ts`](./web/vitest.config.ts): the same shape and number every sibling repository uses. The provider stays `istanbul` where the siblings run `v8`, and that is a dependency rather than a preference: `@vitest/coverage-istanbul` is what this package installs, so switching the string alone reports nothing.
+`verify`'s coverage step carries a floor on all four metrics, one `MIN_THRESHOLD` in [`web/vitest.config.ts`](./web/vitest.config.ts), the same shape and number as the sibling repositories'; the provider is `istanbul`, because `@vitest/coverage-istanbul` is what this package installs. The app's floor is `minThreshold` in [`app/tool/check_coverage.dart`](./app/tool/check_coverage.dart), which reads `coverage/lcov.info` because `flutter test` has no minimum of its own; CI and the `flutter-test` pre-push hook both run it. Codecov only reports: its statuses are `informational: true` in [`.github/codecov.yml`](./.github/codecov.yml).
 
-**`web-verify` runs `verify:changed`, and the coverage floor is why it cannot run `verify`.** `web/vitest.config.ts` sets `coverage.include` over all of `web/src`, which is what makes the provider report a file no test loaded as zero, so a changed-only subset drags the global average under the floor and fails on a clean tree: a scoped run and the threshold cannot both hold. Coverage is therefore a CI concern, which costs nothing because CI runs the full `pnpm verify` on the pushed sha. The `app` half of the hook needed none of this: its commands are already glob-gated, so `flutter-test` fires only when a `*.dart`, `pubspec.yaml` or `analysis_options.yaml` file is in the push, while `web-verify` carries no glob and ran the whole web gate whatever had changed.
+The hooks: `pre-commit` formats staged files, runs `dart analyze --fatal-infos` and syncs `shared/*.json`; `commit-msg` runs commitlint; `pre-push` runs `pnpm verify:changed` for the web, and `dart analyze --fatal-infos` plus the app's coverage run when a Dart file, `pubspec.yaml` or `analysis_options.yaml` is in the push. CI runs the full `pnpm verify`; [CONTRIBUTING.md](./.github/CONTRIBUTING.md) says why the hook stops short of it.
 
-**A `:changed` variant names a literal base, and computing one is what it must not do.** A `package.json` script runs under `cmd` on Windows, where `$(...)` is not substituted but passed through as literal argv, so a script that resolved the branch's push target broke every push from a Windows checkout. `test:ut:changed` therefore takes `origin/main` outright, which is wider than the push needs on a branch and never narrower, so it errs safe. It used to carry no ref at all, meaning uncommitted work only, which is empty at push time and made the command a green check that checked nothing. Reading the base off the hook is not an option either: lefthook consumes git's pre-push stdin and forwards none of it, so the remote sha git computes is unreachable from a command. Biome's `--changed` is left alone: it diffs against `vcs.defaultBranch`, which is `main`, so on `main` it selects nothing, and `format:all` reads web, docs and .github in under a second.
+A `package.json` script runs under `cmd` on Windows, which passes `$(...)` through as literal text, so a `:changed` variant names a literal base (`test:ut:changed` takes `origin/main`) and the docs test rejects a substitution. Biome's `--changed` diffs against `vcs.defaultBranch`, which is `main`, so on `main` `pnpm format:changed` selects nothing: reach for `format:all` there.
 
-**The app carries a coverage floor too, and it had none until it was written.** `flutter test` has no
-`--min-coverage`, so [`app/tool/check_coverage.dart`](./app/tool/check_coverage.dart) reads `coverage/lcov.info` and exits non-zero below the
-`minThreshold` const: the same one-declaration shape as `web/vitest.config.ts`, and its own number. The web's is
-the figure every sibling repository uses and stays there; the app's is higher because nothing outside this
-repository constrains it and a floor ten points under the real figure catches nothing. CI runs it as its own step
-after `flutter test --coverage`, and the `flutter-test` pre-push hook runs it too. Uploading to Codecov was never
-a gate: `fail_ci_if_error: false` means a failed upload is quiet, and Codecov's own statuses are
-`informational: true` in [`.github/codecov.yml`](./.github/codecov.yml). The floor is what fails a build.
-
-**What the app floor does not cover is [`main.dart`](./app/lib/main.dart)'s bootstrap, on purpose.** `main` and `callbackDispatcher` reach
-`Hive.initFlutter`, `SystemChrome`, `FlutterNativeSplash`, `Purchases`, Sentry and WorkManager's Pigeon API in a
-handful of lines, and a test of them asserts that a handful of mocks were called. Every piece they assemble is
-covered on its own, and `ContribKitApp` is covered by `widget_test.dart`.
+**The app has no build flavors.** The stage is chosen by which `dart-defines` file is passed, and `--flavor` fails because there is nothing for it to name: the two files differ by one key ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)).
 
 ## Structure
 
 ```
 CONTEXT.md          domain glossary: the single vocabulary both clients obey
+CODING_STANDARDS.md the rules a reviewer holds a diff to
 ARCHITECTURE.md     the big picture, and the only ADR index
 .github/            CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md, the templates and the workflows
 docs/docs-consistency.test.ts  the repo-wide contract: the one test that lives with its subject, not with the code
@@ -112,17 +71,17 @@ web/src/            domain → application → infrastructure / ui / pages
 app/lib/            domain → application → infrastructure / ui
 ```
 
-Both clients use the same layered architecture with a strict inward dependency direction ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). Web aliases ([`web/tsconfig.json`](./web/tsconfig.json)): `@shared/* @domain/* @application/* @infrastructure/* @ui/*`. Prefer aliases over relative paths.
+Both clients use the same layered architecture with a strict inward dependency direction ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). Web aliases ([`web/tsconfig.json`](./web/tsconfig.json)): `@shared/* @domain/* @application/* @infrastructure/* @ui/*`. An import that crosses a layer uses the alias and one that stays inside its layer is relative, so an alias always marks a crossed boundary; Dart imports are package imports throughout.
 
 **Nested guides**. Read the one for the folder you are touching:
 
 | Folder | Covers |
 | --- | --- |
-| [`web/src/domain/`](./web/src/domain/AGENTS.md) | purity rules, value objects, failures, services |
-| [`web/src/application/`](./web/src/application/AGENTS.md) | curried use cases, `Failure` → HTTP mapping |
-| [`web/src/infrastructure/`](./web/src/infrastructure/AGENTS.md) | GitHub scraping, SVG renderer, logging |
-| [`web/src/ui/`](./web/src/ui/AGENTS.md) · [`components/`](./web/src/ui/components/AGENTS.md) | component groups, colocation |
-| [`web/src/pages/`](./web/src/pages/AGENTS.md) | routes, the composition root |
+| [`web/src/domain/`](./web/src/domain/AGENTS.md) | value objects, the twins with the app, dates, grid and geometry gotchas |
+| [`web/src/application/`](./web/src/application/AGENTS.md) | curried use cases, `Failure` → HTTP mapping, logging and caching helpers |
+| [`web/src/infrastructure/`](./web/src/infrastructure/AGENTS.md) | GitHub scraping, SVG renderer, email, logging |
+| [`web/src/ui/`](./web/src/ui/AGENTS.md) · [`components/`](./web/src/ui/components/AGENTS.md) | the client controller, the markup contract, component groups |
+| [`web/src/pages/`](./web/src/pages/AGENTS.md) | routes, the composition root, the middleware |
 | [`app/lib/domain/`](./app/lib/domain/AGENTS.md) | pure Dart core, entities, value objects |
 | [`app/lib/application/`](./app/lib/application/AGENTS.md) | one class per use case |
 | [`app/lib/infrastructure/`](./app/lib/infrastructure/AGENTS.md) · [`github/dtos/`](./app/lib/infrastructure/github/dtos/AGENTS.md) | clients, persistence, export, DTOs |
@@ -130,232 +89,61 @@ Both clients use the same layered architecture with a strict inward dependency d
 
 ## Conventions
 
-- **Speak the glossary.** [`CONTEXT.md`](./CONTEXT.md) is prescriptive: if the code says something its `_Avoid_` list names, the code is what is wrong. Do not "fix" the glossary to match a stale identifier.
-- **One argument is positional; two or more are one object, typed `<FunctionName>Params`.**
-  `paletteByKey(key)`, `toIsoDate(date)`; `render({ shape, overrides }): RenderParams`,
-  `walk({ dir, match }): WalkParams`. The interface is named after the function, not after the concept,
-  so a reader landing on the type knows what takes it. Two adjacent arguments of the same type are what a
-  caller transposes with nothing to catch it. A function a *runtime* calls back and hands its arguments
-  one at a time (a `sort` comparator, a class given to `vi.stubGlobal`) is the exception.
-- **No code comments**, of any kind, doc comments included. Rationale belongs in commit messages, ADRs, or a
-  folder's guide, never inline ([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)).
-- **Errors are a sealed, typed set.** Returned as values on the web, thrown and matched without a wildcard in the app ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). Never widen a match with `_` to silence the compiler.
-- **Never invent data for the user.** An unknown Count is not zero, and must not be estimated, summed, or displayed as exact.
-- **A Contact Message is the one thing a person types that leaves the device, and it leaves as email.** It is
-  stored nowhere: no database, no log line, no queue. `logContactFailure` takes the failure's kind and the
-  platform's reason and **never the name, the address or the message**
-  ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
-- **Telemetry carries no Username, ever.** A Usage Event is a name plus typed properties drawn from closed sets
-  (a Palette key, a Cell Shape, an Export Format, a Year, an outcome), and no constructor on either client takes a
-  free string, so there is no parameter through which a Username could travel; a Diagnostic Report carries the
-  error's type and stack and never its message, because half the app's `Failure` messages interpolate a Username or
-  a path ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
-  Adding a `String` parameter to a Usage Event, or a message to a report, deletes the guarantee. The masked replay a foreground report carries keeps it only
-  while every widget that shows Contribution Data is a `Text`, an `Image` or listed in `contributionDataWidgets`
-  ([ADR 0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)).
-- **Edit `shared/`, never `app/assets/`.** The copies are generated.
-- **Conventional commits** (commitlint + lefthook). semantic-release owns versioning. Do NOT add a Co-Authored-By / Claude trailer to commits or PRs.
+- **One argument is positional; two or more are one object**, typed `<FunctionName>Params`: `paletteByKey(key)`, `toIsoDate(date)`; `walk({ dir, match }: WalkParams)`. A Dart function with two or more parameters takes them named.
+- **The layers import only inwards**, and a cross-layer import goes through its alias.
+- **No comments** in hand-written source, doc comments included, bar the tool directives `// @vitest-environment` and `/// <reference>`. The reason for a line goes in the commit message, the pull request, an ADR or [CODING_STANDARDS.md](./CODING_STANDARDS.md) ([ADR 0021](./docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)).
+- `pnpm test:docs` fails on a breach of any of the three.
+- **Edit `shared/`, never `app/assets/`.** The copies are generated, and the docs test fails when they drift.
+- **Conventional commits** (commitlint + lefthook), scoped to a workspace package (`contribkit-web`, `contribkit-app`, `global`) or unscoped. semantic-release owns versioning. Do NOT add a Co-Authored-By / Claude trailer to commits or PRs.
 
 ## Maintenance contract
 
-These documents are not generated. A change that does not update them leaves the tree describing code that no longer exists, so when you change code, update the docs **in the same commit**. A follow-up commit is a promise, not a fix.
+These documents are not generated. When you change code, update the docs **in the same commit**: a follow-up commit is a promise, not a fix.
 
-[`docs/docs-consistency.test.ts`](./docs/docs-consistency.test.ts) makes the mechanical half executable: it reads every document as data and asserts the checkable claims against the repo. It runs with `pnpm test:ut`, and on its own with `pnpm test:docs`.
-
-| It asserts | Worth knowing |
-| --- | --- |
-| Every relative link, `../../wiki/` shorthand and cited source path resolves | |
-| No `file.ts:123` citation anywhere | they rot the moment anything above them moves, so name the symbol instead |
-| The ADR set holds its template | sequential numbering from 0000, `NNNN-kebab-title.md`, the `# N. Title` / Date / Status / *Context* / *Decision* / *Consequences* shape, a row in the [`ARCHITECTURE.md`](./ARCHITECTURE.md) index, and a link from some document **other** than that index |
-| `shared/*.json` equals its mirror in `app/assets/` | normalised for trailing whitespace as well. **Every file the contract reads is normalised for line endings**, in `read` itself: a Windows clone with `core.autocrlf=true` used to fail two ADR assertions that compare a heading against a stored title, which is a guard failing for a non-reason |
-| The README's feature *line* names every palette and shape shipped | the line, not the file: `GitHub` and `square` occur elsewhere in the README and made the old whole-file check unfailable |
-| Every pinned version matches the manifest that pins it, and exactly one manifest pins pnpm | Ruby included: `setup-ruby` reads [`app/android/.ruby-version`](./app/android/.ruby-version), which Renovate keeps current, where a `ruby-version:` literal in the workflow was a pin no bot could see |
-| No document outside the ADRs names a runtime or a framework beside a version | the manifest is the only copy Renovate keeps current, so a digit in prose is a claim a bump falsifies; the two sentences that narrate a past bump by its number are allow-listed by name |
-| Every documented `pnpm` script is declared in a [`package.json`](./package.json) | read from code spans, so prose saying "the pnpm and Node pins" is not mistaken for a command |
-| Every source layer carries a nested `AGENTS.md`, listed in both maps, with no stray `CONTEXT.md` outside the root | |
-| Nothing under [`web/src/pages`](./web/src/pages) becomes a public URL by accident | [ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md) |
-| Every bare filename a guide cites still exists | searched across [`app/lib`](./app/lib), [`app/test`](./app/test), [`web/src`](./web/src) and [`web/e2e`](./web/e2e): a guide pointing at the test that pins a rule is citing the most useful file it could |
-| Every glossary term is used somewhere outside the glossary | |
-| No identifier is named after a word a glossary `_Avoid_` list rejects | narrower than it sounds: see below |
-| No `//` **or `/* */`** comment in any hand-written source | `app/lib`, `app/test`, `app/tool`, `web/src`, `web/e2e`, `docs/`, `scripts/` and the `web/*.config.ts` files. The exception list is exactly `// @vitest-environment` and `/// <reference>`, the ones the runner reads, so a `///` Dart doc comment or a `// @TODO` is caught like any other. The block form was invisible for a year |
-| **Both** clients' layers import only inwards, and the app's pure core imports no framework | over `.astro` as well as `.ts`, and over every import form rather than `from "…"` alone: that hole is how a marketing component reached around the domain and counted the raw token JSON instead of the filtered `CELL_SHAPES`. It also resolves a **relative** specifier against the importing file, because an alias prefix was the only thing it read, so `../../infrastructure/...` was invisible, and it now forbids reaching `pages/` from anywhere, which no layer listed. **The app had no such guard at all**: its layering and its `domain/AGENTS.md` promise of zero external dependencies were stated and enforced by nothing. Dart needs no relative-path resolution because `always_use_package_imports` forbids relative imports outright |
-| `shadcn_ui` stays inside [`app/lib/ui/widgets/`](./app/lib/ui/widgets), the theme and the composition root | |
-| **The things written more than once stay identical** | the Embed contract in Dart and TypeScript, the dark palette in its two CSS blocks, and the Cell geometry in Dart, TypeScript **and Kotlin**. The last was called an unclosable gap by [ADR 0020](./docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) on the grounds that the Android widget renders to a bitmap nothing can assert on, which is true of the *output* and not of the numbers in the source. The web path filter, written across every workflow that carried one, used to be on this list and is gone because the filters are gone: one unfiltered `ci.yml` replaced them |
-| Every `observability` block names a `destinations` array for logs and for traces, redacts the query string, and declares no `tail_consumers` | a block with no destination reaches Cloudflare's dashboard and nothing else, which is the silent failure the deleted tail Worker used to have. What the contract cannot check is that the destination *exists*: it is a name resolved against the Cloudflare dashboard ([ADR 0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)) |
-
-**The glossary guard polices far less than its name suggests, deliberately.** It covers the code-shaped terms (`ShapeKind`, `DOW`, `IAP`, `SKU`) anywhere, plus a curated set of plain words (`purchase`, `paywall`, `heatmap`, `donation`, `density`, …) in `.ts` and `.dart` with string literals stripped, so it reads identifiers rather than prose. **A policed word counts as a camelCase segment, not only as a whole token**: the boundary used to be `(?<![A-Za-z0-9])word(?![A-Za-z0-9])`, so `cellDensity` and `densityScale` were both invisible, and the guard was green for the same accidental reason that let `Purchases` sit outside `SDK_SEAMS` for a year. It now also matches a word preceded by a lowercase letter, digit or underscore, while still letting a genuine longer word through (`purchases`, `bucketed`). A companion assertion proves every policed word is one `CONTEXT.md` actually rejects, so the list cannot invent a rule. It is not every term and cannot be: most are ordinary English (`value`, `range`, `save`) that any codebase uses honestly, and some name a platform API rather than our vocabulary: `showPopover` is the HTML Popover API, not a Cell Tooltip called the wrong thing. For the same reason `SDK_SEAMS` exempts the files that speak to the store SDK, whose job is to talk the vendor's language on one side and the glossary's on the other; a further assertion caps that list at two and checks each file still exists, so the exemption cannot quietly grow. `store_error.dart` sat in it unlisted for a year: the glossary guard passed it not because the rule allowed it but because the policed word is `purchase` with a boundary on both sides, and `Purchases`, `PurchasesErrorCode` and `purchaseCancelledError` all carry a trailing alphanumeric. The stripper removes Dart raw strings before escape sequences and works one line at a time, so a regex literal cannot break quote pairing for the rest of a file.
-
-A failure means the docs and the code disagree: fix whichever is wrong, and **never delete an assertion to make it pass**. It cannot check prose or rationale; that part is still on you. Keep its assertions aggregated (one failing list per rule) rather than one case per document.
+[`docs/docs-consistency.test.ts`](./docs/docs-consistency.test.ts) holds these documents, [CODING_STANDARDS.md](./CODING_STANDARDS.md) and the `.github` ones included, to the claims it can check against the repository: links, cited paths and filenames, ADR numbering, shape, index and references, pins and stated versions, package scripts, the guide maps, the twins written in more than one language, the observability, release and workflow configs, and the code rules `CODING_STANDARDS.md` lists as enforced. It runs with `pnpm test:ut`, and on its own with `pnpm test:docs`; CI runs it ungated on every push and pull request ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)). A failure means the docs and the code disagree: fix whichever is wrong, and **never delete an assertion to make it pass**. It cannot check prose or rationale; that part is still on you, and a doc claim you did not verify against the file is a doc claim that is wrong.
 
 | If you change | Update |
 | --- | --- |
-| What a domain word means, or introduce a new one | [`CONTEXT.md`](./CONTEXT.md): vocabulary only, no implementation |
+| What a domain word means, or introduce a new one | [`CONTEXT.md`](./CONTEXT.md): the glossary, vocabulary only |
+| A rule about how code is written | [`CODING_STANDARDS.md`](./CODING_STANDARDS.md) |
 | An identifier that a glossary `_Avoid_` list forbids | the code, not the glossary |
-| A folder's layout or a rule its guide states | that folder's `AGENTS.md` (table above) |
+| A folder's layout, or a coupling or gotcha its guide states | that folder's `AGENTS.md` (table above) |
+| A behaviour a doc states as an invariant or a gotcha | that bullet, or delete it if it stopped being true |
 | A palette, shape, or suggested username | `shared/*.json`, then `pnpm sync:assets`, then the README's feature list |
 | How contributions are fetched or parsed | **both** clients: the parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)) |
+| A constant of the Cell geometry | the Dart, the TypeScript and `ContribKitWidgetProvider.kt` in one change ([ADR 0020](./docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md)) |
 | A public endpoint's behaviour or caching | [`web/README.md`](./web/README.md) and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md) |
-| A `Failure` kind | the exhaustive match that renders it, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
-| A stored Hive key | add a legacy fallback and a migration test, or users silently lose the setting |
-| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), **and** the Play *Data safety* form, whose contents are recorded in [ADR 0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md). The policy names the processors and the region, so a changed host is a policy change. It is no longer Telemetry alone: a Contact Message carries a name, an address and text a person typed, which is why that table has *Personal info* and *Messages* rows and why they are the ones no consent switch governs ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
-| A decision an ADR records | that ADR: amend it, or supersede it and say so in both `## Status` blocks |
+| A `Failure` kind | the exhaustive matches that render it, on the web `failure-http.ts` and both tables in `contribution-errors.ts`, and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved |
+| What a cached calendar means, a DTO field's nullability or the order of `ContributionLevel` | bump `_cacheBoxName` and list the old name in `legacyContributionCacheBoxNames` ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)) |
+| A stored Hive key | a new key goes through `_tolerating`; a renamed one keeps a legacy fallback and a migration test, or a person silently loses the setting |
+| A repository the background isolate builds, or behaviour the Home Screen Widget depends on | `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart), which builds its repositories by hand, and `HomeScreenWidgetRefresh`, never the notifier |
+| An `AppColors` field | both colour schemes in `app/lib/main.dart` |
+| A widget that shows Contribution Data and is not a `Text` or an `Image` | `contributionDataWidgets` ([ADR 0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)) |
+| What the app sends off the device | [`web/src/pages/privacy.astro`](./web/src/pages/privacy.astro), the Privacy sheet's description, **and** the Play *Data safety* form, whose contents are recorded in [ADR 0028](./docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md). The policy names the processors and the region, so a changed host is a policy change. A Contact Message carries a name, an address and text a person typed, which is why that table has *Personal info* and *Messages* rows no consent switch governs ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)) |
+| A decision an ADR records | that ADR: amend it, or supersede it with a new one and say so in both `## Status` blocks |
 | The layer map, a run end to end, or the release pipeline | [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
-| A claim the docs-consistency test asserts, on purpose | the doc first; the test only when the claim itself changed |
+| A claim `docs/docs-consistency.test.ts` asserts, on purpose | the doc first; the test only when the claim itself is what changed |
 
-**How much DDD is a decision, and it is written down.** The layers, the ubiquitous language, the ports and the
-sealed `Failure` set are not negotiable. The tactical patterns are applied where they pay, decided by these
-questions in order: can the illegal state be reached, does anything read it, and does it cross a boundary. A "no"
-to every one of them means write the rule down (an assert, a doc line, an ADR) rather than encode it, because a value
-object nothing reads is the shared-token-nothing-reads trap wearing a pattern's name. [ADR 0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md)
-carries the rule and its worked examples, in both directions.
-
-Propose an ADR in [`docs/adr/`](./docs/adr/) when a decision is **hard to reverse**, **surprising without context**, and **the result of a real trade-off**. All of them, or it is not an ADR. Copy [`0000-adr-template.md`](./docs/adr/0000-adr-template.md) to `NNNN-kebab-title.md`, numbered one above the highest existing file; the `# N. Title` heading carries that same number, and Date / Status / Context / Decision / Consequences are all required. Add a row to the index in [`ARCHITECTURE.md`](./ARCHITECTURE.md) **and** link it from wherever it bites: a gotcha here, a nested guide, a wiki page. Both are asserted, because an ADR only the index points at will not be read. Refer to one as `ADR 0007`, never `ADR 7`: the four-digit form is what the dangling-reference guard can see.
-
-Traps worth naming, because every one of them has already happened here:
-
-- **A rename is not done until the storage key, the background isolate, and the generated code agree.** [`main.dart`](./app/lib/main.dart)'s WorkManager isolate used to read Hive directly, so it survived renames and drifted silently; it now goes through `HiveSettingsRepository` like everything else, which is what makes a renamed key a compile error there rather than a widget that quietly stops updating.
-- **A doc claim you did not verify is a doc claim that is wrong.** ADRs here have asserted exhaustive matching that a wildcard disabled, a shared token nothing reads, and a launch year off by three. Check literally, against the file.
-- **A guard that never runs is not a guard, and this repository stopped relying on filters to avoid it.** The CI
-  used to be two path-filtered workflows, so every assertion had to be paired with the question "which filter
-  carries the files it reads". That question was answered wrong on the app side, on the preview-Worker
-  cleanup, and then on `scripts/**` plus the root manifest, where the contract policed comments and asserted the
-  version pins while a change to either started nothing at all. A further copy of the filter, in the cleanup
-  workflow, had silently drifted behind the others and left preview Workers alive.
-  There is one `ci.yml` now, with **no path filter**, and a `changes` job that gates jobs by `if:` instead. The
-  docs contract runs ungated inside it. So the question no longer has to be asked, and `ci-web-noop.yml`, which
-  existed only to keep a check requireable past a filter, is gone.
-  And a guard that fails for a non-reason is not a guard either: this file's own assertions used to time out at
-  the default five seconds under a parallel run while passing alone, so it sets its own `testTimeout`, and `read`
-  normalises line endings so a Windows clone does not fail them.
+A new ADR starts as a copy of [ADR 0000](./docs/adr/0000-adr-template.md), the template, which says when a decision earns one and where to link it from.
 
 ## Gotchas
 
-- **The release config teaches its parsers the `!` grammar, and a bare config silently drops every breaking change.** `@semantic-release/commit-analyzer` falls back to `conventional-changelog-angular`, whose `headerPattern` is `/^(\w*)(?:\((.*)\))?: (.*)$/`: it wants the colon straight after the scope, so `feat(x)!: …` does not match, the commit is analysed with no type at all and the analyser answers *no release*. The job ends green and publishes nothing, which is the failure mode that matters. Nothing warns you, because `@commitlint/config-conventional` accepts the `!` that the spec defines, so the pull-request title check passes and only the release quietly does nothing. The fix is `parserOpts` on **both** parsing plugins, adding `!?` to the header pattern and a `breakingHeaderPattern`; the `preset` route looks tidier and does not work here, because `conventional-changelog-conventionalcommits@10` needs `conventional-changelog-writer@9` while `@semantic-release/release-notes-generator` pins `^8.0.0`, so the notes step dies on *Missing helper*, and pinning an older preset does not help either: the analyser resolves a preset by name from its own directory first, where pnpm's hidden `node_modules/.pnpm/node_modules` hoist exposes whichever copy commitlint installed. `docs/docs-consistency.test.ts` asserts both plugins carry the same `parserOpts`. Note that `!` then means major on **any** type, exactly as a `BREAKING CHANGE:` footer already did.
-- **Levels come from GitHub, not from us.** Both parsers read `data-level` as authoritative. Only the app derives a level from the count when the attribute is missing; the web drops the day and lets the grid backfill it.
-- **The app's grid covers the year, which is 53 weeks or, twice this century, 54.** Dates outside the requested year are padded as empty days. A leap year opening on a Saturday needs 372 cells and 53×7 is 371, so 2028 and 2056 take a 54th week; `ContributionGridService.weeksFor` is the only answer, and nothing may assume a constant ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
-- **The cache is versioned.** Changing what a cached calendar means requires bumping `_cacheBoxName`; past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)).
-- **The parser uses regexes on purpose.** There is no DOM in a Worker; do not "upgrade" it to an HTML parser ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)).
-- **Tips unlock nothing.** No code may start checking purchase state ([ADR 0009](./docs/adr/0009-tips-are-unconditional-and-unlock-nothing.md)).
-- **`cellSize` on the web is geometry, not Cell Size.** It is a pixel number fed by three fixed presets, and the SVG endpoint has no size parameter. Cell Size as a person's choice exists only in the app ([ADR 0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
-- **The SVG endpoint is not rate-limited, deliberately.** README embeds arrive through GitHub's shared image proxy, so a per-IP limit would throttle everyone at once ([ADR 0010](./docs/adr/0010-rate-limit-only-the-json-api.md)).
-- **Anything you add under `web/src/pages` becomes a public URL.** Astro routes every non-`_` file there, `.md` included. That is how the pages-layer guide ended up served at `/CONTEXT` in production and the colocated route tests ended up as 500-ing endpoints with vitest bundled into the Worker. Route tests live in `_tests/`; the guide is 404'd by `AGENT_GUIDE_ROUTE` in [`web/src/middleware.ts`](./web/src/middleware.ts) ([ADR 0018](./docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
-- **The SVG endpoint is the one route exempt from `Cross-Origin-Resource-Policy: same-origin`.** `EMBED_ROUTE`, which the middleware imports from [`web/src/domain/value-objects/embed.ts`](./web/src/domain/value-objects/embed.ts), matches `/user/<segment>.svg` and nothing else; widening it opts the whole namespace out of a policy the rest of the site relies on ([ADR 0017](./docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md)).
-- **The app has no build flavors.** The stage is chosen by which `dart-defines` file is passed, and `--flavor`
-  fails because there is nothing for it to name: the two files differ by one key
-  ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)).
-- **`noneLight` is app-only.** The web ignores the light-theme palette variant, because an embed cannot know the viewer's theme ([ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)).
-- **A merge landing while `Semantic Release (web)` runs joins that release instead of breaking it.** `@semantic-release/git` commits the version bump and the changelog on the branch the job holds and pushes `HEAD:main`, and `actions/checkout` pins the run's own sha, so a commit that reached `main` in the meantime used to make that push a non-fast-forward: the job failed after the deploy and the smoke run had passed, no tag was written, and a re-run stood down on *The local branch main is behind the remote one*. The job now fast-forwards onto `origin/main` before semantic-release runs, so the version is computed over every commit on `main` at that moment, the ones that landed mid-run included, and the run those commits queued finds nothing left to publish. The cost: a tag can precede the deploy of the commits it absorbed by the minutes their queued run takes, and the web checks ran on them in their pull request rather than in the run that released them. Two cases still stand the job down, and both heal on their own: `main` rewritten under the run, where the sha is no ancestor of the head and the step leaves the checkout alone, and a merge landing in the seconds between the fast-forward and the push. Neither writes a tag, so the run the newer head queued computes the release over everything since the last one and cuts it. `release-app.yml` is untouched: a dispatch with a track is the only way the app releases, by design.
-- **Both components push a release commit, and one concurrency group is the only thing ordering them.** `ci.yml` releases web on a push to `main`; `release-app.yml` releases app on a dispatch. They ran in groups of their own (`release` and `release-app`), so a dispatch during a web release was a race for the branch, and the loser fails its push *after* `@semantic-release/git` has created the tag: a version that exists as a tag with no commit behind it. They share the `release` group now, so the second one waits. forever-pto answers the same question the other way, by letting only one of its packages push at all ([its ADR 0011](https://github.com/fbuireu/forever-pto/blob/main/adr/0011-per-package-versioning-with-a-bridge-tag.md)); either shape works, two pushers in two groups does not, and `docs/docs-consistency.test.ts` asserts the group.
-- **The release commit is the one commit on `main` commitlint never checks.** The hook runs on a branch and [`commit-message.yml`](./.github/workflows/commit-message.yml) reads the pull request title, so nothing but the docs contract sees `@semantic-release/git`'s `message`. Its shape is `chore(<package>): release <version> [skip ci]`, the scope fixed to the package name by `@commitlint/config-pnpm-scopes`, and the `[skip ci]` load-bearing: without it that push starts the run that cuts the next release. The single-package sibling repositories have no package to name and say `chore(release): <version> [skip ci]` instead.
-- **The Better Stack browser tag speaks to two different hosts, and the CSP has to name both.** `b.js` comes from `betterstack.net`; the events go to the *source's own* ingest host, `s<id>.<region>.betterstackdata.com`. `connect-src` named only the first, so the tag loaded, initialised and had every beacon refused by the browser: `Fetch API cannot load … Refused to connect because it violates the document's Content Security Policy`, in the console and nowhere else. Nothing on the server sees it, the tag reports no error of its own, and Better Stack simply shows no sessions, so this reads as "the token is wrong" for as long as you look at the network tab and not the console. The ingest host is per source, which is why the directive names `https://*.betterstackdata.com` rather than the id.
-
-  **GA4 had the same shape and the same silence**, found in the console the moment the Better Stack half started working: gtag loads from `googletagmanager.com` and posts to `region<n>.google-analytics.com`, a *regional* endpoint chosen per visitor, so a `connect-src` naming `www.google-analytics.com` blocks every hit. `https://*.analytics.google.com` does not cover it either: that is a different domain from `google-analytics.com`. The directive names `https://*.google-analytics.com`, which covers `www.` and every region. Pinning one region is the trap forever-pto was in, working for whoever the edge routed to `region1` and silently not for anyone else. **The Cloudflare beacon is the third**, and it made the rule: `static.cloudflareinsights.com` serves it, `cloudflareinsights.com` receives it. `middleware.test.ts` iterates the three vendors and pins, for each, that the load host is in `script-src` and the send host in `connect-src`; the rule to carry away is that **a tag's script host is never its ingest host**, and the browser only ever says so in the console. Whether the beacon is injected at all is a Cloudflare dashboard setting, not a file here, so the CSP admitting it is necessary and not sufficient.
-
-  **`worker-src` is the same trap one level up.** Better Stack's tag builds its sampling worker from a `blob:` URL, and an unset `worker-src` does not default to permissive: it falls back to `script-src`, which admits no blobs, so the worker is refused with *Creating a worker from 'blob:…' violates the following Content Security Policy directive*, naming `script-src`, which is why it reads as a script problem. The directive is stated outright. biancafiore had it before either sibling did and never needed it; these two needed it and did not have it.
-- **`astro check` cannot run on the next TypeScript major, so `typescript` is held below it.** That major ships the Go compiler and no `lib/typescript.js`, and `@astrojs/language-server` reaches for the programmatic API that file exposes: `pnpm check` dies in its `getTsconfig` with *Cannot read properties of undefined (reading 'fileExists')* before it has read a single file. Verified by installing it and running the command, not inferred. Nothing in this tree imports the compiler API itself, so `tsc --noEmit` and the suite are fine and `astro check` alone is what stops, which is enough to fail the whole of `verify:static`. [`renovate.json`](./.github/renovate.json) carries an `allowedVersions` for it, because otherwise a major pull request nobody can merge is opened twice a month; lift both together the day the language server reads the native compiler. forever-pto holds its docs package to the same line for the same reason.
+- **A rename is not done until the storage key, the background isolate and the generated code agree.** The WorkManager isolate in `app/lib/main.dart` reads settings through `HiveSettingsRepository` like everything else, so a renamed key is a compile error there; the `@freezed` and `@riverpod` outputs are committed, so they need `dart run build_runner build` in the same change.
+- **The release config teaches both commit-parsing plugins the `!` grammar** through `parserOpts`, which `pnpm test:docs` holds equal: without it `feat(x)!: …` is analysed with no type, the job ends green and nothing is released, while commitlint accepts the `!`. The `preset` route does not work here: the notes step dies on *Missing helper*. `!` means major on any type, as a `BREAKING CHANGE:` footer does.
+- **Both components push a release commit, and the `release` concurrency group is what orders them**: `ci.yml` releases web on a push to `main`, `release-app.yml` releases app on a dispatch, and both jobs share the group, which the docs test asserts. The release commit is `chore(<package>): release <version> [skip ci]`, the one commit on `main` commitlint never sees, so the docs test asserts its shape too; the `[skip ci]` is what stops it starting the run that cuts the next release.
+- **`minimumReleaseAge` in [`pnpm-workspace.yaml`](./pnpm-workspace.yaml) counts minutes**, so `4320` is three days; Renovate's own `minimumReleaseAge` in [`renovate.json`](./.github/renovate.json) is written with its unit.
+- **The `# Renovate security update: <pkg>@<version>` lines in `pnpm-workspace.yaml` are Renovate's.** renovate[bot] writes one above each entry it adds to `minimumReleaseAgeExclude` when it exempts a security fix from `minimumReleaseAge`, and nothing reads it back, so it is bot output like the lockfile, and the docs test allows exactly that line, in that file alone.
+- **`typescript` is held below its next major** by an `allowedVersions` in [`renovate.json`](./.github/renovate.json), because `astro check` cannot run on it: `@astrojs/language-server` reaches for the programmatic API the next major's Go compiler does not ship. Lift the hold the day the language server reads the native compiler.
 
 ## Deploy
 
-**The deploy names its wrangler environment, and for a long time it did not.** `web/wrangler.toml` keeps
-the bindings under `[env.production]` and `[env.development]`: the two custom domains and the
-`API_RATE_LIMITER` rate limit, which wrangler never inherits into a named environment. `_deploy.yml` derives
-the stage from the GitHub Environment and passed it to the **build** as `CLOUDFLARE_ENV` and to nothing else,
-so `wrangler deploy` ran with no environment selected and shipped the bare top level. Everything in those two
-blocks was configuration that never reached a Worker, and the
-[API rate limit](./docs/adr/0010-rate-limit-only-the-json-api.md) in particular existed only in the file:
-`env.API_RATE_LIMITER` was `undefined` in production and the middleware skipped it. The deploy passes
-`--env` now. `CLOUDFLARE_ENV` on the build step stays, because that is Astro's build-time switch, not
-wrangler's.
+Web deploys to Cloudflare Workers via `ci.yml`: production on a push to `main`, a per-PR preview otherwise. It is server-rendered because the SVG endpoint cannot be prerendered ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). The app ships to Google Play through `release-app.yml` on a manual dispatch with a track. The two components are released independently, which is why GitHub Environments are namespaced `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)); the workflows, the smoke run and the rollback are on the [CI/CD wiki page](./docs/wiki/CI-CD.md).
 
-**The top level mirrors production's observability, and declares placement once.** The top-level `name` is
-the production Worker's, so a hand-run `wrangler deploy` with no `--env` lands on production, and wrangler
-disables observability on any deploy whose selected config omits it (`observability: worker.observability ??
-{ enabled: false }`, with a comment saying it removes the setting on purpose). A bare top level therefore
-switched production's export off on the way to breaking its routes. The `[observability]` blocks at the top
-level are production's, destinations included, and each named environment restates its own; `[placement]`
-is inheritable and stage-independent, so it is written once and nowhere else. This is the shape
-forever-pto's `wrangler.toml` has and asserts, and `docs/docs-consistency.test.ts` asserts it here too.
-
-**`smoke` is the only job that ever touches production, and until it existed nothing did.** `E2E (preview)`
-needs `deploy-development`, which runs on `pull_request` only, so a push to `main` deployed production, cut a
-`web-v*` tag and made no request to `https://contribkit.app` at all. Worse, `release` needed only `web-ci`, so
-the tag, the GitHub release and the changelog entry did not even wait for the deploy: a failed deploy still
-published a version. `release` needs `deploy-production` and `smoke` now, which is what makes a tag mean *the
-version is live and answering*. Both the deploy and the smoke run take the address from the **`SITE_URL` repository variable** rather than
-repeating the domain, and a first step fails `smoke` when it is empty: Playwright falls back to
-`http://localhost:8787` when `BASE_URL` is unset, and a smoke run against nothing is worse than none. It has to be a
-**repository** variable rather than one on `web-production`: neither a job that declares no `environment:` nor a job
-that calls a reusable workflow can read an environment-scoped `vars`, and both would see an empty string. It was
-declared on the two `web-*` environments first, which is exactly how that was found. The build reads it as
-`process.env.SITE_URL` in `astro.config.ts`, **not** `import.meta.env`: Astro exposes only `PUBLIC_`-prefixed names
-through `import.meta.env`, so the first version of that line was undefined whatever the variable said and the site
-silently kept the literal fallback. Verified by building with `SITE_URL=https://example.test` and reading the
-emitted `sitemap-index.xml`: it says `example.test` now and `contribkit.app` with the variable unset. That is also
-why the analytics variables carry the `PUBLIC_` prefix and this one does not: they are read from
-`import.meta.env` in app code, and this one is read in the config. The cases tagged `@smoke` live in [`web/e2e/smoke.spec.ts`](./web/e2e/smoke.spec.ts) and nowhere else, so the set that can revert a deploy is one file rather than a tag scattered through the suite. Every repository that deploys runs the same shared cases (the homepage with a non-empty title, an unknown path answering 404, and `robots.txt`), so a set that differs between them is drift rather than a decision. The remaining case is this repository's alone and earns it: `/user/<name>.svg`, the route
-that [cannot be prerendered](./docs/adr/0007-server-rendered-web-app-on-the-edge.md), so it is the one that
-distinguishes a running Worker from a bucket of assets. A smoke case can only assert what the deploy it follows has
-already published, which is why none of them names a feature. The step passes no `--pass-with-no-tests`, because
-Playwright exiting 1 on an empty set is the only thing keeping the tag honest.
-
-**The smoke job labels its own report.** Playwright's `github` reporter annotates every run with the same
-`🎭 Playwright Run Summary`, whichever suite produced it, so a step writes a *Production smoke tests* heading to
-`$GITHUB_STEP_SUMMARY` first, naming the address it ran against and the sha it followed. The artifact is
-`playwright-smoke-report` for the same reason. The Vitest block gets the same treatment: its
-*Vitest Test Report* heading is a constant inside Vitest's `github-actions` reporter with no rename option,
-so `web/vitest.config.ts` registers `summaryLabel`, a reporter that writes the suite's own heading above the
-block, on CI only. forever-pto and biancafiore label theirs the same way, each shaped to its own config.
-
-**A failed smoke run rolls production back.** Withholding the tag leaves a version that does not answer serving
-traffic, so `rollback` runs `wrangler rollback --env production --yes` from `web/` when `deploy-production`
-succeeded and `smoke` failed, returning the Worker to the version that was live before. It is a separate job
-because it needs the Cloudflare credentials and `smoke` deliberately has none. The cost is the obvious one: a smoke
-case that fails for a reason outside the Worker now reverts a good deploy, which is a further reason
-`/api/health` is out of the set and the rule for anything added to it.
-
-**`Check` needed widening for any of that to be visible.** It aggregates the other jobs and is the only context the
-ruleset names, and its `needs` list stopped at `e2e`: run 33237524280 reported a green `Check` beside a red run
-whose `smoke` job had failed, which is how a broken push looks passing in the branch's checks.
-`deploy-production` and `smoke` are in that list now. They are skipped on a pull request, and a skipped job is not
-a failure, so nothing about the pull-request gate changes.
-
-**`Check` is also what makes `E2E (preview)` a gate, and the cleanup has to wait for it.** The aggregate needs the preview E2E job, so a pull request cannot merge while the suite is red, which neither sibling repository had until they copied this shape. The Worker that suite drives is deleted by `cleanup-development.yml` on `pull_request: closed`, and closing does not cancel the run already going, so the cleanup queues behind it in a concurrency group spelled from the pull request number, `CI-refs/pull/<n>/merge`, which is literally the group `ci.yml` computes for that run. It used to be spelled from `github.ref`, and on a merged pull request that resolves to `refs/heads/main`: the cleanup joined the wrong group, ran under the E2E, and was cancelled whenever merges came close together, which is how a week's worth of preview Workers were left alive. A weekly `sweep` job in the same workflow deletes every `pr-*-contribkit-development` Worker whose pull request is closed, for the cleanups something else still loses.
-
-**`/api/health` was in the set and is not, because production answered it with HTML.** On the first run of this
-job every other case passed and that one failed parsing `<!DOCTYPE …` as JSON. Nothing here renders HTML for that path:
-the route sets `prerender = false` and returns `Response.json`, the middleware's only `/api/` branch returns a JSON
-429, and the same spec passes against the preview Worker on every pull request. What differs in production is the zone,
-not the code, and the case that passed beside it is the strongest evidence: `/user/<name>.svg` is server-rendered too,
-so the Worker is running and routing. **A browser gets the JSON**, checked on 2026-08-29:
-`{"status":"ok"}` with every key `true`, including the `API_RATE_LIMITER` binding that the `--env` fix above is
-what supplies. So the JSON API is up and the zone answers a datacenter address differently from a person: a bot rule
-on `/api/*`. Cloudflare's **Security Events** log names the rule that blocked a given request, which is where a fix
-starts. Tag the case again once that rule stops matching.
-
-**The contact form adds two bindings, one repository variable and no secret, which is the whole reason it is
-shaped this way.** A Contact Message leaves through Cloudflare's `send_email` binding, `CONTACT_EMAIL`, from
-`contact@contribkit.app` to the mailbox the **`MAINTAINER_EMAIL` repository variable** names; anti-abuse is a
-honeypot field plus `CONTACT_RATE_LIMITER`, a second rate limit at five a minute, rather than Turnstile, which
-would need a verification secret
-([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). `CONTACT_EMAIL` is
-declared at the top level **and** in each named environment, and `CONTACT_RATE_LIMITER`, like `API_RATE_LIMITER`,
-in each named environment, for the reason the first paragraph of this section gives. The variable takes the `SITE_URL` route: `_deploy.yml` passes it to the build, `astro.config.ts` declares
-it as a `server`, `public` field, and Astro inlines it, so a changed mailbox reaches nothing until something
-redeploys. The schema field is **not** optional, so a build without it fails the way one without
-`PUBLIC_GOOGLE_ANALYTICS_ID` already does; there is no guard step in the workflow, because the sibling
-repositories carry none and the schema is the guard. `/api/health` reports its presence. The binding used to carry `destination_address =
-"contact@contribkit.app"` and the code sent to the same address, and Cloudflare refused every one of those sends:
-a verified destination address is an external mailbox the account forwards **to**, and the zone's own address can
-never be one. What no file can assert is that the variable's value **is** verified in Email Routing: if it is not,
-every send is refused and the form answers 502 with the platform's reason in Better Stack. `wrangler dev` binds a
-**local** `send_email` that delivers nothing: it writes the whole document as an `.eml` under
-`web/.wrangler/tmp/email/` and answers the Worker as if it had sent, so a local 202 proves the template and the
-envelope render inside workerd and nothing about Email Routing. This guide used to say the binding was absent
-locally and the form answered 502; that was true of an older wrangler and is not now.
-
-Web deploys to Cloudflare Workers via `ci.yml` (production on `main`, a per-PR preview otherwise). A
-manual dispatch on `main` redeploys production and the smoke run behind it: the build inlines the public
-variables, so a rotated analytics token reaches nothing until something redeploys, and rotating it changes no
-file in the tree. It cuts no release: the same sha versions nothing. There are no Worker runtime secrets here
-to ride the deploy, unlike the sibling repositories: `API_RATE_LIMITER` is a binding rather than a secret,
-and the only credentials `_deploy.yml` handles are wrangler's own. It is server-rendered because the SVG endpoint cannot be prerendered ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). The `changes` job counts `docs/**`, `shared/**` and `*.md` as web changes, so a docs-only push to `main` still redeploys production; that is the accepted price of the docs contract and the shared tokens both living outside `web/`. The app ships to Google Play via `release-app.yml` on manual dispatch with a track. The two components are released independently, which is why GitHub Environments are namespaced `<component>-<stage>` ([ADR 0001](./docs/adr/0001-monorepo-with-independently-released-components.md)); see the README for the mapping. A commit that touches both `app/` and `web/` is filed in both changelogs, because `semantic-release-monorepo` attributes by path and `main` takes squash merges. That is correct for a change which genuinely spans both clients, so it is a notice and not a gate: the `cross-package-notice` job in `ci.yml` comments on the pull request and does not block it.
+- **The deploy names its wrangler environment.** `_deploy.yml` derives the stage from the GitHub Environment and passes it to the build as `CLOUDFLARE_ENV`, which is Astro's switch, and to `wrangler deploy` as `--env`, which is wrangler's: the two custom domains and the rate limiters live under `[env.production]` and `[env.development]` in `web/wrangler.toml`, and wrangler never inherits a binding into a named environment.
+- **The top level of `web/wrangler.toml` mirrors production's observability, and declares `[placement]` once.** Its `name` is the production Worker's, so a hand-run `wrangler deploy` with no `--env` lands on production, and wrangler turns observability off on a deploy whose selected config omits it. `pnpm test:docs` asserts the shape.
+- **`SITE_URL` is a repository variable, read as `process.env.SITE_URL` in `astro.config.ts`, not `import.meta.env`**, which exposes only `PUBLIC_`-prefixed names. It has to be a repository variable rather than one on `web-production`: neither a job that declares no `environment:` nor a job that calls a reusable workflow can read an environment-scoped `vars`. The deploy and the smoke run both read it, and `smoke` fails at its first step when it is empty.
+- **The smoke cases carry `@smoke` in [`web/e2e/smoke.spec.ts`](./web/e2e/smoke.spec.ts)**: the three every repository that deploys runs word for word (a titled homepage, an unknown path answering 404, `robots.txt`), plus `/user/<name>.svg`, the route that cannot be prerendered and so the one that tells a running Worker from a bucket of assets. That case asks for `/user/foo_bar.svg`: a Username cannot contain `_`, so the Worker answers its 400 before any request leaves it, and a GitHub outage cannot fail the run and roll back a healthy deploy. The step passes no `--pass-with-no-tests`. `release` needs `deploy-production` and `smoke`, so a tag means the version is live, and a failed smoke run rolls production back. `/api/health` is out of the set: production answers it with HTML to a datacenter address, a bot rule on `/api/*` in the zone that Cloudflare's **Security Events** log names.
+- **`Check` is the one context the ruleset requires**, an aggregate over every gated job under `always()`: a job that must gate a merge goes in its `needs`, and the docs test asserts the list. The preview cleanup queues behind the pull request's own CI run, in the group `CI-refs/pull/<n>/merge` that `ci.yml` computes for it.
+- **The contact form adds two bindings, one repository variable and no secret** ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). `CONTACT_EMAIL` (`send_email`) is declared at the top level **and** in each named environment, `CONTACT_RATE_LIMITER` in each named environment like `API_RATE_LIMITER`, and the **`MAINTAINER_EMAIL` repository variable** takes the `SITE_URL` route: `_deploy.yml` passes it to the build, `astro.config.ts` declares it a required `server`, `public` field, and Astro inlines it, so a changed mailbox reaches nothing until something redeploys. No file can assert that the mailbox is a verified destination in Email Routing: if it is not, every send answers 502 with the platform's reason in Better Stack.
+- **A manual dispatch on `main` redeploys production and the smoke run behind it**, and cuts no release. The build inlines the public variables, so a rotated analytics token reaches nothing until something redeploys, and the only credentials `_deploy.yml` handles are wrangler's own. The `changes` job counts `docs/**`, `shared/**` and `*.md` as web changes, so a docs-only push to `main` redeploys production too.
+- **A commit that touches both `app/` and `web/` is filed in both changelogs**, because `semantic-release-monorepo` attributes by path and `main` takes squash merges; the `cross-package-notice` job comments on such a pull request and does not block it.

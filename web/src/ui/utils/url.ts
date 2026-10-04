@@ -1,5 +1,4 @@
-import { MIN_YEAR } from "@domain/value-objects/year";
-import { z } from "astro/zod";
+import { resolveYear } from "@domain/value-objects/year";
 import { nonBlank } from "./non-blank";
 
 const queryParam = (name: string): string | null => new URLSearchParams(globalThis.location.search).get(name);
@@ -11,8 +10,7 @@ export function readUsernameFromUrl(fallback: string): string {
 }
 
 export function readYearFromUrl(currentYear: number): number {
-	const year = z.coerce.number().pipe(z.int().min(MIN_YEAR).max(currentYear)).safeParse(queryParam("year"));
-	return year.success ? year.data : currentYear;
+	return resolveYear({ requested: queryParam("year"), thisYear: currentYear });
 }
 
 export interface SyncUrlParams {

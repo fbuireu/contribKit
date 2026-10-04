@@ -1,13 +1,8 @@
-import { recordUsageEvent, ThemeChoice, UsageEventName } from "@ui/components/core/telemetry/usage-event";
-import { ElementId } from "@ui/utils/dom-contract";
+import { ElementId, ThemeClass } from "../../../utils/dom-contract";
+import { recordUsageEvent, ThemeChoice, UsageEventName } from "../telemetry/usage-event";
 
 export const COLOR_SCHEME_KEY = "color-scheme";
 export const COLOR_SCHEME_META_SELECTOR = `meta[name="${COLOR_SCHEME_KEY}"]`;
-
-export const ThemeClass = {
-	Light: "theme-light",
-	Dark: "theme-dark",
-} as const;
 
 export function initThemeToggle(): void {
 	const button = document.getElementById(ElementId.ThemeToggle);
@@ -19,15 +14,15 @@ export function initThemeToggle(): void {
 		const storedScheme = localStorage.getItem(COLOR_SCHEME_KEY);
 		return storedScheme === ThemeChoice.Light || storedScheme === ThemeChoice.Dark ? storedScheme : null;
 	}
-	function effective(): string {
-		return pinned() ?? (darkModeMediaQuery.matches ? "dark" : "light");
+	function effective(): ThemeChoice {
+		return pinned() ?? (darkModeMediaQuery.matches ? ThemeChoice.Dark : ThemeChoice.Light);
 	}
 	function apply(): void {
 		const pinnedScheme = pinned();
-		document.documentElement.classList.toggle(ThemeClass.Light, pinnedScheme === "light");
-		document.documentElement.classList.toggle(ThemeClass.Dark, pinnedScheme === "dark");
+		document.documentElement.classList.toggle(ThemeClass.Light, pinnedScheme === ThemeChoice.Light);
+		document.documentElement.classList.toggle(ThemeClass.Dark, pinnedScheme === ThemeChoice.Dark);
 		if (meta) meta.content = pinnedScheme ?? "light dark";
-		const isDark = effective() === "dark";
+		const isDark = effective() === ThemeChoice.Dark;
 		(button as HTMLElement).dataset.effective = effective();
 		(button as HTMLElement).setAttribute("aria-pressed", String(isDark));
 		(button as HTMLElement).setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
@@ -40,7 +35,7 @@ export function initThemeToggle(): void {
 		if (pinnedScheme) {
 			localStorage.removeItem(COLOR_SCHEME_KEY);
 		} else {
-			localStorage.setItem(COLOR_SCHEME_KEY, darkModeMediaQuery.matches ? "light" : "dark");
+			localStorage.setItem(COLOR_SCHEME_KEY, darkModeMediaQuery.matches ? ThemeChoice.Light : ThemeChoice.Dark);
 		}
 		apply();
 		recordUsageEvent({ event: UsageEventName.ThemeChanged, properties: { theme: pinned() ?? ThemeChoice.System } });

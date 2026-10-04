@@ -1,6 +1,9 @@
 ---
 import "./error-view.css";
-import GitHub from "@ui/components/icons/GitHub.astro";
+import { ClassName, ElementId } from "../../utils/dom-contract";
+import ArrowLeft from "../icons/ArrowLeft.astro";
+import GitHub from "../icons/GitHub.astro";
+import Reload from "../icons/Reload.astro";
 import ContributionCode from "./ContributionCode.astro";
 import { type ErrorAction, ErrorActionIcon, type TerminalLine, TerminalLineKind, Tone } from "./types";
 
@@ -29,7 +32,7 @@ const {
 const seed = code === 500 ? 7 : 3;
 ---
 
-<section class:list={["error-page", { "is-danger": tone === Tone.Danger }]} aria-labelledby="error-title">
+<section class:list={[ClassName.ErrorPage, { [ClassName.DangerTone]: tone === Tone.Danger }]} aria-labelledby={ElementId.ErrorTitle}>
   <div class="error-glow" aria-hidden="true"></div>
   <div class="error-texture" aria-hidden="true"></div>
 
@@ -38,11 +41,11 @@ const seed = code === 500 ? 7 : 3;
       <ContributionCode digits={String(code)} seed={seed} />
     </div>
 
-    <p class="error-eyebrow mono">{eyebrow}</p>
-    <h1 class="error-title" id="error-title">{title}</h1>
+    <p class:list={[ClassName.ErrorEyebrow, "mono"]}>{eyebrow}</p>
+    <h1 class="error-title" id={ElementId.ErrorTitle}>{title}</h1>
     <p class="error-msg dim">{message}</p>
 
-    <div class="error-terminal mono">
+    <div class:list={[ClassName.ErrorTerminal, "mono"]}>
       <div class="error-term-bar">
         <span class="error-term-dot" aria-hidden="true"></span>
         <span class="error-term-dot" aria-hidden="true"></span>
@@ -67,18 +70,7 @@ const seed = code === 500 ? 7 : 3;
 
     <div class="error-actions">
       <a class="error-btn error-btn-primary" href={primary.href}>
-        {
-          primary.icon === ErrorActionIcon.Reload ? (
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M13.6 8a5.6 5.6 0 1 1-1.7-4" />
-              <path d="M12.5 1.5v3h-3" />
-            </svg>
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M13 8H3M7 4L3 8l4 4" />
-            </svg>
-          )
-        }
+        {primary.icon === ErrorActionIcon.Reload ? <Reload /> : <ArrowLeft />}
         {primary.label}
       </a>
       <a class="error-btn error-btn-ghost" href={reportUrl} target="_blank" rel="noopener noreferrer">

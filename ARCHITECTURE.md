@@ -2,9 +2,10 @@
 
 How ContribKit is built, for contributors. What it does and how to use it is the [README](./README.md) and the
 user guides in [docs/wiki/](./docs/wiki/), in particular [How It Works](../../wiki/How-It-Works) and
-[Project Structure](../../wiki/Project-Structure); this document does not restate them. Conventions and the
-maintenance contract are [AGENTS.md](./AGENTS.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to
-work on the repo is [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
+[Project Structure](../../wiki/Project-Structure); this document does not restate them. The commands and the
+maintenance contract are [AGENTS.md](./AGENTS.md), the rules a change is reviewed against are
+[CODING_STANDARDS.md](./CODING_STANDARDS.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to work on
+the repo is [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 The thing to understand before anything else: **the same domain is implemented twice**, in TypeScript and in Dart,
 deliberately ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). The layering is heavier
@@ -34,7 +35,7 @@ flowchart TD
     web --> json["GET /api/contributions"]
     web --> contact["POST /api/contact"]
     app --> contact
-    app --> widget["home-screen widget"]
+    app --> widget["Home Screen Widget"]
     app --> export["PNG · SVG · Markdown"]
 
     classDef pure stroke:#dfb317,stroke-width:3px
@@ -46,7 +47,7 @@ flowchart TD
 | Component | What it is | Released as |
 | --- | --- | --- |
 | [`web/`](./web/README.md) | Astro (`output: "server"`) on `@astrojs/cloudflare`, serving the site plus the public SVG and JSON endpoints | `web-vX.Y.Z`, deployed to Cloudflare Workers |
-| [`app/`](./app/README.md) | Flutter iOS/Android client with home-screen widgets and a tip jar | `app-vX.Y.Z`, shipped to Google Play |
+| [`app/`](./app/README.md) | Flutter iOS/Android client with Home Screen Widgets and a Tip Jar | `app-vX.Y.Z`, shipped to Google Play |
 | [`shared/`](./shared/README.md) | Plain JSON design tokens: `palettes.json`, [`shapes.json`](./shared/shapes.json), [`usernames.json`](./shared/usernames.json) | not released; consumed by both |
 
 Neither client needs a GitHub token. Both read the same public contributions page
@@ -86,7 +87,7 @@ flowchart TD
 
     subgraph A["app/lib: Dart"]
         aui["ui/<br/>widgets · Riverpod"] --> aapp["application/<br/>one class per use case"]
-        aui --> ainfra["infrastructure/<br/>GitHub · Hive · export · IAP"]
+        aui --> ainfra["infrastructure/<br/>GitHub · Hive · Exports · Tips"]
         aapp --> adom["domain/<br/>pure Dart"]
         ainfra --> adom
     end
@@ -105,7 +106,7 @@ The diagram is its picture.
 | domain | [`web/src/domain/`](./web/src/domain) · `@domain/*` | [`app/lib/domain/`](./app/lib/domain) | nothing but the language stdlib, plus `shared/*.json` as data on the web | Astro, Cloudflare, `fetch`, Flutter, Riverpod, `dart:ui` |
 | application | [`web/src/application/`](./web/src/application) · `@application/*` | [`app/lib/application/`](./app/lib/application) | domain | infrastructure, ui, pages, any framework |
 | infrastructure | [`web/src/infrastructure/`](./web/src/infrastructure) · `@infrastructure/*` | [`app/lib/infrastructure/`](./app/lib/infrastructure) | domain | ui, pages, application |
-| ui | [`web/src/ui/`](./web/src/ui) · `@ui/*` | [`app/lib/ui/`](./app/lib/ui) | domain; the app also reaches application, and infrastructure **only** through `ui/di/` | web-side: infrastructure. `application` is permitted there and no file imports it: a web component reaching for `@application/*` is legal and a signal the page should be passing the result down instead |
+| ui | [`web/src/ui/`](./web/src/ui) · `@ui/*` | [`app/lib/ui/`](./app/lib/ui) | domain; the app also reaches application, and infrastructure **only** through `ui/di/` | web-side: infrastructure and application: a component that needs a use case's result gets it from the page |
 | pages | [`web/src/pages/`](./web/src/pages) | - (the app's composition root is `ui/di/providers.dart`) | everything | - |
 
 Three rules govern the diagram in both languages:
@@ -117,9 +118,9 @@ Three rules govern the diagram in both languages:
 - **Errors are a sealed, typed set** ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)),
   and the two clients carry that set differently. See §4.
 
-The codebase-wide conventions those boundaries sit inside are stated once in
-[AGENTS.md](./AGENTS.md#conventions); what each layer actually guarantees is that layer's own `AGENTS.md`, linked
-in [§7](#7-where-things-live).
+The codebase-wide rules those boundaries sit inside are stated once, in
+[CODING_STANDARDS.md](./CODING_STANDARDS.md); what an implementer needs inside a layer is that layer's own
+`AGENTS.md`, linked in [§7](#7-where-things-live).
 
 ## 3. A request, end to end
 
@@ -130,9 +131,9 @@ in [§7](#7-where-things-live).
 | 1 | `parseUsername(params.username)` | domain | Returns a `Username` or an `InvalidInput` failure; nothing downstream sees an unvalidated handle |
 | 2 | `loadContributions({ username, year: null })` | pages | Bound once in [`web/src/pages/_contributions.ts`](./web/src/pages/_contributions.ts), which every data route imports: the repository method is captured at module load, the call takes the request |
 | 3 | `githubHtmlContributionRepository.fetchCalendar(...)` fetches and parses | infrastructure | Regexes over the rendered page: there is no DOM in a Worker ([ADR 0006](./docs/adr/0006-parse-the-contributions-page-with-regexes.md)) |
-| 4 | `querySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
+| 4 | `embedQuerySchema.parse(...)` over `palette`, `shape`, `background` | pages | Zod with `.catch(default)`, so a junk parameter degrades to the default instead of erroring |
 | 5 | `buildRollingGrid(...)` then `svgStringRenderer({ days, options })` | domain → infrastructure | The lattice first, then string concatenation: no DOM |
-| 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Elsewhere it differs: `/api/health` is `no-store`, and the landing page is `private` either way (one hour once a visitor has asked for someone, `no-store` for the default view) |
+| 6 | `Cache-Control: public, max-age=3600, stale-while-revalidate=86400` | pages | Same header on `/api/contributions`. Elsewhere it differs: `/api/health` is `no-store`, and the landing page is `private` either way (one hour when a visitor asked for someone and the calendar loaded, `no-store` otherwise) |
 
 Any failure short-circuits: `isFailure` guards the result and `statusFor` / `messageFor` in
 [`web/src/application/http/failure-http.ts`](./web/src/application/http/failure-http.ts) turn it into a response. Anything at or above `SERVER_ERROR_STATUS` is
@@ -148,20 +149,19 @@ through GitHub's shared image proxy, so a per-IP limit would throttle every read
 | --- | --- | --- | --- |
 | 1 | [`providers.dart`](./app/lib/ui/di/providers.dart) constructs repositories and use cases | ui/di | The only file allowed to import `infrastructure/` and `application/` at once |
 | 2 | `FetchContributions.call(...)` | application | One class, one public `call` |
-| 3 | `GitHubContributionRepository.fetchCalendar(...)` | infrastructure | Hive cache first: 1h TTL for the current year, indefinite for past years ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)) |
+| 3 | `GitHubContributionRepository.fetchCalendar(...)` | infrastructure | Hive cache first: an entry written while its Year was under way expires after an hour, and one written after the Year ended never does ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)) |
 | 4 | DTO → entity at the boundary | infrastructure/github/dtos | A DTO never leaves the layer |
 | 5 | Grid padded to cover the year | domain | `ContributionGridService.buildFor` pads dates outside the requested year with an unknown Count, over the 53 or 54 whole weeks the year needs ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). Both the fresh fetch and the cache read go through it, and the web builds its grid in its own domain layer |
 | 6 | `ContributionStats` derived | domain/services | Streaks, best day, best month, weekly average, active days |
 
 Separately, `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart) runs every 24 hours under WorkManager to refresh the
-home-screen widget. It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
-hand. But it reads settings through `SettingsRepository` like everything else, so a renamed key breaks it
-at compile time. It read the box by string literal until that changed, which is one of the traps named in
-[AGENTS.md](./AGENTS.md#maintenance-contract). What it then does with them is `HomeScreenWidgetRefresh`, the same
-module the foreground writes through: the refresh sequence used to be spelled out in both places, so the isolate
-could drift from the app without anything failing. When the refresh throws, `DiagnosticReportService.warrants`
-decides whether the `Failure` is a defect worth a Diagnostic Report or the world's doing (no network, a rate limit,
-a renamed account), which the isolate answers with a retry and reports to nobody.
+Home Screen Widget. It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
+hand, and it reads settings through `SettingsRepository` like everything else, so a renamed key breaks it at compile
+time ([AGENTS.md](./AGENTS.md#maintenance-contract)). The refresh itself is `HomeScreenWidgetRefresh`, which writes
+through `HomeScreenWidgetService.update`, the writer the Viewer calls in the foreground, so both hand the Home Screen
+Widget the same payload. When the refresh throws, `DiagnosticReportService.warrants` decides whether the `Failure` is
+a defect worth a Diagnostic Report or the world's doing (no network, a rate limit, a renamed account, a refused
+delivery), which the isolate answers with a retry and reports to nobody.
 
 ## 4. Failures
 
@@ -175,8 +175,8 @@ the difference is the point: each client can only fail in the ways it can actual
 
 The web returns failures because a Worker route is a function from request to response and a thrown error there is
 just a 500 with no shape. The app throws them because a `sealed class` plus an exhaustive `switch` is how Dart makes
-a missed case a compile error. Adding a kind to either set means updating the exhaustive match that renders it, in
-the same commit.
+a missed case a compile error. Adding a kind to either set means updating every exhaustive match over it, in the
+same commit.
 
 `Delivery` is the newest, and it is the first kind both sets gained in the same change: a Contact Message that Email
 Routing refused is neither a bad request nor an unreachable GitHub
@@ -296,8 +296,9 @@ secrets; the full mapping is in the [README](./README.md#monorepo-development).
 
 ## 7. Where things live
 
-Three axes, three kinds of document. [CONTEXT.md](./CONTEXT.md) is the domain glossary: what the words **mean**.
-The `AGENTS.md` files (one at the root, one per layer) are **structure**, and they load automatically when an
+Four kinds of document. [CONTEXT.md](./CONTEXT.md) is the domain glossary: what the words **mean**.
+[CODING_STANDARDS.md](./CODING_STANDARDS.md) is the **rules** a change is reviewed against. The `AGENTS.md` files
+(one at the root, one per layer) are the **map**: commands, couplings and gotchas, and they load automatically when an
 agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 
 | ADR | Decision |
@@ -340,10 +341,11 @@ and it needs a link from somewhere other than this index: an ADR only the index 
 
 | Document | Covers |
 | --- | --- |
-| [AGENTS.md](./AGENTS.md) | Commands, conventions, the maintenance contract; loaded into every agent session |
+| [AGENTS.md](./AGENTS.md) | Commands, structure, the maintenance contract and the gotchas; loaded into every agent session |
+| [CODING_STANDARDS.md](./CODING_STANDARDS.md) | The rules a change is reviewed against, each hard or judgement, and which of them the tooling enforces |
 | [CONTEXT.md](./CONTEXT.md) | The domain glossary both clients obey, and the words to avoid |
 | [CONTRIBUTING.md](./.github/CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
-| [web/src/domain/AGENTS.md](./web/src/domain/AGENTS.md) | Purity rules, value objects, failures, services |
+| [web/src/domain/AGENTS.md](./web/src/domain/AGENTS.md) | Value objects, failures, services |
 | [web/src/application/AGENTS.md](./web/src/application/AGENTS.md) | Curried use cases, `Failure` → HTTP mapping |
 | [web/src/infrastructure/AGENTS.md](./web/src/infrastructure/AGENTS.md) | GitHub scraping, the SVG renderer, logging |
 | [web/src/ui/AGENTS.md](./web/src/ui/AGENTS.md) · [components/](./web/src/ui/components/AGENTS.md) | Component groups and colocation |
@@ -355,7 +357,7 @@ and it needs a link from somewhere other than this index: an ADR only the index 
 | [docs/plans/](./docs/plans/) | Work deferred on purpose, kept because the decision to defer is the record |
 | [docs/wiki/](./docs/wiki/) | The published GitHub wiki: user-facing, synced by `sync-wiki.yml` |
 
-One guide per layer, and one level deeper only where a directory has rules of its own
+One guide per layer, and one level deeper only where a directory has couplings and gotchas of its own
 (`ui/components/`, `ui/di/`, `ui/theme/`, `github/dtos/`). A guide in a subdirectory only reaches the agent once it
 opens a file in that exact folder, so a deeper split costs reach.
 
@@ -367,29 +369,206 @@ opens a file in that exact folder, so a deeper split costs reach.
 | **Add a `Failure` kind** | The sealed set ([`web/src/domain/failures/failure.ts`](./web/src/domain/failures/failure.ts) or [`app/lib/domain/failures/failure.dart`](./app/lib/domain/failures/failure.dart)), every exhaustive match over it (on the web `web/src/application/http/failure-http.ts`), and [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md) if the contract itself moved. Never widen a match with `_`. |
 | **Change how contributions are fetched or parsed** | **Both** clients. The parser is duplicated on purpose ([ADR 0011](./docs/adr/0011-keep-the-apps-own-scraper-for-now.md)), so a fix in one is a bug left in the other. Levels come from GitHub's `data-level`, not from the count. |
 | **Add a surface that sends a Contact Message** | The domain value object and its Dart twin (the length limits are diffed by the docs contract), the route, and the privacy policy's *Contact form* section. Delivery is the `send_email` binding and nothing else ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). |
-| **Add a web query parameter** | `querySchema` in the route, with a `.catch(default)`; the render options in [`web/src/domain/services/types.ts`](./web/src/domain/services/types.ts); then `web/README.md` and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md). |
-| **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, **plus a legacy-key fallback and a migration test**. The background isolate reads through the same repository, so it follows automatically. |
+| **Add a web query parameter** | `embedQuerySchema` in the SVG route, with a `.catch(default)`; the render options in [`web/src/domain/services/types.ts`](./web/src/domain/services/types.ts); then `web/README.md` and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md). |
+| **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, read through `_tolerating`; renaming a key adds **a legacy-key fallback and a migration test**. The background isolate reads through the same repository, so it follows automatically. |
 | **Change what a cached calendar means** | Bump `_cacheBoxName` in the app's contribution repository. Past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)). |
-| **Introduce or redefine a domain word** | [CONTEXT.md](./CONTEXT.md) first, then the identifiers. The glossary is prescriptive: if the code says something an `_Avoid_` list names, the code is what is wrong. |
+| **Introduce or redefine a domain word** | [CONTEXT.md](./CONTEXT.md) first, then the identifiers, which the *Words* rules in [CODING_STANDARDS.md](./CODING_STANDARDS.md) hold to it. |
 
 ## 9. Known inconsistencies
 
-Most of what this section used to list has either been fixed in the source or promoted to an ADR, because the
-divergence turned out to be deliberate: `shapes.json` bundled but unread
+A divergence that is deliberate is an ADR rather than an entry here: `shapes.json` bundled but unread
 ([0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)), `noneLight` app-only
-([0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)), the app unable to represent an unknown Count until
-[0019](./docs/adr/0019-an-unknown-count-is-null-in-both-clients.md) closed it, and Cell Size named in one client
-and numeric in the other ([0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
+([0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)), and Cell Size named in one client and numeric
+in the other ([0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)). An
+unknown Count is `null` in both clients ([0019](./docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)).
 
-One is outstanding:
+These are outstanding. Each names the symbol that proves it and the change that resolves it.
 
-- **The JSON endpoint still answers with `cells` as well as `days`.** [`web/src/pages/api/contributions.ts`](./web/src/pages/api/contributions.ts) returns
+### Both clients
+
+- **The JSON endpoint answers with `cells` as well as `days`.** [`web/src/pages/api/contributions.ts`](./web/src/pages/api/contributions.ts) returns
   `{ username, days: [...], cells: [...], total }`, the two pointing at the same array. `cells` is on the
   glossary's `_Avoid_` list for Contribution Day (a Cell is the square, a Contribution Day is the data behind
-  it), and every identifier inside both clients now says `days`. The field survives only because it is a **published
+  it), and every identifier inside both clients says `days`. The field survives only because it is a **published
   contract**: dropping it breaks any consumer written against the shipped shape, so it stays until a release that
   says out loud that it is going. `web/README.md` and `docs/wiki/API-Reference.md` document `days` as the field to
   read and `cells` as deprecated. Do not add a third name, and do not remove this entry until the alias is gone.
+- **Both Embed URL builders take the Username as a string.** `Embed.urlFor` in
+  [`app/lib/domain/value_objects/embed.dart`](./app/lib/domain/value_objects/embed.dart) and `buildEmbedUrl` in
+  [`web/src/domain/value-objects/embed.ts`](./web/src/domain/value-objects/embed.ts) take `username` as a `String`, so
+  their callers unwrap the value object before the URL is built. The twins change together. The fix: both take a
+  `Username`, in one change, with the web's `ui/` state holding one.
+- **A GitHub answer outside 200, 404 and 429 reads as an unreachable server.** `GitHubContributionRepository` throws
+  `NetworkFailure(message: 'HTTP <code>')` and `githubHtmlContributionRepository` returns a `network` failure with the
+  status, so `FailureMessage.of` says the server could not be reached and `contributionError` says "could not reach
+  github" to a request GitHub answered, against "give each cause its own kind". The fix: a kind of its own for an
+  answer GitHub refused, in both sealed sets and in
+  [ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md), since the web publishes its kinds.
+- **The two clients spell a rate limit's wait differently.** The web's `RateLimited` failure carries
+  `retryAfterSeconds` and the app's `RateLimitedFailure` carries `resetAt`, against the rule that a field is spelled
+  the same way in both clients: the web forwards the wait as `Retry-After`, and the app prints the time it ends. The
+  fix: one field in both, or the reason written into both domain guides as a deliberate difference.
+- **Some names miss the glossary's terms.** `statsWithScrapedTotal` and `scrapedTotal` in
+  [`web/src/domain/services/contribution-stats.ts`](./web/src/domain/services/contribution-stats.ts) (Total
+  Contributions); `WEEKS_PER_YEAR` in [`web/src/domain/services/dates.ts`](./web/src/domain/services/dates.ts), the
+  Rolling Window's 53 rather than a Year's weeks; `DEFAULT_USERNAME`, the first Suggested Username;
+  `unknownTotalPhrase` in
+  [`app/lib/ui/features/viewer/widgets/contribution_format.dart`](./app/lib/ui/features/viewer/widgets/contribution_format.dart),
+  which also names a Cell's unknown Count; `totalText` in `ContribKitWidgetProvider.kt`; and on the web
+  `Widget.astro`, `Customize.astro`, `renderWidget`, `renderCustomize`, `CUSTOMIZE_GRID_GEOMETRY` and
+  `WIDGET_DEMO_LEVELS`. The fix: `statsWithScrapedTotalContributions`, `ROLLING_WINDOW_WEEKS`,
+  `FIRST_SUGGESTED_USERNAME`, `unknownCountPhrase`, `totalContributionsText`, and the Home Screen Widget and the
+  Customizer for the rest. `SiteSection.Widget` and `SiteSection.Custom` stay, being published values.
+- **Some tests compute or forge what they check.** `contribution_stats_service_test.dart` expects
+  `10.0 / cal.weeks.length` and `export_geometry_service_test.dart` rewrites the size formula, where a literal number
+  would catch a wrong formula; `cell_geometry_service_test.dart` pins that no Cell Size lands on a radius of 2.0,
+  which a legitimate 10-pixel Cell Size would break; `github-html-contributions-repository.test.ts` builds its
+  `Username` with a cast. The fix: literal expectations, the 2.0 case deleted, and `parseUsername` in the web test.
 
-When another is found, record it here with the symbol that proves it, and delete the entry once the code changes:
-an entry that has quietly become false is worse than no list at all.
+### The app
+
+- **`PlatformExportDelivery` converts nothing.** `shareFile` and `copyText` in
+  [`app/lib/infrastructure/export/platform_export_delivery.dart`](./app/lib/infrastructure/export/platform_export_delivery.dart)
+  let a `PlatformException` reach `ExportSheet` raw, where every other adapter turns what the platform raises into a
+  `Failure`. The fix: a `try` in each that throws an `ExportFailure`, with tests that fail the channel.
+- **`ExportSheet` keeps its state in loose fields.** `_exporting` and `_copied` in
+  [`app/lib/ui/features/export/export_sheet.dart`](./app/lib/ui/features/export/export_sheet.dart) can both be set,
+  so the sheet can say it copied while another Export runs; `TipJarState` and `ContactSheetState` are the sealed
+  shape the other sheets use. The fix: a sealed `ExportSheetState`, with its test.
+- **An empty `usernames.json` is not a failure.** `AssetSuggestedUsernameRepository` returns the empty list, and the
+  Viewer's `_Suggestions` then draws its label with no Suggested Username after it, where a malformed file is an
+  `AssetFailure`. The fix: an `AssetFailure` for an empty list too.
+- **A `Failure`'s detail is read only by `toString`.** The `message` of `NetworkFailure`, `ParseFailure`,
+  `CacheFailure`, `DeliveryFailure`, `ExportFailure`, `TipFailure` and `UnexpectedFailure`, and `AssetFailure.asset`,
+  in [`app/lib/domain/failures/failure.dart`](./app/lib/domain/failures/failure.dart), reach no screen, because
+  `FailureMessage.of` paints fixed copy for each, and no Diagnostic Report, because `_scrub` replaces every exception
+  value: a debug console and a failing test print them. The fix: say in `CODING_STANDARDS.md` that `toString` is the
+  reader a `Failure`'s detail is kept for, or drop the fields.
+- **`AppSettings.backgroundPresetName` is a `String`.** It and `SettingsRepository.saveBackgroundPreset` carry a name
+  although `BackgroundPreset` is a domain enum, so `ViewerNotifier` applies the default itself through
+  `BackgroundPreset.byName`, where every other setting arrives defaulted. The fix: a `BackgroundPreset` field that
+  `HiveSettingsRepository.load()` defaults as it does `cellShape`, read through the `cardBackground` fallback, and a
+  `saveBackgroundPreset` that takes the enum.
+- **`UsageEvent.properties` is a mutable `Map`.** The constructors in
+  [`app/lib/domain/value_objects/usage_event.dart`](./app/lib/domain/value_objects/usage_event.dart) that are not
+  `const` pass map literals, so an assignment into `properties` compiles and changes an event's `==` after it was
+  compared. The fix: `Map.unmodifiable` in the private constructor.
+- **The 20-second timeout is declared twice.** `_timeout` and its message are written in both
+  [`app/lib/infrastructure/github/contribution_repository_impl.dart`](./app/lib/infrastructure/github/contribution_repository_impl.dart)
+  and [`app/lib/infrastructure/contact/http_contact_message_repository.dart`](./app/lib/infrastructure/contact/http_contact_message_repository.dart).
+  The fix: one constant in `infrastructure/http/`, beside `RetryAfter`.
+- **The Contribution Level fallback is written twice, in infrastructure.** `GitHubContributionRepository` maps a
+  level with `_levelFromIndex(...) ?? ContributionLevelService.levelFor(...)` once for a scraped day and once in
+  `_toDomain` for a cached one, computing the Year's highest Count eagerly in the first and lazily in the second,
+  where the web clamps a level in its domain (`contributionDay`). The fix: one function on `ContributionLevelService`
+  that takes the stored level, the Count and the highest Count, called from both.
+- **The asset repositories have no test.** Nothing pins how `AssetPaletteRepository` and
+  `AssetSuggestedUsernameRepository` turn a missing or malformed asset into an `AssetFailure`. The fix: tests with the
+  `flutter/assets` channel mocked, for malformed JSON, an element that is not a string and a missing file.
+- **The daylight-saving tests observe nothing in CI.** "places a day that falls inside daylight saving time" in
+  `contribution_grid_service_test.dart` and in `contribution_repository_impl_test.dart` runs in UTC, where no day is
+  23 or 25 hours long. The fix: run those two files a second time under a zone with daylight saving
+  (`TZ=Europe/Madrid`) in the app's CI job.
+- **The Username error under the Viewer's field says "single hyphens".** The `ArgumentError` in
+  [`app/lib/domain/value_objects/username.dart`](./app/lib/domain/value_objects/username.dart), which `ViewerScreen`
+  shows as written, says a Username "may only contain alphanumeric characters or single hyphens", while its pattern
+  accepts `a--b` on purpose. The fix: "may only contain letters, digits and hyphens, and cannot begin or end with a
+  hyphen".
+- **The Stats panel labels Total Contributions "TOTAL".** `StatsPanel` in
+  [`app/lib/ui/features/viewer/widgets/stats_panel.dart`](./app/lib/ui/features/viewer/widgets/stats_panel.dart) uses
+  a word the glossary's `_Avoid_` list rejects, and the term does not fit where it stands: the three cards share one
+  row, which at 360 logical pixels and below already breaks the figure over two lines. The fix: Total Contributions on
+  a full-width row of its own above the two Streaks, where the term and the figure both fit.
+
+### The web
+
+- **The SVG endpoint's labels are low-opacity white.** `MONTH_LABEL_FILL` and `WEEKDAY_LABEL_FILL` in
+  [`web/src/infrastructure/rendering/svg-string-renderer.ts`](./web/src/infrastructure/rendering/svg-string-renderer.ts)
+  are `rgba(255,255,255,…)`, which reads on a dark background and is close to invisible on a light one. The cause is
+  the one [ADR 0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md) records for `noneLight`: the server
+  cannot know the theme of the page that embeds it. The fix: a `prefers-color-scheme: light` rule inside the SVG,
+  which an `<img>` honours, so the labels darken for a viewer whose scheme is light.
+- **`/api/health` has no failure boundary.** [`web/src/pages/api/health.ts`](./web/src/pages/api/health.ts) is the one
+  endpoint route whose handler is not wrapped in the `try`/`catch` that logs through `logServerError`. The fix: the
+  same boundary, with its test, or the rule scoped to the routes that call out.
+- **The home page's mock-ups keep their invented figures beside a real Username.** `Widget.astro` and
+  `HowItWorks.astro` print fixed Counts and streaks, and `renderWidget` and `page-init.ts` write the visitor's
+  Username into the same mock-ups. The fix: the visitor's own figures, or mock-ups that carry no Username.
+- **A `Network` failure's own message reaches the public bodies.** `messageFor` in
+  [`web/src/application/http/failure-http.ts`](./web/src/application/http/failure-http.ts) returns `failure.message`
+  for `Network`, which `githubHtmlContributionRepository` fills with `errorMessageOf(error)` of a rejected `fetch` or
+  `response.text()`, so the platform's wording reaches the SVG endpoint's `text/plain` body and the JSON `error`
+  field, against "write a failure message as public copy". The routes log `messageFor` too. The fix: a fixed sentence
+  for `Network` in `messageFor`, as `Delivery` has, and `reasonFor` in the log.
+- **The browser's own requests have no timeout.** `initContactForm` in
+  [`web/src/ui/components/contact/contact-form.ts`](./web/src/ui/components/contact/contact-form.ts) and `sendRequest`
+  in [`web/src/ui/utils/page-init.ts`](./web/src/ui/utils/page-init.ts) call `fetch` with no `signal`, so a request
+  that never answers leaves the form sending and the calendar loading; the timeout rule names the Worker and the app
+  only. The fix: `AbortSignal.timeout(20_000)` on both, handled as the failure each already shows, and the rule
+  widened to the browser.
+- **The contact email's reply links are not encoded.** `replyHref` and the reply link in `ContactMessageEmail.tsx`
+  interpolate `message.email` raw, and the address rule (`CONTACT_EMAIL_REGEX`, and its Dart twin) admits `?`, `&` and
+  `%`, so an address such as `ada@example.com?cc=…` adds a recipient to the maintainer's reply. The fix:
+  percent-encode the address in both links, or refuse `?`, `&`, `%` and `#` in both clients' rule.
+- **The contact delivery's `try` covers more than the send.** `cloudflareContactMessageRepository.deliver` in
+  [`web/src/infrastructure/email/cloudflare-contact-message-repository.ts`](./web/src/infrastructure/email/cloudflare-contact-message-repository.ts)
+  wraps rendering and MIME building along with `binding.send`, so a defect in the template answers as a `Delivery`
+  502 rather than a 500, and a missing `CONTACT_EMAIL` binding, which is configuration, is a `Delivery` too. The fix:
+  the `try` around `binding.send` alone, so a template defect and a missing binding reach the route's boundary as the
+  500 they are.
+- **The footer reads `package.json` from outside `web/src`.** `Footer.astro` imports
+  `../../../../../package.json` for its version, a relative path out of the layers that the import check does not
+  see. The fix: a `__WEB_VERSION__` in `vite.define`, beside `__APP_VERSION__`.
+- **The Export section advertises the PNG of an empty calendar.** `Export.astro` sizes the PNG tab with
+  `calendarLayout({ days: [] })`, so it says 24×108 beside a preview of the whole calendar, and nothing rewrites it
+  after a render. The fix: size it from the days the page renders, and rewrite it in `renderExportPreview` after a
+  fetch.
+- **The SVG tab previews sample markup, not what it copies.** `buildSvgLines` in
+  [`web/src/ui/components/export/code-preview.ts`](./web/src/ui/components/export/code-preview.ts) shows a
+  `0 0 636 84` viewBox, three sample Cells and a count of the rest, while the copy button copies
+  `renderCalendarString` of the calendar on screen, whose viewBox carries the Export padding (`0 0 660 108` for 53
+  weeks) and which is 54 weeks wide in 2028. The fix: build the preview from the string the button copies, its
+  opening tag, its first Cells and a count of the rest, which needs no request.
+- **A rejected Year records the Usage Event reason `invalid_username`.** `contributionFailureReason` in
+  [`web/src/ui/utils/contribution-errors.ts`](./web/src/ui/utils/contribution-errors.ts) picks the reason by status,
+  so a 400 on `field: "year"` counts as `invalid_username`. The landing reaches that 400 itself: `CURRENT_YEAR` in
+  `page-init.ts` is the visitor's local year, read once at load, and a back or forward navigation to a URL with no
+  `year` requests it, which for a visitor east of UTC in the first hours of 1 January is past the Worker's UTC year.
+  The fix: the reason from the body's `kind` and `field`, as `contributionError` reads them, which adds a reason
+  value the dashboards learn, and the browser's year read in UTC, as the Worker reads it.
+- **The landing's `DaySource` switch has a `default`.** [`web/src/pages/index.astro`](./web/src/pages/index.astro)
+  draws placeholder data under `default:`, so a fourth `DaySource` would draw it too with no type error. The fix:
+  `case DaySource.Placeholder:`.
+- **Five pages spell their robots directive.** `404.astro`, `500.astro`, `legal-notice.astro`, `privacy.astro` and
+  `terms.astro` write `"noindex, nofollow"` where `RobotsDirective.NoIndexNoFollow` exists, against the rule that a
+  value from a closed set comes from its const object. The fix: read the const object.
+- **Some web copy uses words the glossary rejects, or says what is not so.** "a contribution square" in `404.astro`
+  (a Cell); "In-app purchases", "voluntary purchases" and "purchase history" in `terms.astro` and `privacy.astro` (a
+  Tip is never a purchase); the header's "customize" and "widget" links; "Pin the widget" and "Background, gradient,
+  intensity, density" in `HowItWorks.astro`, where "intensity" and "density" are the words the glossary rejects for
+  Contribution Level and Cell Size and no gradient exists; and the cookie banner's "performance-monitoring".
+  `500.astro` prints "(E_RENDER)", which reads as a real identifier, and the Hero says "available on iOS & Android"
+  beside a disabled "Coming soon to the App Store". The fix: the glossary's term where it fits the layout, and for
+  the legal pages either "voluntary payments made through the store" or a stated exception for the store's own
+  category.
+- **Collections come back mutable.** `buildGridFromApi` and `buildRollingGrid` in
+  [`web/src/domain/services/calendar-grid.ts`](./web/src/domain/services/calendar-grid.ts) return `ContributionDay[]`,
+  `chunkWeeks` returns `T[][]`, and `getDays` and `setDays` in
+  [`web/src/ui/utils/state.ts`](./web/src/ui/utils/state.ts) hand out and demand a mutable array, where the
+  judgement rule asks for readonly data. The fix: `readonly` throughout, with `renderCalendarString` and
+  `generateMiniGrid` accepting it.
+
+### Tooling and configuration
+
+- **The glossary guard's left boundary always holds.** In `docs/docs-consistency.test.ts`, "names no identifier
+  after a plain word the glossary rejects" opens its pattern with `(?:(?<![A-Za-z0-9])|(?<=[a-z0-9_]))` under the
+  `i` flag, which every position satisfies, so a policed word at the end of a longer one counts: `workshopUrl` would
+  be reported for `shop`. The fix: a case-sensitive hump, `(?-i:(?<=[a-z0-9_])(?=[A-Z]))`, as the second
+  alternative.
+- **Renovate waits four days and pnpm three.** `minimumReleaseAge` is `"4 days"` in
+  [`.github/renovate.json`](./.github/renovate.json) and `4320` minutes in
+  [`pnpm-workspace.yaml`](./pnpm-workspace.yaml), and nothing says whether the extra day is deliberate. The fix: one
+  value, or the reason beside the gotcha in `AGENTS.md`.
+
+When another is found, record it here with the symbol that proves it and the change that resolves it, and delete the
+entry once the code changes: an entry that has quietly become false is worse than no list at all.

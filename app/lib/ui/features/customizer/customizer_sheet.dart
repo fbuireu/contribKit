@@ -31,7 +31,7 @@ class CustomizerSheet extends ConsumerWidget {
     final notifier = ref.read(viewerProvider.notifier);
 
     return AppSheet(
-      title: const Text('Customize'),
+      title: const Text('Customizer'),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

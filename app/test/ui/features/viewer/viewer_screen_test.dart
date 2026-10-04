@@ -41,8 +41,8 @@ Future<void> _pumpViewer(
   }
 }
 
-Future<void> _submit(WidgetTester tester, String name) async {
-  await tester.enterText(find.byType(AppTextField), name);
+Future<void> _submit(WidgetTester tester, {required String text}) async {
+  await tester.enterText(find.byType(AppTextField), text);
   await tester.testTextInput.receiveAction(TextInputAction.done);
   await tester.pumpAndSettle();
 }
@@ -121,11 +121,11 @@ void main() {
         ),
       );
 
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
 
       expect(find.byType(ContributionGrid), findsOneWidget);
       expect(find.text('1,234 contributions'), findsOneWidget);
-      expect(find.text('Customize'), findsOneWidget);
+      expect(find.text('Customizer'), findsOneWidget);
       expect(find.text('Export'), findsOneWidget);
     });
 
@@ -139,7 +139,7 @@ void main() {
         overrides: appOverrides(contributions: contributions),
       );
 
-      await _submit(tester, 'not a username');
+      await _submit(tester, text: 'not a username');
 
       expect(find.byType(ContributionGrid), findsNothing);
       expect(
@@ -156,7 +156,7 @@ void main() {
     testWidgets('an empty submission does nothing at all', (tester) async {
       await _pumpViewer(tester);
 
-      await _submit(tester, '   ');
+      await _submit(tester, text: '   ');
 
       expect(find.byType(ContributionGrid), findsNothing);
       expect(
@@ -177,11 +177,35 @@ void main() {
         ),
       );
 
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
 
       expect(find.text(FailureMessage.of(failure)), findsOneWidget);
       expect(find.text('Try again'), findsOneWidget);
     });
+
+    testWidgets(
+      'a network failure shows fixed copy, never the URL it carries',
+      (tester) async {
+        const failure = NetworkFailure(
+          message:
+              'ClientException: Connection closed, '
+              'uri=https://github.com/users/octocat/contributions',
+        );
+
+        await _pumpViewer(
+          tester,
+          overrides: appOverrides(
+            contributions: FakeContributionRepository(failure: failure),
+          ),
+        );
+
+        await _submit(tester, text: 'octocat');
+
+        expect(find.text(FailureMessage.of(failure)), findsOneWidget);
+        expect(find.textContaining('github.com'), findsNothing);
+        expect(find.textContaining('ClientException'), findsNothing);
+      },
+    );
 
     testWidgets('Try again asks again, and shows what came back', (
       tester,
@@ -195,7 +219,7 @@ void main() {
           ),
         ),
       );
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
       expect(find.text('Try again'), findsOneWidget);
 
       await tester.tap(find.text('Try again'));
@@ -215,7 +239,7 @@ void main() {
         ),
       );
 
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
 
       expect(find.text('cached'), findsOneWidget);
     });
@@ -232,7 +256,7 @@ void main() {
         tester,
         overrides: appOverrides(contributions: contributions),
       );
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
 
       await tester.tap(find.byIcon(LucideIcons.refreshCw));
       await tester.pumpAndSettle();
@@ -241,14 +265,26 @@ void main() {
       expect(contributions.fetches, 2);
     });
 
-    testWidgets('offers every year back to the first one GitHub has', (
+    testWidgets(
+      'offers every year from the one its clock says back to the first one '
+      'GitHub has',
+      (tester) async {
+        await _pumpViewer(tester);
+
+        expect(find.text('${testToday.year}'), findsOneWidget);
+        expect(find.text('${testToday.year + 1}'), findsNothing);
+        expect(find.text('${Year.minYear}'), findsOneWidget);
+      },
+    );
+
+    testWidgets('asks for the year its clock says when no year was chosen', (
       tester,
     ) async {
       await _pumpViewer(tester);
 
-      final currentYear = DateTime.now().year;
-      expect(find.text('$currentYear'), findsOneWidget);
-      expect(find.text('${Year.minYear}'), findsOneWidget);
+      await _submit(tester, text: 'octocat');
+
+      expect(find.text('CONTRIBUTIONS · ${testToday.year}'), findsOneWidget);
     });
 
     testWidgets('picking a year refetches that year for the same person', (
@@ -262,8 +298,9 @@ void main() {
           ),
         ),
       );
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
 
+      await tester.ensureVisible(find.text('2020'));
       await tester.tap(find.text('2020'));
       await tester.pumpAndSettle();
 
@@ -279,7 +316,7 @@ void main() {
           settings: FakeSettingsRepository(
             settings: AppSettings(
               lastUsername: Username('torvalds'),
-              lastYear: Year(2024),
+              lastYear: Year(2024, today: testToday),
             ),
           ),
           contributions: FakeContributionRepository(
@@ -335,7 +372,7 @@ void main() {
         tester,
         overrides: appOverrides(usageEvents: usageEvents),
       );
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
       usageEvents.recorded.clear();
 
       await tester.ensureVisible(find.text('Export'));
@@ -355,18 +392,18 @@ void main() {
         overrides: appOverrides(usageEvents: usageEvents),
       );
 
-      await _submit(tester, 'octocat');
+      await _submit(tester, text: 'octocat');
       await tester.tap(find.text('gaearon'));
       await tester.pumpAndSettle();
 
       expect(usageEvents.recorded, [
         UsageEvent.calendarViewed(
-          year: Year.current,
+          year: Year.current(today: testToday),
           source: CalendarRequestSource.typed,
           fromCache: false,
         ),
         UsageEvent.calendarViewed(
-          year: Year.current,
+          year: Year.current(today: testToday),
           source: CalendarRequestSource.suggestion,
           fromCache: false,
         ),

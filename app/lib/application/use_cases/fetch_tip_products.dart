@@ -6,5 +6,5 @@ final class FetchTipProducts {
 
   final TipRepository _repository;
 
-  Future<List<TipProduct>> call() => _repository.getProducts();
+  Future<List<TipProduct>> call() => _repository.getTipProducts();
 }

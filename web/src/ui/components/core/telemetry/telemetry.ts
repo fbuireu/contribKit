@@ -1,3 +1,6 @@
+import { acceptedService } from "vanilla-cookieconsent";
+import { ConsentCategory, ConsentService } from "../cookie-consent/config";
+
 interface Telemetry {
 	syncGoogleConsent(granted: boolean): void;
 	loadGoogleAnalytics(): void;
@@ -6,12 +9,24 @@ interface Telemetry {
 
 export const BETTER_STACK_TAG_ORIGIN = "https://betterstack.net";
 
+export const GoogleConsentState = {
+	Granted: "granted",
+	Denied: "denied",
+} as const;
+
 const DEVELOPMENT_HOSTS = ["localhost", "127.0.0.1"];
 
-export type TrackingEnvironment = "production" | "development";
+export const TelemetryEnvironment = {
+	Production: "production",
+	Development: "development",
+} as const;
 
-export const trackingEnvironmentFor = (hostname: string): TrackingEnvironment =>
-	DEVELOPMENT_HOSTS.includes(hostname) || hostname.endsWith(".workers.dev") ? "development" : "production";
+export type TelemetryEnvironment = (typeof TelemetryEnvironment)[keyof typeof TelemetryEnvironment];
+
+export const telemetryEnvironmentFor = (hostname: string): TelemetryEnvironment =>
+	DEVELOPMENT_HOSTS.includes(hostname) || hostname.endsWith(".workers.dev")
+		? TelemetryEnvironment.Development
+		: TelemetryEnvironment.Production;
 
 const appendScript = (src: string): void => {
 	const script = document.createElement("script");
@@ -38,7 +53,7 @@ function createTelemetry(): Telemetry {
 	return {
 		syncGoogleConsent(granted) {
 			window.gtag?.("consent", "update", {
-				analytics_storage: granted ? "granted" : "denied",
+				analytics_storage: granted ? GoogleConsentState.Granted : GoogleConsentState.Denied,
 			});
 		},
 		loadGoogleAnalytics() {
@@ -54,7 +69,7 @@ function createTelemetry(): Telemetry {
 
 			queueCallsUntilTheTagLoads();
 			appendScript(`${BETTER_STACK_TAG_ORIGIN}/b.js?t=${encodeURIComponent(token)}`);
-			window.betterstack?.("init", { environment: trackingEnvironmentFor(window.location.hostname) });
+			window.betterstack?.("init", { environment: telemetryEnvironmentFor(window.location.hostname) });
 		},
 	};
 }
@@ -62,3 +77,17 @@ function createTelemetry(): Telemetry {
 let instance: Telemetry | null = null;
 
 export const getTelemetry = (): Telemetry => (instance ??= createTelemetry());
+
+const applyConsent = (): void => {
+	const telemetry = getTelemetry();
+	const googleGranted = acceptedService(ConsentService.GoogleAnalytics, ConsentCategory.Analytics);
+	telemetry.syncGoogleConsent(googleGranted);
+	if (googleGranted) telemetry.loadGoogleAnalytics();
+	if (acceptedService(ConsentService.BetterStack, ConsentCategory.Analytics)) telemetry.loadBetterStack();
+};
+
+export function initTelemetry(): void {
+	applyConsent();
+	window.addEventListener("cc:onConsent", applyConsent);
+	window.addEventListener("cc:onChange", applyConsent);
+}

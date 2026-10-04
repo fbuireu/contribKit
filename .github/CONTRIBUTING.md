@@ -5,7 +5,8 @@ Cloudflare Workers and a Flutter mobile app, and most of what is unusual about c
 that one fact. Read this before your first pull request; it will save you a rejected commit.
 
 If you want the shape of the codebase, that is [AGENTS.md](../AGENTS.md) and the nested guides it links, and
-[ARCHITECTURE.md](../ARCHITECTURE.md) for the big picture. If you want the vocabulary, that is
+[ARCHITECTURE.md](../ARCHITECTURE.md) for the big picture. If you want how code here is written, and what a review
+holds a diff to, that is [CODING_STANDARDS.md](../CODING_STANDARDS.md). If you want the vocabulary, that is
 [CONTEXT.md](../CONTEXT.md). If you want the *why*, that is [docs/adr/](../docs/adr/).
 
 ## Code of Conduct
@@ -52,8 +53,8 @@ included, so the documents are where the explanation lives
 ([ADR 0021](../docs/adr/0021-the-source-carries-no-comments-and-the-documents-carry-the-reasons.md)). The
 user-facing documentation is the [wiki](../docs/wiki/), edited **in this repository** and published by
 [`sync-wiki.yml`](./workflows/sync-wiki.yml) on every push touching it, so an edit made in the wiki UI is
-overwritten on the next sync. The agent-facing guides (`AGENTS.md` and friends) are held to the code by a
-test, so read *The docs are part of the change* below before editing one.
+overwritten on the next sync. The agent-facing guides (`AGENTS.md` and friends) and `CODING_STANDARDS.md` are
+held to the code by a test, so read *The docs are part of the change* below before editing one.
 
 ## Getting started
 
@@ -112,8 +113,8 @@ forget.
 Everything CI runs, you can run locally. For the web, from `web/`:
 
 ```bash
-pnpm lint:all             # biome lint over web, docs and .github (append :fix to autofix)
-pnpm format:all           # biome check --write, the same three
+pnpm lint:all             # biome lint over web, docs, .github and scripts (append :fix to autofix)
+pnpm format:all           # biome check --write, the same four
 pnpm typecheck            # wrangler types + astro sync + tsc --noEmit
 pnpm check                # astro check: the only thing that typechecks .astro files
 pnpm test:ut              # vitest, the docs contract included
@@ -133,9 +134,10 @@ flutter test --coverage && dart run tool/check_coverage.dart   # the floor CI an
 lefthook runs Biome, `dart format`, `dart analyze --fatal-infos` and the shared-token sync on `pre-commit`, commitlint on `commit-msg`, and on `pre-push`
 `pnpm verify:changed` for the web plus `dart analyze --fatal-infos` and the coverage run for the app, the
 latter only when a Dart file, `pubspec.yaml` or `analysis_options.yaml` is in the push. The web hook runs the
-changed-only variant rather than `verify` because the coverage floor and a subset run cannot both hold; CI
-runs the full `pnpm verify` on the pushed sha, so a push whose coverage dropped still fails its check.
-[AGENTS.md](../AGENTS.md) explains the trade.
+changed-only variant rather than `verify` because the coverage floor and a subset run cannot both hold:
+`web/vitest.config.ts` sets `coverage.include` over all of `web/src`, so a run over the changed tests reports every
+file they did not load as zero and fails the floor on a clean tree. CI runs the full `pnpm verify` on the pushed
+sha, so a push whose coverage dropped still fails its check.
 
 [`app/analysis_options.yaml`](../app/analysis_options.yaml) sits well above `flutter_lints`, and the rules it
 adds are the ones a reviewer would otherwise have to say out loud: `directives_ordering` and
@@ -149,29 +151,18 @@ renders, and `discarded_futures` fires on every `onPressed` that starts one, whi
 asks for. `dart fix --apply` fixes most of what the rest catch, but read its diff: it moves a primary
 constructor below the factories that call it, and both value objects it touched had to be put back by hand.
 
-**It is `dart analyze`, and it used to be `flutter analyze`, and that difference turned fifteen rules off.**
-`riverpod_lint` is installed through the `plugins:` block in
+**It is `dart analyze`, never `flutter analyze`.** `riverpod_lint` is installed through the `plugins:` block in
 [`app/analysis_options.yaml`](../app/analysis_options.yaml), which is the `analysis_server_plugin` mechanism
-its README documents. `dart analyze` loads that plugin; `flutter analyze` does not. A public property on a
-generated `Notifier`, which `avoid_public_notifier_properties` exists to catch, was reported by one and passed
-clean by the other, and CI, both hooks and every document ran the one that passed. The plugin's version there
-is a **range** (`^3.1.0`) rather than the exact pin it used to be: the exact one said `3.1.3` while
-`pubspec.yaml` resolved `3.1.8`, which is one fact written twice with two different answers and only one of
-them kept current by a bot.
+its README documents. `dart analyze` loads that plugin; `flutter analyze` does not, so every one of its rules
+(`avoid_public_notifier_properties` among them) is silently off under it. The plugin's version there is a
+**range** rather than an exact pin, so it cannot disagree with the version `pubspec.yaml` resolves, which is the one
+a bot keeps current.
 
-## Conventions that will bite you if you skip them
+## Code conventions
 
-- **Use the glossary's words.** [CONTEXT.md](../CONTEXT.md) is prescriptive: if the code says something its
-  `_Avoid_` list names, the code is what is wrong. Do not edit the glossary to match a stale identifier.
-- **No code comments**, doc comments included. The `AGENTS.md` guides carry the explanation.
-- **One argument is positional and two or more are a single object typed `<FunctionName>Params`**:
-  `render({ shape, overrides }: RenderParams)`. The exception is a function a runtime calls back, such as a
-  `sort` comparator, which is handed its arguments one at a time.
-- **Errors are a sealed, typed set.** Returned as values on the web, thrown and matched without a wildcard
-  in the app. Never widen a match with `_` to silence the compiler.
-- **Never invent data for the user.** An unknown Count is not zero, and must not be estimated, summed, or
-  displayed as exact.
-- **Edit `shared/`, never `app/assets/`.** The copies are generated.
+How code here is written is [CODING_STANDARDS.md](../CODING_STANDARDS.md), the file a review holds a diff to. It
+opens with what Biome, the analyzers, the type checkers and the tests already enforce; the rules after that are the
+ones a reviewer checks by hand.
 
 ## Commit rules
 
@@ -197,8 +188,8 @@ the docs contract.
 **`main` takes squash merges, so the pull request title is the commit that lands.** The `commit-msg` hook
 lints what you type locally, and [`commit-message.yml`](./workflows/commit-message.yml) lints the pull
 request title on every open and edit, because that title is what semantic-release parses to decide the
-version and which component's changelog the entry goes in. That is how `ci(web):` reached `main` twice while
-this document said it was rejected. Title the pull request the way you would title a commit.
+version and which component's changelog the entry goes in. Title the pull request the way you would title a
+commit.
 
 **One pull request, one client, usually.** `semantic-release-monorepo` files a commit in the changelog of every package whose files it touched, and
 `main` takes squash merges, so a pull request spanning `app/` and `web/` lands as one commit in both
@@ -248,9 +239,7 @@ ADR only the index points at will not be read.
 If you use AI tools when contributing:
 
 - **Review everything it produces.** You are responsible for what you submit.
-- **Check its claims against the code.** The documents here have already carried an ADR asserting an
-  exhaustive match that a wildcard had disabled, and a launch year that was wrong by three. A doc claim
-  nobody verified is a doc claim that is wrong.
+- **Check its claims against the code.** A doc claim nobody verified is a doc claim that is wrong.
 - **Disclose significant use** in the pull request description.
 - **Do not add a Claude or Copilot co-author trailer** to commits or pull requests.
 

@@ -14,6 +14,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import '../../support/fixtures.dart';
+
 String _day({
   required String id,
   required String date,
@@ -24,7 +26,7 @@ String _day({
   return '<td class="$cssClass" id="$id" data-date="$date"$levelAttr></td>';
 }
 
-String _tip({required String id, required int count}) =>
+String _tooltip({required String id, required int count}) =>
     '<tool-tip for="$id">$count contributions on some day.</tool-tip>';
 
 http.Client _clientReturning(
@@ -37,8 +39,8 @@ List<ContributionDay> _allDays(ContributionCalendar calendar) =>
     calendar.weeks.expand((week) => week.days).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
 
-ContributionDay _dayOn(ContributionCalendar calendar, String iso) {
-  final wanted = DateTime.parse(iso);
+ContributionDay _dayOn(ContributionCalendar calendar, {required String date}) {
+  final wanted = DateTime.parse(date);
   return _allDays(calendar).firstWhere(
     (day) =>
         day.date.year == wanted.year &&
@@ -51,7 +53,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final username = Username('octocat');
-  final year = Year(2023);
+  final year = Year(2023, today: testToday);
   late Directory hiveDir;
 
   setUp(() async {
@@ -73,7 +75,10 @@ void main() {
           return http.Response('', 200);
         });
         final repository = GitHubContributionRepository(
-          httpClient: _ClosingClient(injected, () => closed = true),
+          httpClient: _ClosingClient(
+            inner: injected,
+            onClose: () => closed = true,
+          ),
         );
 
         repository.close();
@@ -96,8 +101,8 @@ void main() {
         final html =
             _day(id: 'a', date: '2023-03-06', level: '7') +
             _day(id: 'b', date: '2023-03-07', level: '4') +
-            _tip(id: 'a', count: 1) +
-            _tip(id: 'b', count: 100);
+            _tooltip(id: 'a', count: 1) +
+            _tooltip(id: 'b', count: 100);
 
         final repository = GitHubContributionRepository(
           httpClient: _clientReturning(html),
@@ -109,7 +114,7 @@ void main() {
         );
 
         expect(
-          _dayOn(result.calendar, '2023-03-06').level,
+          _dayOn(result.calendar, date: '2023-03-06').level,
           ContributionLevel.veryHigh,
           reason:
               'the web clamps to veryHigh; falling back to the count gives low',
@@ -158,7 +163,7 @@ void main() {
       );
 
       expect(
-        _dayOn(result.calendar, '2023-03-06').count,
+        _dayOn(result.calendar, date: '2023-03-06').count,
         1234,
         reason: 'truncating to 1 reports a wrong number as an exact one',
       );
@@ -172,8 +177,8 @@ void main() {
         final html =
             _day(id: 'a', date: '2023-03-06', level: '1') +
             _day(id: 'b', date: '2023-03-07', level: '4') +
-            _tip(id: 'a', count: 10) +
-            _tip(id: 'b', count: 1);
+            _tooltip(id: 'a', count: 10) +
+            _tooltip(id: 'b', count: 1);
 
         final repository = GitHubContributionRepository(
           httpClient: _clientReturning(html),
@@ -183,14 +188,14 @@ void main() {
           username: username,
           year: year,
         );
-        expect(_dayOn(result.calendar, '2023-03-06').count, 10);
+        expect(_dayOn(result.calendar, date: '2023-03-06').count, 10);
         expect(
-          _dayOn(result.calendar, '2023-03-06').level,
+          _dayOn(result.calendar, date: '2023-03-06').level,
           ContributionLevel.low,
         );
-        expect(_dayOn(result.calendar, '2023-03-07').count, 1);
+        expect(_dayOn(result.calendar, date: '2023-03-07').count, 1);
         expect(
-          _dayOn(result.calendar, '2023-03-07').level,
+          _dayOn(result.calendar, date: '2023-03-07').level,
           ContributionLevel.veryHigh,
         );
       },
@@ -200,8 +205,8 @@ void main() {
       final html =
           _day(id: 'a', date: '2023-03-06') +
           _day(id: 'b', date: '2023-03-07') +
-          _tip(id: 'a', count: 10) +
-          _tip(id: 'b', count: 1);
+          _tooltip(id: 'a', count: 10) +
+          _tooltip(id: 'b', count: 1);
 
       final repository = GitHubContributionRepository(
         httpClient: _clientReturning(html),
@@ -212,11 +217,11 @@ void main() {
         year: year,
       );
       expect(
-        _dayOn(result.calendar, '2023-03-06').level,
+        _dayOn(result.calendar, date: '2023-03-06').level,
         ContributionLevel.veryHigh,
       );
       expect(
-        _dayOn(result.calendar, '2023-03-07').level,
+        _dayOn(result.calendar, date: '2023-03-07').level,
         ContributionLevel.low,
       );
     });
@@ -229,7 +234,7 @@ void main() {
             level: '3',
             cssClass: 'ContributionCalendar-day extra-class',
           ) +
-          _tip(id: 'a', count: 5);
+          _tooltip(id: 'a', count: 5);
 
       final repository = GitHubContributionRepository(
         httpClient: _clientReturning(html),
@@ -241,7 +246,7 @@ void main() {
       );
 
       expect(
-        _dayOn(result.calendar, '2023-03-06').level,
+        _dayOn(result.calendar, date: '2023-03-06').level,
         ContributionLevel.high,
       );
     });
@@ -253,7 +258,7 @@ void main() {
       () async {
         final html =
             _day(id: 'a', date: '2023-03-06', level: '2') +
-            _tip(id: 'a', count: 4);
+            _tooltip(id: 'a', count: 4);
 
         final result = await GitHubContributionRepository(
           httpClient: _clientReturning(html),
@@ -281,7 +286,7 @@ void main() {
       () async {
         final html =
             _day(id: 'a', date: '2023-03-06', level: '2') +
-            _tip(id: 'a', count: 4);
+            _tooltip(id: 'a', count: 4);
 
         final result = await GitHubContributionRepository(
           httpClient: _clientReturning(html),
@@ -310,13 +315,13 @@ void main() {
     test('places a day that falls inside daylight saving time', () async {
       final html =
           _day(id: 'a', date: '2023-07-15', level: '3') +
-          _tip(id: 'a', count: 9);
+          _tooltip(id: 'a', count: 9);
 
       final result = await GitHubContributionRepository(
         httpClient: _clientReturning(html),
       ).fetchCalendar(username: username, year: year);
 
-      expect(_dayOn(result.calendar, '2023-07-15').count, 9);
+      expect(_dayOn(result.calendar, date: '2023-07-15').count, 9);
       expect(
         _allDays(result.calendar)
             .every((day) => day.date.hour == 0 && day.date.minute == 0),
@@ -330,8 +335,8 @@ void main() {
       final html =
           _day(id: 'a', date: '2023-03-06', level: '1') +
           _day(id: 'b', date: '2023-03-07', level: '4') +
-          _tip(id: 'a', count: 10) +
-          _tip(id: 'b', count: 1);
+          _tooltip(id: 'a', count: 10) +
+          _tooltip(id: 'b', count: 1);
 
       final fresh = await GitHubContributionRepository(
         httpClient: _clientReturning(html),
@@ -346,11 +351,11 @@ void main() {
 
       expect(cached.fromCache, isTrue);
       expect(
-        _dayOn(cached.calendar, '2023-03-06').level,
+        _dayOn(cached.calendar, date: '2023-03-06').level,
         ContributionLevel.low,
       );
       expect(
-        _dayOn(cached.calendar, '2023-03-07').level,
+        _dayOn(cached.calendar, date: '2023-03-07').level,
         ContributionLevel.veryHigh,
       );
     });
@@ -358,7 +363,7 @@ void main() {
     test('writes every field the read side declares, and no other', () async {
       final html =
           _day(id: 'a', date: '2023-03-06', level: '3') +
-          _tip(id: 'a', count: 7);
+          _tooltip(id: 'a', count: 7);
 
       await GitHubContributionRepository(httpClient: _clientReturning(html))
           .fetchCalendar(username: username, year: year);
@@ -396,16 +401,19 @@ void main() {
       );
     });
 
-    test('reports a missing user as NotFoundFailure', () async {
-      final repository = GitHubContributionRepository(
-        httpClient: _clientReturning('', status: 404),
-      );
+    test(
+      'reports a Username GitHub does not know as NotFoundFailure',
+      () async {
+        final repository = GitHubContributionRepository(
+          httpClient: _clientReturning('', status: 404),
+        );
 
-      expect(
-        () => repository.fetchCalendar(username: username, year: year),
-        throwsA(isA<NotFoundFailure>()),
-      );
-    });
+        expect(
+          () => repository.fetchCalendar(username: username, year: year),
+          throwsA(isA<NotFoundFailure>()),
+        );
+      },
+    );
 
     test('reports HTTP 429 as RateLimitedFailure with a reset time', () async {
       final repository = GitHubContributionRepository(
@@ -414,6 +422,7 @@ void main() {
           status: 429,
           headers: {'retry-after': '60'},
         ),
+        now: () => DateTime.utc(2031, 6, 15, 12),
       );
 
       await expectLater(
@@ -422,7 +431,7 @@ void main() {
           isA<RateLimitedFailure>().having(
             (f) => f.resetAt,
             'resetAt',
-            isNotNull,
+            DateTime.utc(2031, 6, 15, 12, 1),
           ),
         ),
       );
@@ -512,10 +521,10 @@ void main() {
 
         final (:calendar, fromCache: _) = await repository.fetchCalendar(
           username: Username('torvalds'),
-          year: Year(2024),
+          year: Year(2024, today: testToday),
         );
 
-        expect(_dayOn(calendar, '2024-06-03').count, isNull);
+        expect(_dayOn(calendar, date: '2024-06-03').count, isNull);
       },
     );
 
@@ -527,10 +536,10 @@ void main() {
 
       final (:calendar, fromCache: _) = await repository.fetchCalendar(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
       );
 
-      expect(_dayOn(calendar, '2024-06-03').count, isNull);
+      expect(_dayOn(calendar, date: '2024-06-03').count, isNull);
     });
 
     test(
@@ -538,24 +547,24 @@ void main() {
       () async {
         final html =
             _day(id: 'c1', date: '2024-06-03', level: '2') +
-            _tip(id: 'c1', count: 4);
+            _tooltip(id: 'c1', count: 4);
         final repository = GitHubContributionRepository(
           httpClient: _clientReturning(html),
         );
 
         final (:calendar, fromCache: _) = await repository.fetchCalendar(
           username: Username('torvalds'),
-          year: Year(2024),
+          year: Year(2024, today: testToday),
         );
 
-        expect(_dayOn(calendar, '2024-06-04').count, isNull);
+        expect(_dayOn(calendar, date: '2024-06-04').count, isNull);
       },
     );
 
     test('voids Total Contributions, rather than passing a lower bound off as exact', () async {
       final html =
           _day(id: 'c1', date: '2024-06-03', level: '3') +
-          _tip(id: 'c1', count: 4) +
+          _tooltip(id: 'c1', count: 4) +
           _day(id: 'c2', date: '2024-06-04', level: '2');
       final repository = GitHubContributionRepository(
         httpClient: _clientReturning(html),
@@ -563,7 +572,7 @@ void main() {
 
       final (:calendar, fromCache: _) = await repository.fetchCalendar(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
       );
 
       expect(calendar.totalContributions, isNull);
@@ -572,25 +581,26 @@ void main() {
     test('still totals when every active day carries a Count', () async {
       final html =
           _day(id: 'c1', date: '2024-06-03', level: '3') +
-          _tip(id: 'c1', count: 4) +
+          _tooltip(id: 'c1', count: 4) +
           _day(id: 'c2', date: '2024-06-04', level: '3') +
-          _tip(id: 'c2', count: 6);
+          _tooltip(id: 'c2', count: 6);
       final repository = GitHubContributionRepository(
         httpClient: _clientReturning(html),
       );
 
       final (:calendar, fromCache: _) = await repository.fetchCalendar(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
       );
 
       expect(calendar.totalContributions, 10);
     });
   });
   group('the cache freezes a Year only once that Year has ended', () {
-    final closedYear = Year(2023);
+    final closedYear = Year(2023, today: testToday);
     final html =
-        _day(id: 'a', date: '2023-06-01', level: '2') + _tip(id: 'a', count: 7);
+        _day(id: 'a', date: '2023-06-01', level: '2') +
+        _tooltip(id: 'a', count: 7);
 
     test(
       'a snapshot written before the Year ended still expires afterwards',
@@ -646,9 +656,10 @@ void main() {
     });
   });
 
-  group('the cache key ignores case, because GitHub handles do', () {
+  group('the cache key ignores case, because GitHub Usernames do', () {
     final html =
-        _day(id: 'a', date: '2023-06-01', level: '2') + _tip(id: 'a', count: 7);
+        _day(id: 'a', date: '2023-06-01', level: '2') +
+        _tooltip(id: 'a', count: 7);
 
     test('two spellings of one account share an entry', () async {
       var served = 0;
@@ -696,7 +707,7 @@ void main() {
       final html =
           orphanMarkup +
           _day(id: 'b', date: '2023-06-02', level: '1') +
-          _tip(id: 'b', count: 4);
+          _tooltip(id: 'b', count: 4);
 
       final repository = GitHubContributionRepository(
         httpClient: _clientReturning(html),
@@ -706,20 +717,20 @@ void main() {
         year: year,
       );
 
-      final orphan = _dayOn(result.calendar, '2023-06-01');
+      final orphan = _dayOn(result.calendar, date: '2023-06-01');
       expect(orphan.level, ContributionLevel.high);
       expect(orphan.count, isNull);
       expect(orphan.isActive, isTrue);
     });
 
-    test('voids the Total rather than understating it', () async {
+    test('voids Total Contributions rather than understating them', () async {
       const orphanMarkup =
           '<td class="ContributionCalendar-day" data-date="2023-06-01" '
           'data-level="3"></td>';
       final html =
           orphanMarkup +
           _day(id: 'b', date: '2023-06-02', level: '1') +
-          _tip(id: 'b', count: 4);
+          _tooltip(id: 'b', count: 4);
 
       final repository = GitHubContributionRepository(
         httpClient: _clientReturning(html),
@@ -735,7 +746,7 @@ void main() {
 }
 
 final class _ClosingClient extends http.BaseClient {
-  _ClosingClient(this._inner, this._onClose);
+  _ClosingClient({required this._inner, required this._onClose});
 
   final http.Client _inner;
   final void Function() _onClose;

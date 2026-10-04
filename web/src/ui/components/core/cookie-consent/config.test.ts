@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { config } from "./config";
+import { USERNAME_COOKIE } from "../../../utils/cookie";
+import { CONSENT_COOKIE_NAME, config } from "./config";
 
 const { acceptedCategory } = vi.hoisted(() => ({ acceptedCategory: vi.fn() }));
 vi.mock("vanilla-cookieconsent", () => ({ acceptedCategory }));
 
 describe("cookie consent config", () => {
+	it("names the consent cookie the inline analytics gate reads, rather than trusting the library default", () => {
+		expect(config.cookie?.name).toBe(CONSENT_COOKIE_NAME);
+	});
+
 	it("marks necessary as enabled and read-only", () => {
 		expect(config.categories?.necessary).toMatchObject({ enabled: true, readOnly: true });
 	});
@@ -20,12 +25,12 @@ describe("cookie consent config", () => {
 		expect(names).toEqual(expect.arrayContaining(["/^_ga/", "_gid", "/^bs_/"]));
 	});
 
-	it("documents ck_user (1 week) in the necessary cookie table", () => {
+	it("documents the username cookie under the name cookie.ts writes, for a week, in the necessary table", () => {
 		const en = config.language.translations.en;
 		if (typeof en !== "object") throw new Error("expected an inline 'en' translation object");
 		const necessary = en.preferencesModal?.sections?.find((section) => section.linkedCategory === "necessary");
-		const ckUser = necessary?.cookieTable?.body?.find((row) => row.name === "ck_user");
-		expect(ckUser?.expiration).toBe("1 week");
+		const usernameCookie = necessary?.cookieTable?.body?.find((row) => row.name === USERNAME_COOKIE);
+		expect(usernameCookie?.expiration).toBe("1 week");
 	});
 });
 

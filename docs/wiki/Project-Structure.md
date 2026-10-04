@@ -27,14 +27,15 @@ domain/
   entities/        ContributionDay, ContributionCalendar (types.ts)
   repositories/    ContributionRepository, ContactMessageRepository (interfaces only)
   services/        calendar-grid, svg-geometry, cell-shapes, dates, contribution-stats, SvgRenderer type
-  failures/        Failure union + constructors + isFailure
+  failures/        Failure union + constructors + isFailure, isFailureKind
 application/
   use-cases/       loadInitialContributions, sendContactMessage; resolve-initial-view.ts, which is request policy rather than a use case
-  http/            failure-http (statusFor, messageFor, retryAfterHeader); failure-log (logContributionsFailure, logServerError, SERVER_ERROR_STATUS)
+  http/            failure-http (statusFor, messageFor, fieldFor, errorBodyFor, reasonFor, retryAfterHeader); failure-log (logContributionsFailure, logContactFailure, logServerError, SERVER_ERROR_STATUS); cache-control
 infrastructure/
   github/          githubHtmlContributionRepository (HTML scraping)
   email/           the send_email Contact Message repository, its React Email template and MIME
   rendering/       svgStringRenderer
+  errors/          errorMessageOf, the one reading of a thrown value's message
   logging/         the log contract and the console writer Cloudflare exports
 ui/
   components/      Astro components (core/, grid/, error/, icons/, features…)
@@ -52,7 +53,7 @@ middleware.ts      rate limiting + security headers
 
 Unit tests sit next to what they cover. The one exception is [`docs/docs-consistency.test.ts`](https://github.com/fbuireu/contribKit/blob/main/docs/docs-consistency.test.ts): its subject is the documentation, not a module, so it lives beside the documents at the repo root. It still runs from the web package: [`web/vitest.config.ts`](https://github.com/fbuireu/contribKit/blob/main/web/vitest.config.ts) adds `../docs/**/*.test.ts`, [`web/tsconfig.json`](https://github.com/fbuireu/contribKit/blob/main/web/tsconfig.json) includes it, and the biome scripts pass `../docs`.
 
-Every layer carries a colocated `AGENTS.md` documenting its rules, and the docs-consistency test fails if one is missing. See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
+Every layer carries a colocated `AGENTS.md` with what an implementer there needs, and the docs-consistency test fails if one is missing; the rules are in [`CODING_STANDARDS.md`](https://github.com/fbuireu/contribKit/blob/main/CODING_STANDARDS.md). See **[Architecture](Architecture)** and **[Web Application](Web-Application)**.
 
 ---
 

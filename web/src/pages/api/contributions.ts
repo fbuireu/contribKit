@@ -1,5 +1,5 @@
 import { CACHEABLE_ANSWER, NOT_CACHEABLE } from "@application/http/cache-control";
-import { fieldFor, messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
+import { errorBodyFor, messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
 import {
 	ContributionsEndpoint,
 	logContributionsFailure,
@@ -7,7 +7,7 @@ import {
 	SERVER_ERROR_MESSAGE,
 	SERVER_ERROR_STATUS,
 } from "@application/http/failure-log";
-import { isFailure } from "@domain/failures/failure";
+import { FailureField, invalidInput, isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
 import { isYear, parseYear } from "@domain/value-objects/year";
 import { logger } from "@infrastructure/logging/logger";
@@ -17,34 +17,36 @@ import { loadContributions } from "../_contributions";
 
 export const prerender = false;
 
-const querySchema = z.object({
+const contributionCalendarQuerySchema = z.object({
 	user: z.string().min(1),
 	year: z.string().optional(),
 });
 
+const MISSING_USER = invalidInput({ field: FailureField.Username, message: "Missing required parameter: user" });
+
 const handle: APIRoute = async ({ url }) => {
-	const query = Object.fromEntries(url.searchParams);
-	if (!querySchema.validate(query)) {
-		return Response.json(
-			{ error: "Missing required parameter: user" },
-			{ status: 400, headers: { "Cache-Control": NOT_CACHEABLE } },
-		);
+	const query: unknown = Object.fromEntries(url.searchParams);
+	if (!contributionCalendarQuerySchema.validate(query)) {
+		return Response.json(errorBodyFor(MISSING_USER), {
+			status: statusFor(MISSING_USER),
+			headers: { "Cache-Control": NOT_CACHEABLE },
+		});
 	}
 
 	const username = parseUsername(query.user);
 	if (isFailure(username)) {
-		return Response.json(
-			{ error: messageFor(username), ...fieldFor(username) },
-			{ status: statusFor(username), headers: { "Cache-Control": NOT_CACHEABLE } },
-		);
+		return Response.json(errorBodyFor(username), {
+			status: statusFor(username),
+			headers: { "Cache-Control": NOT_CACHEABLE },
+		});
 	}
 
-	const year = parseYear(query.year);
+	const year = parseYear({ requested: query.year, thisYear: new Date().getFullYear() });
 	if (isFailure(year)) {
-		return Response.json(
-			{ error: messageFor(year), ...fieldFor(year) },
-			{ status: statusFor(year), headers: { "Cache-Control": NOT_CACHEABLE } },
-		);
+		return Response.json(errorBodyFor(year), {
+			status: statusFor(year),
+			headers: { "Cache-Control": NOT_CACHEABLE },
+		});
 	}
 
 	const result = await loadContributions({ username, year: isYear(year) ? year : null });
@@ -58,10 +60,10 @@ const handle: APIRoute = async ({ url }) => {
 			status,
 			endpoint: ContributionsEndpoint.Api,
 		});
-		return Response.json(
-			{ error: messageFor(result) },
-			{ status, headers: { "Cache-Control": NOT_CACHEABLE, ...retryAfterHeader(result) } },
-		);
+		return Response.json(errorBodyFor(result), {
+			status,
+			headers: { "Cache-Control": NOT_CACHEABLE, ...retryAfterHeader(result) },
+		});
 	}
 
 	const days = result.days.map((day) => ({ date: day.date, level: day.level, count: day.count }));

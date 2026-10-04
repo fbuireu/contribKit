@@ -21,7 +21,7 @@ import { loadContributions } from "../_contributions";
 
 export const prerender = false;
 
-const querySchema = z.object({
+const embedQuerySchema = z.object({
 	[EmbedParam.Palette]: z.string().catch(DEFAULT_EMBED_QUERY.palette),
 	[EmbedParam.Shape]: z.string().catch(DEFAULT_EMBED_QUERY.shape),
 	[EmbedParam.Background]: z.string().regex(EMBED_BACKGROUND_PATTERN).catch(DEFAULT_EMBED_QUERY.background),
@@ -57,9 +57,9 @@ const handle: APIRoute = async ({ params, url }) => {
 		palette: paletteKey,
 		shape: shapeParam,
 		background,
-	} = querySchema.parse(Object.fromEntries(url.searchParams));
+	} = embedQuerySchema.parse(Object.fromEntries(url.searchParams));
 	const shape: CellShape = isCellShape(shapeParam) ? shapeParam : DEFAULT_CELL_SHAPE;
-	const days = buildRollingGrid({ days: calendar.days });
+	const days = buildRollingGrid(calendar.days);
 	const svg = svgStringRenderer({ days, options: { palette: paletteByKey(paletteKey), shape, background } });
 
 	return new Response(svg, {

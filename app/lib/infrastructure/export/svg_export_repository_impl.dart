@@ -64,7 +64,7 @@ final class SvgExportRepository implements ExportRepository {
           levelIndex: day.level.index,
           cellSize: cell,
         );
-        final box =
+        final bounds =
             'x="${x.toStringAsFixed(1)}" y="${y.toStringAsFixed(1)}" '
             'width="${cell.toStringAsFixed(1)}" height="${cell.toStringAsFixed(1)}"';
         final centre =
@@ -74,12 +74,12 @@ final class SvgExportRepository implements ExportRepository {
         switch (figure) {
           case SquareFigure():
             buffer.writeln(
-              '<rect $box fill="$fill"><title>$title</title></rect>',
+              '<rect $bounds fill="$fill"><title>$title</title></rect>',
             );
           case RoundedFigure(:final radius):
             final r = radius.toStringAsFixed(1);
             buffer.writeln(
-              '<rect $box rx="$r" ry="$r" fill="$fill">'
+              '<rect $bounds rx="$r" ry="$r" fill="$fill">'
               '<title>$title</title></rect>',
             );
           case CircleFigure(:final radius):

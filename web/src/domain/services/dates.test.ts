@@ -66,9 +66,9 @@ describe("chunkWeeks", () => {
 describe("weeksFor", () => {
 	it("needs a 54th week only when a leap Year opens on a Saturday", () => {
 		const wide: number[] = [];
-		for (let year = 2005; year <= 2060; year++) if (weeksFor(year) !== WEEKS_PER_YEAR) wide.push(year);
+		for (let year = 2005; year <= 2100; year++) if (weeksFor(year) !== 53) wide.push(year);
 
-		expect(wide).toEqual([2028, 2056]);
+		expect(wide).toEqual([2028, 2056, 2084]);
 		for (const year of wide) expect(weeksFor(year)).toBe(54);
 	});
 });

@@ -1,21 +1,20 @@
 ---
 import type { PaletteColors } from "@domain/value-objects/palette";
-import { SUGGESTED_USERNAMES } from "@domain/value-objects/username";
+import { MAX_USERNAME_LENGTH, SUGGESTED_USERNAMES } from "@domain/value-objects/username";
 import { MIN_YEAR } from "@domain/value-objects/year";
-import { ClassName, ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "../../utils/dom-contract";
 import "./hero.css";
 import type { ContributionStats } from "@domain/services/contribution-stats";
-import { StoreLinkPlacement, StoreName, UsageEventName } from "@ui/components/core/telemetry/usage-event";
-import { usageEventAttributes } from "@ui/components/core/telemetry/usage-event-links";
-import { formatTotalContributions } from "@ui/components/grid/contribution";
-import AppStore from "@ui/components/icons/AppStore.astro";
-import ArrowRight from "@ui/components/icons/ArrowRight.astro";
-import ChevronDown from "@ui/components/icons/ChevronDown.astro";
-import GooglePlay from "@ui/components/icons/GooglePlay.astro";
-import { PLAY_STORE_URL } from "@ui/utils/app-links";
-import { formatHeroError } from "@ui/utils/contribution-errors";
+import { PLAY_STORE_URL } from "../../utils/app-links";
+import { formatHeroError } from "../../utils/contribution-errors";
+import { StoreLinkPlacement, StoreName, UsageEventName } from "../core/telemetry/usage-event";
+import { usageEventAttributes } from "../core/telemetry/usage-event-links";
+import { formatStreak, formatTotalContributions } from "../grid/contribution";
+import AppStore from "../icons/AppStore.astro";
+import ArrowRight from "../icons/ArrowRight.astro";
+import ChevronDown from "../icons/ChevronDown.astro";
+import GooglePlay from "../icons/GooglePlay.astro";
 
-const currentYear = new Date().getFullYear();
 const appVersion = __APP_VERSION__;
 const playStoreUsage = usageEventAttributes({
 	event: UsageEventName.StoreLinkOpened,
@@ -28,13 +27,14 @@ interface Props {
 	stats: ContributionStats;
 	palette: PaletteColors;
 	username: string;
+	thisYear: number;
 	year?: number;
 	error?: string | null;
 }
-const { heroSVG, stats, palette, username, year = currentYear, error = null } = Astro.props;
+const { heroSVG, stats, palette, username, thisYear, year = thisYear, error = null } = Astro.props;
 ---
 
-<section class="hero" aria-label="Hero">
+<section class={ClassName.Hero} aria-label="Hero">
   <div class="hero-grain" aria-hidden="true"></div>
   <div class="wrap">
 
@@ -74,10 +74,10 @@ const { heroSVG, stats, palette, username, year = currentYear, error = null } = 
       <div class="username-strip">
         <label for={ElementId.HeroUsername} class="us-label sr-only">GitHub username</label>
         <span class="us-label" aria-hidden="true">github.com/</span>
-        <input class="us-input" id={ElementId.HeroUsername} type="search" value={username} spellcheck="false" autocomplete="off" autocapitalize="none" autocorrect="off" />
+        <input class="us-input" id={ElementId.HeroUsername} type="search" value={username} maxlength={MAX_USERNAME_LENGTH} spellcheck="false" autocomplete="off" autocapitalize="none" autocorrect="off" />
         <div class="us-year-wrap">
           <select class="us-year" id={ElementId.HeroYear} aria-label="Year">
-            {Array.from({ length: currentYear - MIN_YEAR + 1 }, (_, index) => currentYear - index).map(yearOption => (
+            {Array.from({ length: thisYear - MIN_YEAR + 1 }, (_, index) => thisYear - index).map(yearOption => (
               <option value={yearOption} selected={yearOption === year}>{yearOption}</option>
             ))}
           </select>
@@ -92,10 +92,10 @@ const { heroSVG, stats, palette, username, year = currentYear, error = null } = 
       </div>
     </form>
 
-    <div class="suggestions" role="group" aria-label="Try a famous GitHub profile">
+    <div class="suggestions" role="group" aria-label="Try a famous GitHub username">
       <span class="mono sug-label" aria-hidden="true">try:</span>
-      {SUGGESTED_USERNAMES.map((handle) => (
-        <button class="sug-btn mono" data-username={handle}>{handle}</button>
+      {SUGGESTED_USERNAMES.map((suggestedUsername) => (
+        <button class:list={[ClassName.SuggestionButton, "mono"]} data-username={suggestedUsername}>{suggestedUsername}</button>
       ))}
     </div>
 
@@ -120,7 +120,7 @@ const { heroSVG, stats, palette, username, year = currentYear, error = null } = 
           <Fragment set:html={heroSVG} />
         </div>
         <div class="hero-card-foot">
-          <div class="legend" role="img" aria-label="Contribution level: less to more">
+          <div class={ClassName.Legend} role="img" aria-label="Contribution level: less to more">
             <span class="mono dimmer" aria-hidden="true">less</span>
             {palette.map((color) => (
               <span class={ClassName.LegendSquare} style={`background:${color.hex};border-radius:0.125rem`} aria-hidden="true"></span>
@@ -128,9 +128,9 @@ const { heroSVG, stats, palette, username, year = currentYear, error = null } = 
             <span class="mono dimmer" aria-hidden="true">more</span>
           </div>
           <div class={ClassName.LegendStats}>
-            <span><b class="mono">{stats.currentStreak}</b> day streak</span>
-            <span class="sep" aria-hidden="true">·</span>
-            <span><b class="mono">{stats.longestStreak}</b> longest</span>
+            <span><b class="mono">{formatStreak(stats.currentStreak)}</b> day streak</span>
+            <span class={ClassName.Separator} aria-hidden="true">·</span>
+            <span><b class="mono">{formatStreak(stats.longestStreak)}</b> longest</span>
           </div>
         </div>
       </div>

@@ -41,9 +41,9 @@ where `weeks` is how many weeks the days chunk into (53, or 54 for a Year that n
 
 ### Labels
 
-- **Month labels** come from `MONTH_LABELS` in [`calendar-labels.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/value-objects/calendar-labels.ts) (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `calendarLayout` emits a label at the first week of each new month, but only when that week's first day falls on or before day 7, which prevents a stray label when a month barely peeks into a column. That yields exactly twelve distinct labels for every year from 2005 to 2030: the December spill at both ends never earns a thirteenth.
+- **Month labels** come from `MONTH_LABELS` in [`calendar-labels.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/value-objects/calendar-labels.ts) (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `calendarLayout` emits a label at the first week of each new month, but only when that week's first day falls on or before day 7, which prevents a stray label when a month barely peeks into a column. That yields exactly twelve labels for a Year's grid. The SVG endpoint draws a Rolling Window, which can open and close in the same month, and then that month is labelled at both ends, thirteen labels in all.
 - **Day-of-week labels** are `WEEKDAY_LABELS = ["Mon", "Wed", "Fri"]`, drawn on alternating rows (rows 1, 3, 5) so they don't overlap.
-- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one: a known defect recorded in [`web/src/infrastructure/AGENTS.md`](https://github.com/fbuireu/ContribKit/blob/main/web/src/infrastructure/AGENTS.md).
+- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one: a known inconsistency recorded in [`ARCHITECTURE.md`](https://github.com/fbuireu/contribKit/blob/main/ARCHITECTURE.md#9-known-inconsistencies).
 
 ---
 
@@ -113,7 +113,7 @@ The server renderer above powers the `/user/:username.svg` endpoint. The **landi
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 | Per-cell | fill only | also emits `data-date`, plus `data-count` only when the count is known: cells with an unknown count omit it and the tooltip says so |
 
-[`render-svg.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/components/grid/render-svg.ts) also exports `shapePreviewSVG(kind)`, the tiny 20×20 swatch drawn inside each shape-picker button, using `SHAPE_PREVIEWS` and the `--contrib-peak` CSS var.
+[`render-svg.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/components/grid/render-svg.ts) also exports `shapePreviewSVG(shape)`, the tiny 20×20 swatch drawn inside each shape-picker button, using `SHAPE_PREVIEWS` and the `--contrib-peak` CSS var.
 
 ---
 
@@ -132,28 +132,26 @@ getActiveShape   = () => { const k = $(Selector.ActiveShapeButton)?.dataset.key;
 **Both getters guard, and for the same reason.** A `data-key` is markup, so it can name a palette
 [`shared/palettes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/palettes.json) does not define or a shape the `CellShape` union does not: `paletteByKey` defaults and
 `isCellShape` rejects, and neither hands a bare string on. `getActivePalette` returns a `Palette` rather than a key,
-through the same guarded lookup the SVG endpoint uses; the three callers indexed `PALETTES` directly and would have
-thrown a `TypeError` reading `.colors` of `undefined`. `getActiveShape` returns a `CellShape` rather than a
-`string`, and used to hand that string to three callers, each of which re-guarded or did not. It
-also means the key it reports is the key it used, so the label under the picker cannot disagree with the colours on
+through the same guarded lookup the SVG endpoint uses, and `getActiveShape` returns a `CellShape` rather than a
+`string`, so no caller guards again. It also means the key it reports is the key it used, so the label under the picker cannot disagree with the colours on
 screen.
 
 **2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_GEOMETRY` 13/3, `CUSTOMIZE_GRID_GEOMETRY` 12/3, `EXPORT_GRID_GEOMETRY` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
 
-**3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in [`ui/utils/page-init.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/page-init.ts); their `onActivate` is `renderCustomize`:
+**3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in [`ui/utils/page-init.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/page-init.ts). `initRadioList` takes the group's `Selector` and the Usage Event to record, and its `onActivate` runs `renderCustomize` and then records that event:
 
 ```ts
-initRadioList("#palette-list .palette-row");  // pick palette → renderCustomize
-initRadioList("#shape-list .shape-btn");       // pick shape   → renderCustomize
+initRadioList({ selector: Selector.PaletteRows, onChosen: recordPaletteChosen });
+initRadioList({ selector: Selector.ShapeButtons, onChosen: recordCellShapeChosen });
 ```
 
-Activating a button moves the `.active` class (`activateRadio`) and fires `renderCustomize`, which re-reads the new selection from the DOM.
+Activating a button moves the `.active` class (`activateRadio`), then `renderCustomize` re-reads the new selection from the DOM and the Usage Event records what was chosen.
 
 **4. New data.** When a username is rendered, `renderFromGitHub` fetches `/api/contributions`, calls `setDays(buildGridFromApi(...))`, then `renderCustomize()`. The grid shape (whole weeks covering the Year, 53 or 54 of them) is always rebuilt by [Calendar Grid](Calendar-Grid); the fetch only fills `level`/`count`.
 
 In one line: **change shape/palette → `activateRadio` flips `.active` → `onActivate` runs `renderCustomize` → it reads selection from the DOM + cells from the singleton → `renderCalendarString` regenerates each grid's `innerHTML`.** The same flow runs after a fetch, just triggered by new data instead of a click.
 
-> Until placeholder data is replaced, the initial grid comes from `generateData()` (see **[Deterministic Randomness](Mulberry32)**), so the preview is never empty on first load.
+> The first grid is the one the server rendered, handed to the client as `window.__INITIAL_DAYS__`: the visitor's calendar, an empty Year when the fetch failed, or, for a visitor who asked for no Username, the placeholder `generateData()` draws (see **[Deterministic Randomness](Mulberry32)**).
 
 ---
 
@@ -170,4 +168,4 @@ In one line: **change shape/palette → `activateRadio` flips `.active` → `onA
 
 - **[Calendar Grid](Calendar-Grid)** produces the cells this renders.
 - **[Web Application](Web-Application)** covers how the SVG route is wired up.
-- **[Deterministic Randomness](Mulberry32)** is the placeholder grid shown before any fetch.
+- **[Deterministic Randomness](Mulberry32)** is the placeholder grid a visitor who asked for no Username sees.

@@ -1,8 +1,7 @@
 import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
 import { isFailure } from "@domain/failures/failure";
-import { colorOrThrow } from "@domain/value-objects/color";
-import type { PaletteColors } from "@domain/value-objects/palette";
+import { PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { generateMiniGrid } from "./mini-grid";
 
@@ -14,7 +13,7 @@ const day = (params: ContributionDayParams): ContributionDay => {
 
 const CELL_RECT = /<rect/g;
 
-const palette = ["#000000", "#111111", "#222222", "#333333", "#444444"].map(colorOrThrow) as unknown as PaletteColors;
+const palette = PALETTES.github.colors;
 
 describe("generateMiniGrid", () => {
 	it("returns an svg element", () => {
@@ -39,5 +38,12 @@ describe("generateMiniGrid", () => {
 		const svg = generateMiniGrid({ palette, liveDays });
 		expect(svg).toContain('width="100%"');
 		expect(svg.match(CELL_RECT) ?? []).toHaveLength(53 * 7);
+	});
+
+	it("draws every week of a Year that needs 54, rather than cutting the last one off", () => {
+		const liveDays: ContributionDay[] = Array.from({ length: 54 * 7 }, () =>
+			day({ date: "2028-01-01", level: 1, count: 1 }),
+		);
+		expect(generateMiniGrid({ palette, liveDays }).match(CELL_RECT) ?? []).toHaveLength(54 * 7);
 	});
 });

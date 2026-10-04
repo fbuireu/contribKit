@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { isFailure } from "../failures/failure";
-import { contributionDay, emptyDay } from "./contribution-day";
+import { contributionDay, emptyDay, isCount } from "./contribution-day";
 
 describe("contributionDay", () => {
-	it("is the only way to make one, so a level out of range cannot exist", () => {
+	it("is the only way from raw input to one, so a level out of range cannot exist", () => {
 		const built = contributionDay({ date: "2024-06-15", level: 9, count: 1 });
 
 		expect(isFailure(built) ? null : built.level).toBe(4);
@@ -33,8 +33,24 @@ describe("contributionDay", () => {
 describe("emptyDay", () => {
 	it("pads with an unknown Count at level zero, never a measured zero", () => {
 		const built = contributionDay({ date: "2024-06-15", level: 0, count: null });
-		const padded = isFailure(built) ? null : emptyDay({ date: built.date });
+		const padded = isFailure(built) ? null : emptyDay(built.date);
 
 		expect(padded).toEqual({ date: "2024-06-15", level: 0, count: null });
+	});
+});
+
+describe("isCount", () => {
+	it("accepts a whole number from zero up to the largest safe integer", () => {
+		expect([0, 1, 1234, Number.MAX_SAFE_INTEGER].map(isCount)).toEqual([true, true, true, true]);
+	});
+
+	it("refuses a negative, a fraction, a number past the safe range, NaN and Infinity", () => {
+		expect([-1, 1.5, Number.MAX_SAFE_INTEGER + 1, Number.NaN, Number.POSITIVE_INFINITY].map(isCount)).toEqual([
+			false,
+			false,
+			false,
+			false,
+			false,
+		]);
 	});
 });

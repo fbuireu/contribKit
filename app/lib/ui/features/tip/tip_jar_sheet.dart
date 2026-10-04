@@ -50,34 +50,36 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
     }
   }
 
-  Future<void> _give(TipProduct product) async {
+  Future<void> _give(TipProduct tipProduct) async {
     final ready = _state;
     if (ready is! TipJarReady) return;
-    final started = ready.beginning(product);
+    final started = ready.beginning(tipProduct);
     if (started == null) return;
     _to(started);
     final usageEvents = ref.read(usageEventRepositoryProvider);
 
     try {
-      final outcome = await ref.read(giveTipProvider).call(product);
+      final outcome = await ref.read(giveTipProvider).call(tipProduct);
       final completed = outcome == TipOutcome.completed;
       unawaited(
         usageEvents.record(
           completed
-              ? UsageEvent.tipGiven(product: product)
-              : UsageEvent.tipCancelled(product: product),
+              ? UsageEvent.tipGiven(tipProduct: tipProduct)
+              : UsageEvent.tipCancelled(tipProduct: tipProduct),
         ),
       );
       _to(
         started.settling(
-          completed ? TipCompleted(product) : TipCancelled(product),
+          completed ? TipCompleted(tipProduct) : TipCancelled(tipProduct),
         ),
       );
     } catch (e) {
-      unawaited(usageEvents.record(UsageEvent.tipFailed(product: product)));
+      unawaited(
+        usageEvents.record(UsageEvent.tipFailed(tipProduct: tipProduct)),
+      );
       _to(
         started.settling(
-          TipFailed(product: product, message: FailureMessage.ofAny(e)),
+          TipFailed(tipProduct: tipProduct, message: FailureMessage.ofAny(e)),
         ),
       );
     }
@@ -128,9 +130,9 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
         ),
       ],
       final TipJarReady ready => [
-        for (final p in ready.products)
-          _TierCard(
-            product: p,
+        for (final p in ready.tipProducts)
+          _TipProductCard(
+            tipProduct: p,
             look: TipProductPresentation.of(p),
             isGiving: ready.isInFlight(p),
             isGiven: ready.isCompleted(p),
@@ -164,9 +166,9 @@ class _TipJarSheetState extends ConsumerState<TipJarSheet> {
   }
 }
 
-class _TierCard extends StatelessWidget {
-  const _TierCard({
-    required this.product,
+class _TipProductCard extends StatelessWidget {
+  const _TipProductCard({
+    required this.tipProduct,
     required this.look,
     required this.isGiving,
     required this.isGiven,
@@ -176,7 +178,7 @@ class _TierCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final TipProduct product;
+  final TipProduct tipProduct;
   final TipProductLook look;
   final bool isGiving;
   final bool isGiven;
@@ -188,7 +190,7 @@ class _TierCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: '${look.label}, ${product.priceString}',
+      label: '${look.label}, ${tipProduct.priceString}',
       button: true,
       enabled: !disabled,
       selected: isGiven,
@@ -237,7 +239,7 @@ class _TierCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      product.priceString,
+                      tipProduct.priceString,
                       style: TextStyle(
                         fontSize: Tokens.textSm,
                         color: colors.mutedForeground,

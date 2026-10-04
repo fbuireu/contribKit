@@ -59,14 +59,14 @@ void main() {
     test('returns what the store offers, in the order it offers it', () async {
       final repository = FakeTipRepository();
 
-      final products = await FetchTipProducts(repository: repository)();
+      final tipProducts = await FetchTipProducts(repository: repository)();
 
-      expect(products, testTipProducts);
+      expect(tipProducts, testTipProducts);
     });
 
     test('lets a TipFailure through', () async {
       final repository = FakeTipRepository(
-        productsFailure: const TipFailure(message: 'store unreachable'),
+        tipProductsFailure: const TipFailure(message: 'store unreachable'),
       );
 
       expect(
@@ -79,12 +79,12 @@ void main() {
   group('GiveTip', () {
     test('passes the chosen Tip Product straight to the store', () async {
       final repository = FakeTipRepository();
-      final product = testTipProducts.last;
+      final tipProduct = testTipProducts.last;
 
-      final outcome = await GiveTip(repository: repository)(product);
+      final outcome = await GiveTip(repository: repository)(tipProduct);
 
       expect(outcome, TipOutcome.completed);
-      expect(repository.given, [product]);
+      expect(repository.given, [tipProduct]);
     });
 
     test('reports a cancellation as an outcome, not as a failure', () async {

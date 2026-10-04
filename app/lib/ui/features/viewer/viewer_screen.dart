@@ -67,7 +67,9 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     setState(() => _inputError = '');
     try {
       final username = Username(trimmed);
-      final year = ref.read(viewerProvider).effectiveYear;
+      final year = ref
+          .read(viewerProvider)
+          .effectiveYear(today: ref.read(clockProvider)());
       ref
           .read(viewerProvider.notifier)
           .fetchContributions(username: username, year: year, source: source);
@@ -276,7 +278,7 @@ class _UsernameInput extends StatelessWidget {
               semanticLabel: 'Show contributions',
               iconOnly: true,
               child: isLoading
-                  ? const _PulsingDots(dotSize: 5)
+                  ? const _PulsingDots(dotSize: Tokens.pulseDotSizeSm)
                   : Icon(
                       LucideIcons.arrowRight,
                       size: Tokens.iconSm,
@@ -411,8 +413,9 @@ class _YearPills extends ConsumerWidget {
     final state = ref.watch(viewerProvider);
     final notifier = ref.read(viewerProvider.notifier);
     final colors = AppColors.of(context);
-    final currentYear = DateTime.now().year;
-    final selectedYear = state.effectiveYear.value;
+    final today = ref.watch(clockProvider)();
+    final currentYear = today.year;
+    final selectedYear = state.effectiveYear(today: today).value;
 
     final years = List.generate(
       currentYear - Year.minYear + 1,
@@ -422,14 +425,14 @@ class _YearPills extends ConsumerWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        spacing: Tokens.space1 + 2,
+        spacing: Tokens.pillGap,
         children: [
           for (final year in years)
             _YearPill(
               year: year,
               isSelected: year == selectedYear,
               colors: colors,
-              onTap: () => notifier.setYear(Year(year)),
+              onTap: () => notifier.setYear(Year(year, today: today)),
             ),
         ],
       ),
@@ -507,12 +510,18 @@ class _Body extends ConsumerWidget {
       stats: final stats?,
       palette: final palette?,
     )) {
+      final today = ref.watch(clockProvider)();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: Tokens.space4,
         children: [
-          _CalendarCard(state: state, calendar: calendar, palette: palette),
-          StatsPanel(calendar: calendar, stats: stats),
+          _CalendarCard(
+            state: state,
+            calendar: calendar,
+            palette: palette,
+            today: today,
+          ),
+          StatsPanel(calendar: calendar, stats: stats, today: today),
           _ActionRow(state: state, calendar: calendar, palette: palette),
         ],
       );
@@ -528,11 +537,13 @@ class _CalendarCard extends ConsumerWidget {
     required this.state,
     required this.calendar,
     required this.palette,
+    required this.today,
   });
 
   final ViewerState state;
   final ContributionCalendar calendar;
   final Palette palette;
+  final DateTime today;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -555,7 +566,7 @@ class _CalendarCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'CONTRIBUTIONS · ${state.effectiveYear.value}',
+                    'CONTRIBUTIONS · ${state.effectiveYear(today: today).value}',
                     style: AppTextStyles.mono(
                       fontSize: Tokens.textXs,
                       color: colors.mutedForeground,
@@ -565,7 +576,7 @@ class _CalendarCard extends ConsumerWidget {
                 ),
                 Flexible(
                   child: Text(
-                    '${formatTotalContributions(format: _contribFmt, total: calendar.totalContributions)} contributions',
+                    '${formatTotalContributions(format: _contribFmt, totalContributions: calendar.totalContributions)} contributions',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.mono(
@@ -646,14 +657,14 @@ class _ActionRow extends ConsumerWidget {
                   .record(UsageEvent.customizerOpened);
               CustomizerSheet.show(context);
             },
-            semanticLabel: 'Customize',
+            semanticLabel: 'Customizer',
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(LucideIcons.sliders, size: Tokens.iconSm),
                 SizedBox(width: Tokens.space2),
-                Text('Customize'),
+                Flexible(child: Text('Customizer')),
               ],
             ),
           ),
@@ -679,7 +690,7 @@ class _ActionRow extends ConsumerWidget {
               children: [
                 Icon(LucideIcons.download, size: Tokens.iconSm),
                 SizedBox(width: Tokens.space2),
-                Text('Export'),
+                Flexible(child: Text('Export')),
               ],
             ),
           ),
@@ -696,7 +707,7 @@ class _Loader extends StatelessWidget {
   Widget build(BuildContext context) => const Center(
     child: Padding(
       padding: EdgeInsets.all(Tokens.space8),
-      child: _PulsingDots(dotSize: 8),
+      child: _PulsingDots(dotSize: Tokens.pulseDotSize),
     ),
   );
 }

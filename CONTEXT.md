@@ -2,7 +2,7 @@
 
 ContribKit renders a GitHub user's public contribution calendar as a customizable image that can be viewed, exported, embedded, or pinned to a phone's home screen.
 
-This is the language the web and the mobile app are meant to share. It is prescriptive: where the code still says something else, the code is the thing that is wrong. Known departures that are deliberate rather than pending are recorded in [`docs/adr/`](./docs/adr).
+This is the language the web and the mobile app share, in their code and in their copy. Known departures that are deliberate rather than pending are recorded in [`docs/adr/`](./docs/adr).
 
 ## Contribution Data
 
@@ -18,7 +18,7 @@ Seven consecutive Contribution Days forming one column of the calendar, starting
 _Avoid_: column
 
 **Contribution Calendar**:
-The full set of a user's Contribution Days for one Year, together with their Total Contributions. The central concept of the product.
+The full set of a user's Contribution Days for one Year, or for a Rolling Window, together with their Total Contributions. The central concept of the product.
 _Avoid_: chart, graph, heatmap, contribution graph
 
 **Count**:
@@ -26,11 +26,11 @@ The exact number of contributions on a Contribution Day. Unknown for some days, 
 _Avoid_: contributions, amount, value
 
 **Rolling Window**:
-The span an Embed shows when no Year is pinned: the latest Contribution Days GitHub returns, ending today, rather than a calendar Year. A Contribution Calendar whose Year is absent covers a Rolling Window. The app has no such span, because it always asks for a Year.
+The span an Embed shows when no Year is pinned: the latest Contribution Days GitHub returns, ending today, rather than a calendar Year. A Contribution Calendar whose Year is absent covers a Rolling Window.
 _Avoid_: latest, recent, default range
 
 **Total Contributions**:
-The sum of every known Count in a Contribution Calendar.
+The number of contributions a Contribution Calendar holds: known only while every active Contribution Day's Count is known.
 _Avoid_: total, sum, contributions count
 
 **Contribution Level**:
@@ -42,13 +42,13 @@ Aggregate figures derived from a Contribution Calendar: streaks, best day, best 
 _Avoid_: metrics, summary, cell summary, analytics
 
 **Streak**:
-A run of consecutive Contribution Days that each have at least one contribution. The current streak ends today; the longest streak is the largest ever recorded in the calendar.
+An unbroken sequence of consecutive Contribution Days that each have at least one contribution. The current streak is the one reaching the last day of its Year, or today while that Year is under way; the longest streak is the largest ever recorded in the calendar.
 _Avoid_: run, chain
 
 ## Identity and Scope
 
 **Username**:
-The handle identifying a GitHub account whose calendar is being rendered. Valid on construction: an invalid handle never becomes a Username.
+The handle identifying a GitHub account whose calendar is being rendered.
 _Avoid_: user, handle, account, profile, login
 
 **Suggested Username**:
@@ -94,7 +94,7 @@ The month strip along the top of the Contribution Grid and the weekday strip dow
 _Avoid_: axis, headers, legend, DOW
 
 **Contribution Grid**:
-The lattice of whole Contribution Weeks the calendar is laid out on, including the leading and trailing days needed to make whole weeks. Always covers the Year requested: 53 weeks, or 54 for a Year that needs one more.
+The lattice of whole Contribution Weeks the calendar is laid out on, including the leading and trailing days needed to make whole weeks.
 _Avoid_: matrix, board, layout, table
 
 ## Delivery
@@ -130,11 +130,11 @@ Everything the product sends off a person's device about how it is running, rath
 _Avoid_: tracking, monitoring, instrumentation
 
 **Diagnostic Report**:
-A record that something failed at runtime, carrying the error's type and where in the code it happened, and, from the foreground, a masked recording of the screens before it, sent so the defect can be fixed. Never carries a message, a Username, or any Contribution Data: in the recording every text, image and Cell is a rectangle.
+A record that something failed at runtime, carrying the error's type and where in the code it happened, and, from the foreground, a masked recording of the screens before it, sent so the defect can be fixed.
 _Avoid_: crash log, error event, exception report, bug report
 
 **Usage Event**:
-A named record that a person reached one point in the product, chosen from a fixed set, sometimes with the value it concerns: the Palette, Cell Shape, Export Format or Year that was chosen, or how an action ended, each drawn from a fixed set of its own. It never carries a Username, free text, or Contribution Data, and therefore no personal data.
+A named record that a person reached one point in the product, chosen from a fixed set, sometimes with the value it concerns: the Palette, Cell Shape, Export Format or Year that was chosen, or how an action ended, each drawn from a fixed set of its own.
 _Avoid_: analytics event, metric, hit, action log
 
 **Telemetry Consent**:
@@ -157,6 +157,6 @@ _Avoid_: paywall, store, shop, support page
 
 **Contact Message**:
 A single message a person writes to the maintainer, carrying their email address, the message itself, and a name if
-they chose to give one. It leaves as an email and is stored nowhere. It is not a record in a system, and nothing
-tracks its state: there is no queue, no status and no reply thread.
+they chose to give one. It is not a record in a system, and nothing tracks its state: there is no queue, no status
+and no reply thread.
 _Avoid_: feedback, ticket, inquiry, support request

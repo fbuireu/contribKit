@@ -1,11 +1,11 @@
 ---
-import { ElementId } from "@ui/utils/dom-contract";
+import { ElementId } from "../../utils/dom-contract";
 import "./how-it-works.css";
 import { CELL_SHAPES } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import Copy from "@ui/components/icons/Copy.astro";
-import Download from "@ui/components/icons/Download.astro";
+import Copy from "../icons/Copy.astro";
+import Download from "../icons/Download.astro";
 
 const WIDGET_DEMO_LEVELS = [
 	0, 0, 1, 0, 2, 1, 0, 3, 1, 0, 2, 4, 1, 0, 1, 2, 0, 3, 1, 0, 1, 0, 2, 1, 3, 2, 0, 1, 0, 0, 2, 0, 1, 3, 2, 1, 0, 1, 0,
@@ -14,7 +14,7 @@ const WIDGET_DEMO_LEVELS = [
 ];
 ---
 
-<section class="section" id="how" aria-label="How it works">
+<section class="section" id={ElementId.HowItWorksSection} aria-label="How it works">
   <div class="wrap">
     <div class="eyebrow" aria-hidden="true"><span class="mono">flow</span></div>
     <h2 class="section-title">Four taps.<br /><span class="dim">Nothing else to learn.</span></h2>
@@ -31,7 +31,7 @@ const WIDGET_DEMO_LEVELS = [
           <div class="cursor"></div>
         </div>
         <h3 class="step-title">Enter username</h3>
-        <p class="step-body">No OAuth, no personal access token. Just your handle.</p>
+        <p class="step-body">No OAuth, no personal access token. Just your username.</p>
       </div>
 
       <div class="step">

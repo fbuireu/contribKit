@@ -4,7 +4,7 @@ Date: 2026-09-16
 
 ## Status
 
-Accepted. Holds the web half of [4](0004-typed-failures-instead-of-thrown-exceptions.md) against the obvious alternative, and records what would overturn it.
+Accepted. Holds the web half of [4](0004-typed-failures-instead-of-thrown-exceptions.md) against the obvious alternative, and records what would overturn it. Amended 2026-09-30: Zod also checks what the browser reads and the scraper's Count, always through `astro/zod`; the *Decision* section carries the amendment.
 
 ## Context
 
@@ -39,7 +39,7 @@ The web keeps the union in [`domain/failures/failure.ts`](../../web/src/domain/f
 
 Zod stays too, for a smaller reason. The two routes that validate a query string or a body use `astro/zod`, which arrives with Astro and costs nothing. Effect Schema is the one place Effect would replace a dependency rather than add one, and replacing something already paid for is a loss.
 
-*Amended 2026-09-30.* Zod now also checks what the browser reads (the `/api/contributions` body, the injected grid, the contact error body, the username cookie and the query string) and the scraper's Count. Server and browser both import `astro/zod`, and `zod` is not a direct dependency of `web/`: a second import path is a second Zod to keep in step with the one Astro ships, and its types drift from `astro/zod`'s. `zod/mini` would have been lighter (6.6 to 6.8 KB gzip on `/` and `/contact` against 23.4 KB for the classic Zod `astro/zod` re-exports, which does not tree-shake), and that cost is accepted on the two pages that read untrusted data. The layout's own scripts stay Zod-free, so every page that reads none pays nothing. The figures and the rule are in the [ui guide](../../web/src/ui/AGENTS.md). Effect Schema still loses for the same reason: it would add a dependency the tree already has.
+*Amended 2026-09-30.* Zod now also checks what the browser reads (the `/api/contributions` body, the injected grid, the contact error body, the username cookie and `?user=`) and the scraper's Count. Server and browser both import `astro/zod`, and `zod` is not a direct dependency of `web/`: a second import path is a second Zod to keep in step with the one Astro ships, and its types drift from `astro/zod`'s. `zod/mini` would have been lighter (6.6 to 6.8 KB gzip on `/` and `/contact` against 23.4 KB for the classic Zod `astro/zod` re-exports, which does not tree-shake), and that cost is accepted on the two pages that read untrusted data. The layout's own scripts stay Zod-free, so every page that reads none pays nothing. The figures are in the [ui guide](../../web/src/ui/AGENTS.md) and the rule in [CODING_STANDARDS.md](../../CODING_STANDARDS.md). Effect Schema still loses for the same reason: it would add a dependency the tree already has.
 
 This decision is cheap to reverse, which is the point of writing it down rather than arguing it again. Any one of these overturns it:
 

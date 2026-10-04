@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
+import 'package:contribkit/domain/services/diagnostic_report_service.dart';
 import 'package:contribkit/domain/services/palette_service.dart';
 import 'package:contribkit/domain/value_objects/calendar_failure_kind.dart';
 import 'package:contribkit/domain/value_objects/calendar_request_source.dart';
@@ -13,8 +14,8 @@ import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/di/providers.dart';
+import 'package:contribkit/ui/features/home_screen_widget/home_screen_widget_service.dart';
 import 'package:contribkit/ui/features/viewer/viewer_state.dart';
-import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
 import 'package:contribkit/ui/theme/background_presets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -69,7 +70,7 @@ class ViewerNotifier extends _$ViewerNotifier {
       if (username != null) {
         await fetchContributions(
           username: username,
-          year: settings.year,
+          year: settings.year(today: _today),
           source: CalendarRequestSource.restored,
         );
       }
@@ -104,10 +105,7 @@ class ViewerNotifier extends _$ViewerNotifier {
       if (generation != _generation || !ref.mounted) return;
       state = state.copyWith(
         calendar: calendar,
-        stats: ContributionStatsService.compute(
-          calendar,
-          today: DateTime.now(),
-        ),
+        stats: ContributionStatsService.compute(calendar, today: _today),
         fromCache: fromCache,
       );
       await _remember(username: username, year: year);
@@ -119,7 +117,7 @@ class ViewerNotifier extends _$ViewerNotifier {
           fromCache: fromCache,
         ),
       );
-      _updateWidget();
+      _refreshHomeScreenWidget();
     } on Failure catch (f) {
       if (_stillOurs(generation)) {
         state = state.copyWith(error: f);
@@ -152,6 +150,8 @@ class ViewerNotifier extends _$ViewerNotifier {
   }
 
   bool _stillOurs(int generation) => generation == _generation && ref.mounted;
+
+  DateTime get _today => ref.read(clockProvider)();
 
   Future<List<Palette>> _loadPalettes() =>
       _paletteLoad ??= _loadPalettesOnce().whenComplete(() {
@@ -195,14 +195,14 @@ class ViewerNotifier extends _$ViewerNotifier {
     state = state.copyWith(palette: palette);
     _persist((repository) => repository.savePaletteKey(palette.key));
     _record(UsageEvent.paletteChosen(palette: palette));
-    _updateWidget();
+    _refreshHomeScreenWidget();
   }
 
   void setCellShape(CellShape shape) {
     state = state.copyWith(cellShape: shape);
     _persist((repository) => repository.saveCellShape(shape));
     _record(UsageEvent.cellShapeChosen(shape: shape));
-    _updateWidget();
+    _refreshHomeScreenWidget();
   }
 
   void setCellSize(CellSize size) {
@@ -248,8 +248,15 @@ class ViewerNotifier extends _$ViewerNotifier {
   Future<void> refreshContributions() async {
     final username = state.username;
     if (username == null) return;
-    final year = state.effectiveYear;
-    await ref.read(invalidateContributionCacheProvider)(username);
+    final year = state.effectiveYear(today: _today);
+    final diagnostics = ref.read(diagnosticsRepositoryProvider);
+    try {
+      await ref.read(invalidateContributionCacheProvider)(username);
+    } on Failure catch (failure, stackTrace) {
+      if (DiagnosticReportService.warrants(failure)) {
+        unawaited(diagnostics.report(error: failure, stackTrace: stackTrace));
+      }
+    }
     if (!ref.mounted) return;
     await fetchContributions(
       username: username,
@@ -265,19 +272,20 @@ class ViewerNotifier extends _$ViewerNotifier {
     if (username == null) return;
     await fetchContributions(
       username: username,
-      year: state.effectiveYear,
+      year: state.effectiveYear(today: _today),
       source: CalendarRequestSource.retry,
     );
   }
 
-  void _updateWidget() {
+  void _refreshHomeScreenWidget() {
     final calendar = state.calendar;
     final palette = state.palette;
     if (calendar == null || palette == null) return;
-    CalendarWidgetService.update(
+    HomeScreenWidgetService.update(
       calendar: calendar,
       palette: palette,
       cellShape: state.cellShape,
+      today: _today,
     );
   }
 }

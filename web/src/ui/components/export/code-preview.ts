@@ -10,7 +10,16 @@ import { CellShape } from "@domain/value-objects/cell-shape";
 import { buildEmbedUrl } from "@domain/value-objects/embed";
 import type { PaletteColors } from "@domain/value-objects/palette";
 
-type Token = [string, string];
+const TokenClass = {
+	Plain: "",
+	Tag: "c-tag",
+	Attribute: "c-attr",
+	String: "c-str",
+	Comment: "c-comment",
+} as const;
+
+type TokenClass = (typeof TokenClass)[keyof typeof TokenClass];
+type Token = [TokenClass, string];
 type CodeLine = Token[];
 
 const CELL_STEP = SVG_DEFAULT_CELL_SIZE + SVG_DEFAULT_CELL_GAP;
@@ -27,25 +36,22 @@ export interface MarkdownSnippetParams {
 	shape?: CellShape;
 }
 
-export const markdownSnippet = ({ username, palette, shape }: MarkdownSnippetParams): string =>
-	`![${IMAGE_ALT}](${buildEmbedUrl({ username, palette, shape })})`;
-
 interface AttributeTokensParams {
 	name: string;
 	value: string | number;
 }
 
 const attributeTokens = ({ name, value }: AttributeTokensParams): Token[] => [
-	["c-attr", name],
-	["", "="],
-	["c-str", `"${value}"`],
+	[TokenClass.Attribute, name],
+	[TokenClass.Plain, "="],
+	[TokenClass.String, `"${value}"`],
 ];
 
 const joinWithSpaces = (groups: Token[][]): Token[] =>
-	groups.flatMap((tokens, index) => (index === 0 ? tokens : [["", " "] as Token, ...tokens]));
+	groups.flatMap((tokens, index) => (index === 0 ? tokens : [[TokenClass.Plain, " "] as Token, ...tokens]));
 
 interface CellLineParams {
-	column: number;
+	weekIndex: number;
 	level: number;
 	palette: PaletteColors;
 	shape: CellShape;
@@ -53,13 +59,13 @@ interface CellLineParams {
 
 type CellLineRenderer = (params: CellLineParams) => CodeLine;
 
-const circleLine = ({ column, level, palette, shape }: CellLineParams): CodeLine => {
-	const x = column * CELL_STEP;
+const circleLine = ({ weekIndex, level, palette, shape }: CellLineParams): CodeLine => {
+	const x = weekIndex * CELL_STEP;
 	const centre = SVG_DEFAULT_CELL_SIZE / 2;
 
 	return [
-		["", " "],
-		["c-tag", "<circle "],
+		[TokenClass.Plain, " "],
+		[TokenClass.Tag, "<circle "],
 		...joinWithSpaces([
 			attributeTokens({ name: "cx", value: x + centre }),
 			attributeTokens({ name: "cy", value: centre }),
@@ -69,39 +75,39 @@ const circleLine = ({ column, level, palette, shape }: CellLineParams): CodeLine
 			}),
 			attributeTokens({ name: "fill", value: palette[level].hex }),
 		]),
-		["c-tag", "/>"],
+		[TokenClass.Tag, "/>"],
 	];
 };
 
-const hexLine = ({ column, level, palette }: CellLineParams): CodeLine => {
-	const x = column * CELL_STEP;
+const hexLine = ({ weekIndex, level, palette }: CellLineParams): CodeLine => {
+	const x = weekIndex * CELL_STEP;
 	const centre = SVG_DEFAULT_CELL_SIZE / 2;
 
 	return [
-		["", " "],
-		["c-tag", "<polygon "],
+		[TokenClass.Plain, " "],
+		[TokenClass.Tag, "<polygon "],
 		...joinWithSpaces([
 			attributeTokens({ name: "points", value: hexPoints({ cx: x + centre, cy: centre, radius: centre }) }),
 			attributeTokens({ name: "fill", value: palette[level].hex }),
 		]),
-		["c-tag", "/>"],
+		[TokenClass.Tag, "/>"],
 	];
 };
 
 const rectLine =
 	(radius: number): CellLineRenderer =>
-	({ column, level, palette }: CellLineParams): CodeLine => [
-		["", " "],
-		["c-tag", "<rect "],
+	({ weekIndex, level, palette }: CellLineParams): CodeLine => [
+		[TokenClass.Plain, " "],
+		[TokenClass.Tag, "<rect "],
 		...joinWithSpaces([
-			attributeTokens({ name: "x", value: column * CELL_STEP }),
+			attributeTokens({ name: "x", value: weekIndex * CELL_STEP }),
 			attributeTokens({ name: "y", value: 0 }),
 			attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
 			attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
 			attributeTokens({ name: "rx", value: radius }),
 			attributeTokens({ name: "fill", value: palette[level].hex }),
 		]),
-		["c-tag", "/>"],
+		[TokenClass.Tag, "/>"],
 	];
 
 const CELL_LINE_RENDERERS: Record<CellShape, CellLineRenderer> = {
@@ -122,55 +128,47 @@ export interface BuildSvgLinesParams {
 export const buildSvgLines = ({ palette, shape }: BuildSvgLinesParams): CodeLine[] => [
 	[
 		[
-			"c-comment",
+			TokenClass.Comment,
 			`<!-- ${WEEKS_PER_YEAR} × ${DAYS_PER_WEEK} grid · cell=${SVG_DEFAULT_CELL_SIZE} · gap=${SVG_DEFAULT_CELL_GAP} -->`,
 		],
 	],
 	[
-		["c-tag", "<svg "],
+		[TokenClass.Tag, "<svg "],
 		...joinWithSpaces([
 			attributeTokens({ name: "viewBox", value: `0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}` }),
 			attributeTokens({ name: "xmlns", value: SVG_NAMESPACE }),
 		]),
-		["c-tag", ">"],
+		[TokenClass.Tag, ">"],
 	],
-	...SAMPLE_LEVELS.map((level, column) => cellLine({ column, level, palette, shape })),
+	...SAMPLE_LEVELS.map((level, weekIndex) => cellLine({ weekIndex, level, palette, shape })),
 	[
-		["", " "],
-		["c-comment", `<!-- … ${REMAINING_CELLS} more cells … -->`],
+		[TokenClass.Plain, " "],
+		[TokenClass.Comment, `<!-- … ${REMAINING_CELLS} more cells … -->`],
 	],
-	[["c-tag", "</svg>"]],
+	[[TokenClass.Tag, "</svg>"]],
 ];
-
-export interface BuildMarkdownLinesParams {
-	username: string;
-	palette: string;
-	shape: CellShape;
-}
 
 const imageLine = (url: string): CodeLine => {
 	const [base, query] = url.split("?");
 	return [
-		["c-tag", "!["],
-		["c-str", IMAGE_ALT],
-		["c-tag", "]("],
-		["c-attr", base],
-		...(query ? ([["c-str", `?${query}`]] as Token[]) : []),
-		["c-tag", ")"],
+		[TokenClass.Tag, "!["],
+		[TokenClass.String, IMAGE_ALT],
+		[TokenClass.Tag, "]("],
+		[TokenClass.Attribute, base],
+		...(query ? ([[TokenClass.String, `?${query}`]] as Token[]) : []),
+		[TokenClass.Tag, ")"],
 	];
 };
 
-export function buildMarkdownLines({ username, palette, shape }: BuildMarkdownLinesParams): CodeLine[] {
-	return [
-		[["c-comment", "<!-- paste into your README -->"]],
-		[],
-		imageLine(buildEmbedUrl({ username })),
-		[],
-		[["c-comment", "<!-- or with options -->"]],
-		[],
-		imageLine(buildEmbedUrl({ username, palette, shape, keepDefaults: true })),
-	];
-}
+const snippetLine = ({ username, palette, shape }: MarkdownSnippetParams): CodeLine =>
+	imageLine(buildEmbedUrl({ username, palette, shape }));
+
+export const buildMarkdownLines = (params: MarkdownSnippetParams): CodeLine[] => [snippetLine(params)];
+
+export const markdownSnippet = (params: MarkdownSnippetParams): string =>
+	snippetLine(params)
+		.map(([, text]) => text)
+		.join("");
 
 export function buildCodeBlock(lines: CodeLine[]): HTMLPreElement {
 	const pre = document.createElement("pre");

@@ -2,31 +2,33 @@ import 'package:contribkit/domain/value_objects/tip_product.dart';
 import 'package:contribkit/ui/features/tip/tip_product_presentation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-TipProduct _product(String id) =>
+TipProduct _tipProduct(String id) =>
     TipProduct(id: id, title: 'Title', priceString: '€1.00');
 
 void main() {
   group('TipProductPresentation', () {
     test('recognises a Tip Product by a fragment of its store id', () {
       expect(
-        TipProductPresentation.of(_product('com.fbuireu.contribkit.coffee')),
+        TipProductPresentation.of(_tipProduct('com.fbuireu.contribkit.coffee')),
         TipProductPresentation.byIdFragment['coffee'],
       );
       expect(
-        TipProductPresentation.of(_product('contribkit_croissant_tip')),
+        TipProductPresentation.of(_tipProduct('contribkit_croissant_tip')),
         TipProductPresentation.byIdFragment['croissant'],
       );
     });
 
     test('matches regardless of the case the store reports', () {
       expect(
-        TipProductPresentation.of(_product('ContribKit.LUNCH')),
+        TipProductPresentation.of(_tipProduct('ContribKit.LUNCH')),
         TipProductPresentation.byIdFragment['lunch'],
       );
     });
 
     test('falls back rather than showing nothing for an unknown id', () {
-      final look = TipProductPresentation.of(_product('com.example.mystery'));
+      final look = TipProductPresentation.of(
+        _tipProduct('com.example.mystery'),
+      );
 
       expect(look, TipProductPresentation.fallback);
     });

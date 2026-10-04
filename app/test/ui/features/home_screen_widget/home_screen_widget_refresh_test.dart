@@ -6,10 +6,11 @@ import 'package:contribkit/domain/value_objects/color.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
-import 'package:contribkit/ui/features/widget/home_screen_widget_refresh.dart';
+import 'package:contribkit/ui/features/home_screen_widget/home_screen_widget_refresh.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fakes.dart';
+import '../../../support/fixtures.dart';
 
 const _github = Palette(
   key: 'github',
@@ -61,17 +62,20 @@ final class _RecordingWriter {
   ContributionCalendar? calendar;
   Palette? palette;
   CellShape? cellShape;
+  DateTime? today;
   var calls = 0;
 
   Future<void> write({
     required ContributionCalendar calendar,
     required Palette palette,
     required CellShape cellShape,
+    required DateTime today,
   }) async {
     calls++;
     this.calendar = calendar;
     this.palette = palette;
     this.cellShape = cellShape;
+    this.today = today;
   }
 }
 
@@ -79,7 +83,7 @@ void main() {
   final username = Username('octocat');
   final calendar = ContributionCalendar(
     username: username,
-    year: Year(2024),
+    year: Year(2024, today: testToday),
     weeks: const [],
     totalContributions: 7,
   );
@@ -94,6 +98,7 @@ void main() {
     palettes: FakePaletteRepository(palettes: palettes),
     contributions: contributions,
     write: writer.write,
+    now: () => testToday,
   );
 
   group('HomeScreenWidgetRefresh', () {
@@ -105,7 +110,7 @@ void main() {
         settings: FakeSettingsRepository(
           settings: AppSettings(
             lastUsername: username,
-            lastYear: Year(2024),
+            lastYear: Year(2024, today: testToday),
             paletteKey: 'dracula',
             cellShape: CellShape.circle,
           ),
@@ -115,10 +120,11 @@ void main() {
       )();
 
       expect(contributions.requestedUsername, username);
-      expect(contributions.requestedYear, Year(2024));
+      expect(contributions.requestedYear, Year(2024, today: testToday));
       expect(writer.calendar, calendar);
       expect(writer.palette, _dracula);
       expect(writer.cellShape, CellShape.circle);
+      expect(writer.today, testToday);
     });
 
     test('falls back to the current Year when none is stored', () async {
@@ -133,7 +139,7 @@ void main() {
         writer: writer,
       )();
 
-      expect(contributions.requestedYear, Year.current);
+      expect(contributions.requestedYear?.value, testToday.year);
     });
 
     test('falls back to the default Cell Shape when none is stored', () async {

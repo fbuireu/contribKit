@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'fakes.dart';
+import 'fixtures.dart';
 
 Widget host({
   required Widget child,
@@ -85,11 +86,14 @@ List<Override> appOverrides({
   FakeSuggestedUsernameRepository? usernames,
   FakeTipRepository? tips,
   FakeUsageEventRepository? usageEvents,
+  FakeDiagnosticsRepository? diagnostics,
   FakeExportDelivery? delivery,
   FakeExportRepository? svg,
   FakeExportRepository? png,
   FakeExportRepository? markdown,
+  DateTime? today,
 }) => [
+  clockProvider.overrideWithValue(() => today ?? testToday),
   settingsRepositoryProvider.overrideWithValue(
     settings ?? FakeSettingsRepository(),
   ),
@@ -108,6 +112,9 @@ List<Override> appOverrides({
   tipRepositoryProvider.overrideWithValue(tips ?? FakeTipRepository()),
   usageEventRepositoryProvider.overrideWithValue(
     usageEvents ?? FakeUsageEventRepository(),
+  ),
+  diagnosticsRepositoryProvider.overrideWithValue(
+    diagnostics ?? FakeDiagnosticsRepository(),
   ),
   exportDeliveryProvider.overrideWithValue(delivery ?? FakeExportDelivery()),
   svgExportRepositoryProvider.overrideWithValue(svg ?? FakeExportRepository()),

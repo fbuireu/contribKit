@@ -7,21 +7,35 @@ export interface Year {
 	readonly value: number;
 }
 
-export const parseYear = (input: number | string | null | undefined): Year | null | Failure => {
-	if (input == null || input === "") return null;
-	const year = typeof input === "number" ? input : Number(input);
+export interface ParseYearParams {
+	requested: number | string | null | undefined;
+	thisYear: number;
+}
+
+export const parseYear = ({ requested, thisYear }: ParseYearParams): Year | null | Failure => {
+	if (requested == null || requested === "") return null;
+	const year = typeof requested === "number" ? requested : Number(requested);
 	if (!Number.isInteger(year)) return invalidInput({ field: FailureField.Year, message: "Year must be an integer" });
-	const current = new Date().getFullYear();
-	if (year < MIN_YEAR || year > current) {
+	if (year < MIN_YEAR || year > thisYear) {
 		return invalidInput({
 			field: FailureField.Year,
-			message: `Year must be between ${MIN_YEAR} and ${current}`,
+			message: `Year must be between ${MIN_YEAR} and ${thisYear}`,
 		});
 	}
 	return { _tag: "Year", value: year };
 };
 
-export const currentYear = (): Year => ({ _tag: "Year", value: new Date().getFullYear() });
+export const currentYear = (thisYear: number): Year => ({ _tag: "Year", value: thisYear });
+
+export interface ResolveYearParams {
+	requested: string | null | undefined;
+	thisYear: number;
+}
+
+export const resolveYear = ({ requested, thisYear }: ResolveYearParams): number => {
+	const year = Number(requested);
+	return requested && Number.isInteger(year) && year >= MIN_YEAR && year <= thisYear ? year : thisYear;
+};
 
 export const isYear = (value: unknown): value is Year =>
 	typeof value === "object" && value !== null && (value as { _tag?: unknown })._tag === "Year";

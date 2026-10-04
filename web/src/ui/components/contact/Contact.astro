@@ -5,7 +5,7 @@ import {
 	MAX_CONTACT_NAME_LENGTH,
 	MIN_CONTACT_BODY_LENGTH,
 } from "@domain/value-objects/contact-message";
-import { ElementId } from "@ui/utils/dom-contract";
+import { ElementId } from "../../utils/dom-contract";
 import "./contact.css";
 ---
 
@@ -80,6 +80,6 @@ import "./contact.css";
 </section>
 
 <script>
-import { initContactForm } from "@ui/components/contact/contact-form";
+import { initContactForm } from "./contact-form";
 initContactForm();
 </script>

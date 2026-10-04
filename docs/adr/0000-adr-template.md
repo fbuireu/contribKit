@@ -8,11 +8,11 @@ Template. Not a decision: copy this file, do not edit it in place.
 
 ## Context
 
-Copy this file to `NNNN-kebab-title.md`, numbered one above the highest existing ADR. The `# N. Title` heading carries that same number and states the decision in one line; the file slug is the short form of it.
+Copy this file to `NNNN-kebab-title.md`, numbered one above the highest existing ADR, and add a row for it to the index in [`ARCHITECTURE.md`](../../ARCHITECTURE.md). The `# N. Title` heading carries that same number and states the decision in one line; the file slug is the short form of it.
 
 Write an ADR only when the decision is **hard to reverse**, **surprising without context** and **the result of a real trade-off**. All of them, or it is not an ADR.
 
-This section holds the forces, not the answer: what the situation was, what the alternatives were, and why the obvious option was not obviously right. Someone reading it two years from now has none of the context you have today. The constraint that made this hard is the part they will be missing.
+This section holds the forces, not the answer: what the situation was, what the alternatives were, and why the obvious option was not obviously right. Someone reading it two years from now has none of the context you have today, and the constraint that made this hard is the part they will be missing.
 
 ## Decision
 
@@ -20,8 +20,8 @@ What was decided, in the present tense, as a rule the codebase follows. Name the
 
 ## Consequences
 
-What follows from this, including what it costs:
+What follows from this, including what it costs. The bullets someone needs before touching the code:
 
 - What is now load-bearing and must not be removed, and what breaks if it is.
 - What this makes harder, slower, or impossible. An ADR with no cost recorded is usually not describing a real trade-off.
-- Where the decision bites in the rest of the docs. Add the row to the index in [`ARCHITECTURE.md`](../../ARCHITECTURE.md) **and** link the decision from wherever it bites: a gotcha, a nested guide, a wiki page. Both are asserted, because an ADR only the index points at will not be read.
+- Where the decision bites in the rest of the docs: the rule in [`CODING_STANDARDS.md`](../../CODING_STANDARDS.md) a reviewer holds a diff to, the gotcha, the nested guide, the wiki page that has to link back here. An ADR that only the index links to will not be read, and the docs contract asserts both the row and a link from where it bites.

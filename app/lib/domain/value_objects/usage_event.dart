@@ -12,80 +12,94 @@ import 'package:contribkit/domain/value_objects/tip_product.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 
 final class UsageEvent {
-  const UsageEvent._(this.name, [this.properties = const {}]);
+  const UsageEvent._({required this.name, this.properties = const {}});
 
   final String name;
 
   final Map<String, Object> properties;
 
-  static const customizerOpened = UsageEvent._('customizerOpened');
+  static const customizerOpened = UsageEvent._(name: 'customizerOpened');
 
-  static const exportOpened = UsageEvent._('exportOpened');
+  static const exportOpened = UsageEvent._(name: 'exportOpened');
 
-  static const tipJarOpened = UsageEvent._('tipJarOpened');
+  static const tipJarOpened = UsageEvent._(name: 'tipJarOpened');
 
-  static const contactOpened = UsageEvent._('contactOpened');
+  static const contactOpened = UsageEvent._(name: 'contactOpened');
 
-  static const privacyOpened = UsageEvent._('privacyOpened');
+  static const privacyOpened = UsageEvent._(name: 'privacyOpened');
 
   static UsageEvent calendarViewed({
     required Year year,
     required CalendarRequestSource source,
     required bool fromCache,
-  }) => UsageEvent._('calendarViewed', {
-    'year': year.value,
-    'source': source.name,
-    'fromCache': fromCache,
-  });
+  }) => UsageEvent._(
+    name: 'calendarViewed',
+    properties: {
+      'year': year.value,
+      'source': source.name,
+      'fromCache': fromCache,
+    },
+  );
 
   static UsageEvent calendarRequestFailed({
     required CalendarRequestSource source,
     required CalendarFailureKind reason,
-  }) => UsageEvent._('calendarRequestFailed', {
-    'source': source.name,
-    'reason': reason.name,
-  });
+  }) => UsageEvent._(
+    name: 'calendarRequestFailed',
+    properties: {'source': source.name, 'reason': reason.name},
+  );
 
   static UsageEvent yearChosen({required Year year}) =>
-      UsageEvent._('yearChosen', {'year': year.value});
+      UsageEvent._(name: 'yearChosen', properties: {'year': year.value});
 
   static UsageEvent paletteChosen({required Palette palette}) =>
-      UsageEvent._('paletteChosen', {'palette': palette.key});
+      UsageEvent._(name: 'paletteChosen', properties: {'palette': palette.key});
 
-  static UsageEvent cellShapeChosen({required CellShape shape}) =>
-      UsageEvent._('cellShapeChosen', {'cellShape': shape.name});
+  static UsageEvent cellShapeChosen({required CellShape shape}) => UsageEvent._(
+    name: 'cellShapeChosen',
+    properties: {'cellShape': shape.name},
+  );
 
   static UsageEvent cellSizeChosen({required CellSize size}) =>
-      UsageEvent._('cellSizeChosen', {'cellSize': size.name});
+      UsageEvent._(name: 'cellSizeChosen', properties: {'cellSize': size.name});
 
   static UsageEvent backgroundChosen({required BackgroundPreset preset}) =>
-      UsageEvent._('backgroundChosen', {'background': preset.name});
+      UsageEvent._(
+        name: 'backgroundChosen',
+        properties: {'background': preset.name},
+      );
 
   static UsageEvent exportShared({
     required ExportFormat format,
     required ExportDelivery delivery,
-  }) => UsageEvent._('exportShared', {
-    'format': format.name,
-    'delivery': delivery.name,
-  });
+  }) => UsageEvent._(
+    name: 'exportShared',
+    properties: {'format': format.name, 'delivery': delivery.name},
+  );
 
   static UsageEvent exportFailed({required ExportFormat format}) =>
-      UsageEvent._('exportFailed', {'format': format.name});
+      UsageEvent._(name: 'exportFailed', properties: {'format': format.name});
 
-  static UsageEvent tipGiven({required TipProduct product}) =>
-      UsageEvent._('tipGiven', {'product': product.id});
+  static UsageEvent tipGiven({required TipProduct tipProduct}) =>
+      UsageEvent._(name: 'tipGiven', properties: {'product': tipProduct.id});
 
-  static UsageEvent tipCancelled({required TipProduct product}) =>
-      UsageEvent._('tipCancelled', {'product': product.id});
+  static UsageEvent tipCancelled({required TipProduct tipProduct}) =>
+      UsageEvent._(
+        name: 'tipCancelled',
+        properties: {'product': tipProduct.id},
+      );
 
-  static UsageEvent tipFailed({required TipProduct product}) =>
-      UsageEvent._('tipFailed', {'product': product.id});
+  static UsageEvent tipFailed({required TipProduct tipProduct}) =>
+      UsageEvent._(name: 'tipFailed', properties: {'product': tipProduct.id});
 
   static UsageEvent contactMessageSent({required ContactOutcome outcome}) =>
-      UsageEvent._('contactMessageSent', {'outcome': outcome.name});
+      UsageEvent._(
+        name: 'contactMessageSent',
+        properties: {'outcome': outcome.name},
+      );
 
   static UsageEvent themeChanged({required AppThemeMode mode}) =>
-      UsageEvent._('themeChanged', {'mode': mode.name});
+      UsageEvent._(name: 'themeChanged', properties: {'mode': mode.name});
 
   bool _sameProperties(Map<String, Object> other) {
     if (other.length != properties.length) return false;

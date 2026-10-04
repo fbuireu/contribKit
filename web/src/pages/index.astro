@@ -1,9 +1,14 @@
 ---
 import { ContributionsEndpoint, logContributionsFailure } from "@application/http/failure-log";
-import { DaySource, daySourceFor, resolveViewerIdentity } from "@application/use-cases/resolve-initial-view";
+import {
+	cacheControlFor,
+	DaySource,
+	daySourceFor,
+	initialStatsFor,
+	resolveViewerIdentity,
+} from "@application/use-cases/resolve-initial-view";
 import type { ContributionDay } from "@domain/entities/types";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
-import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
 import { toIsoDate } from "@domain/services/dates";
 import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
@@ -60,15 +65,13 @@ const SCHEMA = [
 	},
 ];
 
-const { username, isExplicit, cacheControl } = resolveViewerIdentity({
+const { username, isExplicit } = resolveViewerIdentity({
 	requestedUsername: Astro.url.searchParams.get("user"),
 	savedUsername: Astro.cookies.get(USERNAME_COOKIE)?.value,
 });
-const currentYear = new Date().getFullYear();
-const requestedYear = Astro.url.searchParams.get("year");
-
-const initial = await loadInitial({ username, year: requestedYear });
-const resolvedYear = initial.ok ? initial.data.year : currentYear;
+const now = new Date();
+const thisYear = now.getFullYear();
+const initial = await loadInitial({ username, year: Astro.url.searchParams.get("year"), thisYear });
 
 if (!initial.ok) {
 	logContributionsFailure({
@@ -83,22 +86,24 @@ if (!initial.ok) {
 
 let days: ContributionDay[];
 let heroError: string | null = null;
-switch (daySourceFor({ loaded: initial.ok, isExplicit })) {
+const source = daySourceFor({ loaded: initial.ok, isExplicit });
+switch (source) {
 	case DaySource.Loaded:
 		days = initial.ok ? initial.data.days : [];
 		break;
 	case DaySource.Empty:
-		days = buildGridFromApi({ days: [], year: currentYear });
-		heroError = initial.ok ? null : contributionError({ status: initial.status });
+		days = buildGridFromApi({ days: [], year: initial.year });
+		heroError = initial.ok ? null : contributionError({ status: initial.status, kind: initial.kind });
 		break;
 	default:
 		days = generateData();
 }
 
-const stats = statsWithScrapedTotal({
+const stats = initialStatsFor({
+	source,
 	days,
-	year: initial.ok ? initial.data.year : currentYear,
-	today: toIsoDate(new Date()),
+	year: initial.year,
+	today: toIsoDate(now),
 	scrapedTotal: initial.ok ? initial.data.totalContributions : null,
 });
 
@@ -119,11 +124,11 @@ const exportSvg = renderCalendarString({
 
 const initialDaysForClient = days;
 
-Astro.response.headers.set("Cache-Control", cacheControl);
+Astro.response.headers.set("Cache-Control", cacheControlFor({ loaded: initial.ok, isExplicit }));
 ---
 
 <BaseLayout metadata={metadata}>
-  <Hero heroSVG={heroSVG} stats={stats} palette={CLASSIC} username={username} year={resolvedYear} error={heroError} />
+  <Hero heroSVG={heroSVG} stats={stats} palette={CLASSIC} username={username} thisYear={thisYear} year={initial.year} error={heroError} />
   <HowItWorks />
   <Customize />
   <Export exportSvg={exportSvg} />

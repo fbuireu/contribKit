@@ -2,6 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initCellTooltip } from "./cell-tooltip";
+import { ElementId } from "./dom-contract";
 
 const UNKNOWN_COUNT_LABEL = /^Contributions unknown on /;
 
@@ -43,9 +44,9 @@ interface TooltipDouble {
 }
 
 const mountTooltip = (cells = `<div id="cell" data-date="2024-03-15" data-count="5"></div>`): TooltipDouble => {
-	document.body.innerHTML = `<div id="cell-tooltip"></div>${cells}`;
+	document.body.innerHTML = `<div id="${ElementId.CellTooltip}"></div>${cells}`;
 
-	const element = document.getElementById("cell-tooltip") as HTMLElement;
+	const element = document.getElementById(ElementId.CellTooltip) as HTMLElement;
 	let open = false;
 	const showPopover = vi.fn(() => {
 		open = true;
@@ -96,8 +97,8 @@ describe("initCellTooltip", () => {
 	});
 
 	it("does nothing where the Popover API is missing, rather than throwing on every hover", () => {
-		document.body.innerHTML = `<div id="cell-tooltip"></div><div id="cell" data-date="2024-03-15"></div>`;
-		const tooltip = document.getElementById("cell-tooltip") as HTMLElement;
+		document.body.innerHTML = `<div id="${ElementId.CellTooltip}"></div><div id="cell" data-date="2024-03-15"></div>`;
+		const tooltip = document.getElementById(ElementId.CellTooltip) as HTMLElement;
 		Object.assign(tooltip, { showPopover: undefined });
 
 		initCellTooltip();
@@ -314,6 +315,41 @@ describe("initCellTooltip against events that name no cell", () => {
 		hover(place({ left: 100, top: 200 }));
 
 		expect(tooltip.showPopover).toHaveBeenCalled();
-		expect(tooltip.element.textContent).toMatch(/^5 contributions on /);
+		expect(tooltip.element.textContent).toBe("5 contributions");
+	});
+
+	it.each([
+		["a word", "abc"],
+		["nothing", ""],
+		["a number with junk after it", "5abc"],
+		["a negative number", "-3"],
+		["a fraction", "1.5"],
+	])("says the Count is unknown on a cell whose count attribute holds %s, never NaN or a guess", (_label, count) => {
+		const tooltip = mountTooltip(`<div id="cell" data-date="2024-03-15" data-count="${count}"></div>`);
+		initCellTooltip();
+
+		hover(place({ left: 100, top: 200 }));
+
+		expect(tooltip.showPopover).toHaveBeenCalled();
+		expect(tooltip.element.textContent).toMatch(UNKNOWN_COUNT_LABEL);
+	});
+
+	it("reads a Count of zero as no contributions, which is a measured fact", () => {
+		const tooltip = mountTooltip(`<div id="cell" data-date="2024-03-15" data-count="0"></div>`);
+		initCellTooltip();
+
+		hover(place({ left: 100, top: 200 }));
+
+		expect(tooltip.element.textContent).toBe("No contributions on Friday, March 15, 2024");
+	});
+
+	it("names the Count without a date on a cell whose date names no calendar day", () => {
+		const tooltip = mountTooltip(`<div id="cell" data-date="2024-02-30" data-count="1"></div>`);
+		initCellTooltip();
+
+		hover(place({ left: 100, top: 200 }));
+
+		expect(tooltip.showPopover).toHaveBeenCalled();
+		expect(tooltip.element.textContent).toBe("1 contribution");
 	});
 });

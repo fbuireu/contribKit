@@ -1,10 +1,12 @@
 import 'package:intl/intl.dart';
 
-const unknownTotalText = 'unknown';
+const unknownTotalContributionsText = 'unknown';
 
 const unknownTotalPhrase = 'contributions unknown';
 
 String formatTotalContributions({
   required NumberFormat format,
-  required int? total,
-}) => total == null ? unknownTotalText : format.format(total);
+  required int? totalContributions,
+}) => totalContributions == null
+    ? unknownTotalContributionsText
+    : format.format(totalContributions);

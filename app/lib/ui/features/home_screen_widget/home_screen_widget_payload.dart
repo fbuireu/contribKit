@@ -42,7 +42,9 @@ final class HomeScreenWidgetPayload {
     shape: cellShape.name,
     username: calendar.username.value,
     streak: StreakService.currentFor(calendar: calendar, today: today),
-    totalContributionsText: encodeTotal(calendar.totalContributions),
+    totalContributionsText: encodeTotalContributions(
+      calendar.totalContributions,
+    ),
   );
 
   static String encodeLevels(ContributionCalendar calendar) {
@@ -59,9 +61,10 @@ final class HomeScreenWidgetPayload {
     return buffer.toString();
   }
 
-  static String encodeTotal(int? total) => total == null
+  static String encodeTotalContributions(int? totalContributions) =>
+      totalContributions == null
       ? unknownTotalPhrase
-      : '${formatTotalContributions(format: NumberFormat.decimalPattern(), total: total)} contributions this year';
+      : '${formatTotalContributions(format: NumberFormat.decimalPattern(), totalContributions: totalContributions)} contributions this year';
 
   static String encodeColors(Palette palette) => [
     for (final level in ContributionLevel.values) palette.colorFor(level).argb,

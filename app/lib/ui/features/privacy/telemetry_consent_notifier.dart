@@ -1,3 +1,4 @@
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -41,8 +42,13 @@ class TelemetryConsentNotifier extends _$TelemetryConsentNotifier {
 
   Future<void> _choose(TelemetryConsent next) async {
     state = next;
-    await ref.read(settingsRepositoryProvider).saveTelemetryConsent(next);
+    final settings = ref.read(settingsRepositoryProvider);
     await _apply(next);
+    try {
+      await settings.saveTelemetryConsent(next);
+    } on Failure {
+      return;
+    }
   }
 
   Future<void> _apply(TelemetryConsent consent) async {

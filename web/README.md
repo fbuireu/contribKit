@@ -114,7 +114,7 @@ ContribKit reads GitHub's **public** contributions page: no API token, no OAuth 
 
 ## Architecture
 
-DDD-ish layers; each one documents its own rules in a colocated `AGENTS.md`:
+DDD-ish layers. The rules are in [`CODING_STANDARDS.md`](../CODING_STANDARDS.md), and each layer has a colocated `AGENTS.md` for whoever works in it:
 
 | Layer                                                  | Role                                                            |
 | ------------------------------------------------------- | --------------------------------------------------------------- |
@@ -159,7 +159,7 @@ Both deploys run from [`ci.yml`](../.github/workflows/ci.yml), behind `Verify (w
 > **That set is decided by a job, not by a `paths:` filter**, and the difference is the point: a filtered workflow reports nothing on a pull request outside its paths, so a check that has to be required cannot live behind one. `ci.yml` carries no filter; a `changes` job diffs the range and every other job is gated on its output by `if:`. The web set is `web/`, `shared/`, `scripts/`, `docs/`, any root `*.md`, the root [`package.json`](../package.json), `pnpm-workspace.yaml`, `pnpm-lock.yaml`, [`lefthook.yml`](../lefthook.yml), `.nvmrc` and the whole of `.github/`. A documentation-only push to `main` therefore redeploys the Worker, which is accepted because the deploy is idempotent. The documentation-consistency contract needs none of this: `Docs Contract` is its own job with no gate at all, so it fires on every event whatever changed ([ADR 0015](../docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)).
 
 > [!IMPORTANT]
-> **How environments work with `@astrojs/cloudflare`:** there are two switches and both are set. `CLOUDFLARE_ENV=<env> astro build` is Astro's, and decides which [`wrangler.toml`](./wrangler.toml) `[env.NAME]` block the adapter resolves into `dist/server/wrangler.json`; `wrangler deploy --env <env>` is wrangler's, and decides which block the deploy selects. [`_deploy.yml`](../.github/workflows/_deploy.yml) derives one stage name from the GitHub Environment and passes it to both, with `--name` on top for previews. It passed only the first for a long while, and the bindings that live solely under `[env.production]`, the custom domain and the `API_RATE_LIMITER` limit, never reached the Worker; the root [`AGENTS.md`](../AGENTS.md) has the whole account. A mismatched pair is not silent: wrangler compares the flag with the generated config's `targetEnvironment` and fails with *This does not match the target environment*.
+> **How environments work with `@astrojs/cloudflare`:** there are two switches and both are set. `CLOUDFLARE_ENV=<env> astro build` is Astro's, and decides which [`wrangler.toml`](./wrangler.toml) `[env.NAME]` block the adapter resolves into `dist/server/wrangler.json`; `wrangler deploy --env <env>` is wrangler's, and decides which block the deploy selects. [`_deploy.yml`](../.github/workflows/_deploy.yml) derives one stage name from the GitHub Environment and passes it to both, with `--name` on top for previews. Without the second, the bindings that live solely under `[env.production]`, the custom domain and the `API_RATE_LIMITER` limit, would never reach the Worker. A mismatched pair is not silent: wrangler compares the flag with the generated config's `targetEnvironment` and fails with *This does not match the target environment*.
 
 See the **[root README](../README.md#monorepo-development)** for the GitHub Environments naming convention shared with the app.
 

@@ -42,7 +42,7 @@ final class TelemetryConsentNotifierProvider
 }
 
 String _$telemetryConsentNotifierHash() =>
-    r'f5953fc32af6ae6da0b90130b5a9b44d4958a218';
+    r'16722c438f1e0a5fe21806aaa7b71f823d12bbb2';
 
 abstract class _$TelemetryConsentNotifier extends $Notifier<TelemetryConsent> {
   TelemetryConsent build();

@@ -64,7 +64,7 @@ Three repositories implement the `ExportRepository` interface, each producing a 
 
 ### State & dependency injection
 
-[Riverpod](https://riverpod.dev) is the app's **DI container and reactive state layer**, living entirely inside `ui/`: it's the only layer that knows Flutter or Riverpod exist. It does not replace the DDD layering; it's the mechanism that wires that layering together and exposes it to widgets.
+[Riverpod](https://riverpod.dev) is the app's **DI container and reactive state layer**. It lives inside `ui/`, plus the `ProviderScope` that `main.dart` mounts, so no other layer knows it exists. It does not replace the DDD layering; it's the mechanism that wires that layering together and exposes it to widgets.
 
 **Composition root.** [`ui/di/providers.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/di/providers.dart) (code-generated [`providers.g.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/di/providers.g.dart)) is the single place allowed to import `infrastructure/` and `application/` at the same time. It instantiates the concrete repositories (GitHub, assets, settings, tip, export), passes them into the use-case classes, and exposes each as an `@riverpod` provider:
 
@@ -78,9 +78,9 @@ FetchContributions fetchContributions(Ref ref) =>
     FetchContributions(repository: ref.watch(contributionRepositoryProvider));
 ```
 
-The chain is **repository → use case → notifier**, the same inward dependency direction as the web: widgets depend on notifiers, notifiers depend on use cases, use cases depend on domain interfaces. Nothing flows outward.
+The chain is **repository → use case → notifier**, the same inward dependency direction as the web: widgets depend on notifiers, notifiers depend on use cases and on the repository ports `ui/di/` provides, and use cases depend on domain interfaces. Nothing flows outward.
 
-**State.** Stateful screens use `@riverpod` notifier classes over immutable freezed state, e.g. `ViewerNotifier` holds `ViewerState`, mutating only via `state = state.copyWith(...)`. Widgets stay dumb: `ref.watch` to read state, `ref.read(notifier).method()` to act (no business logic in `build`). Persisted settings (username, palette, shape, size, background, theme) live behind `settings_repository_impl` (local persistence) and are read/written by notifiers through the repository, never directly.
+**State.** Stateful screens use `@riverpod` notifier classes over immutable freezed state, e.g. `ViewerNotifier` holds `ViewerState`, mutating only via `state = state.copyWith(...)`. Widgets stay dumb: `ref.watch` to read state, `ref.read(provider.notifier).method()` to act (no business logic in `build`). Persisted settings (username, palette, shape, size, background, theme) live behind `settings_repository_impl` (local persistence) and are read/written by notifiers through the repository, never directly.
 
 ### Why Riverpod
 
@@ -104,7 +104,7 @@ Android only: there is no iOS widget.
 | Small (80×40dp) | `ContribKitSmallWidgetProvider` | Streak counter |
 | Medium (250×110dp) | `ContribKitWidgetProvider` | Username, streak badge, grid image and year total |
 
-Widgets are driven by [`calendar_widget_service.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/features/widget/calendar_widget_service.dart) and refreshed by a daily background task.
+Widgets are driven by [`home_screen_widget_service.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/features/home_screen_widget/home_screen_widget_service.dart) and refreshed by a daily background task.
 
 ---
 

@@ -17,7 +17,7 @@ export const prerender = false;
 const ACCEPTED_STATUS = 202;
 const INVALID_BODY_STATUS = 400;
 
-const bodySchema = z.object({
+const contactMessageSchema = z.object({
 	name: z.string().optional(),
 	email: z.string(),
 	message: z.string(),
@@ -31,7 +31,7 @@ const accepted = (): Response =>
 
 const handle: APIRoute = async ({ request }) => {
 	const payload: unknown = await request.json().catch(() => null);
-	if (!bodySchema.validate(payload)) {
+	if (!contactMessageSchema.validate(payload)) {
 		return Response.json({ error: "Invalid request body" }, { status: INVALID_BODY_STATUS, headers: uncacheable });
 	}
 

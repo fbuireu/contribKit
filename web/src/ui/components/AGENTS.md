@@ -6,67 +6,39 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 
 | Directory | Role |
 |---|---|
-| `core/` | App shell and head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `telemetry/`, `cookie-consent/`. |
+| `core/` | App shell and head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `telemetry/`, `cookie-consent/`. `BaseLayout` composes `header` and `footer`, `seo` and `telemetry` in the head, and `cookie-consent` at the end of the body. |
 | `hero/` · `customize/` · `export/` · `how-it-works/` · `widget/` | Home-page feature sections: one folder each (`.astro` + `.css` + any local logic). |
-| `grid/` | The contribution graph: `CellTooltip` plus its rendering utilities (`calendar`, `render-svg`, `mini-grid`, `contribution`, `grid-geometry`). |
+| `grid/` | The Contribution Calendar: `CellTooltip` plus its rendering utilities (`calendar`, `render-svg`, `mini-grid`, `contribution`, `grid-geometry`). |
 | `contact/` | The `/contact` page's section: `Contact.astro`, its colocated `contact.css`, and `contact-form.ts`, the client controller that posts to `/api/contact`. It is the only component group that submits anything ([ADR 0030](../../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). |
 | `error/` | The 404/500 UI: `ErrorView` + `ContributionCode` + `glyph-utils`, generic over code and tone. |
 | `icons/` | Inline SVG icon components: no external icon library. |
 | `legal/` | Shared styles for the legal pages. |
 
-## Invariants & rules
-
-The layer's rules (props in / markup out, colocated CSS, Palette colours and Cell Shapes from
-`@domain/value-objects/`) are in the [parent guide](../AGENTS.md) and are not restated here. What this folder adds:
-
-- **Anything fed from a DOM `dataset` is guarded where it is read, not where it is used.** `getActiveShape` and
-  `getActivePalette` in [`ui/utils/render.ts`](../utils/render.ts) are the two places a `data-key` becomes a `CellShape` or a `Palette`,
-  through `isCellShape` and `paletteByKey`. The palette path had no guard at all until a `data-key` naming a
-  palette [`shared/palettes.json`](../../../../shared/palettes.json) does not define threw a `TypeError` in three renderers; the shape path had one
-  and then `renderCalendarString` ran it a second time, which is the guard that has since gone. A renderer takes
-  the typed value and trusts it: `shapePreviewSVG` takes a `CellShape` too, because [`Customize.astro`](./customize/Customize.astro) maps over
-  `CELL_SHAPES` and the value flows *into* the markup rather than out of it.
-- **The number in the hero goes through `formatTotalContributions`**, in [`grid/contribution.ts`](./grid/contribution.ts), which is the same
-  function the SSR page and the client renderer call. It prints `unknown` for a `null` total. Never interpolate
-  `stats.totalContributions` directly.
-- **The contact form's `maxlength` attributes come from the domain, never from the markup.**
-  `MAX_CONTACT_NAME_LENGTH`, `MAX_CONTACT_EMAIL_LENGTH`, `MIN_CONTACT_BODY_LENGTH` and `MAX_CONTACT_BODY_LENGTH`
-  are interpolated out of [`@domain/value-objects/contact-message`](../../domain/value-objects/contact-message.ts), so
-  the browser refuses exactly what the server would. Typing the numbers in would be the same class of drift as a
-  hex literal.
-  The markup carries `required`, `type="email"`, `minlength` and `maxlength` and no `novalidate`; the controller
-  sets `noValidate` itself, so with scripting the domain's per-field rules answer inline in the `field-error` node
-  each control names through `aria-describedby`, and without it the browser's own checks still refuse a bad
-  submission. Either way the server's 400 is the answer for a client that bypassed both, not the first thing a
-  person sees. The error nodes and the failed status are `--danger` on the page's colours, and they restate
-  `::selection` on purpose: the default selection highlight under red text was unreadable.
-- **The honeypot is hidden by a class, not by `type="hidden"` or `display:none` alone.** `.field--trap` clips it
-  out of the layout while leaving it in the accessibility tree's way as little as possible: it also carries
-  `tabindex="-1"`, `autocomplete="off"` and `aria-hidden="true"`, so a keyboard user never lands on it and a screen
-  reader never announces it. A `type="hidden"` input is the version bots know to leave alone.
-- `core/` renders on every page; `BaseLayout` composes `header` + `footer` + the head integrations (`seo`,
-  `telemetry`, `cookie-consent`).
-- **`core/telemetry/` is the only place the browser talks to a vendor.** `telemetry.ts` loads the two tags and
-  syncs Google's consent state; `usage-event.ts` is `recordUsageEvent` and the closed sets every Usage Event is
-  built from; `usage-event-links.ts` is the declarative half, one delegated click listener over
-  `data-usage-event` links. **A Usage Event carries a name and typed properties drawn from closed sets, never the
-  username or free text**: `UsageEventProperties` is keyed by event name, so a property the map does not declare
+- **The figures in the hero go through `formatTotalContributions` and `formatStreak`**, in
+  [`grid/contribution.ts`](./grid/contribution.ts), the functions `Hero.astro` and the client's `updateHeroStats`
+  both call, so a figure that is `null` reads `unknown` on either side.
+- **The contact form's limits are interpolated out of
+  [`@domain/value-objects/contact-message`](../../domain/value-objects/contact-message.ts).** The markup carries
+  `required`, `type="email"`, `minlength` and `maxlength` and no `novalidate`; the controller sets `noValidate`
+  itself, so with scripting the domain's per-field rules answer inline in the `field-error` node each control names
+  through `aria-describedby`, and without it the browser's own checks still refuse a bad submission. The error nodes
+  and the failed status are `--danger` on the page's colours, and they restate `::selection`, because the default
+  selection highlight is unreadable under red text.
+- **`core/telemetry/` is the only place the browser talks to a vendor.** `telemetry.ts` is `initTelemetry`, which
+  applies the consent on load and again on every `cc:onConsent` and `cc:onChange`: it syncs Google's consent state
+  and loads each tag once its service is accepted. `usage-event.ts` is `recordUsageEvent` and the closed sets every
+  Usage Event is built from; `UsageEventProperties` is keyed by event name, so a property the map does not declare
   is a type error, and the only `string`-typed property is the Palette key, which `getActivePalette` has already
-  resolved through `paletteByKey`. **It reaches a vendor only when that vendor's consent service is accepted**:
-  `acceptedService("ga4", …)` gates `gtag`, `acceptedService("betterstack", …)` gates the Better Stack tag, each
-  checked on every call rather than once, so a consent change takes effect on the next event without a reload.
-  It never throws: a missing global or a vendor that throws is swallowed, because recording an event must never
-  break the click it records. The markup side spells its attributes through `usageEventAttributes`, spread
-  onto the anchor, so a store name, a placement or a section the closed set does not contain fails `astro check`
-  rather than reaching the listener; and the listener re-validates what it reads, so hand-written markup cannot
-  forward a free value either.
+  resolved through `paletteByKey`. `usage-event-links.ts` is the declarative half, one delegated click listener over
+  `data-usage-event` links, and it re-validates what it reads, so hand-written markup cannot forward a free value.
+  The service names and the category, `ConsentService` and `ConsentCategory`, are declared once, in
+  [`cookie-consent/config.ts`](./core/cookie-consent/config.ts), which hands the same names to the banner.
 
 ## `grid/`: the client renderer, and how it differs from the server's
 
-[`render-svg.ts`](./grid/render-svg.ts) and `svgStringRenderer` in `infrastructure/rendering/` both draw the calendar. **Both get their
-whole geometry from one call to `calendarLayout`** in `@domain/services/svg-geometry`, and their cells from
-`@domain/services/cell-shapes`, so a cell is identical in both by construction. The differences are deliberate and
-worth knowing:
+[`render-svg.ts`](./grid/render-svg.ts) and `svgStringRenderer` in `infrastructure/rendering/` both draw the calendar, and **both get their
+whole geometry from one call to `calendarLayout`** in `@domain/services/svg-geometry` and their cells from
+`@domain/services/cell-shapes`, so a cell is identical in both by construction. The differences are deliberate:
 
 |  | Server (`svgStringRenderer`) | Client (`render-svg.ts`) |
 | --- | --- | --- |
@@ -78,123 +50,86 @@ worth knowing:
 | Background | a `<rect>` when the Background is not transparent | never: the card behind it is the background |
 | Consumed as | an `<img>` in someone else's document | live DOM on this page |
 
-That table is the complete list, and it took three passes to become one: the font-family and the month-label opacity rows sat outside it while the guide claimed completeness, which is the failure mode a table like this has. Nothing detects a new divergence; adding a row is manual. Each renderer is a loop over `layout.monthLabels`, `layout.weekdayLabels`
-and `layout.cells`, emitting its own strings; neither chunks weeks, computes a dimension, positions a label or
-derives a radius. Both used to, identically: twelve imports each and the same thirty-line walk, down to a
-byte-identical closing `parts.push("</g></svg>")`. Only the geometry primitives had been shared, so the *rule* was
-in one place and the *composition* was in two.
+That table is the complete list. Nothing detects a new divergence; adding a row is manual.
 
-**Collapsing the two into one parameterised walk was designed and rejected.** The config it would need is
-`rootAttributes` (fixed pixels against `width="100%"`), `background` (server only), a style string for each of the
-two label kinds, and an optional per-cell attribute callback: five fields, one of them a function, in front of a
-thirty-line loop. That is the shallow-module failure one level up, where the interface costs as much as the body it
-hides.
+**`renderCalendarString` takes a `PaletteColors` and a `CellShape` and trusts both.** The tuple type makes the five
+colours a compile error to break, and each day's level is already a `ContributionLevel`, because `contributionDay`
+clamps it at construction. `RenderCalendarStringParams` lives beside it in [`render-svg.ts`](./grid/render-svg.ts):
+anything a renderer's caller must know goes beside the renderer, never in [`calendar.ts`](./grid/calendar.ts), the
+placeholder generator. `shapePreviewSVG` takes a `CellShape` too, because [`Customize.astro`](./customize/Customize.astro) maps over `CELL_SHAPES`
+and the value flows *into* the markup rather than out of it.
 
-**Two of the nine rows were deleted rather than parameterised, which is the cheaper move and is done.** The table
-is seven rows now. `renderCalendarString` takes a `PaletteColors` and a `CellShape` rather than a `readonly
-string[]` and a `string`, so `palette[level] || palette[0]` and the `isCellShape` re-guard both went: the tuple
-type makes the five-ness a compile error to break, and `calendarLayout` already runs every level through
-`clampLevel`. Every production caller was passing a typed shape already, and [`index.astro`](../../pages/index.astro) stopped spreading
-`PALETTES.github.colors` into a plain array to keep it. Only the tests were handing over bare strings, and a typo
-in one is now a type error rather than a silent fallback to `rounded`.
-
-Do not re-propose the unification without a config smaller than five fields. Deleting a row is always cheaper than
-parameterising it, and three of the seven that remain are label styling: colour, font and the month-label
-opacity. That is one difference wearing three rows, and omitting exactly the last two is the mistake this table
-has already made once.
-
-**One asymmetry the table used to carry has gone:** the client re-ran `clampLevel` and the server did not, because
-the server's `day.level` is a type-guaranteed 0–4 union while the client's arrives from placeholder data and from
-the API. `calendarLayout` clamps for both now: a no-op on the typed path, and one fewer thing for a renderer to
-remember.
-
-**`data-count` is omitted, not zeroed, for an unknown Count.** `CellTooltip` reads that absence and says
-"Contributions unknown on …" rather than showing a number nobody measured. Emitting `data-count="0"` would be
-inventing data for the user.
+**An unknown Count leaves no `data-count`.** [`ui/utils/cell-tooltip.ts`](../utils/cell-tooltip.ts) reads that absence as `null`, and a
+value that is not a whole number of contributions the same way, and `formatContribLabel` says "Contributions unknown
+on …".
 
 The three fixed geometries in [`grid-geometry.ts`](./grid/grid-geometry.ts) (`HERO_GRID_GEOMETRY` (13/3), `CUSTOMIZE_GRID_GEOMETRY` (12/3) and
-`EXPORT_GRID_GEOMETRY`) are the only sizes the web draws. They are pixel geometry, not the glossary's Cell Size
+`EXPORT_GRID_GEOMETRY`) are the only ones `renderCalendarString` is called with; the Home Screen Widget preview in
+`mini-grid.ts` keeps its own size (see Gotchas). They are pixel geometry, not the glossary's Cell Size
 ([ADR 0016](../../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
-`EXPORT_GRID_GEOMETRY` is pinned to the domain defaults, so the export preview matches what the SVG endpoint emits.
-A test asserts exactly that, and it is the reason the constant is not just `{ size: 10, gap: 2 }` written out.
+`EXPORT_GRID_GEOMETRY` is pinned to the domain defaults, so the export preview matches what the SVG endpoint emits;
+a test asserts exactly that.
 
-**The export tiles compute their own numbers, and the code preview draws the visitor's own choices.**
-[`Export.astro`](./export/Export.astro) advertised `2880×720 · transparent` and byte sizes of `186 KB` / `24 KB` / `410 B`. The real
-document is **660×108** (`calendarLayout` says so, and the tile asks it now), and the web emits no file at all:
-`renderExportPreview` gives SVG and Markdown a copy button and the PNG tab a preview with no download anywhere, so
-`186 KB` was the weight of something that does not exist. The byte figures are gone rather than re-guessed. This is
-the same defect the app's format tile carried; it was fixed there first and left standing here, which is what
-"fixed" in a guide will do if only one of two surfaces is checked.
-
-`buildSvgLines` takes the Palette and the Cell Shape. It was a module-level constant built from
-`PALETTES.github.colors` with a hardcoded `rx="2"`, while the copy button beside it copied
-`renderCalendarString` with the visitor's real selection: **pick Nord and hex and the preview showed GitHub-green
-rects while the clipboard got Nord polygons.** Its radius comes from `cornerRadiusFor` now rather than being a
-fourth spelling of the corner constant. [`code-preview.test.ts`](./export/code-preview.test.ts) already had a test named "shows exactly what
-`markdownSnippet` copies"; the SVG branch has the equivalent now.
-
-**`RenderCalendarParams` belongs to the renderer, not to the placeholder generator.** It sat in [`calendar.ts`](./grid/calendar.ts),
-which never referenced it, so `render-svg.ts` imported its own signature from the fake-data module: an import
-direction with no reason to exist. Anything a renderer's caller must know goes beside the renderer.
+**The export tabs' figures are computed on the server and nothing on the client rewrites them.**
+[`Export.astro`](./export/Export.astro) receives the rendered preview and not the days behind it, so the PNG tab asks `calendarLayout`
+about an empty day list and prints `24×108` beside a `660×108` preview, and the SVG tab prints
+`WEEKS_PER_YEAR×DAYS_PER_WEEK`. No tab carries a byte size, because the web emits no file: `renderExportPreview`
+gives SVG and Markdown a copy button and the PNG tab a preview with no download. `buildSvgLines` takes the visitor's
+Palette and Cell Shape and its radius from `cornerRadiusFor`, so the SVG preview's sample Cells look like the ones
+the copy button copies; [`code-preview.test.ts`](./export/code-preview.test.ts) pins that. The Markdown tab shows
+exactly the one line its button copies: `buildMarkdownLines` and `markdownSnippet` both read the snippet's tokens
+from one function, so the preview cannot drift from the copy. The SVG preview's view box is its own
+`WEEKS_PER_YEAR` step count, without `calendarLayout`'s padding.
 
 `calendar.ts` holds `generateData()`, the placeholder grid, driven by `mulberry32` and the `LEVEL_THRESHOLDS` /
-`COUNT_SPREAD_PER_LEVEL` tables. It is the only code in the project allowed to invent a Count, and only because the
-result is explicitly not anybody's data. It is also the one grid that is **not** a calendar year: it ends on the
+`COUNT_SPREAD_PER_LEVEL` tables. It is the one grid the landing page draws that is **not** a Year: it ends on the
 Saturday of the current week and walks 371 days back from there, so it never shows leading empty months.
 
 ## `error/`
 
-[`404.astro`](../../pages/404.astro) and [`500.astro`](../../pages/500.astro) share `ErrorView` and `ContributionCode`. The [pages guide](../../pages/AGENTS.md)
-states the rule. Tone is token-only (`.error-page.is-danger` remaps the `--grid-*` / `--error-*`
-custom properties to the red ramp), so a new tone is a class and a token block, never an inlined hex.
+[`404.astro`](../../pages/404.astro) and [`500.astro`](../../pages/500.astro) share `ErrorView` and `ContributionCode`. Tone is token-only
+(`.error-page.is-danger` remaps the `--grid-*` / `--error-*` custom properties to the red ramp).
 
 ## Gotchas
 
-- **[`ContributionCode.astro`](./error/ContributionCode.astro) has its own `CELL_SIZE = 18` and `CELL_GAP = 5`,** unrelated to the grid presets and to
-  the domain geometry. It draws a glyph out of squares, not a calendar; do not "unify" it with the presets.
+- **[`ContributionCode.astro`](./error/ContributionCode.astro) has its own `CELL_SIZE = 18` and `CELL_GAP = 5`,** unrelated to the grid geometries and
+  to the domain geometry. It draws a glyph out of squares, not a calendar
+  ([ADR 0020](../../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) keeps it, `mini-grid.ts`
+  and `shapePreviewSVG` out of the Cell geometry).
 - **[`mini-grid.ts`](./grid/mini-grid.ts) also has its own `CELL_SIZE = 4`** and emits raw `<rect>` markup rather than going through
-  `renderCellShape`, because the widget preview is a thumbnail where shapes would not read. That is why a new Cell
-  Shape does not automatically appear there. Its array is called `levels`, not days: it holds one level per square
-  and no dates at all.
-- **It also carries its own `LEVEL_THRESHOLDS`, and those numbers are not `calendar.ts`'s.** Both tables now spell
-  the field `minScore`, which invites unifying the values. Do not. The two score the placeholder differently:
-  `calendar.ts` builds a weekday-damped score around a rising base and compares with `>=`, while this one adds a
-  column ramp to a raw `mulberry32` draw and compares with `>`. The thresholds are tuned against those two scales
-  and mean nothing swapped over. Neither is anybody's data
-  ([the Count invention rule](../../domain/AGENTS.md) applies to both).
+  `renderCellShape`, because the Home Screen Widget preview is a thumbnail where shapes would not read. That is why a
+  new Cell Shape does not automatically appear there. Its array is called `levels`, not days: it holds one level per
+  rect and no dates at all.
+- **It also carries its own `LEVEL_THRESHOLDS`, and those numbers are not `calendar.ts`'s.** Both tables spell the
+  field `minScore`, which invites unifying the values. The two score the placeholder differently: `calendar.ts`
+  builds a weekday-damped score around a rising base and compares with `>=`, while this one adds a per-week ramp to a
+  raw `mulberry32` draw and compares with `>`. The thresholds are tuned against those two scales and mean nothing
+  swapped over.
 - **`shapePreviewSVG` draws its own miniatures** rather than reusing `renderCellShape`, at a 20×20 viewBox with
   hand-tuned radii, because a 10 px cell scaled up reads as a blur. Its table is keyed on `CellShape`, so adding a
   member fails to compile here, which is the intended reminder.
-- **The header's "get app" is an anchor, and it was a `<button>` that went nowhere.** It carried
-  `type="button"`, no handler and no `href`, so the only call to action in the nav did nothing, while the hero
-  and the footer both linked `PLAY_STORE_URL` correctly. The mobile rule `.nav-links a:not(.nav-cta)` is the
-  tell: it was written for an anchor that had stopped being one, so it hid the section links and exempted
-  nothing. A nav call to action is a link to somewhere; if it ever needs script, it still needs the `href`
-  underneath it.
-- **"get app" means the Android app, and any web-install affordance would be a second, different thing.**
-  `<install>` was tried here and removed: it installs the **web** app this page's manifest describes, so putting
-  it behind the same label offered two artefacts under one button depending on the browser. It also ships behind
-  a time-boxed origin trial, which is a poor foundation for a nav control. If a PWA install is ever wanted, give
-  it its own label rather than overloading this one.
-- **The string contracts that cross into the `is:inline` head scripts all go through `define:vars`.**
+- **The header's "get app" is an anchor, and it has to stay one.** Below 720px [`header.css`](./core/header/header.css) hides every
+  `.nav-links a` except `.nav-cta`, so the call to action is an `<a class="nav-cta">` with an `href`; if it ever
+  needs script, it still needs the `href` underneath it. "get app" means the Android app: a web-install affordance
+  such as `<install>` installs the **web** app this page's manifest describes, a second artefact, so it gets a label
+  of its own rather than this one.
+- **The values this project declares that cross into the `is:inline` head scripts all go through `define:vars`.**
   An `is:inline` script cannot import, so the values are read in the frontmatter and injected: `BaseLayout` takes
-  `COLOR_SCHEME_KEY`, `COLOR_SCHEME_META_SELECTOR` and `ThemeClass` from [`header/theme-toggle.ts`](./core/header/theme-toggle.ts), and `Telemetry`
-  takes `CONSENT_COOKIE_NAME` and `ANALYTICS_CATEGORY` from [`cookie-consent/config.ts`](./core/cookie-consent/config.ts). Each was spelled more than once
-  before, in files with nothing tying them: the FOUC bootstrap and the toggle both hardcoded
-  `'color-scheme'` and `theme-${scheme}`, and the analytics gate matched `/(^| )cc_cookie=([^;]+)/` against a name
-  the consent config declared separately. **Renaming either used to leave a script silently reading nothing**.
-  For the consent one that means falling through to `'denied'`, which fails safe, while the theme one flashes
-  the wrong palette before paint.
-- **A `define:vars` script is already wrapped in an IIFE by Astro, and a bare `{ }` block inside one blinds
-  `astro check`.** `BaseLayout`'s bootstrap used to wrap itself in a block to keep its `const` out of the global
-  scope: necessary while the script took no variables, and redundant the moment it did, because the rendered
-  output is `<script>(function(){ … })()</script>`. Keeping the block cost two `ts(2570) Could not find name`
-  hints against the injected names, which is how it was noticed. Write the body flat; do not add a block or an
-  IIFE back for scoping that Astro already provides.
+  `COLOR_SCHEME_KEY` and `COLOR_SCHEME_META_SELECTOR` from [`header/theme-toggle.ts`](./core/header/theme-toggle.ts), `ThemeClass` from
+  [`ui/utils/dom-contract.ts`](../utils/dom-contract.ts) and `ThemeChoice` from [`telemetry/usage-event.ts`](./core/telemetry/usage-event.ts); `Telemetry` takes `CONSENT_COOKIE_NAME` and `ConsentCategory` from
+  [`cookie-consent/config.ts`](./core/cookie-consent/config.ts), which also hands `CONSENT_COOKIE_NAME` to the banner as its cookie name, and
+  `GoogleConsentState` from [`telemetry/telemetry.ts`](./core/telemetry/telemetry.ts). A literal typed into one of those scripts is invisible to
+  the typecheck, so a rename leaves the script reading nothing: the analytics gate falls through to
+  `GoogleConsentState.Denied`, which fails safe, and the theme bootstrap paints the wrong theme until the toggle's
+  script runs.
+- **A `define:vars` script is already wrapped in an IIFE by Astro**: the compiler emits
+  `<script>(function(){ … })();</script>`, so the injected `const`s and the body's own stay out of the global scope.
+  Write the body flat; do not add a block or an IIFE for scoping that Astro already provides.
 - **The consent banner hides itself from automation.** `vanilla-cookieconsent`'s `hideFromBots` suppresses it
   whenever `navigator.webdriver` is set, so a Playwright run sees no banner at all unless it poses as a real
-  browser first, which is why the e2e spec opens with an `addInitScript` redefining that property. An e2e test
-  that asserts anything about consent and skips that step fails for a reason that has nothing to do with the code.
+  browser first, which is why the consent case in [`e2e/index.spec.ts`](../../../e2e/index.spec.ts) starts with an `addInitScript`
+  redefining that property. An e2e test that asserts anything about consent and skips that step fails for a reason
+  that has nothing to do with the code.
 - The CSP in [`web/src/middleware.ts`](../../middleware.ts) allows `img-src 'self' data:` only, and the middleware sets it
   **unconditionally**: there is no dev branch, and `astro dev` runs the same middleware. A component that reaches
   for a remote image is blocked identically in both, so at least the failure is not a surprise at deploy time.

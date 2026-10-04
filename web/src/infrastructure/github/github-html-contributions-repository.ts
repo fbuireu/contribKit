@@ -1,4 +1,4 @@
-import { contributionDay } from "@domain/entities/contribution-day";
+import { contributionDay, isCount } from "@domain/entities/contribution-day";
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
 import { type Failure, isFailure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
 import type { ContributionRepository, FetchCalendarParams } from "@domain/repositories/types";
@@ -18,7 +18,7 @@ const LEVEL_REGEX = /data-level="(\d)"/;
 const ID_REGEX = /\bid="([^"]+)"/;
 const TOOLTIP_REGEX = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>\s*([\d,\u00a0\u202f]+)/g;
 const COUNT_SEPARATORS = /[,\u00a0\u202f]/g;
-const scrapedCount = z.int().nonnegative();
+const countSchema = z.number().refine(isCount);
 
 interface BuildUrlParams {
 	username: string;
@@ -61,7 +61,7 @@ const parseHtml = (html: string): ParseHtmlReturnType => {
 
 	for (const match of html.matchAll(TOOLTIP_REGEX)) {
 		const count = Number.parseInt(match[2].replace(COUNT_SEPARATORS, ""), 10);
-		if (scrapedCount.validate(count)) idToCount.set(match[1], count);
+		if (countSchema.validate(count)) idToCount.set(match[1], count);
 	}
 
 	const enriched: ContributionDay[] = days

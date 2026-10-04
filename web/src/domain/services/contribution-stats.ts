@@ -3,20 +3,26 @@ import type { IsoDate } from "../value-objects/iso-date";
 
 export interface ContributionStats {
 	readonly totalContributions: number | null;
-	readonly currentStreak: number;
-	readonly longestStreak: number;
+	readonly currentStreak: number | null;
+	readonly longestStreak: number | null;
 }
 
+export const UNKNOWN_CONTRIBUTION_STATS: ContributionStats = {
+	totalContributions: null,
+	currentStreak: null,
+	longestStreak: null,
+};
+
 export const totalContributionsFor = (days: readonly ContributionDay[]): number | null => {
-	let total = 0;
+	let totalContributions = 0;
 	for (const day of days) {
 		if (day.count === null) {
 			if (day.level > 0) return null;
 			continue;
 		}
-		total += day.count;
+		totalContributions += day.count;
 	}
-	return total;
+	return totalContributions;
 };
 
 export interface ComputeContributionStatsParams {
@@ -29,12 +35,12 @@ export function computeContributionStats({ days, year, today }: ComputeContribut
 	const sorted = [...days].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 	let currentStreak = 0,
 		longestStreak = 0,
-		run = 0;
+		streak = 0;
 	for (const day of sorted) {
 		if (day.level > 0) {
-			run++;
-			if (run > longestStreak) longestStreak = run;
-		} else run = 0;
+			streak++;
+			if (streak > longestStreak) longestStreak = streak;
+		} else streak = 0;
 	}
 	const yearStart = `${year}-01-01` as IsoDate;
 	const yearEnd = `${year}-12-31` as IsoDate;

@@ -1,8 +1,17 @@
-import { formatContribLabel } from "@ui/components/grid/contribution";
-import { ElementId } from "@ui/utils/dom-contract";
+import { isCount } from "@domain/entities/contribution-day";
+import { isIsoDate } from "@domain/value-objects/iso-date";
+import { formatContribLabel } from "../components/grid/contribution";
+import { ElementId } from "./dom-contract";
 
 const CELL_GAP = 8;
 const VIEWPORT_MARGIN = 8;
+const DECIMAL_COUNT = /^\d+$/;
+
+const countFrom = (raw: string | undefined): number | null => {
+	if (raw === undefined || !DECIMAL_COUNT.test(raw)) return null;
+	const count = Number(raw);
+	return isCount(count) ? count : null;
+};
 
 export function initCellTooltip(): void {
 	const maybeTooltip = document.getElementById(ElementId.CellTooltip);
@@ -25,10 +34,10 @@ export function initCellTooltip(): void {
 
 	function showTooltip(element: HTMLElement | SVGElement) {
 		activeCell = element;
-		const rawCount = element.dataset.count;
+		const rawDate = element.dataset.date;
 		tooltip.textContent = formatContribLabel({
-			dateIso: element.dataset.date || "",
-			count: rawCount === undefined ? null : Number.parseInt(rawCount, 10),
+			dateIso: isIsoDate(rawDate) ? rawDate : null,
+			count: countFrom(element.dataset.count),
 		});
 		if (!tooltip.matches(":popover-open")) tooltip.showPopover();
 		positionTooltip();

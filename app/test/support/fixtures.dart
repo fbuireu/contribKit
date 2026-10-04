@@ -31,6 +31,8 @@ const otherTestPalette = Palette(
   veryHigh: Color(0xFF300004),
 );
 
+final testToday = DateTime(2031, 6, 15, 12);
+
 const testTipProducts = [
   TipProduct(id: 'tip.small', title: 'Small tip', priceString: '\$1.00'),
   TipProduct(id: 'tip.medium', title: 'Medium tip', priceString: '\$5.00'),
@@ -61,7 +63,7 @@ ContributionCalendar testCalendar({
 
   return ContributionCalendar(
     username: Username(username),
-    year: Year(year),
+    year: Year(year, today: testToday),
     weeks: weeks == null ? built : built.take(weeks).toList(),
     totalContributions: totalContributions,
   );

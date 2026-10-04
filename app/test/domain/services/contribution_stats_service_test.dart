@@ -7,6 +7,8 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fixtures.dart';
+
 ContributionCalendar _calendar(List<(DateTime, int)> dayData) {
   final days =
       dayData
@@ -31,16 +33,16 @@ ContributionCalendar _calendar(List<(DateTime, int)> dayData) {
   }
   if (current.isNotEmpty) weeks.add(ContributionWeek(days: current));
 
-  final total = days.fold(0, (s, d) => s + (d.count ?? 0));
   return ContributionCalendar(
     username: Username('testuser'),
-    year: Year(2024),
+    year: Year(2024, today: testToday),
     weeks: weeks,
-    totalContributions: total,
+    totalContributions: ContributionStatsService.totalFor(days),
   );
 }
 
-DateTime _d(int month, int day) => DateTime(2024, month, day);
+DateTime _d({required int month, required int day}) =>
+    DateTime(2024, month, day);
 
 ContributionCalendar _calendarWithUnknownCount() {
   final days = [
@@ -58,7 +60,7 @@ ContributionCalendar _calendarWithUnknownCount() {
 
   return ContributionCalendar(
     username: Username('testuser'),
-    year: Year(2024),
+    year: Year(2024, today: testToday),
     weeks: [ContributionWeek(days: days)],
     totalContributions: null,
   );
@@ -106,12 +108,12 @@ void main() {
     );
 
     test('counts a single active day correctly', () {
-      final cal = _calendar([(_d(6, 15), 5)]);
+      final cal = _calendar([(_d(month: 6, day: 15), 5)]);
       final stats = ContributionStatsService.compute(cal, today: _today);
 
       expect(stats.longestStreak, 1);
       expect(stats.bestDayCount, 5);
-      expect(stats.bestDayDate, _d(6, 15));
+      expect(stats.bestDayDate, _d(month: 6, day: 15));
       expect(stats.totalDaysActive, 1);
       expect(stats.bestMonth, 6);
       expect(stats.bestMonthContributions, 5);
@@ -119,31 +121,35 @@ void main() {
 
     test('computes longest streak across consecutive days', () {
       final cal = _calendar([
-        (_d(3, 1), 2),
-        (_d(3, 2), 3),
-        (_d(3, 3), 1),
-        (_d(3, 4), 0),
-        (_d(3, 5), 4),
-        (_d(3, 6), 5),
+        (_d(month: 3, day: 1), 2),
+        (_d(month: 3, day: 2), 3),
+        (_d(month: 3, day: 3), 1),
+        (_d(month: 3, day: 4), 0),
+        (_d(month: 3, day: 5), 4),
+        (_d(month: 3, day: 6), 5),
       ]);
       final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.longestStreak, 3);
     });
 
     test('finds the best day by contribution count', () {
-      final cal = _calendar([(_d(1, 10), 3), (_d(1, 11), 10), (_d(1, 12), 7)]);
+      final cal = _calendar([
+        (_d(month: 1, day: 10), 3),
+        (_d(month: 1, day: 11), 10),
+        (_d(month: 1, day: 12), 7),
+      ]);
       final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.bestDayCount, 10);
-      expect(stats.bestDayDate, _d(1, 11));
+      expect(stats.bestDayDate, _d(month: 1, day: 11));
     });
 
     test('counts total active days ignoring zeros', () {
       final cal = _calendar([
-        (_d(2, 1), 1),
-        (_d(2, 2), 0),
-        (_d(2, 3), 3),
-        (_d(2, 4), 0),
-        (_d(2, 5), 2),
+        (_d(month: 2, day: 1), 1),
+        (_d(month: 2, day: 2), 0),
+        (_d(month: 2, day: 3), 3),
+        (_d(month: 2, day: 4), 0),
+        (_d(month: 2, day: 5), 2),
       ]);
       final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.totalDaysActive, 3);
@@ -151,30 +157,33 @@ void main() {
 
     test('identifies the best month', () {
       final cal = _calendar([
-        (_d(1, 5), 5),
-        (_d(1, 6), 5),
-        (_d(2, 1), 8),
-        (_d(2, 2), 8),
-        (_d(3, 1), 3),
+        (_d(month: 1, day: 5), 5),
+        (_d(month: 1, day: 6), 5),
+        (_d(month: 2, day: 1), 8),
+        (_d(month: 2, day: 2), 8),
+        (_d(month: 3, day: 1), 3),
       ]);
       final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.bestMonth, 2);
       expect(stats.bestMonthContributions, 16);
     });
 
-    test('weekly average equals total divided by week count', () {
-      final cal = _calendar([(_d(1, 7), 6), (_d(1, 14), 4)]);
+    test('weekly average is Total Contributions divided by the week count', () {
+      final cal = _calendar([
+        (_d(month: 1, day: 7), 6),
+        (_d(month: 1, day: 14), 4),
+      ]);
       final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.weeklyAverage, closeTo(10.0 / cal.weeks.length, 0.01));
     });
 
     test('longestStreak equals all days when every day is active', () {
       final cal = _calendar([
-        (_d(5, 1), 1),
-        (_d(5, 2), 2),
-        (_d(5, 3), 3),
-        (_d(5, 4), 4),
-        (_d(5, 5), 5),
+        (_d(month: 5, day: 1), 1),
+        (_d(month: 5, day: 2), 2),
+        (_d(month: 5, day: 3), 3),
+        (_d(month: 5, day: 4), 4),
+        (_d(month: 5, day: 5), 5),
       ]);
       final stats = ContributionStatsService.compute(cal, today: _today);
       expect(stats.longestStreak, 5);

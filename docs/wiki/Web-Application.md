@@ -118,7 +118,7 @@ The browser records a Usage Event when a person reaches one point in the product
 | Event | Properties | Fires when |
 | --- | --- | --- |
 | `calendar_rendered` | `source`: `form` \| `suggestion` \| `year` \| `history` · `year`: number | A Contribution Calendar was fetched and drawn |
-| `calendar_render_failed` | `reason`: `invalid_username` \| `not_found` \| `rate_limited` \| `upstream` \| `unreachable` \| `unknown` · `year`: number | The fetch answered a non-ok status, or never answered |
+| `calendar_render_failed` | `reason`: `invalid_username` \| `not_found` \| `rate_limited` \| `upstream` \| `unreachable` \| `unknown` · `year`: number | The fetch answered a non-ok status or a body of the wrong shape, or never answered |
 | `palette_chosen` | `palette`: a Palette key | A Palette row was picked |
 | `cell_shape_chosen` | `cellShape`: a Cell Shape | A Cell Shape button was picked |
 | `export_format_chosen` | `format`: `png` \| `svg` \| `md` | An Export Format tab was picked |

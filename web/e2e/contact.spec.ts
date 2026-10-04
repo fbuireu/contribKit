@@ -1,13 +1,19 @@
 import { expect, test } from "@playwright/test";
 import { ElementId } from "../src/ui/utils/dom-contract";
 
-const byId = (id: string) => `#${id}`;
+const byId = (id: ElementId): string => `#${id}`;
+
+const CONTACT_IDS = (Object.keys(ElementId) as (keyof typeof ElementId)[])
+	.filter((name) => name.startsWith("Contact"))
+	.map((name) => ElementId[name]);
 
 test.describe("contact", () => {
 	test("answers 200 with a heading and the whole form", async ({ page }) => {
 		const response = await page.goto("/contact");
 
 		expect(response?.status()).toBe(200);
+		expect(CONTACT_IDS).not.toHaveLength(0);
+		for (const id of CONTACT_IDS) await expect(page.locator(byId(id)), id).toHaveCount(1);
 		await expect(page.locator("h1")).toBeVisible();
 		await expect(page.locator(byId(ElementId.ContactForm))).toBeVisible();
 		await expect(page.locator(byId(ElementId.ContactEmail))).toBeVisible();

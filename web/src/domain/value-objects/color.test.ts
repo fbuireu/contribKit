@@ -36,7 +36,7 @@ describe("every shipped Palette colour is a Color", () => {
 		}
 	});
 
-	it("throws rather than shipping an unparseable token, which is what the app already did", () => {
+	it("throws rather than shipping an unparseable token, as the app's Color.fromHex does", () => {
 		expect(() => colorOrThrow("not a colour")).toThrow(/Invalid hex color/);
 	});
 });

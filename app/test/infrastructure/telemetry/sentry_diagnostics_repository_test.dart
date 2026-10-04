@@ -282,6 +282,85 @@ void main() {
     );
   });
 
+  group('an SDK that throws', () {
+    late List<FlutterErrorDetails> reported;
+
+    setUp(() {
+      reported = [];
+      final original = FlutterError.onError;
+      FlutterError.onError = reported.add;
+      addTearDown(() => FlutterError.onError = original);
+    });
+
+    test(
+      'cannot stop the app starting, stays off and reports what it threw',
+      () async {
+        final error = StateError('sentry init failed');
+        final sent = <Object>[];
+        var shutDowns = 0;
+        final repository = SentryDiagnosticsRepository(
+          config: _configured,
+          initialise: (_) async => throw error,
+          send: (error, {StackTrace? stackTrace}) async {
+            sent.add(error);
+            return SentryId.newId();
+          },
+          shutDown: () async => shutDowns += 1,
+        );
+
+        await expectLater(repository.start(), completes);
+        await repository.report(error: StateError('boom'));
+
+        expect(repository.isStarted, isFalse);
+        expect(sent, isEmpty);
+        expect(shutDowns, 1);
+        expect(reported.map((details) => details.exception), [error]);
+      },
+    );
+
+    test('leaves Diagnostic Reports off when a grant throws', () async {
+      final error = StateError('sentry init failed');
+      final sent = <Object>[];
+      final repository = SentryDiagnosticsRepository(
+        config: _configured,
+        initialise: (_) async => throw error,
+        send: (error, {StackTrace? stackTrace}) async {
+          sent.add(error);
+          return SentryId.newId();
+        },
+        shutDown: () async {},
+      );
+
+      await expectLater(repository.applyConsent(granted: true), completes);
+      await repository.report(error: StateError('boom'));
+
+      expect(repository.isStarted, isFalse);
+      expect(sent, isEmpty);
+      expect(reported.map((details) => details.exception), [error]);
+    });
+
+    test('sends nothing once a revocation throws', () async {
+      final error = StateError('sentry close failed');
+      final recorder = _Recorder();
+      final repository = SentryDiagnosticsRepository(
+        config: _configured,
+        initialise: recorder.initialise,
+        send: recorder.send,
+        shutDown: () async => throw error,
+      );
+      await repository.start();
+      final beforeSend = recorder.options!.beforeSend!;
+
+      await expectLater(repository.applyConsent(granted: false), completes);
+      await repository.report(error: StateError('boom'));
+
+      expect(repository.isStarted, isFalse);
+      expect(recorder.sent, isEmpty);
+      expect(await beforeSend(SentryEvent(), Hint()), isNull);
+      expect(reported.map((details) => details.exception), [error]);
+    });
+  });
+
   group('applyConsent', () {
     test('starts when granted', () async {
       final recorder = _Recorder();

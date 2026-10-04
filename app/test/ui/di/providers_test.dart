@@ -138,7 +138,9 @@ void main() {
       expect(
         container.read(themeModeProvider),
         ThemeMode.light,
-        reason: 'nothing was stored, so the unconditional write of the default bounced the toggle back',
+        reason:
+            'nothing is stored, so writing the default when the read lands '
+            'would bounce the toggle back',
       );
       expect(repository.written, AppThemeMode.light);
     });
@@ -164,6 +166,30 @@ void main() {
         UsageEvent.themeChanged(mode: AppThemeMode.dark),
       ]);
     });
+
+    test(
+      'keeps the theme it moved to when the settings box refuses it',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWithValue(
+              FakeSettingsRepository(
+                writeFailure: const CacheFailure(message: 'box is gone'),
+              ),
+            ),
+            usageEventRepositoryProvider.overrideWithValue(
+              FakeUsageEventRepository(),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        container.listen(themeModeProvider, (_, _) {});
+
+        await container.read(themeModeProvider.notifier).cycle();
+
+        expect(container.read(themeModeProvider), ThemeMode.light);
+      },
+    );
   });
 
   group('the object graph this file wires', () {

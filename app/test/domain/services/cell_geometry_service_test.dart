@@ -129,17 +129,19 @@ void main() {
     test(
       'a circle fills the cell; a dot is level-sized and may overflow it',
       () {
-        CircleFigure circleFor(CellShape shape, int level) =>
-            CellGeometryService.figureFor(
-              shape: shape,
-              levelIndex: level,
-              cellSize: 10,
-            ) as CircleFigure;
+        CircleFigure circleFor({
+          required CellShape shape,
+          required int level,
+        }) => CellGeometryService.figureFor(
+          shape: shape,
+          levelIndex: level,
+          cellSize: 10,
+        ) as CircleFigure;
 
-        expect(circleFor(CellShape.circle, 4).radius, 5);
-        expect(circleFor(CellShape.dot, 0).radius, lessThan(5));
+        expect(circleFor(shape: CellShape.circle, level: 4).radius, 5);
+        expect(circleFor(shape: CellShape.dot, level: 0).radius, lessThan(5));
         expect(
-          circleFor(CellShape.dot, 4).radius,
+          circleFor(shape: CellShape.dot, level: 4).radius,
           greaterThan(5),
           reason: 'the brightest dot overflows its own cell on purpose',
         );

@@ -24,14 +24,15 @@ abstract class ViewerState with _$ViewerState {
     Palette? palette,
     @Default(CellShape.fallback) CellShape cellShape,
     @Default(CellSize.fallback) CellSize cellSize,
-    @Default(BackgroundPreset.system) BackgroundPreset backgroundPreset,
+    @Default(BackgroundPreset.fallback) BackgroundPreset backgroundPreset,
     @Default(null) Failure? error,
     @Default(null) Failure? paletteFailure,
   }) = _ViewerState;
 
   const ViewerState._();
 
-  Year get effectiveYear => year ?? Year.current;
+  Year effectiveYear({required DateTime today}) =>
+      year ?? Year.current(today: today);
 
   bool get isBusy => isLoadingSettings || isLoadingCalendar;
 

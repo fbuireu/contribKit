@@ -144,7 +144,7 @@ The Flutter app can only bundle assets inside its own package, so the shared des
 | When | Trigger |
 |------|---------|
 | On commit | lefthook `pre-commit`, when a `shared/*.json` is staged (`--stage`) |
-| In CI | before the release build |
+| In CI | never: `release-app.yml` copies `shared/*.json` into `app/assets/` itself before the release build |
 | Manually | `pnpm sync:assets` |
 
 > Always edit the source files in `shared/`, never the generated copies in [`app/assets/`](https://github.com/fbuireu/contribKit/tree/main/app/assets). See **[Project Structure](Project-Structure)**.

@@ -11,6 +11,8 @@ import 'package:contribkit/infrastructure/persistence/settings_repository_impl.d
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../support/fixtures.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -22,7 +24,7 @@ void main() {
   setUp(() async {
     hiveDir = await Directory.systemTemp.createTemp('contribkit_settings_test');
     Hive.init(hiveDir.path);
-    repository = HiveSettingsRepository();
+    repository = HiveSettingsRepository(now: () => testToday);
   });
 
   tearDown(() async {
@@ -157,14 +159,28 @@ void main() {
   group('every setting survives a round trip', () {
     test('the last Username and Year come back as they went in', () async {
       await repository.saveLastUsername(Username('octocat'));
-      await repository.saveLastYear(Year(2021));
+      await repository.saveLastYear(Year(2021, today: testToday));
 
       final settings = await repository.load();
 
       expect(settings.lastUsername, Username('octocat'));
-      expect(settings.lastYear, Year(2021));
-      expect(settings.year, Year(2021));
+      expect(settings.lastYear, Year(2021, today: testToday));
+      expect(settings.year(today: testToday), Year(2021, today: testToday));
     });
+
+    test(
+      'reads a stored Year after the one its clock says as unset, as a clock '
+      'set back would leave it',
+      () async {
+        await repository.saveLastYear(Year(2031, today: testToday));
+
+        final settings = await HiveSettingsRepository(
+          now: () => DateTime(2030, 12, 31),
+        ).load();
+
+        expect(settings.lastYear, isNull);
+      },
+    );
 
     test('the Cell Shape and Cell Size come back as themselves', () async {
       await repository.saveCellShape(CellShape.hex);
@@ -188,7 +204,7 @@ void main() {
         final settings = await repository.load();
 
         expect(settings.lastYear, isNull);
-        expect(settings.year, Year.current);
+        expect(settings.year(today: testToday).value, testToday.year);
       },
     );
   });

@@ -1,12 +1,13 @@
 // @vitest-environment happy-dom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ElementId, ThemeClass } from "../../../utils/dom-contract";
 import { initThemeToggle } from "./theme-toggle";
 
 const recordUsageEvent = vi.hoisted(() => vi.fn());
 
-vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@ui/components/core/telemetry/usage-event")>()),
+vi.mock("../telemetry/usage-event", async (importOriginal) => ({
+	...(await importOriginal<typeof import("../telemetry/usage-event")>()),
 	recordUsageEvent,
 }));
 
@@ -30,8 +31,8 @@ const createMemoryStorage = (): Storage => {
 
 const setupDom = (): HTMLButtonElement => {
 	document.head.innerHTML = '<meta name="color-scheme" content="light dark" />';
-	document.body.innerHTML = '<button id="theme-toggle"></button>';
-	return document.getElementById("theme-toggle") as HTMLButtonElement;
+	document.body.innerHTML = `<button id="${ElementId.ThemeToggle}"></button>`;
+	return document.getElementById(ElementId.ThemeToggle) as HTMLButtonElement;
 };
 
 describe("initThemeToggle", () => {
@@ -51,7 +52,7 @@ describe("initThemeToggle", () => {
 		const button = setupDom();
 		initThemeToggle();
 		expect(button.getAttribute("aria-pressed")).toBe("false");
-		expect(document.documentElement.classList.contains("theme-dark")).toBe(false);
+		expect(document.documentElement.classList.contains(ThemeClass.Dark)).toBe(false);
 		expect(document.querySelector("meta")?.getAttribute("content")).toBe("light dark");
 	});
 
@@ -61,28 +62,24 @@ describe("initThemeToggle", () => {
 
 		button.click();
 		expect(localStorage.getItem("color-scheme")).toBe("dark");
-		expect(document.documentElement.classList.contains("theme-dark")).toBe(true);
+		expect(document.documentElement.classList.contains(ThemeClass.Dark)).toBe(true);
 		expect(button.getAttribute("aria-pressed")).toBe("true");
 
 		button.click();
 		expect(localStorage.getItem("color-scheme")).toBeNull();
-		expect(document.documentElement.classList.contains("theme-dark")).toBe(false);
+		expect(document.documentElement.classList.contains(ThemeClass.Dark)).toBe(false);
 	});
 
 	it("applies a previously pinned scheme on init", () => {
 		const button = setupDom();
 		localStorage.setItem("color-scheme", "light");
 		initThemeToggle();
-		expect(document.documentElement.classList.contains("theme-light")).toBe(true);
+		expect(document.documentElement.classList.contains(ThemeClass.Light)).toBe(true);
 		expect(button.dataset.effective).toBe("light");
 	});
 });
 
-interface StubMediaQueryParams {
-	matches: boolean;
-}
-
-const stubMediaQuery = ({ matches }: StubMediaQueryParams) => {
+const stubMediaQuery = (matches: boolean) => {
 	const listeners: (() => void)[] = [];
 	const query = {
 		matches,
@@ -108,7 +105,7 @@ describe("initThemeToggle against a dark system scheme", () => {
 	afterEach(() => vi.unstubAllGlobals());
 
 	it("reports dark while pinning nothing, so the OS still owns the choice", () => {
-		stubMediaQuery({ matches: true });
+		stubMediaQuery(true);
 		const button = setupDom();
 
 		initThemeToggle();
@@ -117,23 +114,23 @@ describe("initThemeToggle against a dark system scheme", () => {
 		expect(button.getAttribute("aria-pressed")).toBe("true");
 		expect(button.getAttribute("aria-label")).toBe("Switch to light mode");
 		expect(localStorage.getItem("color-scheme")).toBeNull();
-		expect(document.documentElement.classList.contains("theme-dark")).toBe(false);
+		expect(document.documentElement.classList.contains(ThemeClass.Dark)).toBe(false);
 	});
 
 	it("pins light on a click, which is the opposite of what the OS says", () => {
-		stubMediaQuery({ matches: true });
+		stubMediaQuery(true);
 		const button = setupDom();
 		initThemeToggle();
 
 		button.click();
 
 		expect(localStorage.getItem("color-scheme")).toBe("light");
-		expect(document.documentElement.classList.contains("theme-light")).toBe(true);
+		expect(document.documentElement.classList.contains(ThemeClass.Light)).toBe(true);
 		expect(document.querySelector("meta")?.getAttribute("content")).toBe("light");
 	});
 
 	it("follows the OS scheme as it changes under an unpinned reader", () => {
-		const { switchTo } = stubMediaQuery({ matches: false });
+		const { switchTo } = stubMediaQuery(false);
 		const button = setupDom();
 		initThemeToggle();
 		expect(button.dataset.effective).toBe("light");
@@ -146,7 +143,7 @@ describe("initThemeToggle against a dark system scheme", () => {
 	});
 
 	it("leaves a pinned reader alone when the OS scheme changes", () => {
-		const { switchTo } = stubMediaQuery({ matches: false });
+		const { switchTo } = stubMediaQuery(false);
 		const button = setupDom();
 		localStorage.setItem("color-scheme", "light");
 		initThemeToggle();
@@ -168,13 +165,13 @@ describe("initThemeToggle on a page without the colour-scheme meta", () => {
 
 	it("still pins the theme rather than throwing on the missing tag", () => {
 		document.head.innerHTML = "";
-		document.body.innerHTML = '<button id="theme-toggle"></button>';
-		const button = document.getElementById("theme-toggle") as HTMLButtonElement;
+		document.body.innerHTML = `<button id="${ElementId.ThemeToggle}"></button>`;
+		const button = document.getElementById(ElementId.ThemeToggle) as HTMLButtonElement;
 
 		initThemeToggle();
 		button.click();
 
-		expect(document.documentElement.classList.contains("theme-dark")).toBe(true);
+		expect(document.documentElement.classList.contains(ThemeClass.Dark)).toBe(true);
 	});
 });
 
@@ -192,8 +189,8 @@ describe("a stored value that names no scheme", () => {
 
 		initThemeToggle();
 
-		expect(document.documentElement.classList.contains("theme-light")).toBe(false);
-		expect(document.documentElement.classList.contains("theme-dark")).toBe(false);
+		expect(document.documentElement.classList.contains(ThemeClass.Light)).toBe(false);
+		expect(document.documentElement.classList.contains(ThemeClass.Dark)).toBe(false);
 		expect(document.querySelector("meta")?.getAttribute("content")).toBe("light dark");
 		expect(button.dataset.effective).toBe("light");
 	});
@@ -213,24 +210,27 @@ describe("the Usage Event the toggle records", () => {
 		initThemeToggle();
 
 		button.click();
-		expect(recordUsageEvent).toHaveBeenLastCalledWith({ event: "theme_changed", properties: { theme: "dark" } });
+		expect(recordUsageEvent.mock.calls).toEqual([[{ event: "theme_changed", properties: { theme: "dark" } }]]);
 
 		button.click();
-		expect(recordUsageEvent).toHaveBeenLastCalledWith({ event: "theme_changed", properties: { theme: "system" } });
+		expect(recordUsageEvent.mock.calls).toEqual([
+			[{ event: "theme_changed", properties: { theme: "dark" } }],
+			[{ event: "theme_changed", properties: { theme: "system" } }],
+		]);
 	});
 
 	it("names light when the click pins light against a dark OS", () => {
-		stubMediaQuery({ matches: true });
+		stubMediaQuery(true);
 		const button = setupDom();
 		initThemeToggle();
 
 		button.click();
 
-		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "theme_changed", properties: { theme: "light" } });
+		expect(recordUsageEvent.mock.calls).toEqual([[{ event: "theme_changed", properties: { theme: "light" } }]]);
 	});
 
 	it("records nothing on init or when the OS scheme changes on its own", () => {
-		const { switchTo } = stubMediaQuery({ matches: false });
+		const { switchTo } = stubMediaQuery(false);
 		setupDom();
 		initThemeToggle();
 

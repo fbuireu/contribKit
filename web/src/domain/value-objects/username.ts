@@ -1,5 +1,5 @@
 import suggestedUsernames from "@shared/usernames.json" with { type: "json" };
-import { type Failure, FailureField, invalidInput } from "../failures/failure";
+import { FailureField, type InvalidInputFailure, invalidInput } from "../failures/failure";
 
 const USERNAME_REGEX = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 export const MAX_USERNAME_LENGTH = 39;
@@ -10,7 +10,7 @@ export interface Username {
 	readonly value: string;
 }
 
-export const parseUsername = (input: string): Username | Failure => {
+export const parseUsername = (input: string): Username | InvalidInputFailure => {
 	const trimmed = input.trim();
 	if (!USERNAME_REGEX.test(trimmed)) {
 		return invalidInput({ field: FailureField.Username, message: "Invalid GitHub username" });

@@ -1,11 +1,11 @@
 ---
-import { ClassName, ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "../../utils/dom-contract";
 import "./export.css";
 import { DAYS_PER_WEEK, WEEKS_PER_YEAR } from "@domain/services/dates";
 import { calendarLayout } from "@domain/services/svg-geometry";
 import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import { EXPORT_GRID_GEOMETRY } from "@ui/components/grid/grid-geometry";
+import { EXPORT_GRID_GEOMETRY } from "../grid/grid-geometry";
 import { ExportFormatKey } from "./export-formats";
 
 interface Props {
@@ -30,7 +30,7 @@ const EXPORT_FORMATS = [
 ] as const;
 ---
 
-<section class="section" id="export" aria-label="Export">
+<section class="section" id={ElementId.ExportSection} aria-label="Export">
   <div class="wrap">
     <div class="eyebrow" aria-hidden="true"><span class="mono">export</span></div>
     <h2 class="section-title">
@@ -41,7 +41,7 @@ const EXPORT_FORMATS = [
       <div class="export-tabs" id={ElementId.ExportTabs} role="tablist" aria-label="Export format">
         {EXPORT_FORMATS.map(({ key, detail }, index) => (
           <button
-            class:list={['export-tab', { active: index === 0 }]}
+            class:list={['export-tab', { [ClassName.Active]: index === 0 }]}
             role="tab"
             id={`export-tab-${key}`}
             aria-selected={index === 0 ? 'true' : 'false'}
@@ -55,12 +55,12 @@ const EXPORT_FORMATS = [
         ))}
       </div>
       <div class="export-preview" id={ElementId.ExportPreview} role="tabpanel" aria-labelledby="export-tab-png">
-        <div class={`preview-card ${ClassName.PngPreview}`}>
-          <div class="preview-checker" aria-hidden="true"></div>
-          <div class="preview-content">
+        <div class:list={[ClassName.PreviewCard, ClassName.PngPreview]}>
+          <div class={ClassName.PreviewChecker} aria-hidden="true"></div>
+          <div class={ClassName.PreviewContent}>
             <Fragment set:html={exportSvg} />
           </div>
-          <div class="preview-tag mono">{DEFAULT_USERNAME}.png</div>
+          <div class:list={[ClassName.PreviewTag, "mono"]}>{DEFAULT_USERNAME}.png</div>
         </div>
       </div>
     </div>

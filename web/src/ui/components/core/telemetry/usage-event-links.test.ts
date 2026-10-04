@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { initUsageEventLinks, readUsageEventLink, UsageAttribute, usageEventAttributes } from "./usage-event-links";
 
 const recordUsageEvent = vi.hoisted(() => vi.fn());
 
-vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
+vi.mock("./usage-event", async (importOriginal) => ({
 	...(await importOriginal<typeof import("./usage-event")>()),
 	recordUsageEvent,
 }));
@@ -16,7 +16,15 @@ const click = (selector: string): void => {
 
 describe("initUsageEventLinks", () => {
 	beforeAll(() => {
+		vi.spyOn(document, "addEventListener");
 		initUsageEventLinks();
+	});
+
+	afterAll(() => {
+		for (const [type, listener] of vi.mocked(document.addEventListener).mock.calls) {
+			document.removeEventListener(type, listener);
+		}
+		vi.restoreAllMocks();
 	});
 
 	beforeEach(() => {
@@ -34,10 +42,9 @@ describe("initUsageEventLinks", () => {
 
 		click("#play");
 
-		expect(recordUsageEvent).toHaveBeenCalledWith({
-			event: "store_link_opened",
-			properties: { store: "play", placement: "hero" },
-		});
+		expect(recordUsageEvent.mock.calls).toEqual([
+			[{ event: "store_link_opened", properties: { store: "play", placement: "hero" } }],
+		]);
 	});
 
 	it("records a section link", () => {
@@ -45,7 +52,7 @@ describe("initUsageEventLinks", () => {
 
 		click("#how");
 
-		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "section_navigated", properties: { section: "how" } });
+		expect(recordUsageEvent.mock.calls).toEqual([[{ event: "section_navigated", properties: { section: "how" } }]]);
 	});
 
 	it("finds the link from a click on a child of it", () => {
@@ -54,7 +61,7 @@ describe("initUsageEventLinks", () => {
 
 		click("#inner");
 
-		expect(recordUsageEvent).toHaveBeenCalledOnce();
+		expect(recordUsageEvent.mock.calls).toEqual([[{ event: "section_navigated", properties: { section: "export" } }]]);
 	});
 
 	it("ignores a click that lands on no usage link", () => {

@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/repositories/diagnostics_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
+import 'package:contribkit/infrastructure/telemetry/telemetry_failure.dart';
 import 'package:flutter/widgets.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -45,7 +46,17 @@ final class SentryDiagnosticsRepository implements DiagnosticsRepository {
     if (_started || !config.hasSentry) return;
     _started = true;
 
-    await _initialise(_configure);
+    try {
+      await _initialise(_configure);
+    } catch (error, stackTrace) {
+      _started = false;
+      reportTelemetryFailure(
+        error: error,
+        stackTrace: stackTrace,
+        during: 'while starting Sentry',
+      );
+      await _close(during: 'while closing Sentry after it failed to start');
+    }
   }
 
   void _configure(SentryFlutterOptions options) {
@@ -96,7 +107,19 @@ final class SentryDiagnosticsRepository implements DiagnosticsRepository {
     }
     if (!_started) return;
     _started = false;
-    await _shutDown();
+    await _close(during: 'while closing Sentry');
+  }
+
+  Future<void> _close({required String during}) async {
+    try {
+      await _shutDown();
+    } catch (error, stackTrace) {
+      reportTelemetryFailure(
+        error: error,
+        stackTrace: stackTrace,
+        during: during,
+      );
+    }
   }
 
   SentryEvent? _scrub(SentryEvent event, Hint hint) {

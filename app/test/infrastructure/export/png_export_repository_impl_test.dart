@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -82,11 +83,10 @@ void main() {
           expect(rendered[shape], isNotEmpty, reason: shape.name);
         }
         expect(
-          rendered[CellShape.square],
-          isNot(rendered[CellShape.circle]),
-          reason: 'a square and a circle cannot encode to the same bytes',
+          rendered.values.map(base64Encode).toSet(),
+          hasLength(CellShape.values.length),
+          reason: 'two Cell Shapes that encode to the same bytes are one Shape',
         );
-        expect(rendered[CellShape.hex], isNot(rendered[CellShape.square]));
       },
     );
 

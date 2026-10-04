@@ -13,6 +13,8 @@ import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/export/markdown_export_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fixtures.dart';
+
 const _github = Palette(
   key: 'github',
   name: 'GitHub',
@@ -37,7 +39,7 @@ const _nord = Palette(
 
 ContributionCalendar _calendar() => ContributionCalendar(
   username: Username('octocat'),
-  year: Year(2023),
+  year: Year(2023, today: testToday),
   weeks: [
     ContributionWeek(
       days: [

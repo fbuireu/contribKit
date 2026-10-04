@@ -1,28 +1,29 @@
 # web/src/infrastructure
 
-Implementations of `domain/` interfaces. The only layer allowed to reach the network, and the only one that knows
-it is running inside a Cloudflare Worker. Never imports from `ui/`, `pages/` or `application/`. A docs-contract
-assertion checks every layer's import direction now, because this rule was stated for a year and enforced by
-nothing.
+Implementations of the ports `domain/` and `application/` declare, and the IO behind them: the GitHub fetch, the
+Email Routing send and the log line. Never imports from `ui/`, `pages/` or `application/`; a docs-contract
+assertion checks every layer's import direction.
 
 **The outbound GitHub request is cached at the edge, and that is the SVG endpoint's real throttle.**
 [ADR 0010](../../../docs/adr/0010-rate-limit-only-the-json-api.md) deliberately leaves `/user/:username.svg`
 out of the inbound rate limiter, and the pages guide says caching is the only thing between it and unthrottled
-origin load. The response header alone did not deliver that: the CDN key is the whole URL and the route ignores
-unknown query parameters, so `?cb=1`, `?cb=2` and so on were unlimited distinct keys for one answer, each a fresh
-fetch to github.com. One caller could have had GitHub rate-limit the Worker, which takes the embed down for every
+origin load. The response header alone cannot deliver that: the CDN key is the whole URL and the route ignores
+unknown query parameters, so `?cb=1`, `?cb=2` and so on are unlimited distinct keys for one answer, each a fresh
+fetch to github.com, and one caller could have GitHub rate-limit the Worker, which takes the embed down for every
 README using it. The `fetch` carries `cf: { cacheTtl: ORIGIN_CACHE_SECONDS, cacheEverything: true }`, so N
 cache-busted variants collapse to one origin hit per username and year per hour. A colocated test asserts the
 directive, because it is load-bearing and invisible in the response.
 
-## Invariants & rules
+## Ports and bindings
 
-- **Factory functions returning an object that satisfies a domain interface.** No classes.
-- **Convert at the boundary.** A network error, a non-OK status or unparseable HTML becomes a `Failure` here. No raw
-  `Error` may escape this layer.
-- **This layer is the only one that names a Cloudflare binding.** `github/` reaches the network, `email/` sends
-  through `CONTACT_EMAIL`, and `middleware.ts` reads the two rate limiters. Nothing in `domain/` or `application/`
-  knows either exists.
+- `githubHtmlContributionRepository`, `svgStringRenderer` and `logger` are module-level values;
+  `cloudflareContactMessageRepository` is a factory, because it takes the recipient. `errorMessageOf` in `errors/` is
+  how a caught value becomes a `Failure`'s message: an `Error`'s own `message`, and `String(value)` for anything
+  else.
+- **A Cloudflare binding is named here, in [`middleware.ts`](../middleware.ts) and in
+  [`pages/api/health.ts`](../pages/api/health.ts), and nowhere else.** `email/` sends through `CONTACT_EMAIL`, the
+  middleware reads the two rate limiters, and the health route reports whether each binding is present. Nothing in
+  `domain/` or `application/` knows a binding exists.
 - **The scraper is the only place that knows GitHub's markup.** If GitHub changes the page, exactly one file here
   changes, and then so does the app's copy of the same parser
   ([ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md)).
@@ -30,151 +31,109 @@ directive, because it is load-bearing and invisible in the response.
 ## `github/`: scraping the contributions page
 
 `githubHtmlContributionRepository` is a module-level singleton, imported directly by
-[`pages/_contributions.ts`](../pages/_contributions.ts). A factory used to wrap it (a function returning a constant, with a test asserting that
-its `fetch` was a function), and it was deleted: it constructed nothing, and a second adapter would be a new
-export here rather than a new branch inside a factory.
+[`pages/_contributions.ts`](../pages/_contributions.ts). A second adapter would be a new export here rather than a
+branch inside a factory.
 
-**The request.** `buildUrl` hits `https://github.com/users/<login>/contributions`. When a `Year` is given it sets
+**The request.** `buildUrl` hits `https://github.com/users/<username>/contributions`. When a `Year` is given it sets
 `from=<year>-01-01`, and it sets `to=<year>-12-31` **only for a past year**: the current year is left open so the
-response is a rolling window ending today rather than a year padded with days that have not happened. The headers
-matter: a desktop Chrome `User-Agent`, `Accept-Language`, a `Referer` pointing at the user's profile, and
-**`X-Requested-With: XMLHttpRequest`**, which is what makes GitHub return the calendar fragment. Dropping any of
-them is how this starts silently returning a full HTML page that the regexes then fail to parse.
+response ends today rather than running on to 31 December through days that have not happened. The headers
+matter: a desktop Chrome `User-Agent` (a compatibility shim for an unauthenticated read of a public page, not
+concealment), `Accept-Language`, a `Referer` pointing at the user's profile, and **`X-Requested-With:
+XMLHttpRequest`**, which is what makes GitHub return the calendar fragment. Dropping any of them is how this starts
+silently returning a full HTML page that the regexes then fail to parse. The fetch carries
+`AbortSignal.timeout(FETCH_TIMEOUT_MS)` and follows redirects.
 
 **The parse**, in two passes over the same HTML:
 
 1. `TD_REGEX` finds every `<td>` whose attributes contain `ContributionCalendar-day`, then pulls `data-date`,
    `data-level` and `id` out of the attribute string. A day is kept only when it has **both** a date and a level.
-2. `TOOLTIP_REGEX` finds every `<tool-tip for="…">` and its leading digits, building an `id → count` map. A day's Count
-   is that map's entry for its `id`, or `null`. **The `\s*` before those digits is load-bearing**: the pattern
-   anchored them immediately after the `>`, so the day GitHub pretty-printed its markup (a newline and an indent
-   before the number), every Count on the page would have come back `null` at once. The app's parser trims before
-   matching and never had this; it is exactly the "a fix in one is a bug left in the other" case
+2. `TOOLTIP_REGEX` finds every `<tool-tip for="…">` and its leading digits, building an `id → count` map once
+   `COUNT_SEPARATORS` has stripped the grouping (`1,234`). A day's Count is that map's entry for its `id`, or `null`.
+   **A parsed Count enters the map only if `countSchema.validate` accepts it**, a non-negative safe integer: the
+   schema comes from `astro/zod` and refines with the domain's `isCount`, the range the browser's body schema holds a
+   Count to as well. `\s*` gives a trailing no-break space back to the digit class, so the captured run can be
+   separators alone (`<tool-tip …>&nbsp;No contributions` captures `"\u00a0"`), `parseInt` answers `NaN` for it, and
+   that day's Count stays `null`, as the app's `int.tryParse` leaves it. The app's parser trims before matching where
+   this one allows `\s*`, and a fix made in only one of the two is the drift
    [ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md) exists to catch.
-   **A parsed Count enters the map only if `scrapedCount.validate` accepts it**, a non-negative safe integer
-   (`astro/zod`). The captured run can be separators alone: `\s*` gives a trailing no-break space back to the digit
-   class, so `<tool-tip …>&nbsp;No contributions` captured `"\u00a0"`, `parseInt` answered `NaN`, and `NaN` was
-   stored as an exact Count and summed into a total that printed as `NaN`. It is `null` now, an unknown Count,
-   which is what the app's `int.tryParse` already produced for the same markup.
-   **The rest of a scraped day is not given a Zod schema, and should not be.** The regexes already fix the shape
-   (`\d{4}-\d{2}-\d{2}` for a date, one digit for a level), and meaning belongs to the domain: `contributionDay`
-   rejects a date that is not on the calendar and clamps the level, and it is the same constructor the client's
-   JSON goes through ([ADR 0025](../../../docs/adr/0025-how-much-ddd-and-where-it-stops.md)). A `z.iso.date()`
-   beside it would be a second calendar rule to keep in step; the domain cannot import Zod to share one.
+   **The rest of a scraped day gets no Zod schema.** The regexes fix its shape (`\d{4}-\d{2}-\d{2}` for a date, one
+   digit for a level) and `contributionDay` decides its meaning: it rejects a date that is not on the calendar and
+   clamps the level, the same constructor the client's JSON goes through
+   ([ADR 0025](../../../docs/adr/0025-how-much-ddd-and-where-it-stops.md)). A `z.iso.date()` beside it would be a
+   second calendar rule, and the domain cannot import Zod to share one.
 
-**Levels come from GitHub.** `data-level` is authoritative and is only run through `clampLevel`. This layer never
+**Levels come from GitHub.** `data-level` is authoritative, and `contributionDay` only clamps it. This layer never
 derives a level from a count; the app does, and only when the attribute is missing. That divergence is recorded in
-[ADR 0008](../../../docs/adr/0008-the-mobile-app-fetches-github-directly.md); why there are two parsers at all is
-[ADR 0011](../../../docs/adr/0011-keep-the-apps-own-scraper-for-now.md).
+[ADR 0008](../../../docs/adr/0008-the-mobile-app-fetches-github-directly.md). `totalContributions` comes from
+`totalContributionsFor`, the domain's one home for that rule, over exactly the days the page returned.
 
 **Failure mapping:**
 
 | Situation | Result |
 | --- | --- |
-| `fetch` throws, including the 20 s timeout | `network({ message })`, no status |
+| `fetch` or `response.text()` throws, including the 20 s timeout | `network({ message })`, no status |
 | status 404 | `notFound(username)` |
 | status 429 | `rateLimited({ message, retryAfterSeconds })` |
 | any other non-OK status | `network({ message: "GitHub returned <status>", status })` |
 | zero days parsed | `parse("Could not parse contributions")` |
 
-**A 429 is not an outage, and saying so was a lie the reader could act on.** Every non-404 status used to become
-`network`, which `failure-http` maps to 502 and `contribution-errors` renders as "could not reach github", so
-GitHub saying *slow down* was reported as GitHub being unreachable. `rateLimited` carries `retryAfterSeconds`,
-parsed from `Retry-After` in either form the RFC allows (a count of digits, or an HTTP date), and maps to 429.
-**Anything else is `null`, not zero.** The parser used `Number(header)`, which reads `" "` as `0` and lets `"5.5"`
-fall through to `Date.parse`, whose legacy parser accepts it as a date in 2001 and yields `0` as well. "Retry
-immediately" is the worst of the three possible wrong answers, so it now requires all-digits or a string with a
-letter in it.
-The app has had `RateLimitedFailure` since ADR 0004; this is the same distinction, in TypeScript.
-
-**Reading the body is guarded separately from the fetch.** The timeout signal aborts the *response stream* too,
-so a GitHub that answers with headers and then stalls makes `response.text()` reject (outside the `try` that
-wraps the fetch, and therefore out of a layer whose rule is that only a `Failure` leaves it). Both are guarded.
-
-**The outbound fetch carries `AbortSignal.timeout(20_000)`.** It had none, so a hung GitHub held the invocation open
-until the platform killed it and the visitor got a generic edge error rather than a `Failure`. Twenty seconds is the
-same budget the app pins, deliberately.
-
-**Zero days is a parse failure, never an empty calendar.** An empty calendar renders as a plausible-looking year of
-no activity, which is a lie the reader cannot detect
-([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-html.md)).
-
-**`total` is `null` the moment a Contribution Day at level 1 or above has an unknown Count.** It is not GitHub's own
-headline figure (nothing here reads that), so it is only as complete as the tool-tip pass, and a partial pass
-cannot be reported as a measurement. A level-0 day with no Count does **not** void it, because GitHub's level 0 is
-zero. That is the same rule `computeContributionStats` applies in the domain and the same one the app's `ContributionStatsService.totalFor`
-applies, and this file did not follow it: it summed `count ?? 0` whenever *any* tool-tip parsed, so a page whose
-`<td>`s parsed and whose tool-tips half failed produced an **understated total presented as exact**.
-`statsWithScrapedTotal` then let that beat the domain function that had correctly refused to guess. It only degraded
-honestly in the all-or-nothing case.
+`retryAfterSeconds` is parsed from `Retry-After` in either form the RFC allows, all digits or an HTTP date, and the
+date form must contain a letter. **Anything else is `null`, not zero**, where a looser parser answers zero:
+`Number(" ")` is `0`, and `Date.parse("5.5")` reads a date in 2001, which clamps to `0`. The app's
+`RateLimitedFailure` draws the same distinction.
 
 ## `rendering/`: `svgStringRenderer`
 
-Pure string concatenation into a `parts` array, joined once. There is no DOM in a Worker and this must not grow one.
-It takes its whole geometry from one `calendarLayout` call in `@domain/services/svg-geometry` and its per-shape
-markup from `@domain/services/cell-shapes`, so the server renderer and the client-side preview draw identical cells,
-and now identical *positions*, because neither computes any. What is left here is the string templates.
+Pure string concatenation into a `parts` array, joined once, with its whole geometry from one `calendarLayout` call in
+`@domain/services/svg-geometry` and its per-shape markup from `@domain/services/cell-shapes`, so the server renderer
+and the client-side preview draw identical cells at identical positions. What is left here is the string templates.
 
 - Defaults when the options omit them: `calendarLayout` applies `SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP` and
-  `showLabels: true` when the option is `undefined`, so this file no longer spells them out.
+  `showLabels: true` when the option is `undefined`.
 - **The background `<rect>` is emitted only when `background !== DEFAULT_BACKGROUND_COLOR`** (`"transparent"`). A
   transparent embed is the absence of a rect, not a rect with alpha, which is what lets a README show through.
+  `background` goes into `fill` verbatim, so the caller validates it: the SVG route through
+  `EMBED_BACKGROUND_PATTERN`.
 - **Cells carry no attributes.** `renderCellShape` is called without the optional `attributes`, so the server's SVG
-  has no `data-date` or `data-count`: only the client-side preview adds them, for the Cell Tooltip. An embed is an
-  image, not a queryable document.
+  has no `data-date` or `data-count`: only the client-side preview adds them, for the Cell Tooltip.
 - The root element carries `role="img"` and a fixed `aria-label`.
-- It draws whatever the layout's `cells` hold, and `chunkWeeks` inside it returns as many weeks as the days make. A calendar
-  shorter than 371 days therefore renders with empty trailing weeks rather than a narrower image: the width comes
-  from `WEEKS_PER_YEAR`, not from the data.
+- It is as wide as the days make weeks. The SVG route always hands it `buildRollingGrid`'s 371 days, which is why
+  every embed is 53 weeks wide.
 
-## `email/`: the one thing this project sends rather than reads
+## `email/`: the one thing the Worker sends rather than reads
 
-`cloudflareContactMessageRepository` implements `ContactMessageRepository` and is the only outbound **write** in
-the project: everything else here fetches. It sends through Cloudflare's `send_email` binding, `CONTACT_EMAIL`,
-rather than a provider's API, so there is no runtime secret to hold or rotate
+`cloudflareContactMessageRepository` implements `ContactMessageRepository` and is the Worker's only outbound
+**write**. It sends through Cloudflare's `send_email` binding, `CONTACT_EMAIL`, rather than a provider's API, so
+there is no runtime secret to hold or rotate
 ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 **The sender is this file's, the recipient is the caller's.** `CONTACT_SENDER` is the `From`, fixed to
 `contact@contribkit.app` because Cloudflare sends only from a zone Email Routing serves, and
 `cloudflareContactMessageRepository` is a factory taking the recipient, which the composition root reads from the
-`MAINTAINER_EMAIL` build-time variable. This layer never reads `astro:env`: the page layer does, and hands the
-value in, so this file is testable with a literal, and the `astro:env` schema requires the variable, so no build
-ever hands it an empty one. The binding in [`wrangler.toml`](../../wrangler.toml) names no
-`destination_address` any more, because the address is in no file. The visitor's address goes in `Reply-To` and
-nowhere else: putting it in `From` is what DMARC rejects.
+`MAINTAINER_EMAIL` build-time variable, so this file is testable with a literal. The binding in
+[`wrangler.toml`](../../wrangler.toml) names no `destination_address`, because the address is in no file. The
+visitor's address goes in `Reply-To`, because putting it in `From` is what DMARC rejects.
 
-**What no file here can assert is that the recipient is a verified destination address in Email Routing.** It is a
-name resolved in the Cloudflare dashboard, like the observability destinations
-([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). A recipient that is
-not verified, and the zone's own `contact@contribkit.app` can never be, means every send is refused, and the refusal
-arrives as a `Delivery` failure carrying Cloudflare's own wording, which `logContactFailure` writes to Better Stack
-and `messageFor` keeps out of the response.
-
-**`ContactMessageEmail.tsx` is the email, and it is React Email, the way the sibling sites' are.** It is the one
-`.tsx` file in the project, which is why the web `tsconfig` carries `jsx` and the Astro config carries the React
-integration: nothing renders React to the browser, and the docs contract's comment and layer guards walk `.tsx` so
-that stays true by assertion. The template takes the `ContactMessage`, the sent date and the site, and draws its
-header strip and its button from `PALETTES.github`, the domain's own colours; the neutral greys are the email's
-own literals, because an email client reads no CSS variable. `cloudflareContactMessageRepository` renders it twice
+**`ContactMessageEmail.tsx` is the email, and it is React Email, the way the sibling sites' are.** It and its test
+are the only `.tsx` files in the project, which is why the web `tsconfig` carries `jsx` and the Astro config
+carries the React integration. The template takes the `ContactMessage`, the sent date and the site, and draws its
+header strip and its button from `PALETTES.github`, the domain's own colours; the neutral greys are the email's own
+literals, because an email client reads no CSS variable. `cloudflareContactMessageRepository` renders it twice
 through `@react-email/render`, once as HTML and once with `plainText`, and hands both to `mime.ts`. Everything the
 visitor typed goes through React's escaping, and a colocated test pins that a message cannot add markup.
 
-**`mime.ts` builds the envelope by hand, and that is a decision rather than an omission.** No `mimetext`: a
-short header block and a `multipart/alternative` body of two base64 parts do not justify a dependency, which is
-the same trade [ADR 0006](../../../docs/adr/0006-parse-the-contributions-page-with-regexes.md) makes for the
-parser. Each part is base64 over UTF-8 bytes folded at 76 columns, so a message may carry any line break; the
-boundary is a UUID stripped to the characters RFC 2046 allows; **every header value has its CR and LF replaced
-with a space**, which is the second of two injection guards. The first is the domain's email rule, which rejects
-them outright. Two guards, because the layer below cannot see what the layer above validated.
+**`mime.ts` builds the envelope by hand**: no `mimetext`, because a short header block and a
+`multipart/alternative` body of two base64 parts do not justify a dependency, the same trade
+[ADR 0006](../../../docs/adr/0006-parse-the-contributions-page-with-regexes.md) makes for the parser. Each part is
+base64 over UTF-8 bytes folded at 76 columns, so a message may carry any line break; the boundary is a UUID stripped
+to the characters RFC 2046 allows; every header value has its CR and LF replaced with a space.
 
 **The binding is read through `import { env } from "cloudflare:workers"`,** the same route the middleware takes,
-and `EmailMessage` comes from `cloudflare:email`. Both are virtual modules with no Node implementation, so the
-colocated tests mock them with `vi.mock` exactly as the health and middleware tests mock `cloudflare:workers`.
-`env.CONTACT_EMAIL` is a **local stand-in in development**: `wrangler dev` binds an unrestricted Send Email that
-writes the document to `web/.wrangler/tmp/email/` as an `.eml` and reports success, which is the quickest way to
-read the exact bytes the Worker would hand to Email Routing, rendered by workerd rather than by Node. The
-repository still answers `Delivery` rather than throwing when the binding is absent, because a hand-run build
-outside wrangler has none.
+and `EmailMessage` comes from `cloudflare:email`. `env.CONTACT_EMAIL` is a **local stand-in in development**:
+`wrangler dev` binds an unrestricted Send Email that writes the document to `web/.wrangler/tmp/email/` as an `.eml`
+and reports success, which is the quickest way to read the exact bytes the Worker would hand to Email Routing,
+rendered by workerd rather than by Node. The repository still answers `Delivery` rather than throwing when the
+binding is absent, because a hand-run build outside wrangler has none.
 
 ## `logging/`
 
@@ -182,86 +141,51 @@ outside wrangler has none.
 `{ message, context }` object (`logError` adds `error`), and it sends nothing anywhere. Each call writes **one
 `JSON.stringify` line to `console[level]`**, and Cloudflare's own observability exports it to Better Stack over
 OTLP, named as a `destinations` entry in [`wrangler.toml`](../../wrangler.toml)
-([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)). A `@logtail/edge`
-client used to post the lines from inside the Worker, memoised in a three-state variable so a missing token was
-resolved once; there is no token here to miss any more, and no client to memoise. [`logger.ts`](./logging/logger.ts)
-and [`contract.ts`](./logging/contract.ts) are byte for byte the files forever-pto carries at the same path,
-apart from `LOG_SERVICE`, so a reader who knows one logger knows the other and the two sinks answer the same
-queries. A change to one is a change to both.
+([ADR 0026](../../../docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)).
+[`logger.ts`](./logging/logger.ts) and [`contract.ts`](./logging/contract.ts) are the files biancafiore and
+forever-pto carry in their own `src/infrastructure/logging/`: `contract.ts` differs only in `LOG_SERVICE`, and
+`logger.ts` is byte for byte theirs. A change to one is a change to all three.
 
-**`service`, `level` and `message` are spread after the caller's context, not before.** A caller handing
-`{ context: { level: "info" } }` to `logger.error` cannot relabel its own line, which is the whole reason the sink
-can be queried on those three fields. `logger.test.ts` pins the order.
-
-**The line goes to `console[level]`, indexed by the contract's own union, inside a `try` that returns.** Indexing
-rather than branching is what makes a level added to `LOG_LEVEL` that `console` has no method for fail to
-compile here instead of falling through to `console.error`; `logger.test.ts` iterates the contract and asserts
-each level reaches the method of its own name and no other. The `try` is the other half of *a log call cannot
-fail its caller*: `JSON.stringify` throws on a circular reference or a `BigInt`, and a route that was logging a
-failure must not fail again on the log. A context that will not serialise loses the line, silently, which is the
-same trade forever-pto's logger makes and records in its ADR 0018.
-
-**`logError` is how a throwable becomes a line.** It serialises `message`, `name`, `stack` and the error's own
-enumerable fields into an `error` field beside the caller's context, and a non-`Error` value becomes
-`{ message: String(value), name: "UnknownError" }`. `logServerError` in `application/http/` hands its throwable
-here rather than describing it itself, so a 500's line carries a stack, and so it reads the same as the one
-forever-pto's payment handlers write.
-
-**A `url` field in a context never carries its query string.** `write` runs `stripQuery` from the contract over
-a string `url` on every line, whichever method emitted it. Nothing here puts a secret on a query string today;
-the rule is shared with forever-pto, where Stripe does, so that a `url` field means the same thing in both
-sinks and a caller who genuinely wants a query string has to name the field something else. Cloudflare's
-`redact_query_string = true` in `wrangler.toml` is a different guarantee: it redacts the **request** URL the
-platform records, not a field a caller passes.
-
-**There is no `ExecutionContext` in this any more, and callers import `logger` directly.** `getLogger(ctx)` and
-`loggerFor(locals)` existed because a network write had to be tied to the request's lifetime or be torn down before
-it flushed; a `console` call has nothing to flush. The `Astro.locals.cfContext` cast that `loggerFor` performed is
-therefore gone from this layer entirely. The `locals.runtime.*` accessors are still defined as getters that throw:
-`runtime.ctx` tells you to use `cfContext`, and `runtime.env` tells you to
-`import { env } from "cloudflare:workers"`, which is what [`middleware.ts`](../middleware.ts) does for the rate
-limiter binding. Both data routes, the landing page and the 500 page import `logger`; `/api/health` is the one
-route without one, because it has nothing to report.
-
-**Local development exports nothing, and that is not silence.** `wrangler dev` prints the lines to the terminal and
-ships them nowhere, so "no logs in Better Stack" while developing means the destination is not involved, never that
-nothing went wrong.
-
-**`console` is a lint error everywhere else in this repository.** [`web/biome.json`](../../biome.json) turns
-`noConsole` off for [`logger.ts`](./logging/logger.ts) and for nothing else, the same way it exempts `cookie.ts` from
-`noDocumentCookie`. That exemption is what keeps this file the only writer.
-
-**This folder holds the writer, and the decisions stay one layer up.** Whether something that went wrong is worth a
-line, under which message, and above which status, is
-[`failure-log.ts`](../application/http/failure-log.ts) in [`application/http/`](../application/AGENTS.md): it takes a logger as a parameter rather than
-reaching for one, and it declares the port it takes. That port and the two helpers were three files in two layers
-before, two of them declaring **character-for-character identical** one-method interfaces (`ServerErrorLogger` here
-and `FailureLogger` there) so that two helpers doing the same job could each be tested with a fake. `Logger` here
-satisfies the one remaining port structurally: this layer still declares no dependency on that one, which is the
-whole reason the port is not declared here.
+- **`service`, `level` and `message` are spread after the caller's context, not before**, so a caller cannot relabel
+  its own line; `logger.test.ts` pins the order.
+- **The line goes to `console[level]`, indexed by the contract's own union, inside a `try` that returns.** A level
+  added to `LOG_LEVEL` that `console` has no method for fails to compile here, and every method runs inside that
+  `try`, so a console that throws never fails the route that was logging. A context value that will not serialise
+  (a circular reference, a `BigInt`) is written as `"[unserializable]"` and the rest of the line still goes out.
+  `logger.test.ts` iterates the contract.
+- **`logError` is how a throwable becomes a line.** It serialises `message`, `name`, `stack` and the error's own
+  enumerable fields into an `error` field beside the caller's context. A non-`Error` value becomes
+  `{ message, name: "UnknownError" }`, its `message` the value's JSON when it is an object that serialises,
+  `String(value)` otherwise, and the object's tag when even that throws (an object with no prototype). An own field
+  of an `Error` that will not serialise is written as `"[unserializable]"`, so the message, name and stack survive it.
+- **A `url` field in a context never carries its query string.** `write` runs `stripQuery` from the contract over
+  a string `url` on every line, whichever method emitted it, a rule shared with forever-pto so that a `url` field
+  means the same thing in both sinks. Cloudflare's `redact_query_string = true` in `wrangler.toml` is a different
+  guarantee: it redacts the **request** URL the platform records, not a field a caller passes.
+- **Callers import `logger` directly, and it takes no `ExecutionContext`, because a `console` call has nothing to
+  flush.** The `locals.runtime.*` accessors are defined as getters that throw: `runtime.ctx` tells you to use
+  `cfContext`, and `runtime.env` tells you to `import { env } from "cloudflare:workers"`. The three endpoint routes
+  that can fail, the landing page and the 500 page import `logger` and hand it to
+  [`failure-log.ts`](../application/http/failure-log.ts), which declares the port it takes and makes every decision
+  about whether and under which message to log; `/api/health` has nothing to report.
+- **Local development exports nothing, and that is not silence.** `wrangler dev` prints the lines to the terminal and
+  ships them nowhere, so "no logs in Better Stack" while developing means the destination is not involved, never that
+  nothing went wrong.
+- [`web/biome.json`](../../biome.json) turns `noConsole` off for [`logger.ts`](./logging/logger.ts) and for nothing
+  else: that exemption is what keeps this file the only writer.
 
 ## Gotchas
 
-- **The `<td>` regex matches `ContributionCalendar-day` anywhere in the attribute string,** not a whole `class`
-  value. That tolerance is load-bearing: GitHub adds classes and reorders attributes, and a pattern demanding
-  `class="ContributionCalendar-day"` exactly would break the day a second class appears: a difference the two
-  clients once had ([ADR 0006](../../../docs/adr/0006-parse-the-contributions-page-with-regexes.md)).
-- **A day whose `<td>` has no `id` can never have a Count**, because the tool-tip is joined on that id. It comes out
-  as `count: null` with a real level, a legitimate state the whole stack has to keep handling.
-- **A tool-tip pass that matches nothing is not a failure.** The days still parse, so the calendar renders with
-  correct levels and no Counts at all. That is the intended degradation, but it puts the whole stack one careless
-  `?? 0` away from printing "0 contributions" for a year nobody measured. See the Count handling in `ui/`.
-- `TD_REGEX` and `TOOLTIP_REGEX` are module-level `/g` regexes reused across requests. They are only ever driven through
-  `matchAll`, which does not carry `lastIndex` between calls; switching either to `.exec` in a loop would introduce
-  a cross-request state bug that shows up only under load. `DATE_REGEX`, `LEVEL_REGEX` and `ID_REGEX` are `.exec`ed,
+- **A day whose `<td>` has no `id` can never have a Count**, because the tool-tip is joined on that id: it comes out
+  as `count: null` with a real level. **A tool-tip pass that matches nothing is not a failure** either: the days
+  still parse, so the calendar renders with correct levels and no Counts at all.
+- **The `<td>` regex matches `ContributionCalendar-day` anywhere in the attribute string**, not a whole `class`
+  value, and the `\s*` before a tool-tip's digits absorbs a pretty-printed newline and indent: GitHub adds classes,
+  reorders attributes and reformats markup
+  ([ADR 0006](../../../docs/adr/0006-parse-the-contributions-page-with-regexes.md)).
+- `TD_REGEX`, `TOOLTIP_REGEX` and `COUNT_SEPARATORS` are module-level `/g` regexes reused across requests, driven
+  through `matchAll` and `replace`, which start from zero; `DATE_REGEX`, `LEVEL_REGEX` and `ID_REGEX` are `.exec`ed,
   and are safe precisely because they are **not** `/g`.
 - **The fetch follows redirects.** GitHub answers a renamed account by redirecting, so the calendar that comes back
-  can belong to a login other than the one asked for. The response is still labelled with the requested
+  can belong to a Username other than the one asked for. The response is still labelled with the requested
   username, because that is what the repository echoes into `ContributionCalendar.username`.
-- The `User-Agent` is a hardcoded Chrome string. It is a compatibility shim, not concealment: the request is
-  unauthenticated against a public page, and the endpoint is documented as scraping
-  ([ADR 0005](../../../docs/adr/0005-scrape-githubs-public-contributions-html.md)).
-- The month and weekday labels are hardcoded `rgba(255,255,255,…)`. On a light background they are close to
-  invisible. Same class of problem as `noneLight`
-  ([ADR 0012](../../../docs/adr/0012-light-theme-palette-variant-is-app-only.md)), same cause: the server cannot
-  know the host page's theme.

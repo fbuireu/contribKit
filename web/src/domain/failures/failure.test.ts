@@ -1,12 +1,26 @@
 import { describe, expect, it } from "vitest";
-import type { Username } from "../value-objects/username";
-import { delivery, FailureKind, invalidInput, isFailure, network, notFound, parse, rateLimited } from "./failure";
+import { parseUsername, type Username } from "../value-objects/username";
+import {
+	delivery,
+	FailureKind,
+	invalidInput,
+	isFailure,
+	isFailureKind,
+	network,
+	notFound,
+	parse,
+	rateLimited,
+} from "./failure";
 
-const handle = (value: string): Username => ({ _tag: "Username", value });
+const username = (raw: string): Username => {
+	const parsed = parseUsername(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not a Username: ${raw}`);
+	return parsed;
+};
 
 describe("isFailure", () => {
 	it("detects failure-shaped objects", () => {
-		expect(isFailure(notFound(handle("torvalds")))).toBe(true);
+		expect(isFailure(notFound(username("torvalds")))).toBe(true);
 		expect(isFailure(parse("bad json"))).toBe(true);
 	});
 
@@ -17,9 +31,18 @@ describe("isFailure", () => {
 	});
 });
 
+describe("isFailureKind", () => {
+	it("knows every kind of the union and nothing else", () => {
+		for (const kind of Object.values(FailureKind)) expect(isFailureKind(kind), kind).toBe(true);
+		expect(isFailureKind("Martian")).toBe(false);
+		expect(isFailureKind(undefined)).toBe(false);
+		expect(isFailureKind(404)).toBe(false);
+	});
+});
+
 describe("failure constructors", () => {
 	it("notFound", () => {
-		expect(notFound(handle("torvalds"))).toEqual({ kind: "NotFound", username: handle("torvalds") });
+		expect(notFound(username("torvalds"))).toEqual({ kind: "NotFound", username: username("torvalds") });
 	});
 
 	it("invalidInput", () => {

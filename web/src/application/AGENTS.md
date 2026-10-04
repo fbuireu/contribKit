@@ -1,102 +1,75 @@
 # web/src/application
 
 Orchestration, in pure TypeScript. It composes `domain/` into whole operations and knows nothing about Astro,
-Cloudflare or `fetch`: everything reaches it through a closure. Stateless: state belongs to `pages/` and `ui/`.
+Cloudflare or `fetch`: everything reaches it as a closure or a parameter. Stateless: state belongs to `pages/` and
+`ui/`.
 
-## Invariants & rules
-
-- **Use cases are curried.** `useCase(dependencies)(params)`. The dependency arm runs once, at the module scope of
-  `pages/_contributions.ts`; the per-request arm closes over an already-built repository. Do not collapse them into
-  one call that takes both, and do not build the repository inside an `.astro` frontmatter: frontmatter is
-  per-request code, so the landing page used to rebuild its infrastructure on every visit until that composition
-  moved into a module. **The dependency is the repository's own method type**, not a use case wrapping it:
-  [`_contributions.ts`](../pages/_contributions.ts) wraps `githubHtmlContributionRepository.fetchCalendar` in a one-line arrow typed
-  `ContributionRepository["fetchCalendar"]` and hands that to `loadInitialContributions`: the arrow keeps the reference
-  attached to its object, and adds nothing else.
-- **Never throw.** Every use case returns `T | Failure`, or the `LoadContributionsResult` union described below.
-- **Two arguments means one destructured object.** `logContributionsFailure` and `loadInitialContributions` both
-  take a single params object; that is the repo-wide convention, not a local one, and
-  [`domain/failures/failure.ts`](../domain/failures/failure.ts) obeys it too.
+A use case's dependency arm runs once, at the module scope of [`pages/_contributions.ts`](../pages/_contributions.ts)
+or [`pages/_contact.ts`](../pages/_contact.ts), and the per-request arm closes over an already-built repository.
+`_contributions.ts` wraps `githubHtmlContributionRepository.fetchCalendar` in a one-line arrow typed
+`ContributionRepository["fetchCalendar"]` and hands that to `loadInitialContributions`, and `_contact.ts` does the
+same with `deliver`: the arrow keeps the reference attached to its object, and adds nothing else.
 
 ## The use cases
 
 | Function | Returns | Notes |
 | --- | --- | --- |
-| `loadInitialContributions(load)({ username?, year? })` | `LoadContributionsResult` | Defaults, validates, loads and builds the grid covering the Year. |
-| `sendContactMessage(deliver)({ name?, email, body })` | `ContactMessage \| Failure` | Parses, then delivers. **An `InvalidInput` short-circuits before `deliver` is called**, asserted in the test, which is what makes a junk submission cost no send. It echoes the message back on success, the way `fetchCalendar` returns the calendar. |
+| `loadInitialContributions(load)({ username, year?, thisYear })` | `LoadContributionsResult` | Validates, chooses the Year, loads and builds the grid covering it. `thisYear` is the year the page read off the clock. |
+| `sendContactMessage(deliver)({ name?, email, body })` | `ContactMessage \| Failure` | Parses, then delivers. **An `InvalidInput` short-circuits before `deliver` is called**, asserted in the test. It echoes the message back on success, the way `fetchCalendar` returns the calendar. |
 
 [`resolve-initial-view.ts`](./use-cases/resolve-initial-view.ts) sits alongside them and is not a use case in the curried sense: it takes no
-dependencies. It holds the landing page's request policy: `resolveViewerIdentity` (username precedence, whether the
-visitor asked for anyone, and the resulting `Cache-Control`) and `daySourceFor` (which of the three day sources a
-result and that flag imply). It returns decisions rather than markup, so it stays clear of `ui/` and stays testable.
-That is the whole point, since the frontmatter that used to hold these rules is unreachable from vitest.
-
-**Two identity use cases used to sit beside it, and neither does now.** `renderCalendarSvg` was
-`renderer => params => renderer(params)` and went first; `fetchContributions` was `repository => params =>
-repository.fetchCalendar(params)` and went for the same reason, one pass later. Its stated justification ("it exists so a
-route can depend on `@application/*` alone") was an import path, not a behaviour, and its own test asserted only
-that JavaScript forwards arguments. It was also laundering a type: `loadInitialContributions` named its dependency
-`ReturnType<typeof fetchContributions>`, which is `ContributionRepository["fetchCalendar"]` spelled the long way,
-and now says so directly.
-
-The guide claimed these thin use cases were the place a cross-cutting concern would go if one appeared. One
-appeared (reporting a failed fetch), and it went to `http/failure-log.ts` instead, beside the port it takes.
-There is exactly one `ContributionRepository` and no test substitutes it, so that seam was hypothetical rather
-than real. Re-adding a use case is cheap if a second repository ever appears.
+dependencies. It holds the landing page's request policy: `resolveViewerIdentity` (username precedence and whether
+the visitor asked for anyone), then, once the fetch has answered, `daySourceFor` (which of the three day sources a
+result and that flag imply) and `cacheControlFor` (the `Cache-Control` they imply). It returns decisions rather than
+markup, so it stays clear of `ui/` and stays testable, which frontmatter is not: vitest does not load `.astro`.
 
 ## `loadInitialContributions`, in order
 
-1. `username` defaults to `DEFAULT_USERNAME` (`torvalds`) when omitted, then goes through `parseUsername`. **An
-   invalid username short-circuits before the repository is called**: asserted in the test, and the reason a junk
-   handle costs no outbound request.
-2. `year` goes through `parseYear`; anything that is not a `Year`, including a `Failure`, falls back to
-   `currentYear()`. A bad `?year=` therefore renders the current year rather than erroring, which is the opposite
-   of how `/api/contributions` treats the same input.
-3. On success it returns the **built grid** under `days`, not the raw response: `buildGridFromApi` pads to whole weeks covering the Year, so
-   the caller never sees a short year.
+1. `year`, the raw `?year=`, goes through the domain's `resolveYear`, the rule the client's `renderFromGitHub` and
+   `readYearFromUrl` apply: a whole number from `MIN_YEAR` to `thisYear` is that Year, and anything else becomes
+   `thisYear`. A bad `?year=` therefore renders this year rather than erroring, which is the opposite of how
+   `/api/contributions` treats the same input.
+2. `username` goes through `parseUsername`. **An invalid username short-circuits before the repository is
+   called**: asserted in the test, and the reason a junk value costs no outbound request. The landing page passes
+   the username `resolveViewerIdentity` chose, which has already fallen back to `DEFAULT_USERNAME` (`torvalds`).
+3. On success it returns the **built grid** under `days`, not the raw response: `buildGridFromApi` pads to whole
+   weeks covering the Year, so the caller never sees a short year.
 
 ## The two error shapes, and why there are two
 
 `ContributionRepository.fetchCalendar` returns a domain `Failure`. `loadInitialContributions` returns
 `{ ok: false, kind, status, message }`, already mapped through `statusFor` / `messageFor`, with the failure's own
-`kind` carried alongside. The mapped pair exists because the caller is a page that renders HTML and needs a status
-and a sentence, not a discriminated union it would have to re-map itself. **`kind` is there for one reason: so the
-page can log what the two API routes log.** Drop it and a GitHub outage on `/` becomes invisible while the same
-outage on `/api/contributions` is recorded. That is exactly what happened before it was added. Anything reaching
-for a whole `Failure` after calling this is a sign the wrong use case was picked.
+`kind` carried alongside, and the `year` it chose on both branches, so the page renders an error state for the
+same Year a success would have covered. The mapped pair exists because the caller is a page that renders HTML and
+needs a status and a sentence, not a discriminated union it would have to re-map itself. **`kind` is there for one
+reason: so the page can log what the two data routes log.** Drop it and a GitHub outage on `/` becomes invisible
+while the same outage on `/api/contributions` is recorded. A caller that needs the whole `Failure` calls
+`loadContributions`, the repository method `_contributions.ts` binds, as the two data routes do.
 
 ## `http/failure-log.ts`: one file, the whole logging obligation
 
-It declares `FailureLogger` (`error` and `logError`, structurally satisfied by the Worker logger, rather than
-importing a port from `infrastructure/`, which is the direction the layer map forbids), both helpers that use it,
-and `SERVER_ERROR_STATUS`, the threshold above which a failure is worth logging.
+It declares `FailureLogger` (`error` and `logError`, structurally satisfied by the Worker logger, so this layer
+imports no port from `infrastructure/`), the three helpers that use it, `SERVER_ERROR_STATUS` (the status at or above
+which a failure is worth logging), `SERVER_ERROR_MESSAGE` (the body every endpoint's `catch` answers) and
+`ContributionsEndpoint` (the `endpoint` tag).
 
-That was three files in two layers, and answering "what happens to a log line" meant walking six modules. The
-threshold in particular lived in [`failure-http.ts`](./http/failure-http.ts) (a *status* module) and was imported backwards by the logging
-one; it now sits with the code that applies it.
-
-- **`logContributionsFailure`** turns a failed fetch into a log line and applies the threshold itself, so no route
-  repeats the comparison.
+- **`logContributionsFailure`** turns a failed fetch into a log line and applies the threshold itself.
 - **`logContactFailure`** does the same for a refused Contact Message, under the message
-  `"Contact message delivery failed"`. It takes four fields and **not the visitor's name, address or message**: a
-  Contact Message is stored nowhere, and a log line carrying one would be the one copy that outlived the send
-  ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). The
-  `reason` it does take is the *platform's* wording, which `messageFor` deliberately keeps out of the response.
-- **`logServerError`** is the narrow helper the 500 page uses, and it **returns early when `error` is
-  `undefined`.** Astro populates `Astro.props.error` only when it invokes the page as an error handler, and
-  [`500.astro`](../pages/500.astro) is also the public URL `/500`. Every hand-typed visit used to write a fabricated incident with
-  `reason: "unknown"`, unthrottled, and the e2e suite wrote six per run. "Was I invoked as an error handler?" is
-  the helper's decision, the same way the threshold is.
-  It hands the throwable to `logger.logError`, which serialises `message`, `name`, `stack` and the error's own
-  fields into the line and survives one it cannot serialise; the `describeError` that used to do a smaller
-  version of that here went with it. What stays here is the *decision*: whether to log, and under which
-  message and path.
+  `"Contact message delivery failed"`, and takes the kind, the status and the platform's `reason`, never the
+  visitor's name, address or message
+  ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
+- **`logServerError`** is what every endpoint route's `catch` and the 500 page call, and it **returns early when
+  `error` is `undefined`.** Astro populates `Astro.props.error` only when it invokes the page as an error handler,
+  and [`500.astro`](../pages/500.astro) is also the public URL `/500`, so without the early return every hand-typed
+  visit writes a fabricated incident, unthrottled. It hands the throwable to `logger.logError`, which serialises
+  `message`, `name`, `stack` and the error's own fields into the line.
 
 ## `http/failure-http.ts`
 
 The single mapping from a domain `Failure` to HTTP: `statusFor`, `messageFor`, `fieldFor` (the `InvalidInput`
-field name, for the API's error body) and `retryAfterHeader`. Never inline one of them, and never write a
-`switch` over `failure.kind` anywhere else.
+field name), `errorBodyFor` (the JSON error body: `error` from `messageFor`, `kind` naming the `Failure`, and the
+`field` of an `InvalidInput`), `retryAfterHeader`, and `reasonFor` (the log's wording, which for a `Delivery` is the
+platform's own).
 
 | Kind | Status | Message |
 | --- | --- | --- |
@@ -107,56 +80,38 @@ field name, for the API's error body) and `retryAfterHeader`. Never inline one o
 | `RateLimited` | 429 | `failure.message` |
 | `Delivery` | 502 | the literal `"Could not send your message"` |
 
-- **`STATUS_BY_KIND` is typed `Record<Failure["kind"], number>`,** so adding a kind to the union is a compile error
-  here until it is mapped. That is the guard; do not replace it with a lookup that defaults. It is also the whole of
-  what Effect would have been adopted for, which is why it was not
-  ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)).
-- **`Delivery` has a fixed message, for the same reason `NotFound` has one.** Its own
-  `message` is whatever Cloudflare said when the send was refused (an unverified destination address, most likely),
-  which is an operational detail the sender can do nothing with and which `logContactFailure` records instead. Every
-  fixed literal lives in this file and nowhere else.
-- **`NotFound` never echoes the username back.** The failure carries it, `messageFor` discards it. Keep it that way:
-  the string is rendered into an error page and returned as the body of an SVG response.
-- **`Network` and `Parse` both map to 502**, deliberately. To a caller, "GitHub was unreachable" and "GitHub's HTML
-  no longer parses" are the same class of problem (upstream is not usable right now), and both are logged with
-  their `kind`, so the distinction survives where it matters.
-- **`RateLimited` is a claim about a specific upstream answer.** GitHub's 429 used to arrive as `Network` and
-  therefore as 502: "could not reach github" for a service that answered perfectly well and said *slow down*. It
-  carries `retryAfterSeconds`, and `retryAfterHeader` is what turns it back into a `Retry-After` on the way out:
-  both data routes spread it into their error response, so the wait GitHub named survives the round trip instead of
-  being parsed and dropped. It answers `{}` for every other kind and for a 429 that named no wait, because a
-  fabricated `Retry-After` is worse than none. **Zero is not the same as none**: `retryAfterFrom`, which
-is the scraper's in `infrastructure/github/` rather than anything here, clamps an
-HTTP-date already in the past to `0`, and that goes out as `Retry-After: 0`, which is the honest answer to "how
-long must I wait" when the answer is "no longer". Only `null` means we were not told.
-- **`SERVER_ERROR_STATUS` no longer lives here.** It is a logging threshold, and it moved to `http/failure-log.ts`
-  beside the code that applies it. It sat in this file and was imported by the logging module, which is the seam
-  being crossed backwards.
+- **`STATUS_BY_KIND` is typed `Record<Failure["kind"], number>`**, so adding a kind to the union is a compile error
+  here until it is mapped ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)).
+- **`Network` and `Parse` both map to 502**: to a caller, "GitHub was unreachable" and "GitHub's HTML no longer
+  parses" are the same class of problem, and both are logged with their `kind`, so the distinction survives where
+  it matters.
+- **`retryAfterHeader` turns a `RateLimited` failure's `retryAfterSeconds` back into a `Retry-After`**, which both
+  data routes spread into their error response, and answers `{}` for every other kind and for a 429 that named no
+  wait. `retryAfterFrom`, the scraper's parser in `infrastructure/github/`, clamps an HTTP-date already in the past
+  to `0`, which goes out as `Retry-After: 0`; only `null` means we were not told.
 
 ## `http/cache-control.ts`
 
-Two constants, `CACHEABLE_ANSWER` and `NOT_CACHEABLE`, and the rule they exist to make sayable: **only an answer
-that carries data is cacheable.** Every route reads them rather than spelling a header value at the `Response`;
-the one-hour policy was written out at two call sites and the failure branches wrote nothing at all, which is not
-the same as `no-store` because an intermediary may store a response that states no policy. The
-[pages guide](../pages/AGENTS.md) has the surface-by-surface table and why the SVG endpoint is where it bites.
+Four constants, `CACHEABLE_ANSWER` and `NOT_CACHEABLE` and their `private` pair, `PRIVATE_CACHEABLE_ANSWER` and
+`PRIVATE_NOT_CACHEABLE`. Every endpoint route reads the first two rather than spelling a header value at the
+`Response`; the landing page answers with the `private` pair, which `cacheControlFor` picks between, because it reads
+the visitor's cookie and a shared cache must never serve one visitor's calendar to another. The
+[pages guide](../pages/AGENTS.md) has the policy route by route, and why the SVG endpoint is where it bites.
 
 It sits beside `failure-http.ts` and not inside it: a cache policy is a property of the *answer*, not a mapping
-from a `Failure`, and half the sites that need `NOT_CACHEABLE` (`/api/health`, the Zod shape rejection) never
-produce a `Failure` at all.
+from a `Failure`, and several sites that need `NOT_CACHEABLE` (`/api/health`, a Zod shape rejection, a route's
+`catch`) never produce a `Failure` at all.
 
 ## Gotchas
 
-- **A 502 here is a claim about GitHub, not about this Worker.** Every route logs anything at or above
-  `SERVER_ERROR_STATUS`, so a GitHub outage shows up as a ContribKit incident unless you read the `kind` field in
-  the log context.
-- **`messageFor` forwards upstream text verbatim** for every kind except `NotFound`. A `Network` failure's message
-  is whatever the scraper put there (`"GitHub returned 503"`, or the raw `error.message` of a failed `fetch`), and
-  it is returned as the body of a `text/plain` SVG response and printed on the landing page. Anything a repository
-  writes into a `Failure` is public copy.
-- The params object is optional all the way down (`({ … } = {})`), so `loadInitialContributions(load)()` is legal
-  and renders `torvalds` for the current year. That is what the landing page relies on for a first-time visitor.
+- **A 502 is a claim about upstream, not about this Worker**: GitHub, or Email Routing for a `Delivery`. Every
+  route logs a mapped failure at or above `SERVER_ERROR_STATUS`, so a GitHub outage shows up as a ContribKit
+  incident unless you read the `kind` field in the log context.
+- **`messageFor` forwards upstream text verbatim** for every kind except `NotFound` and `Delivery`. A `Network`
+  failure's message is whatever the scraper put there (`"GitHub returned 503"`, or the raw `error.message` of a
+  failed `fetch`), and it is the body of the SVG route's `text/plain` answer and the `error` field of
+  `/api/contributions`. The landing page prints `contributionError`'s sentence for the `kind` instead.
 - **`InitialContributions.days` is the grid; `/api/contributions`'s `days` is the scrape.** Same word, two shapes:
   this one is already padded to whole weeks by `buildGridFromApi`, so its first date is the Sunday on or before January
-  1st and its length never varies. The endpoint returns the scraper's own days and leaves the padding to the
+  1st and its length is `weeksFor(year)` × 7. The endpoint returns the scraper's own days and leaves the padding to the
   client, which is why `page-init` calls `buildGridFromApi` itself before rendering.

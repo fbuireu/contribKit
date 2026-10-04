@@ -1,21 +1,27 @@
 import type { ContributionDay } from "@domain/entities/types";
+import { isFailure } from "@domain/failures/failure";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
-import { statsWithScrapedTotal } from "@domain/services/contribution-stats";
+import { statsWithScrapedTotal, UNKNOWN_CONTRIBUTION_STATS } from "@domain/services/contribution-stats";
 import { toIsoDate } from "@domain/services/dates";
-import { DEFAULT_USERNAME } from "@domain/value-objects/username";
+import { DEFAULT_USERNAME, parseUsername } from "@domain/value-objects/username";
+import { resolveYear } from "@domain/value-objects/year";
 import {
 	CalendarFailureReason,
 	CalendarRequestSource,
 	recordUsageEvent,
 	UsageEventName,
-} from "@ui/components/core/telemetry/usage-event";
-import { isExportFormatKey } from "@ui/components/export/export-formats";
-import { generateData } from "@ui/components/grid/calendar";
-import { contributionError, contributionFailureReason } from "@ui/utils/contribution-errors";
-import { contributionsBody, errorBody, injectedDays, toContributionDays } from "@ui/utils/contributions-body";
-import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
+} from "../components/core/telemetry/usage-event";
+import { generateData } from "../components/grid/calendar";
 import { initCellTooltip } from "./cell-tooltip";
+import { contributionError, contributionFailureReason } from "./contribution-errors";
+import {
+	contributionCalendarErrorSchema,
+	contributionCalendarSchema,
+	contributionGridSchema,
+	toContributionDays,
+} from "./contributions-body";
 import { seedUsernameCookie, writeUsernameCookie } from "./cookie";
+import { ClassName, ElementId, Selector } from "./dom-contract";
 import {
 	getActiveExportTab,
 	getActivePalette,
@@ -35,7 +41,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 
 const initialDays = (): ContributionDay[] => {
 	const injected = window.__INITIAL_DAYS__;
-	return injectedDays.validate(injected) ? toContributionDays(injected) : generateData();
+	return contributionGridSchema.validate(injected) ? toContributionDays(injected) : generateData();
 };
 
 export type ContributionsRequest = (url: string) => Promise<Response>;
@@ -51,7 +57,7 @@ function showErrorState({ message, year }: ShowErrorStateParams): void {
 	setHeroError(message);
 	setDays(buildGridFromApi({ days: [], year }));
 	renderCustomize();
-	updateHeroStats({ totalContributions: null, currentStreak: 0, longestStreak: 0 });
+	updateHeroStats(UNKNOWN_CONTRIBUTION_STATS);
 }
 
 export interface RenderFromGitHubParams {
@@ -74,10 +80,9 @@ export async function renderFromGitHub({
 	const yearSelect = document.getElementById(ElementId.HeroYear) as HTMLSelectElement | null;
 	if (!renderButton || !gridContainer) return;
 
-	const selectedYear = Number(yearSelect?.value ?? 0);
-	const year = selectedYear && selectedYear <= CURRENT_YEAR ? selectedYear : CURRENT_YEAR;
+	const year = resolveYear({ requested: yearSelect?.value, thisYear: CURRENT_YEAR });
 
-	if (updateHistory) syncUrl({ username, year: selectedYear, currentYear: CURRENT_YEAR });
+	if (updateHistory) syncUrl({ username, year, currentYear: CURRENT_YEAR });
 	syncSuggestionSelection(username);
 	setUsername(username);
 
@@ -89,11 +94,14 @@ export async function renderFromGitHub({
 		const response = await request(`/api/contributions?user=${encodeURIComponent(username)}&year=${year}`);
 		const body: unknown = await response.json().catch(() => null);
 
-		if (!response.ok || !contributionsBody.validate(body)) {
+		if (!response.ok || !contributionCalendarSchema.validate(body)) {
+			const failure = contributionCalendarErrorSchema.validate(body) ? body : null;
 			showErrorState({
 				message: contributionError({
 					status: response.status,
-					serverMessage: errorBody.validate(body) ? body.error : null,
+					kind: failure?.kind,
+					field: failure?.field,
+					serverMessage: failure?.error,
 				}),
 				year,
 			});
@@ -116,8 +124,8 @@ export async function renderFromGitHub({
 			updateHeroStats(stats);
 			updateYearRange(getDays());
 			renderExportPreview();
-			const howWidget = document.getElementById(ElementId.HowItWorksUsername);
-			if (howWidget) howWidget.textContent = username;
+			const howItWorksUsername = document.getElementById(ElementId.HowItWorksUsername);
+			if (howItWorksUsername) howItWorksUsername.textContent = username;
 			recordUsageEvent({ event: UsageEventName.CalendarRendered, properties: { source, year } });
 		}
 	} catch {
@@ -157,7 +165,7 @@ const recordCellShapeChosen = (): void =>
 
 const recordExportFormatChosen = (): void => {
 	const format = getActiveExportTab();
-	if (isExportFormatKey(format)) recordUsageEvent({ event: UsageEventName.ExportFormatChosen, properties: { format } });
+	if (format !== null) recordUsageEvent({ event: UsageEventName.ExportFormatChosen, properties: { format } });
 };
 
 function initExportTabs() {
@@ -173,9 +181,8 @@ function initExportTabs() {
 	});
 }
 
-function syncSuggestionSelection(username?: string) {
-	const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
-	const normalized = (username ?? input?.value ?? "").trim().toLowerCase();
+function syncSuggestionSelection(username: string) {
+	const normalized = username.trim().toLowerCase();
 	document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons).forEach((button) => {
 		const isMatch = !!normalized && button.dataset.username === normalized;
 		button.classList.toggle(ClassName.Selected, isMatch);
@@ -192,13 +199,19 @@ function initUsernameStrip() {
 	if (!input || !renderButton || !usernameDisplay) return;
 
 	const submitRender = (source: CalendarRequestSource) => {
-		const username = input.value.trim().toLowerCase();
-		if (!username) {
+		const typed = input.value.trim().toLowerCase();
+		if (!typed) {
 			setHeroError("enter a GitHub username");
 			input.focus();
 			return;
 		}
-		renderFromGitHub({ username, source });
+		const username = parseUsername(typed);
+		if (isFailure(username)) {
+			setHeroError(username.message);
+			input.focus();
+			return;
+		}
+		renderFromGitHub({ username: username.value, source });
 	};
 
 	form?.addEventListener("submit", (event) => {
@@ -232,14 +245,19 @@ function initUsernameStrip() {
 
 function initHistoryNav() {
 	globalThis.addEventListener("popstate", () => {
-		const username = readUsernameFromUrl(DEFAULT_USERNAME);
+		const requested = readUsernameFromUrl(DEFAULT_USERNAME);
 		const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
 		const yearSelect = document.getElementById(ElementId.HeroYear) as HTMLSelectElement | null;
 		const usernameDisplay = document.getElementById(ElementId.HeroUsernameDisplay);
-		if (input) input.value = username;
-		if (usernameDisplay) usernameDisplay.textContent = username;
+		if (input) input.value = requested;
+		if (usernameDisplay) usernameDisplay.textContent = requested;
 		if (yearSelect) yearSelect.value = String(readYearFromUrl(CURRENT_YEAR));
-		renderFromGitHub({ username, updateHistory: false, source: CalendarRequestSource.History });
+		const username = parseUsername(requested);
+		if (isFailure(username)) {
+			setHeroError(username.message);
+			return;
+		}
+		renderFromGitHub({ username: username.value, updateHistory: false, source: CalendarRequestSource.History });
 	});
 }
 
@@ -263,7 +281,6 @@ function initUsernameState() {
 export function initPage() {
 	const days = initialDays();
 	setDays(days);
-	setUsername(readUsernameFromUrl(DEFAULT_USERNAME));
 
 	initUsernameState();
 	renderCustomize();

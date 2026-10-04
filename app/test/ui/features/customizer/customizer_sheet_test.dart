@@ -23,7 +23,10 @@ Future<FakeSettingsRepository> _openCustomizer(
 }) async {
   final settings = FakeSettingsRepository(
     settings: withCalendar
-        ? AppSettings(lastUsername: Username('octocat'), lastYear: Year(2024))
+        ? AppSettings(
+            lastUsername: Username('octocat'),
+            lastYear: Year(2024, today: testToday),
+          )
         : const AppSettings(),
   );
 
@@ -47,7 +50,7 @@ void main() {
     testWidgets('offers all four settings, every time', (tester) async {
       await _openCustomizer(tester);
 
-      expect(find.text('Customize'), findsOneWidget);
+      expect(find.text('Customizer'), findsOneWidget);
       expect(find.byType(PalettePicker), findsOneWidget);
       expect(find.byType(ShapePicker), findsOneWidget);
       expect(find.byType(SizePicker), findsOneWidget);

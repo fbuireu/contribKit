@@ -1,10 +1,10 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
-import 'package:contribkit/ui/features/widget/home_screen_widget_payload.dart';
+import 'package:contribkit/ui/features/home_screen_widget/home_screen_widget_payload.dart';
 import 'package:home_widget/home_widget.dart';
 
-abstract final class CalendarWidgetService {
+abstract final class HomeScreenWidgetService {
   static const _qualifiedMedium =
       'com.fbuireu.contribkit.ContribKitWidgetProvider';
   static const _qualifiedSmall =
@@ -14,12 +14,13 @@ abstract final class CalendarWidgetService {
     required ContributionCalendar calendar,
     required Palette palette,
     required CellShape cellShape,
+    required DateTime today,
   }) async {
     final payload = HomeScreenWidgetPayload.from(
       calendar: calendar,
       palette: palette,
       cellShape: cellShape,
-      today: DateTime.now(),
+      today: today,
     );
 
     try {

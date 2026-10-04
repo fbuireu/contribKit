@@ -1,5 +1,5 @@
 ---
-import { mulberry32 } from "@ui/utils/mulberry";
+import { mulberry32 } from "../../utils/mulberry";
 import "./contribution-code.css";
 import { digitsToMatrix, noiseLevel } from "./glyph-utils";
 
@@ -27,8 +27,8 @@ interface Square {
 const random = mulberry32(seed);
 const background: Square[] = [];
 const glyph: Square[] = [];
-matrix.forEach((cells, rowIndex) => {
-	cells.forEach((isFilled, colIndex) => {
+matrix.forEach((row, rowIndex) => {
+	row.forEach((isFilled, colIndex) => {
 		const square = { x: colIndex * CELL_STEP, y: rowIndex * CELL_STEP, className: "" };
 		if (isFilled) {
 			glyph.push(square);

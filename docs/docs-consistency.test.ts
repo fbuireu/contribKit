@@ -49,7 +49,7 @@ const ADR_FILENAME = /^\d{4}(-[a-z\d]+)+\.md$/;
 const ADR_INDEX_ROW = /\]\(\.\/docs\/adr\/(\d{4}-[a-z\d-]+\.md)\) \| ([^|]+?) \|/g;
 const WEB_SOURCE_FILE = /\.(tsx?|astro)$/;
 const GENERATED_DART_FILE = /\.(g|freezed)\.dart$/;
-const BARE_FILENAME_IN_BACKTICKS = /`([a-z0-9_.-]+\.(?:ts|dart|astro))`/g;
+const BARE_FILENAME_IN_BACKTICKS = /`([A-Za-z0-9_.[\]-]+\.(?:ts|dart|astro))`/g;
 const SOURCE_PATH_IN_BACKTICKS =
 	/`((?:web\/src|app\/lib|shared|scripts)\/[A-Za-z0-9_\-./[\]]+\.(?:ts|dart|astro|json|mjs|yml))`/g;
 const PATH_SEPARATOR = /[\\/]/;
@@ -74,6 +74,7 @@ const PUBSPEC_FLUTTER_PIN = /^ {2}flutter: (\S+)$/m;
 const PUBSPEC_DART_CONSTRAINT = /^ {2}sdk: "?([^"\n]+)"?$/m;
 const DOCUMENTED_PNPM_SCRIPT = /\bpnpm ([a-z][a-z\d:._-]*)/g;
 const GLOSSARY_AVOID_LINE = /^_Avoid_: (.+)$/gm;
+const DART_CLOCK_READ = /\bDateTime\.(?:now|timestamp)\b/;
 const adrHeadingFor = (number: number): RegExp => new RegExp(`^# ${number}\\. \\S`);
 const withoutStringLiteralsOnOneLine = (line: string): string =>
 	line
@@ -95,9 +96,62 @@ const withoutCode = (text: string): string => text.replace(FENCED_CODE_BLOCK, ""
 
 const relative = (path: string): string => path.slice(REPO.length + 1).replaceAll("\\", "/");
 
+const IMPORT_SPECIFIER = /(?:from\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g;
+
+const importsOf = (source: string): string[] => [...source.matchAll(IMPORT_SPECIFIER)].map((match) => match[1]);
+
+interface BracedBodyFromParams {
+	source: string;
+	open: number;
+}
+
+const bracedBodyFrom = ({ source, open }: BracedBodyFromParams): string => {
+	let depth = 0;
+
+	for (let index = open; index < source.length; index += 1) {
+		if (source[index] === "{") depth += 1;
+		else if (source[index] === "}") {
+			depth -= 1;
+			if (depth === 0) return source.slice(open + 1, index);
+		}
+	}
+
+	return source.slice(open + 1);
+};
+
+interface LinesMatchingParams {
+	files: readonly string[];
+	pattern: RegExp;
+}
+
+const linesMatching = ({ files, pattern }: LinesMatchingParams): string[] =>
+	files.flatMap((path) =>
+		withoutStringLiterals(read(path))
+			.split("\n")
+			.map((line, index) => ({ line, index }))
+			.filter(({ line }) => pattern.test(line))
+			.map(({ index }) => `${relative(path)}:${index + 1}`),
+	);
+
+interface EmptyRootsParams {
+	paths: readonly string[];
+	roots: readonly string[];
+}
+
+const emptyRoots = ({ paths, roots }: EmptyRootsParams): string[] =>
+	roots.filter((root) => !paths.some((path) => path.startsWith(`${root}/`)));
+
 const CONTRIBUTOR_GUIDE = ".github/CONTRIBUTING.md";
+const CODING_STANDARDS = "CODING_STANDARDS.md";
 
 const markdownFiles = (): string[] => walk({ dir: REPO, match: (path) => path.endsWith(".md") });
+
+const githubDocuments = (): string[] =>
+	readdirSync(join(REPO, ".github"))
+		.filter((name) => name.endsWith(".md"))
+		.map((name) => join(REPO, ".github", name));
+
+const checkedDocuments = (): string[] => [...markdownFiles(), ...githubDocuments()];
 
 const isWiki = (path: string): boolean => relative(path).startsWith("docs/wiki/");
 
@@ -136,43 +190,61 @@ const adrReferencesIn = (path: string): string[] => {
 	return ADR_REFERENCE_PATTERNS.flatMap((pattern) => [...body.matchAll(pattern)].map(([, number]) => number));
 };
 
+describe("the corpus the contract reads", () => {
+	it("finds the documents, the wiki pages and the decisions the rules below walk", () => {
+		const documents = markdownFiles();
+
+		expect(documents.filter((file) => !isWiki(file)).length).toBeGreaterThan(0);
+		expect(documents.filter(isWiki).length).toBeGreaterThan(0);
+		expect(githubDocuments().map(relative)).toContain(CONTRIBUTOR_GUIDE);
+		expect(adrs().filter((name) => name !== ADR_TEMPLATE).length).toBeGreaterThan(0);
+	});
+});
+
 describe("markdown links", () => {
 	it("every relative link points at a file that exists", () => {
+		const checked: string[] = [];
 		const broken: string[] = [];
-		for (const file of markdownFiles()) {
+		for (const file of checkedDocuments()) {
 			if (isWiki(file)) continue;
 			for (const [, target] of withoutCode(read(file)).matchAll(MARKDOWN_LINK_TARGET)) {
 				if (NON_RELATIVE_LINK.test(target) || target.includes("?")) continue;
 				if (GITHUB_SHORTHAND.test(target)) continue;
 				const [path] = target.split("#");
 				if (!path) continue;
+				checked.push(target);
 				if (!existsSync(join(dirname(file), path))) broken.push(`${relative(file)} -> ${target}`);
 			}
 		}
+		expect(checked.length).toBeGreaterThan(0);
 		expect(broken).toEqual([]);
 	});
 
 	it("every ../../wiki/ shorthand names a page the wiki actually publishes", () => {
 		const pages = wikiPages();
-		const broken = markdownFiles()
+		const shorthands = checkedDocuments()
 			.filter((file) => !isWiki(file))
 			.flatMap((file) =>
-				[...withoutCode(read(file)).matchAll(WIKI_SHORTHAND_TARGET)]
-					.map(([, page]) => page)
-					.filter((page) => !pages.has(page))
-					.map((page) => `${relative(file)} -> ${page}`),
+				[...withoutCode(read(file)).matchAll(WIKI_SHORTHAND_TARGET)].map(([, page]) => ({ file, page })),
 			);
+		const broken = shorthands
+			.filter(({ page }) => !pages.has(page))
+			.map(({ file, page }) => `${relative(file)} -> ${page}`);
+
+		expect(shorthands.length).toBeGreaterThan(0);
 		expect(broken).toEqual([]);
 	});
 
 	it("every wiki page link points at a wiki page that exists", () => {
 		const pages = wikiPages();
+		const checked: string[] = [];
 		const broken: string[] = [];
 		for (const file of markdownFiles().filter(isWiki)) {
 			for (const [, target] of withoutCode(read(file)).matchAll(MARKDOWN_LINK_TARGET)) {
 				if (NON_RELATIVE_LINK.test(target)) continue;
 				const [path] = target.split("#");
 				if (!path) continue;
+				checked.push(target);
 				if (path.includes("/") || path.endsWith(".md")) {
 					if (!existsSync(join(dirname(file), path))) broken.push(`${relative(file)} -> ${target}`);
 					continue;
@@ -180,26 +252,48 @@ describe("markdown links", () => {
 				if (!pages.has(path)) broken.push(`${relative(file)} -> ${target}`);
 			}
 		}
+		expect(checked.length).toBeGreaterThan(0);
 		expect(broken).toEqual([]);
+	});
+});
+
+describe("every Mermaid diagram keeps the layout it was drawn for", () => {
+	const MERMAID_BLOCK = /```mermaid\n([\s\S]*?)```/g;
+	const DAGRE_FRONT_MATTER = /^---\nconfig:\n(?: {2}[^\n]*\n)*? {2}layout: dagre\n(?: {2}[^\n]*\n)*?---\n/;
+
+	it("pins each one to dagre in its front matter, so a renderer upgrade cannot re-lay it out", () => {
+		const diagrams = checkedDocuments().flatMap((path) =>
+			[...read(path).matchAll(MERMAID_BLOCK)].map((match) => ({
+				at: `${relative(path)}:${read(path).slice(0, match.index).split("\n").length}`,
+				body: match[1],
+			})),
+		);
+		const unpinned = diagrams.filter(({ body }) => !DAGRE_FRONT_MATTER.test(body)).map(({ at }) => at);
+
+		expect(diagrams.length).toBeGreaterThan(0);
+		expect(unpinned).toEqual([]);
 	});
 });
 
 describe("source paths named in documentation", () => {
 	it("every referenced source file exists", () => {
+		const cited: string[] = [];
 		const missing: string[] = [];
-		for (const file of markdownFiles()) {
+		for (const file of checkedDocuments()) {
 			for (const [, path] of read(file).matchAll(SOURCE_PATH_IN_BACKTICKS)) {
+				cited.push(path);
 				const resolved = join(REPO, path);
 				if (!existsSync(resolved) || !statSync(resolved).isFile()) missing.push(`${relative(file)} -> ${path}`);
 			}
 		}
+		expect(cited.length).toBeGreaterThan(0);
 		expect(missing).toEqual([]);
 	});
 
 	it("cites symbols, never a line number that will rot", () => {
-		const allowed = new Set(["AGENTS.md", "docs/adr/0000-adr-template.md"]);
+		const allowed = new Set(["docs/adr/0000-adr-template.md"]);
 		const cited: string[] = [];
-		for (const file of markdownFiles()) {
+		for (const file of checkedDocuments()) {
 			if (allowed.has(relative(file))) continue;
 			for (const [match] of read(file).matchAll(LINE_NUMBER_CITATION)) {
 				cited.push(`${relative(file)} -> ${match}`);
@@ -243,16 +337,17 @@ describe("architecture decision records", () => {
 
 	it("references only decisions that exist", () => {
 		const existing = new Set(adrs().map(adrNumber));
-		const dangling = markdownFiles().flatMap((file) =>
-			adrReferencesIn(file)
-				.filter((number) => !existing.has(number))
-				.map((number) => `${relative(file)} -> ADR ${number}`),
-		);
+		const references = checkedDocuments().flatMap((file) => adrReferencesIn(file).map((number) => ({ file, number })));
+		const dangling = references
+			.filter(({ number }) => !existing.has(number))
+			.map(({ file, number }) => `${relative(file)} -> ADR ${number}`);
+
+		expect(references.length).toBeGreaterThan(0);
 		expect(dangling).toEqual([]);
 	});
 
 	it("is referred to in the four-digit form a guard can see", () => {
-		const short = markdownFiles().flatMap((file) =>
+		const short = checkedDocuments().flatMap((file) =>
 			[...withoutCode(read(file)).matchAll(SHORT_ADR_REFERENCE)].map(([match]) => `${relative(file)} -> ${match}`),
 		);
 		expect(short).toEqual([]);
@@ -316,13 +411,26 @@ describe("shared design tokens", () => {
 
 	it("are mirrored into the Flutter bundle", () => {
 		const normalise = (text: string): string => text.replaceAll("\r\n", "\n").trimEnd();
-		for (const name of tokenFiles()) {
+		const names = tokenFiles();
+		const drifted = names.flatMap((name) => {
 			const mirrored = join(assetsDir, name);
-			expect(existsSync(mirrored), `${name} is missing from app/assets`).toBe(true);
-			expect(normalise(read(mirrored)), `${name} is out of sync, run pnpm sync:assets`).toBe(
-				normalise(read(join(sharedDir, name))),
-			);
-		}
+			if (!existsSync(mirrored)) return [`${name} is missing from app/assets`];
+			return normalise(read(mirrored)) === normalise(read(join(sharedDir, name)))
+				? []
+				: [`${name} is out of sync, run pnpm sync:assets`];
+		});
+
+		expect(names.length).toBeGreaterThan(0);
+		expect(drifted).toEqual([]);
+	});
+
+	it("mirrors nothing shared/ does not hold", () => {
+		const mirrored = readdirSync(assetsDir)
+			.filter((name) => name.endsWith(".json"))
+			.sort();
+
+		expect(mirrored.length).toBeGreaterThan(0);
+		expect(mirrored).toEqual(tokenFiles().sort());
 	});
 
 	const featureLine = (heading: string): string => {
@@ -359,29 +467,36 @@ describe("layer documentation", () => {
 			.map(relative)
 			.sort();
 
+	const LAYER_ROOTS = ["web/src", "app/lib"];
+
 	it("gives every layer under web/src and app/lib its own guide", () => {
-		const missing = [
-			...directoriesIn("web/src").map((layer) => `web/src/${layer}/AGENTS.md`),
-			...directoriesIn("app/lib").map((layer) => `app/lib/${layer}/AGENTS.md`),
-		].filter((path) => !existsSync(join(REPO, path)));
-		expect(missing).toEqual([]);
+		const guides = LAYER_ROOTS.flatMap((root) => directoriesIn(root).map((layer) => `${root}/${layer}/AGENTS.md`));
+
+		expect(emptyRoots({ paths: guides, roots: LAYER_ROOTS })).toEqual([]);
+		expect(guides.filter((path) => !existsSync(join(REPO, path)))).toEqual([]);
 	});
 
 	it("lists every guide that exists in the root guide's table", () => {
 		const guide = read(join(REPO, "AGENTS.md"));
-		expect(layerGuides().filter((path) => !guide.includes(path))).toEqual([]);
+		const guides = layerGuides();
+
+		expect(emptyRoots({ paths: guides, roots: LAYER_ROOTS })).toEqual([]);
+		expect(guides.filter((path) => !guide.includes(path))).toEqual([]);
 	});
 
 	it("lists every guide that exists in the ARCHITECTURE.md document map", () => {
 		const index = read(join(REPO, ADR_INDEX));
-		expect(layerGuides().filter((path) => !index.includes(path))).toEqual([]);
+		const guides = layerGuides();
+
+		expect(emptyRoots({ paths: guides, roots: LAYER_ROOTS })).toEqual([]);
+		expect(guides.filter((path) => !index.includes(path))).toEqual([]);
 	});
 
 	it("no stray CONTEXT.md survives outside the repo root", () => {
-		const strays = walk({ dir: REPO, match: (path) => path.endsWith("CONTEXT.md") }).filter(
-			(path) => relative(path) !== "CONTEXT.md",
-		);
-		expect(strays.map(relative)).toEqual([]);
+		const glossaries = walk({ dir: REPO, match: (path) => path.endsWith("CONTEXT.md") }).map(relative);
+
+		expect(glossaries).toContain("CONTEXT.md");
+		expect(glossaries.filter((path) => path !== "CONTEXT.md")).toEqual([]);
 	});
 });
 
@@ -471,16 +586,35 @@ describe("the guides match the manifests", () => {
 	it("mentions only pnpm scripts that a package.json declares, reading commands rather than prose", () => {
 		const builtins = new Set(["install", "exec", "dlx", "add", "remove", "run", "why", "workspaces"]);
 		const declared = new Set([...Object.keys(rootPackage.scripts), ...Object.keys(webPackage.scripts)]);
-		const invented = [
+		const documented = [
 			["AGENTS.md", guide],
 			[CONTRIBUTOR_GUIDE, contributing],
 		].flatMap(([doc, body]) =>
-			[...codeOnly(body).matchAll(DOCUMENTED_PNPM_SCRIPT)]
-				.map(([, script]) => script)
-				.filter((script) => !builtins.has(script) && !declared.has(script))
-				.map((script) => `${doc} -> pnpm ${script}`),
+			[...codeOnly(body).matchAll(DOCUMENTED_PNPM_SCRIPT)].map(([, script]) => ({ doc, script })),
 		);
+		const invented = documented
+			.filter(({ script }) => !builtins.has(script) && !declared.has(script))
+			.map(({ doc, script }) => `${doc} -> pnpm ${script}`);
+
+		expect(documented.length).toBeGreaterThan(0);
 		expect(invented).toEqual([]);
+	});
+
+	it("substitutes nothing in a package script, since cmd would pass it through as text", () => {
+		const SHELL_SUBSTITUTION = /\$\(|\$\{|`/;
+		const scripts = [
+			["package.json", rootPackage.scripts],
+			["web/package.json", webPackage.scripts],
+			["app/package.json", json<{ scripts?: Record<string, string> }>("app/package.json").scripts ?? {}],
+		].flatMap(([manifest, declared]) =>
+			Object.entries(declared as Record<string, string>).map(([name, command]) => ({ manifest, name, command })),
+		);
+		const substituting = scripts
+			.filter(({ command }) => SHELL_SUBSTITUTION.test(command))
+			.map(({ manifest, name }) => `${manifest} -> ${name}`);
+
+		expect(scripts.length).toBeGreaterThan(0);
+		expect(substituting).toEqual([]);
 	});
 });
 
@@ -495,8 +629,7 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 		(JSON.parse(read(join(REPO, "shared", file))) as { key: string }[])[0].key;
 
 	it("reads both spellings", () => {
-		expect(existsSync(DART_EMBED)).toBe(true);
-		expect(existsSync(WEB_EMBED)).toBe(true);
+		expect([DART_EMBED, WEB_EMBED].filter((path) => !existsSync(path)).map(relative)).toEqual([]);
 	});
 
 	it("points both clients at the same origin, segment and extension", () => {
@@ -518,7 +651,7 @@ describe("the Embed contract is spelled in two languages and must agree", () => 
 			read(join(REPO, "web/src/domain/value-objects/palette.ts")),
 		)?.[1];
 
-		expect(webDefault, "palette.ts no longer names its default as PALETTES.<key>.key").toBeDefined();
+		expect(webDefault, "palette.ts names its default as PALETTES.<key>.key").toBeDefined();
 		expect(dartConstant("defaultPaletteKey")).toBe(webDefault);
 		expect(read(WEB_EMBED)).toContain("DEFAULT_PALETTE_KEY");
 	});
@@ -546,7 +679,7 @@ describe("the Contact Message limits are written twice and must agree", () => {
 	const webLimit = (name: string): RegExp => new RegExp(`export const ${name} = ([0-9]+);`);
 
 	it("reads both spellings", () => {
-		for (const path of [DART, WEB]) expect(existsSync(path), relative(path)).toBe(true);
+		expect([DART, WEB].filter((path) => !existsSync(path)).map(relative)).toEqual([]);
 	});
 
 	it("declares every limit in both languages", () => {
@@ -623,7 +756,7 @@ describe("a Tip unlocks nothing, down to what the app ships", () => {
 describe("the app is analyzed by the command that loads its plugin", () => {
 	const OPTIONS = join(REPO, "app/analysis_options.yaml");
 	const PUBSPEC = join(REPO, "app/pubspec.yaml");
-	const SEARCHED = [".github", "docs", "app/lefthook.yml", "AGENTS.md", "ARCHITECTURE.md"];
+	const SEARCHED = [".github", "docs", "app/lefthook.yml", "AGENTS.md", "ARCHITECTURE.md", CODING_STANDARDS];
 
 	it("declares riverpod_lint as a plugin, over a range the manifest satisfies", () => {
 		const declared = /^\s{2}riverpod_lint:\s*\^(\d+)\.(\d+)\.\d+\s*$/m.exec(read(OPTIONS));
@@ -648,18 +781,17 @@ describe("the app is analyzed by the command that loads its plugin", () => {
 	});
 
 	it("runs dart analyze and never flutter analyze, which loads no plugin", () => {
-		const offenders = SEARCHED.flatMap((entry) => {
+		const scanned = SEARCHED.flatMap((entry) => {
 			const path = join(REPO, entry);
 			if (!existsSync(path)) return [];
-			const files = statSync(path).isDirectory()
-				? walk({ dir: path, match: (file) => /\.(ya?ml|md)$/.test(file) })
-				: [path];
-			return files
-				.filter((file) => relative(file) !== NARRATES_THE_SWITCH)
-				.filter((file) => read(file).includes("flutter analyze"))
-				.map((file) => relative(file));
+			return statSync(path).isDirectory() ? walk({ dir: path, match: (file) => /\.(ya?ml|md)$/.test(file) }) : [path];
 		});
+		const offenders = scanned
+			.filter((file) => relative(file) !== NARRATES_THE_SWITCH)
+			.filter((file) => read(file).includes("flutter analyze"))
+			.map((file) => relative(file));
 
+		expect(scanned.length).toBeGreaterThan(0);
 		expect(
 			offenders,
 			"flutter analyze does not load the analysis_server_plugin riverpod_lint installs, so every one of its rules is silently off",
@@ -684,7 +816,7 @@ describe("the Cell geometry is written three times and must agree", () => {
 	};
 
 	it("reads all three spellings", () => {
-		for (const path of [DART, WEB, KOTLIN]) expect(existsSync(path), relative(path)).toBe(true);
+		expect([DART, WEB, KOTLIN].filter((path) => !existsSync(path)).map(relative)).toEqual([]);
 	});
 
 	it("rounds a Cell corner by the same ratio everywhere", () => {
@@ -732,7 +864,7 @@ describe("the Cell geometry is written three times and must agree", () => {
 	});
 });
 
-describe("the dark palette is written twice and must agree", () => {
+describe("the dark theme is written twice and must agree", () => {
 	const VARIABLES = join(REPO, "web/src/ui/styles/global/variables.css");
 
 	interface DeclarationsAfterParams {
@@ -779,7 +911,7 @@ describe("the dark palette is written twice and must agree", () => {
 });
 
 describe("every observability block names where it exports", () => {
-	interface DeclaresParams {
+	interface DestinationsOfParams {
 		readonly stage: string;
 		readonly signal: string;
 	}
@@ -788,14 +920,12 @@ describe("every observability block names where it exports", () => {
 
 	const stages = (): string[] => [...read(SITE).matchAll(/^\[env\.([a-z]+)\.observability\]$/gm)].map((m) => m[1]);
 
-	const destinationsOf = ({ stage, signal }: DeclaresParams): string[] => {
+	const destinationsOf = ({ stage, signal }: DestinationsOfParams): string[] => {
 		const block = new RegExp(
 			`\\[env\\.${stage}\\.observability\\.${signal}\\][^[]*destinations\\s*=\\s*\\[([^\\]]*)\\]`,
 		).exec(read(SITE));
 		return [...(block?.[1] ?? "").matchAll(/"([^"]+)"/g)].map((match) => match[1]);
 	};
-
-	const declares = (params: DeclaresParams): boolean => destinationsOf(params).length > 0;
 
 	it("configures observability for every stage the file defines", () => {
 		expect(stages().sort()).toEqual(["development", "production"]);
@@ -803,7 +933,9 @@ describe("every observability block names where it exports", () => {
 
 	it("gives logs and traces a destination, or they reach the dashboard and nothing else", () => {
 		const missing = stages().flatMap((stage) =>
-			["logs", "traces"].filter((signal) => !declares({ stage, signal })).map((signal) => `${stage}.${signal}`),
+			["logs", "traces"]
+				.filter((signal) => destinationsOf({ stage, signal }).length === 0)
+				.map((signal) => `${stage}.${signal}`),
 		);
 		expect(missing).toEqual([]);
 	});
@@ -823,7 +955,7 @@ describe("every observability block names where it exports", () => {
 		expect(shared).toEqual([]);
 	});
 
-	it("keeps no tail consumer, because the Worker one would name is gone", () => {
+	it("keeps no tail consumer, and no Worker for one to name", () => {
 		expect(read(SITE)).not.toMatch(/tail_consumers/);
 		expect(existsSync(join(REPO, "web/workers"))).toBe(false);
 	});
@@ -836,9 +968,11 @@ describe("every observability block names where it exports", () => {
 	};
 
 	it("points the top level at production's destinations, so a bare deploy cannot switch production's export off", () => {
-		for (const signal of ["logs", "traces"]) {
-			expect(topLevelDestinationsOf(signal)).toEqual(destinationsOf({ stage: "production", signal }));
-		}
+		const signals = ["logs", "traces"];
+
+		expect(signals.map((signal) => topLevelDestinationsOf(signal))).toEqual(
+			signals.map((signal) => destinationsOf({ stage: "production", signal })),
+		);
 	});
 
 	it("restates the same observability settings in every block that carries them, destinations aside", () => {
@@ -871,10 +1005,25 @@ describe("the glossary's forbidden names stay out of the code", () => {
 		),
 	];
 
-	const sourceFiles = (): string[] => [
-		...walk({ dir: join(REPO, "web/src"), match: (path) => WEB_SOURCE_FILE.test(path) }),
-		...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") }),
+	const SDK_SEAMS: readonly string[] = [
+		"app/lib/infrastructure/tip/revenuecat_tip_repository.dart",
+		"app/lib/infrastructure/tip/store_error.dart",
 	];
+
+	const seamTestFor = (seam: string): string =>
+		seam.replace(/^app\/lib\//, "app/test/").replace(/\.dart$/, "_test.dart");
+
+	const EXEMPT: readonly string[] = [...SDK_SEAMS, ...SDK_SEAMS.map(seamTestFor)];
+
+	const GUARDED_ROOTS = ["web/src", "web/e2e", "app/lib", "app/test"];
+
+	const sourceFiles = (): string[] =>
+		[
+			...walk({ dir: join(REPO, "web/src"), match: (path) => WEB_SOURCE_FILE.test(path) }),
+			...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }),
+			...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") }),
+			...walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith(".dart") }),
+		].filter((path) => !EXEMPT.includes(relative(path)));
 
 	it("finds a term to police", () => {
 		expect(forbiddenIdentifiers().length).toBeGreaterThan(0);
@@ -907,57 +1056,62 @@ describe("the glossary's forbidden names stay out of the code", () => {
 			),
 		);
 
-	const SDK_SEAMS: readonly string[] = [
-		"app/lib/infrastructure/tip/revenuecat_tip_repository.dart",
-		"app/lib/infrastructure/tip/store_error.dart",
-	];
-
 	const identifierFiles = (): string[] =>
 		[
 			...walk({ dir: join(REPO, "web/src"), match: (path) => /\.tsx?$/.test(path) }),
+			...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }),
 			...walk({
 				dir: join(REPO, "app/lib"),
 				match: (path) => path.endsWith(".dart") && !GENERATED_DART_FILE.test(path),
 			}),
-		].filter((path) => !SDK_SEAMS.includes(relative(path)));
+			...walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith(".dart") }),
+		].filter((path) => !EXEMPT.includes(relative(path)));
 
 	it("polices only words the glossary actually rejects, so the list cannot invent a rule", () => {
 		const rejected = avoidedTerms();
 		expect(PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) => !rejected.has(word))).toEqual([]);
 	});
 
-	it("exempts only files that exist, and only a handful of them", () => {
-		expect(SDK_SEAMS.filter((path) => !existsSync(join(REPO, path)))).toEqual([]);
+	it("exempts only the SDK seams and their own tests, each a file that exists", () => {
+		expect(EXEMPT.filter((path) => !existsSync(join(REPO, path)))).toEqual([]);
 		expect(SDK_SEAMS.length).toBeLessThanOrEqual(2);
 	});
 
 	it("names no identifier after a plain word the glossary rejects", () => {
-		const offenders = identifierFiles().flatMap((file) => {
+		const files = identifierFiles();
+		const offenders = files.flatMap((file) => {
 			const body = withoutStringLiterals(read(file));
 			return PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) =>
-				new RegExp(`(?:(?<![A-Za-z0-9])|(?<=[a-z0-9_]))${word}(?![a-z0-9])`, "i").test(body),
+				new RegExp(`(?:(?<![A-Za-z0-9])|(?<=[a-z0-9_]))${word}(?-i:(?![a-z0-9]))`, "i").test(body),
 			).map((word) => `${relative(file)} uses ${word}`);
 		});
+
+		expect(emptyRoots({ paths: files.map(relative), roots: GUARDED_ROOTS })).toEqual([]);
 		expect(offenders).toEqual([]);
 	});
 
-	it("names nothing in web/src or app/lib after a word the glossary rejects", () => {
+	it("names nothing in the source or its tests after a code-shaped word the glossary rejects", () => {
 		const forbidden = forbiddenIdentifiers();
-		const offenders = sourceFiles().flatMap((file) => {
+		const files = sourceFiles();
+		const offenders = files.flatMap((file) => {
 			const body = read(file);
 			return forbidden
 				.filter((term) => identifierNamed(term).test(body))
 				.map((term) => `${relative(file)} uses ${term}`);
 		});
+
+		expect(emptyRoots({ paths: files.map(relative), roots: GUARDED_ROOTS })).toEqual([]);
 		expect(offenders).toEqual([]);
 	});
 });
 
-describe("nested guides name real files", () => {
+describe("the guides and the standards name real files", () => {
 	const nestedGuides = (): string[] => [
 		...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith("AGENTS.md") }),
 		...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith("AGENTS.md") }),
 	];
+
+	const ROOT_GUIDES = ["AGENTS.md", CODING_STANDARDS].map((path) => join(REPO, path));
 
 	const citedFilenames = (body: string): string[] => [
 		...new Set(
@@ -972,16 +1126,22 @@ describe("nested guides name real files", () => {
 				...walk({ dir: join(REPO, "web/e2e"), match: () => true }),
 				...walk({ dir: join(REPO, "app/lib"), match: () => true }),
 				...walk({ dir: join(REPO, "app/test"), match: () => true }),
+				...walk({ dir: join(REPO, "app/tool"), match: () => true }),
+				...readdirSync(join(REPO, "web")).filter((name) => statSync(join(REPO, "web", name)).isFile()),
 			].map((path) => path.split(PATH_SEPARATOR).at(-1) ?? path),
 		);
 
-	it("every bare filename a guide cites still exists somewhere in the source", () => {
+	it("every bare filename a guide or the standards cite still exists somewhere in the source", () => {
 		const names = sourceFilenames();
-		const missing = nestedGuides().flatMap((guidePath) =>
-			citedFilenames(read(guidePath))
-				.filter((name) => !names.has(name))
-				.map((name) => `${relative(guidePath)} cites ${name}`),
-		);
+		const guides = [...ROOT_GUIDES, ...nestedGuides()];
+		const cited = guides.flatMap((guidePath) => citedFilenames(read(guidePath)).map((name) => ({ guidePath, name })));
+		const missing = cited
+			.filter(({ name }) => !names.has(name))
+			.map(({ guidePath, name }) => `${relative(guidePath)} cites ${name}`);
+
+		expect(emptyRoots({ paths: guides.map(relative), roots: ["web/src", "app/lib"] })).toEqual([]);
+		expect(ROOT_GUIDES.filter((path) => !existsSync(path)).map(relative)).toEqual([]);
+		expect(cited.length).toBeGreaterThan(0);
 		expect(missing).toEqual([]);
 	});
 });
@@ -1001,61 +1161,79 @@ describe("the source carries no code comments", () => {
 			.map(({ index }) => `${relative(path)}:${index + 1}`);
 
 	it("has no // or /* comment in hand-written Dart", () => {
-		const offenders = [
+		const files = [
 			...walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") }),
 			...walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith(".dart") }),
 			...walk({ dir: join(REPO, "app/tool"), match: (path) => path.endsWith(".dart") }),
-		]
-			.filter((path) => !GENERATED_DART_FILE.test(path))
-			.flatMap(commentLines);
-		expect(offenders).toEqual([]);
+		].filter((path) => !GENERATED_DART_FILE.test(path));
+
+		expect(emptyRoots({ paths: files.map(relative), roots: ["app/lib", "app/test", "app/tool"] })).toEqual([]);
+		expect(files.flatMap(commentLines)).toEqual([]);
 	});
 
 	it("has no // or /* comment in the hand-written Kotlin either", () => {
-		const offenders = walk({
+		const files = walk({
 			dir: join(REPO, "app/android/app/src/main/kotlin"),
 			match: (path) => path.endsWith(".kt"),
-		}).flatMap(commentLines);
-		expect(offenders).toEqual([]);
+		});
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(files.flatMap(commentLines)).toEqual([]);
 	});
 
 	it("has no // or /* comment in web TypeScript or Astro either", () => {
 		const configs = ["web/astro.config.ts", "web/playwright.config.ts", "web/vitest.config.ts"].map((path) =>
 			join(REPO, path),
 		);
-		const offenders = [
+		const files = [
 			...walk({ dir: join(REPO, "web/src"), match: (path) => WEB_SOURCE_FILE.test(path) }),
 			...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }),
 			...walk({ dir: join(REPO, "docs"), match: (path) => path.endsWith(".ts") }),
-			...configs,
-		].flatMap(commentLines);
-		expect(offenders).toEqual([]);
+		];
+
+		expect(emptyRoots({ paths: files.map(relative), roots: ["web/src", "web/e2e", "docs"] })).toEqual([]);
+		expect([...files, ...configs].flatMap(commentLines)).toEqual([]);
 	});
 
-	it("has no // comment in the repository scripts either", () => {
-		const offenders = walk({ dir: join(REPO, "scripts"), match: (path) => path.endsWith(".mjs") }).flatMap(
-			commentLines,
-		);
-		expect(offenders).toEqual([]);
+	it("has no // or /* comment in the repository scripts either", () => {
+		const files = walk({ dir: join(REPO, "scripts"), match: (path) => path.endsWith(".mjs") });
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(files.flatMap(commentLines)).toEqual([]);
+	});
+
+	it("has no <!-- comment in the markup of an .astro file", () => {
+		const files = walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".astro") });
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: /<!--/ })).toEqual([]);
+	});
+
+	it("has no /* comment in the CSS under web/src", () => {
+		const files = walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".css") });
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: BLOCK_COMMENT_OPENER })).toEqual([]);
 	});
 });
 
 describe("nothing under web/src/pages becomes a route by accident", () => {
-	const IGNORED_BY_ASTRO = (path: string): boolean =>
+	const ignoredByAstro = (path: string): boolean =>
 		relative(path)
 			.split("/")
 			.some((part) => part.startsWith("_"));
 
 	it("colocates no test file inside the route namespace", () => {
-		const offenders = walk({ dir: join(REPO, "web/src/pages"), match: (path) => COLOCATED_TEST_FILE.test(path) })
-			.filter((path) => !IGNORED_BY_ASTRO(path))
-			.map(relative);
+		const tests = walk({ dir: join(REPO, "web/src/pages"), match: (path) => COLOCATED_TEST_FILE.test(path) });
+		const offenders = tests.filter((path) => !ignoredByAstro(path)).map(relative);
+
+		expect(tests.length).toBeGreaterThan(0);
 		expect(offenders).toEqual([]);
 	});
 
 	it("carries no markdown route other than the agent guide the middleware blocks", () => {
 		const markdown = walk({ dir: join(REPO, "web/src/pages"), match: (path) => path.endsWith(".md") })
-			.filter((path) => !IGNORED_BY_ASTRO(path))
+			.filter((path) => !ignoredByAstro(path))
 			.map(relative);
 		expect(markdown).toEqual(["web/src/pages/AGENTS.md"]);
 		expect(read(join(REPO, "web/src/middleware.ts"))).toContain('const AGENT_GUIDE_ROUTE = "/AGENTS"');
@@ -1065,12 +1243,15 @@ describe("nothing under web/src/pages becomes a route by accident", () => {
 describe("the app's feature widgets go through the wrappers", () => {
 	it("keeps every shadcn_ui import inside widgets/, theme/ and the composition root", () => {
 		const allowed = ["app/lib/main.dart", "app/lib/ui/theme/app_colors.dart"];
-		const offenders = walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") })
+		const importers = walk({ dir: join(REPO, "app/lib"), match: (path) => path.endsWith(".dart") })
 			.filter((path) => !GENERATED_DART_FILE.test(path))
 			.filter((path) => read(path).includes("package:shadcn_ui/shadcn_ui.dart"))
-			.map(relative)
+			.map(relative);
+		const offenders = importers
 			.filter((path) => !path.startsWith("app/lib/ui/widgets/"))
 			.filter((path) => !allowed.includes(path));
+
+		expect(importers.length).toBeGreaterThan(0);
 		expect(offenders).toEqual([]);
 	});
 
@@ -1099,12 +1280,22 @@ describe("the web layers only import inwards", () => {
 		domain: ["@application/", "@infrastructure/", "@ui/"],
 		application: ["@infrastructure/", "@ui/"],
 		infrastructure: ["@application/", "@ui/"],
-		ui: ["@infrastructure/"],
+		ui: ["@infrastructure/", "@application/"],
 	};
 
-	const IMPORT_SPECIFIER = /(?:from\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g;
+	const LAYERS = ["domain", "application", "infrastructure", "ui", "pages"];
 
-	const importsOf = (source: string): string[] => [...source.matchAll(IMPORT_SPECIFIER)].map((match) => match[1]);
+	interface LayerImport {
+		readonly path: string;
+		readonly specifier: string;
+	}
+
+	const importsIn = (layer: string): LayerImport[] =>
+		walk({ dir: join(REPO, "web/src", layer), match: (path) => WEB_SOURCE_FILE.test(path) }).flatMap((path) =>
+			importsOf(read(path)).map((specifier) => ({ path, specifier })),
+		);
+
+	const landingOf = ({ path, specifier }: LayerImport): string => relative(resolve(dirname(path), specifier));
 
 	for (const [layer, forbidden] of Object.entries(FORBIDDEN_BY_LAYER)) {
 		it(`keeps ${layer} clear of ${forbidden.join(", ")}`, () => {
@@ -1118,16 +1309,67 @@ describe("the web layers only import inwards", () => {
 				);
 			};
 
-			const offenders = walk({ dir: join(REPO, "web/src", layer), match: (path) => WEB_SOURCE_FILE.test(path) })
-				.flatMap((path) =>
-					importsOf(read(path))
-						.filter((specifier) => reaches({ file: path, specifier }))
-						.map((specifier) => `${relative(path)} imports ${specifier}`),
-				)
+			const imports = walk({
+				dir: join(REPO, "web/src", layer),
+				match: (path) => WEB_SOURCE_FILE.test(path),
+			}).flatMap((path) => importsOf(read(path)).map((specifier) => ({ path, specifier })));
+			const offenders = imports
+				.filter(({ path, specifier }) => reaches({ file: path, specifier }))
+				.map(({ path, specifier }) => `${relative(path)} imports ${specifier}`)
 				.sort();
+
+			expect(imports.length).toBeGreaterThan(0);
 			expect(offenders).toEqual([]);
 		});
 	}
+
+	it("lets domain import only itself and @shared", () => {
+		const imports = importsIn("domain").filter(({ path }) => !COLOCATED_TEST_FILE.test(path));
+		const offenders = imports
+			.filter((entry) =>
+				entry.specifier.startsWith(".")
+					? !landingOf(entry).startsWith("web/src/domain/")
+					: !entry.specifier.startsWith("@domain/") && !entry.specifier.startsWith("@shared/"),
+			)
+			.map(({ path, specifier }) => `${relative(path)} imports ${specifier}`);
+
+		expect(imports.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("writes an import that leaves its layer with the alias and one that stays inside it relative", () => {
+		const MOCKED_MODULE = /\bvi\.(?:mock|doMock|unmock|importActual|importMock)\(\s*["']([^"']+)["']/g;
+		const ALIASED_LAYERS: Record<string, string> = {
+			"@domain/": "domain",
+			"@application/": "application",
+			"@infrastructure/": "infrastructure",
+			"@ui/": "ui",
+		};
+		const imports = LAYERS.flatMap((layer) =>
+			walk({ dir: join(REPO, "web/src", layer), match: (path) => WEB_SOURCE_FILE.test(path) }).flatMap((path) => {
+				const source = read(path);
+				return [...importsOf(source), ...[...source.matchAll(MOCKED_MODULE)].map(([, specifier]) => specifier)].map(
+					(specifier) => ({ path, specifier, layer }),
+				);
+			}),
+		);
+		const isRelative = ({ specifier }: LayerImport): boolean => specifier.startsWith(".");
+		const aliasedLayerOf = ({ specifier }: LayerImport): string | undefined =>
+			Object.entries(ALIASED_LAYERS).find(([alias]) => specifier.startsWith(alias))?.[1];
+		const crossingRelative = imports.filter((entry) => {
+			const landed = landingOf(entry);
+			return isRelative(entry) && landed.startsWith("web/src/") && !landed.startsWith(`web/src/${entry.layer}/`);
+		});
+		const stayingAliased = imports.filter((entry) => aliasedLayerOf(entry) === entry.layer);
+		const offenders = [
+			...crossingRelative.map(({ path, specifier }) => `${relative(path)} crosses its layer by ${specifier}`),
+			...stayingAliased.map(({ path, specifier }) => `${relative(path)} stays in its layer by ${specifier}`),
+		];
+
+		expect(imports.filter(isRelative).length).toBeGreaterThan(0);
+		expect(imports.filter((entry) => aliasedLayerOf(entry) !== undefined).length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
 });
 
 describe("the app layers only import inwards", () => {
@@ -1149,21 +1391,23 @@ describe("the app layers only import inwards", () => {
 
 	for (const [layer, forbidden] of Object.entries(FORBIDDEN_BY_LAYER)) {
 		it(`keeps ${layer} clear of ${forbidden.join(", ")}`, () => {
-			const offenders = dartFiles(layer)
-				.flatMap((path) =>
-					layerImportsOf(read(path))
-						.filter((specifier) => forbidden.some((prefix) => specifier.startsWith(prefix)))
-						.map((specifier) => `${relative(path)} imports ${specifier}`),
-				)
+			const imports = dartFiles(layer).flatMap((path) =>
+				layerImportsOf(read(path)).map((specifier) => ({ path, specifier })),
+			);
+			const offenders = imports
+				.filter(({ specifier }) => forbidden.some((prefix) => specifier.startsWith(prefix)))
+				.map(({ path, specifier }) => `${relative(path)} imports ${specifier}`)
 				.sort();
+
+			expect(imports.length).toBeGreaterThan(0);
 			expect(offenders).toEqual([]);
 		});
 	}
 
 	it("keeps the pure core free of Flutter, Riverpod and the platform", () => {
 		const BANNED = ["package:flutter", "package:riverpod", "dart:ui", "dart:io", "package:hive", "package:http"];
-		const offenders = ["domain", "application"]
-			.flatMap(dartFiles)
+		const files = ["domain", "application"].flatMap(dartFiles);
+		const offenders = files
 			.flatMap((path) => {
 				const body = read(path);
 				return BANNED.filter((banned) => body.includes(`import '${banned}`) || body.includes(`export '${banned}`)).map(
@@ -1171,10 +1415,525 @@ describe("the app layers only import inwards", () => {
 				);
 			})
 			.sort();
-		expect(
-			offenders,
-			"app/lib/domain/AGENTS.md promises zero external dependencies, and nothing was checking it",
-		).toEqual([]);
+
+		expect(emptyRoots({ paths: files.map(relative), roots: ["app/lib/domain", "app/lib/application"] })).toEqual([]);
+		expect(offenders, "app/lib/domain/AGENTS.md promises zero external dependencies").toEqual([]);
+	});
+
+	const DART_DIRECTIVE = /^\s*(?:import|export|part)\s+'([^']+)'/gm;
+
+	it("lets domain import only dart:math and itself", () => {
+		const directives = dartFiles("domain").flatMap((path) =>
+			[...read(path).matchAll(DART_DIRECTIVE)].map(([, uri]) => ({ path, uri })),
+		);
+		const offenders = directives
+			.filter(({ uri }) => uri !== "dart:math" && !uri.startsWith("package:contribkit/domain/"))
+			.map(({ path, uri }) => `${relative(path)} imports ${uri}`);
+
+		expect(directives.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("reaches infrastructure/ from ui/ only through ui/di/", () => {
+		const files = dartFiles("ui").filter((path) => !relative(path).startsWith("app/lib/ui/di/"));
+		const offenders = files
+			.filter((path) => layerImportsOf(read(path)).some((specifier) => specifier.startsWith("infrastructure/")))
+			.map(relative);
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+});
+
+describe("the app's code keeps the shapes the standards hold it to", () => {
+	const dartIn = (dir: string): string[] =>
+		walk({
+			dir: join(REPO, "app/lib", dir),
+			match: (path) => path.endsWith(".dart") && !GENERATED_DART_FILE.test(path),
+		});
+
+	const CLASS_DECLARATION =
+		/^[ \t]*(?:@\w+(?:\([^)\n]*\))?\s+)*((?:(?:abstract|sealed|final|base|interface|mixin)\s+)*)class\s+(\w+)/gm;
+	const WHITESPACE_RUN = /\s+/g;
+	const ALLOWED_CLASS_MODIFIERS = new Set(["final", "sealed", "abstract final", "abstract interface"]);
+
+	const classesIn = (files: readonly string[]): { path: string; name: string; modifiers: string }[] =>
+		files.flatMap((path) =>
+			[...withoutStringLiterals(read(path)).matchAll(CLASS_DECLARATION)].map(([, modifiers, name]) => ({
+				path,
+				name,
+				modifiers: modifiers.trim().replaceAll(WHITESPACE_RUN, " "),
+			})),
+		);
+
+	it("declares every class outside ui/ final, sealed, abstract final or abstract interface", () => {
+		const classes = classesIn(["domain", "application", "infrastructure"].flatMap(dartIn));
+		const offenders = classes
+			.filter(({ modifiers }) => !ALLOWED_CLASS_MODIFIERS.has(modifiers))
+			.map(({ path, name, modifiers }) => `${relative(path)}: ${modifiers} class ${name}`);
+
+		expect(classes.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("declares every repository an abstract interface class", () => {
+		const classes = classesIn(dartIn("domain/repositories")).filter(({ name }) => name.endsWith("Repository"));
+		const offenders = classes
+			.filter(({ modifiers }) => modifiers !== "abstract interface")
+			.map(({ path, name }) => `${relative(path)}: ${name}`);
+
+		expect(classes.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("gives every use case its repository as {required this._repository}, and lets it catch nothing", () => {
+		const USE_CASE_CONSTRUCTOR = /\bconst\s+\w+\(\{\s*required\s+this\._repository\s*,?\s*\}\);/;
+		const CATCHING = /\btry\s*\{|\.catchError\(/;
+		const files = dartIn("application/use_cases");
+		const offenders = files.flatMap((path) => {
+			const body = withoutStringLiterals(read(path));
+			return [
+				...(USE_CASE_CONSTRUCTOR.test(body) ? [] : [`${relative(path)} takes its repository another way`]),
+				...(CATCHING.test(body) ? [`${relative(path)} catches`] : []),
+			];
+		});
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("matches no Failure with a wildcard or a default arm", () => {
+		const SWITCH = /\bswitch\s*\(/g;
+		const FAILURE_PATTERN = /\b[A-Z]\w*Failure\s*\(/;
+		const WILDCARD_ARM = /(?<![\w)])_\s*(?:=>|:)|\bdefault\s*:/;
+		const switches = dartIn("").flatMap((path) => {
+			const source = withoutStringLiterals(read(path));
+			return [...source.matchAll(SWITCH)].map((match) => ({
+				path,
+				body: bracedBodyFrom({ source, open: source.indexOf("{", match.index) }),
+			}));
+		});
+		const overFailures = switches.filter(({ body }) => FAILURE_PATTERN.test(body));
+		const offenders = overFailures.filter(({ body }) => WILDCARD_ARM.test(body)).map(({ path }) => relative(path));
+
+		expect(overFailures.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("writes dynamic only in infrastructure/", () => {
+		const files = dartIn("").filter((path) => !relative(path).startsWith("app/lib/infrastructure/"));
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: /\bdynamic\b/ })).toEqual([]);
+	});
+
+	it("gives every firstWhere an orElse", () => {
+		const FIRST_WHERE = /\.firstWhere\(/g;
+		const calls = dartIn("").flatMap((path) => {
+			const source = withoutStringLiterals(read(path));
+			return [...source.matchAll(FIRST_WHERE)].map((match) => {
+				const open = match.index + match[0].length - 1;
+				const parenthesised = `{${source.slice(open + 1)}`.replaceAll("(", "{").replaceAll(")", "}");
+				return { path, argumentList: bracedBodyFrom({ source: parenthesised, open: 0 }) };
+			});
+		});
+		const offenders = calls
+			.filter(({ argumentList }) => !argumentList.includes("orElse:"))
+			.map(({ path }) => relative(path));
+
+		expect(calls.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("reads no clock in the domain, which takes today from its caller", () => {
+		const files = dartIn("domain");
+
+		expect(DART_CLOCK_READ.test("static Year get current => Year(DateTime.now().year);")).toBe(true);
+		expect(DART_CLOCK_READ.test("factory Year.current({required DateTime today})")).toBe(false);
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: DART_CLOCK_READ })).toEqual([]);
+	});
+
+	it("steps no date by a Duration of days, builds no MaterialApp", () => {
+		const files = dartIn("");
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: /\bDuration\(\s*days\s*:|\bMaterialApp\b/ })).toEqual([]);
+	});
+
+	it("takes no colour or Duration literal and reads no colorScheme in ui/ outside theme/", () => {
+		const files = dartIn("ui").filter((path) => !relative(path).startsWith("app/lib/ui/theme/"));
+		const LITERAL_OR_SCHEME =
+			/\bColor\(\s*0x|\bColor\.from(?:ARGB|RGBO)\(|(?<![\w$])Colors\.|\bDuration\(|\.colorScheme\b/;
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: LITERAL_OR_SCHEME })).toEqual([]);
+	});
+});
+
+describe("the web's code keeps the shapes the standards hold it to", () => {
+	const webFiles = (): string[] => walk({ dir: join(REPO, "web/src"), match: (path) => WEB_SOURCE_FILE.test(path) });
+	const productionFiles = (): string[] => webFiles().filter((path) => !COLOCATED_TEST_FILE.test(path));
+	const outside = (prefixes: readonly string[]): string[] =>
+		productionFiles().filter((path) => !prefixes.some((prefix) => relative(path).startsWith(prefix)));
+
+	const TOP_LEVEL_STATEMENT = /\n(?=[A-Za-z])/;
+	const SCHEMA_DECLARATION = /^(?:export\s+)?const\s+(\w+)\s*=\s*z\b/;
+
+	interface SchemaDeclaration {
+		readonly name: string;
+		readonly statement: string;
+	}
+
+	const schemasIn = (path: string): SchemaDeclaration[] =>
+		read(path)
+			.split(TOP_LEVEL_STATEMENT)
+			.flatMap((statement) => {
+				const name = SCHEMA_DECLARATION.exec(statement)?.[1];
+				return name ? [{ name, statement }] : [];
+			});
+
+	it("declares no class, draws no Math.random and slices no ISO string for a date", () => {
+		const files = webFiles();
+		const FORBIDDEN =
+			/^\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?class\s+[A-Za-z_$]|\bMath\.random\b|\.toISOString\(\)\s*\.slice\(\s*0\s*,\s*10\s*\)/;
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: FORBIDDEN })).toEqual([]);
+	});
+
+	it("reads no clock in the domain, which takes today or this year from its caller", () => {
+		const CLOCK_READ = /\bnew Date\(\s*\)|\bDate\.now\(\s*\)/;
+		const files = productionFiles().filter((path) => relative(path).startsWith("web/src/domain/"));
+
+		expect(CLOCK_READ.test("const current = new Date().getFullYear();")).toBe(true);
+		expect(CLOCK_READ.test('new Date("2024-03-15T12:00:00")')).toBe(false);
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: CLOCK_READ })).toEqual([]);
+	});
+
+	it("registers no custom property with @property, so an unset token falls back and a theme switch flips it rather than fading", () => {
+		const REGISTERED_PROPERTY = /@property\s+--[\w-]+/;
+		const files = walk({
+			dir: join(REPO, "web/src"),
+			match: (path) => path.endsWith(".css") || path.endsWith(".astro"),
+		});
+
+		expect(REGISTERED_PROPERTY.test('@property --surface { syntax: "<color>"; inherits: true; }')).toBe(true);
+		expect(REGISTERED_PROPERTY.test("--surface: #f6f8fa;")).toBe(false);
+		expect(files.filter((path) => path.endsWith(".css")).length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: REGISTERED_PROPERTY })).toEqual([]);
+	});
+
+	it("reads FailureKind outside tests only in domain/failures/, failure-http.ts and contribution-errors.ts", () => {
+		const files = outside([
+			"web/src/domain/failures/",
+			"web/src/application/http/failure-http.ts",
+			"web/src/ui/utils/contribution-errors.ts",
+		]);
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: /\bFailureKind\b/ })).toEqual([]);
+	});
+
+	it("never drives a module-level /g regex through exec or test", () => {
+		const MODULE_LEVEL_GLOBAL_REGEX =
+			/^(?:export\s+)?const\s+(\w+)(?:\s*:\s*RegExp)?\s*=\s*\/(?:\\.|[^/\n])+\/[a-z]*g[a-z]*\s*;?\s*$/gm;
+		const regexes = webFiles().flatMap((path) =>
+			[...read(path).matchAll(MODULE_LEVEL_GLOBAL_REGEX)].map(([, name]) => ({ path, name })),
+		);
+		const offenders = regexes
+			.filter(({ path, name }) => new RegExp(`\\b${name}\\.(?:exec|test)\\(`).test(read(path)))
+			.map(({ path, name }) => `${relative(path)}: ${name}`);
+
+		expect(regexes.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("reads astro:env nowhere in infrastructure/, and React only in infrastructure/email/", () => {
+		const infrastructure = productionFiles().filter((path) => relative(path).startsWith("web/src/infrastructure/"));
+		const readingEnv = infrastructure
+			.filter((path) => importsOf(read(path)).some((specifier) => specifier.startsWith("astro:env")))
+			.map(relative);
+		const reactFiles = webFiles().filter(
+			(path) =>
+				path.endsWith(".tsx") ||
+				importsOf(read(path)).some((specifier) => specifier === "react" || specifier.startsWith("@react-email/")),
+		);
+		const strayReact = reactFiles.map(relative).filter((path) => !path.startsWith("web/src/infrastructure/email/"));
+
+		expect(infrastructure.length).toBeGreaterThan(0);
+		expect(reactFiles.length).toBeGreaterThan(0);
+		expect(readingEnv).toEqual([]);
+		expect(strayReact).toEqual([]);
+	});
+
+	it("writes a log line and compares the server-error threshold only in failure-log.ts", () => {
+		const files = outside(["web/src/application/http/failure-log.ts", "web/src/infrastructure/logging/"]);
+		const LOGGING_OR_THRESHOLD =
+			/\blogger\.(?:info|warn|error|logError)\(|[<>]=?\s*SERVER_ERROR_STATUS\b|\bSERVER_ERROR_STATUS\s*[<>]|\bstatus\s*[<>]=?\s*5\d\d\b/;
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(linesMatching({ files, pattern: LOGGING_OR_THRESHOLD })).toEqual([]);
+	});
+
+	it("renders every .ts route on request and every page through BaseLayout", () => {
+		const routes = productionFiles().filter(
+			(path) =>
+				relative(path).startsWith("web/src/pages/") &&
+				!relative(path)
+					.split("/")
+					.some((part) => part.startsWith("_")),
+		);
+		const endpoints = routes.filter((path) => path.endsWith(".ts"));
+		const pages = routes.filter((path) => path.endsWith(".astro"));
+		const offenders = [
+			...endpoints.filter((path) => !/^export const prerender = false;$/m.test(read(path))),
+			...pages.filter(
+				(path) =>
+					!/^import BaseLayout from "@ui\/components\/core\/layouts\/BaseLayout\.astro";$/m.test(read(path)) ||
+					!/<BaseLayout\b/.test(read(path)),
+			),
+		].map(relative);
+
+		expect(endpoints.length).toBeGreaterThan(0);
+		expect(pages.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("imports Zod only through astro/zod, and declares no zod of its own", () => {
+		const files = [...webFiles(), ...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") })];
+		const imports = files.flatMap((path) => importsOf(read(path)).map((specifier) => ({ path, specifier })));
+		const throughAstro = imports.filter(({ specifier }) => specifier === "astro/zod");
+		const direct = imports
+			.filter(({ specifier }) => specifier === "zod" || specifier.startsWith("zod/"))
+			.map(({ path, specifier }) => `${relative(path)} imports ${specifier}`);
+		const manifest = json<Record<string, Record<string, string> | undefined>>("web/package.json");
+		const declaring = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"].filter(
+			(field) => manifest[field]?.zod !== undefined,
+		);
+
+		expect(throughAstro.length).toBeGreaterThan(0);
+		expect(direct).toEqual([]);
+		expect(declaring).toEqual([]);
+	});
+
+	it("reads every JSON body into unknown or straight into a schema, and declares the injected grid unknown", () => {
+		const JSON_BODY = /\.json\(\)/;
+		const CHECKED_BODY =
+			/:\s*unknown\s*=\s*await\s+[\w.]+\.json\(\)|\.(?:parse|safeParse|validate)\(\s*await\s+[\w.]+\.json\(\)/;
+		const bodies = productionFiles().flatMap((path) =>
+			read(path)
+				.split("\n")
+				.map((line, index) => ({ at: `${relative(path)}:${index + 1}`, line }))
+				.filter(({ line }) => JSON_BODY.test(line)),
+		);
+		const unchecked = bodies.filter(({ line }) => !CHECKED_BODY.test(line)).map(({ at }) => at);
+
+		expect(bodies.length).toBeGreaterThan(0);
+		expect(unchecked).toEqual([]);
+		expect(read(join(REPO, "web/src/env.d.ts"))).toMatch(/^\s*__INITIAL_DAYS__\?: unknown;$/m);
+	});
+
+	it("names every module-level schema <concept>Schema, after what it checks", () => {
+		const SCHEMA_NAME = /^[a-z][A-Za-z]*Schema$/;
+		const schemas = productionFiles().flatMap((path) => schemasIn(path).map(({ name }) => ({ path, name })));
+		const misnamed = schemas
+			.filter(({ name }) => !SCHEMA_NAME.test(name))
+			.map(({ path, name }) => `${relative(path)}: ${name}`);
+
+		expect(schemas.length).toBeGreaterThan(0);
+		expect(misnamed).toEqual([]);
+	});
+
+	it("validates no schema that catches, defaults, transforms or coerces, since validate hands back its input untouched", () => {
+		const TRANSFORMS =
+			/\.(?:catch|default|prefault|transform|overwrite|trim|toLowerCase|toUpperCase|normalize)\(|\bz\.(?:coerce|preprocess|codec)\b/;
+		const VALIDATE_CALL = /\b(\w+)\.validate\(/g;
+		const NAMED_IMPORT = /import\s*(?:type\s*)?\{([^}]*)\}\s*from\s*["']([^"']+)["']/g;
+		const IMPORT_RENAME = /\s+as\s+/;
+		const ALIASES: Record<string, string> = {
+			"@domain/": "web/src/domain/",
+			"@application/": "web/src/application/",
+			"@infrastructure/": "web/src/infrastructure/",
+			"@ui/": "web/src/ui/",
+		};
+
+		const localName = (entry: string): string => entry.trim().split(IMPORT_RENAME).pop() ?? "";
+
+		const transformingIn = (path: string): Set<string> => {
+			const schemas = schemasIn(path);
+			const transforming = new Set<string>();
+			let grew = true;
+			while (grew) {
+				const next = schemas.filter(
+					({ name, statement }) =>
+						!transforming.has(name) &&
+						(TRANSFORMS.test(statement) || [...transforming].some((other) => identifierNamed(other).test(statement))),
+				);
+				for (const { name } of next) transforming.add(name);
+				grew = next.length > 0;
+			}
+			return transforming;
+		};
+
+		interface ModuleOfParams {
+			readonly from: string;
+			readonly specifier: string;
+		}
+
+		const moduleOf = ({ from, specifier }: ModuleOfParams): string | null => {
+			const alias = Object.keys(ALIASES).find((prefix) => specifier.startsWith(prefix));
+			const base = alias
+				? join(REPO, ALIASES[alias], specifier.slice(alias.length))
+				: specifier.startsWith(".")
+					? resolve(dirname(from), specifier)
+					: null;
+			return base && existsSync(`${base}.ts`) ? `${base}.ts` : null;
+		};
+
+		const files = productionFiles();
+		const calls = files.flatMap((path) => {
+			const source = read(path);
+			const importedFrom = new Map(
+				[...source.matchAll(NAMED_IMPORT)].flatMap(([, names, specifier]) =>
+					names.split(",").map((entry) => [localName(entry), specifier] as const),
+				),
+			);
+			return [...source.matchAll(VALIDATE_CALL)].map(([, name]) => {
+				const specifier = importedFrom.get(name);
+				const home = specifier ? moduleOf({ from: path, specifier }) : path;
+				return { at: `${relative(path)}: ${name}.validate`, name, home };
+			});
+		});
+		const offenders = calls
+			.filter(({ name, home }) => home !== null && transformingIn(home).has(name))
+			.map(({ at }) => at);
+
+		expect(calls.length).toBeGreaterThan(0);
+		expect(files.filter((path) => transformingIn(path).size > 0).length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+});
+
+describe("the tests sweep and tag what the standards say", () => {
+	it("puts every sheet under app/lib/ui/features in both the semantics and the text-scaling sweep", () => {
+		const SHEET_CLASS = /^class\s+(\w+Sheet)\b/gm;
+		const sheets = walk({
+			dir: join(REPO, "app/lib/ui/features"),
+			match: (path) => path.endsWith("_sheet.dart"),
+		}).flatMap((path) => [...read(path).matchAll(SHEET_CLASS)].map(([, name]) => name));
+		const sweeps = ["app/test/ui/accessibility_test.dart", "app/test/ui/text_scaling_test.dart"];
+		const missing = sweeps.flatMap((sweep) =>
+			sheets
+				.filter((sheet) => !identifierNamed(sheet).test(read(join(REPO, sweep))))
+				.map((sheet) => `${sweep} skips ${sheet}`),
+		);
+
+		expect(sheets.length).toBeGreaterThan(0);
+		expect(missing).toEqual([]);
+	});
+
+	it("tags @smoke only in web/e2e/smoke.spec.ts", () => {
+		const SMOKE_SPEC = "web/e2e/smoke.spec.ts";
+		const tagging = walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") })
+			.filter((path) => read(path).includes("@smoke"))
+			.map(relative);
+
+		expect(tagging).toEqual([SMOKE_SPEC]);
+	});
+
+	const webUnitTests = (): string[] =>
+		walk({ dir: join(REPO, "web/src"), match: (path) => COLOCATED_TEST_FILE.test(path) });
+
+	it("undoes every stubbed global, stubbed variable, spy and fake clock in an afterEach or afterAll, which a failing assertion cannot skip", () => {
+		const TEARDOWN_HOOK = /\bafter(?:Each|All)\(/g;
+		const STUB_RESTORES = [
+			{ stub: /\bvi\.stubGlobal\(/, restores: ["vi.unstubAllGlobals()"] },
+			{ stub: /\bvi\.stubEnv\(/, restores: ["vi.unstubAllEnvs()"] },
+			{ stub: /\bvi\.spyOn\(/, restores: ["vi.restoreAllMocks()", ".mockRestore()"] },
+			{ stub: /\bvi\.useFakeTimers\(/, restores: ["vi.useRealTimers()"] },
+		];
+
+		const teardownsIn = (source: string): string[] => {
+			const flattened = source.replaceAll("(", "{").replaceAll(")", "}");
+			return [...source.matchAll(TEARDOWN_HOOK)].map((match) => {
+				const open = match.index + match[0].length - 1;
+				return source.slice(open + 1, open + 1 + bracedBodyFrom({ source: flattened, open }).length);
+			});
+		};
+
+		const missingRestores = (source: string): string[] => {
+			const code = withoutStringLiterals(source);
+			const teardowns = teardownsIn(code);
+			return STUB_RESTORES.filter(({ stub }) => stub.test(code))
+				.filter(({ restores }) => !teardowns.some((body) => restores.some((restore) => body.includes(restore))))
+				.map(({ restores }) => restores.join(" or "));
+		};
+
+		const tests = webUnitTests();
+		const stubbing = STUB_RESTORES.map(({ stub }) => tests.filter((path) => stub.test(read(path))).length);
+		const leaking = tests.flatMap((path) =>
+			missingRestores(read(path)).map((restore) => `${relative(path)}: ${restore}`),
+		);
+
+		expect(missingRestores('it("a", () => { vi.stubGlobal("a", 1); vi.unstubAllGlobals(); });')).toEqual([
+			"vi.unstubAllGlobals()",
+		]);
+		expect(missingRestores('afterEach(() => vi.useRealTimers()); it("a", () => { vi.useFakeTimers(); });')).toEqual([]);
+		expect(missingRestores('const spy = vi.spyOn(a, "b"); afterAll(() => { spy.mockRestore(); });')).toEqual([]);
+		expect(stubbing).not.toContain(0);
+		expect(leaking).toEqual([]);
+	});
+
+	it("asserts the Usage Events a flow records as the exact list of calls, never one call at a time", () => {
+		const EVENT_SPY_ASSERTION =
+			/\bexpect\(\s*(recordUsageEvent|gtag|betterstack)\s*\)\s*(?:\.\s*not\s*)?\.\s*(toHaveBeenCalledWith|toHaveBeenLastCalledWith|toHaveBeenNthCalledWith|toHaveBeenCalledOnce|toHaveBeenCalledExactlyOnceWith)\b/g;
+		const VENDOR_SPIES = new Set(["gtag", "betterstack"]);
+		const RECORDS_USAGE_EVENTS = /\brecordUsageEvent\b/;
+
+		const offendersIn = (source: string): string[] =>
+			[...withoutStringLiterals(source).matchAll(EVENT_SPY_ASSERTION)]
+				.filter(([, spy]) => spy === "recordUsageEvent" || (VENDOR_SPIES.has(spy) && RECORDS_USAGE_EVENTS.test(source)))
+				.map(([, spy, matcher]) => `${spy}.${matcher}`);
+
+		const tests = webUnitTests();
+		const recording = tests.filter((path) => RECORDS_USAGE_EVENTS.test(read(path)));
+		const offenders = tests.flatMap((path) => offendersIn(read(path)).map((found) => `${relative(path)}: ${found}`));
+
+		expect(offendersIn('expect(recordUsageEvent).toHaveBeenCalledWith({ event: "x" });')).toEqual([
+			"recordUsageEvent.toHaveBeenCalledWith",
+		]);
+		expect(offendersIn('recordUsageEvent(event);\nexpect(gtag)\n\t.toHaveBeenLastCalledWith("event", "x");')).toEqual([
+			"gtag.toHaveBeenLastCalledWith",
+		]);
+		expect(offendersIn('expect(gtag).toHaveBeenCalledWith("consent", "update");')).toEqual([]);
+		expect(offendersIn("expect(recordUsageEvent.mock.calls).toEqual([]);")).toEqual([]);
+		expect(recording.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+
+	it("pins the clock in every Dart test, which reads none of its own", () => {
+		const tests = walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith(".dart") });
+
+		expect(DART_CLOCK_READ.test("final before = DateTime.now();")).toBe(true);
+		expect(DART_CLOCK_READ.test("now: DateTime.now,")).toBe(true);
+		expect(DART_CLOCK_READ.test("final testToday = DateTime(2031, 6, 15, 12);")).toBe(false);
+		expect(tests.length).toBeGreaterThan(0);
+		expect(linesMatching({ files: tests, pattern: DART_CLOCK_READ })).toEqual([]);
+	});
+
+	it("pins the clock rather than reading the year off it or bracketing Date.now()", () => {
+		const REAL_YEAR = /new Date\(\)\.getFullYear\(\)/;
+		const CLOCK_BRACKET = /\bconst\s+(?:before|after)\w*\s*=\s*(?:Math\.floor\()?Date\.now\(\)/;
+		const tests = webUnitTests();
+
+		expect(REAL_YEAR.test("const CURRENT_YEAR = new Date().getFullYear();")).toBe(true);
+		expect(CLOCK_BRACKET.test("const before = Math.floor(Date.now() / 1000);")).toBe(true);
+		expect(tests.length).toBeGreaterThan(0);
+		expect(tests.filter((path) => REAL_YEAR.test(read(path)) || CLOCK_BRACKET.test(read(path))).map(relative)).toEqual(
+			[],
+		);
 	});
 });
 
@@ -1184,11 +1943,7 @@ describe("two or more arguments are one object typed after the function", () => 
 		/(?:export\s+)?const\s+([A-Za-z0-9_]+)\s*(?::[^=]*)?=\s*(?:async\s*)?\(([^)]*)\)\s*(?::[^=]*)?=>/g;
 	const TRAILING_COMMA = /,\s*$/;
 
-	interface TopLevelArityParams {
-		parameters: string;
-	}
-
-	const topLevelArity = ({ parameters }: TopLevelArityParams): number => {
+	const topLevelArity = (parameters: string): number => {
 		let depth = 0;
 		let arity = 1;
 
@@ -1212,15 +1967,64 @@ describe("two or more arguments are one object typed after the function", () => 
 	});
 
 	it("holds everywhere, tests included", () => {
-		const positional = sources.flatMap((file) =>
-			[...read(file).matchAll(FUNCTION_SIGNATURE), ...read(file).matchAll(ARROW_SIGNATURE)]
-				.map(([, name, parameters]) => ({ name, parameters: (parameters ?? "").trim().replace(TRAILING_COMMA, "") }))
-				.filter(({ parameters }) => parameters.length > 0 && !parameters.startsWith("{"))
-				.filter(({ parameters }) => topLevelArity({ parameters }) > 1)
-				.map(({ name }) => `${file.replace(`${REPO}/`, "")}: ${name}`),
+		const signatures = sources.flatMap((file) =>
+			[...read(file).matchAll(FUNCTION_SIGNATURE), ...read(file).matchAll(ARROW_SIGNATURE)].map(
+				([, name, parameters]) => ({ file, name, parameters: (parameters ?? "").trim().replace(TRAILING_COMMA, "") }),
+			),
 		);
+		const positional = signatures
+			.filter(({ parameters }) => parameters.length > 0 && !parameters.startsWith("{"))
+			.filter(({ parameters }) => topLevelArity(parameters) > 1)
+			.map(({ file, name }) => `${relative(file)}: ${name}`);
 
+		expect(emptyRoots({ paths: sources.map(relative), roots: ["web/src", "web/e2e", "docs"] })).toEqual([]);
+		expect(signatures.length).toBeGreaterThan(0);
 		expect(positional).toEqual([]);
+	});
+
+	it("gives no params type, and no inline parameter type, a single field of its own", () => {
+		const PARAMS_DECLARATION =
+			/(?:interface\s+(\w+Params)\b(?:\s*<[^>{]*>)?(\s+extends\s+[^{]+)?\s*\{|type\s+(\w+Params)\b(?:\s*<[^>=]*>)?\s*=\s*\{)/g;
+		const INLINE_SINGLE_FIELD =
+			/[(]\s*\{\s*\w+\s*(?:=\s*[^}]+)?\}\s*:\s*\{\s*(?:readonly\s+)?\w+\??\s*:[^;{}]*;?\s*\}\s*[)]/;
+
+		const fieldsOf = (body: string): string[] => {
+			let depth = 0;
+			let current = "";
+			const fields: string[] = [];
+
+			for (const character of body) {
+				if ("{([<".includes(character)) depth += 1;
+				else if ("})]>".includes(character)) depth -= 1;
+				if (";,\n".includes(character) && depth === 0) {
+					if (current.trim()) fields.push(current.trim());
+					current = "";
+				} else current += character;
+			}
+			if (current.trim()) fields.push(current.trim());
+
+			return fields;
+		};
+
+		const files = [...sources, ...walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".tsx") })];
+		const declarations = files.flatMap((file) => {
+			const source = read(file);
+			return [...source.matchAll(PARAMS_DECLARATION)].map((match) => ({
+				file,
+				name: match[1] ?? match[3],
+				extended: match[2] !== undefined,
+				fields: fieldsOf(bracedBodyFrom({ source, open: match.index + match[0].length - 1 })),
+			}));
+		});
+		const single = [
+			...declarations
+				.filter(({ extended, fields }) => !extended && fields.length < 2)
+				.map(({ file, name }) => `${relative(file)}: ${name}`),
+			...files.filter((file) => INLINE_SINGLE_FIELD.test(read(file))).map((file) => `${relative(file)}: inline`),
+		];
+
+		expect(declarations.length).toBeGreaterThan(0);
+		expect(single).toEqual([]);
 	});
 });
 
@@ -1250,6 +2054,17 @@ describe("the workflows", () => {
 
 		expect(deploying).toBeGreaterThan(0);
 		expect(wrapped).toEqual([]);
+	});
+
+	it("filters ci.yml by no path, and gates the docs contract on nothing", () => {
+		const ci = read(join(WORKFLOWS, "ci.yml"));
+		const trigger = ci.match(/^on:\n([\s\S]*?)^\S/m)?.[1] ?? "";
+		const docsContract = ci.match(/^ {2}docs-contract:\n((?: {4}.*\n|\n)*)/m)?.[1] ?? "";
+
+		expect(trigger).not.toBe("");
+		expect(docsContract).toContain("pnpm test:docs");
+		expect(trigger).not.toMatch(/^\s+paths(?:-ignore)?:/m);
+		expect(docsContract).not.toMatch(/^ {4}(?:if|needs):/m);
 	});
 
 	it("queues the preview Worker cleanup behind the pull request's own CI run", () => {
@@ -1286,6 +2101,126 @@ describe("the workflows", () => {
 	});
 });
 
+describe("the YAML carries no comment but a pin's version, and every action is pinned to a commit", () => {
+	const YAML_FILE = /\.ya?ml$/;
+	const WRITTEN_BY_PNPM = "pnpm-lock.yaml";
+	const BLOCK_SCALAR_HEADER = /(?:^|\s)[|>](?:[1-9][+-]?|[+-][1-9]?)?$/;
+	const LEADING_ENTRY = /^(\s*)((?:-\s+)*)/;
+	const QUOTE_OPENS_AFTER = /(?:^\s*|(?:^|\s)-\s+|(?:^|\s)\?\s+|:\s+|[[{,]\s*)$/;
+	const USES = /^\s*(?:-\s+)?uses:\s*(\S+)(.*)$/;
+	const SAME_REPOSITORY = /^[.$]\//;
+	const SHA_PIN = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/;
+	const PIN_COMMENT = /^\s+#\s\S+$/;
+	const TOOL_DIRECTIVE = /^#\s*(?:zizmor|yaml-language-server):/;
+	const RENOVATE_ANNOTATION = /^# Renovate security update: \S/;
+	const RENOVATE_ANNOTATED_FILE = "pnpm-workspace.yaml";
+
+	interface YamlComment {
+		readonly line: number;
+		readonly text: string;
+		readonly comment: string;
+	}
+
+	const yamlComments = (source: string): YamlComment[] => {
+		const comments: YamlComment[] = [];
+		let parentIndent: number | null = null;
+		let quote: string | null = null;
+
+		source.split("\n").forEach((text, index) => {
+			const indent = text.length - text.trimStart().length;
+			if (parentIndent !== null) {
+				if (text.trim() === "" || indent > parentIndent) return;
+				parentIndent = null;
+			}
+			let commentAt = -1;
+			for (let at = 0; at < text.length; at += 1) {
+				const character = text[at];
+				if (quote) {
+					if (quote === '"' && character === "\\") at += 1;
+					else if (quote === "'" && character === "'" && text[at + 1] === "'") at += 1;
+					else if (character === quote) quote = null;
+				} else if ((character === '"' || character === "'") && QUOTE_OPENS_AFTER.test(text.slice(0, at))) {
+					quote = character;
+				} else if (character === "#" && (at === 0 || /[ \t]/.test(text[at - 1]))) {
+					commentAt = at;
+					break;
+				}
+			}
+			const content = (commentAt === -1 ? text : text.slice(0, commentAt)).trimEnd();
+			if (commentAt !== -1) comments.push({ line: index + 1, text, comment: text.slice(commentAt) });
+			if (quote === null && BLOCK_SCALAR_HEADER.test(content)) {
+				const [entry, base, dashes] = LEADING_ENTRY.exec(content) ?? ["", "", ""];
+				const opensOnTheDash = /^[|>]/.test(content.slice(entry.length)) && dashes !== "";
+				parentIndent = base.length + dashes.length - (opensOnTheDash ? 2 : 0);
+			}
+		});
+
+		return comments;
+	};
+
+	const yamlFiles = (): string[] =>
+		[
+			...walk({ dir: REPO, match: (path) => YAML_FILE.test(path) }),
+			...walk({ dir: join(REPO, ".github"), match: (path) => YAML_FILE.test(path) }),
+		].filter((path) => relative(path) !== WRITTEN_BY_PNPM);
+
+	const pinOf = (text: string): RegExpExecArray | null => {
+		const uses = USES.exec(text);
+		return uses !== null && !SAME_REPOSITORY.test(uses[1]) ? uses : null;
+	};
+
+	interface AllowedParams {
+		readonly path: string;
+		readonly found: YamlComment;
+	}
+
+	const allowed = ({ path, found }: AllowedParams): boolean => {
+		const pin = pinOf(found.text);
+		return (
+			(pin !== null && SHA_PIN.test(pin[1]) && PIN_COMMENT.test(pin[2])) ||
+			TOOL_DIRECTIVE.test(found.comment) ||
+			(relative(path) === RENOVATE_ANNOTATED_FILE && RENOVATE_ANNOTATION.test(found.comment))
+		);
+	};
+
+	it("tells a comment from a hash inside a scalar, a quoted string or a block", () => {
+		const commentsOf = (source: string): string[] => yamlComments(source).map(({ comment }) => comment);
+
+		expect(commentsOf("a: b # one\nc: \"d # not\" # two\ne: C#\nf: 'it''s # not'\n")).toEqual(["# one", "# two"]);
+		expect(commentsOf("run: |\n  echo # shell\n  # heading\nnext: 1 # three\n")).toEqual(["# three"]);
+		expect(commentsOf("steps:\n  - run: |\n      # inside\n    env: 1 # four\n  - |\n    # inside\n")).toEqual([
+			"# four",
+		]);
+		expect(commentsOf('a: "first\n  # still the string"\n# five\n')).toEqual(["# five"]);
+	});
+
+	it("holds every uses: of another repository to a full commit SHA with its version or branch beside it", () => {
+		const pins = yamlFiles().flatMap((path) =>
+			read(path)
+				.split("\n")
+				.map((text, index) => ({ at: `${relative(path)}:${index + 1}`, pin: pinOf(text) })),
+		);
+		const unpinned = pins
+			.filter(({ pin }) => pin !== null && !(SHA_PIN.test(pin[1]) && PIN_COMMENT.test(pin[2])))
+			.map(({ at }) => at);
+
+		expect(pins.filter(({ pin }) => pin !== null).length).toBeGreaterThan(0);
+		expect(unpinned).toEqual([]);
+	});
+
+	it("carries no comment in YAML but a SHA pin's version, a tool directive and the line Renovate writes", () => {
+		const files = yamlFiles();
+		const offenders = files.flatMap((path) =>
+			yamlComments(read(path))
+				.filter((found) => !allowed({ path, found }))
+				.map(({ line, comment }) => `${relative(path)}:${line} ${comment}`),
+		);
+
+		expect(files.length).toBeGreaterThan(0);
+		expect(offenders).toEqual([]);
+	});
+});
+
 const VERSIONED_DEPENDENCIES: Record<string, string[]> = {
 	astro: ["Astro"],
 	"@astrojs/starlight": ["Starlight"],
@@ -1295,6 +2230,7 @@ const VERSIONED_DEPENDENCIES: Record<string, string[]> = {
 	tailwindcss: ["Tailwind", "Tailwind CSS"],
 	typescript: ["TypeScript"],
 	wrangler: ["wrangler", "Wrangler"],
+	zod: ["Zod", "zod"],
 };
 const escapeForRegExp = (name: string): string => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const statedVersionPattern = (names: string[]): RegExp =>
@@ -1325,7 +2261,6 @@ const POLICED_NAMES = policedNames({
 	],
 });
 const STATED_VERSION = statedVersionPattern(POLICED_NAMES);
-const NARRATED_VERSIONS: Record<string, string[]> = { "AGENTS.md": ["Flutter 3.47.2", "Dart 3.13.2"] };
 
 describe("stated versions", () => {
 	it("polices the runtimes and every versioned dependency the manifests declare, and nothing else", () => {
@@ -1334,14 +2269,11 @@ describe("stated versions", () => {
 	});
 
 	it("states the current version of nothing a bot moves, outside the ADRs", () => {
-		const documents = markdownFiles()
+		const documents = checkedDocuments()
 			.map(relative)
 			.filter((file) => !file.startsWith("docs/adr/") && !file.endsWith("CHANGELOG.md"));
 		const stated = documents.flatMap((file) =>
-			[...read(join(REPO, file)).matchAll(STATED_VERSION)]
-				.map(([match]) => match)
-				.filter((match) => !(NARRATED_VERSIONS[file] ?? []).includes(match))
-				.map((match) => `${file}: ${match}`),
+			[...read(join(REPO, file)).matchAll(STATED_VERSION)].map(([match]) => `${file}: ${match}`),
 		);
 
 		expect(documents.length).toBeGreaterThan(0);

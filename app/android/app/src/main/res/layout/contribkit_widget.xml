@@ -52,7 +52,7 @@
                     android:id="@+id/widget_streak_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
+                    android:text="@string/widget_unknown_figure"
                     android:textColor="#39D353"
                     android:textSize="9.5sp"
                     android:fontFamily="monospace"

@@ -15,7 +15,7 @@ flowchart RL
     ui --> domain
 ```
 
-Each layer documents its own rules in a colocated `AGENTS.md`.
+The rules the code is reviewed against are in [`CODING_STANDARDS.md`](https://github.com/fbuireu/contribKit/blob/main/CODING_STANDARDS.md); each layer's colocated `AGENTS.md` holds what an implementer working there needs.
 
 ---
 
@@ -33,10 +33,9 @@ Each layer documents its own rules in a colocated `AGENTS.md`.
 
 ## Where the detail lives
 
-This page is the shape, not the rules. Every layer states its own, next to the code, and those guides are what the
-maintenance contract keeps honest. A table here was a second copy that nothing checked, and it had gone wrong in
-four places at once: the `Failure` union missing `RateLimited`, a curried use case that had been deleted, a
-hardcoded default Cell Shape that comes from [`shared/shapes.json`](https://github.com/fbuireu/contribKit/blob/main/shared/shapes.json), and a `total` rule stated backwards.
+This page is the shape, not the rules. The rules are in
+[`CODING_STANDARDS.md`](https://github.com/fbuireu/contribKit/blob/main/CODING_STANDARDS.md) and each layer's guide
+sits next to its code; the docs-consistency test holds both to the tree, and nothing would check a copy here.
 
 | Question | Guide |
 |---|---|
@@ -46,12 +45,10 @@ hardcoded default Cell Shape that comes from [`shared/shapes.json`](https://gith
 | What does each error mean to a caller? | **[API Reference](API-Reference)** · **[Troubleshooting](Troubleshooting)** |
 | Why are the layers this shape at all? | [ADR 0003](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0003-layered-domain-architecture-in-both-clients.md) |
 
-Two rules are worth stating here because they hold in both clients and in every layer:
-
-- **Repositories are interfaces in `domain/`,** implemented in `infrastructure/`. A network or parsing error becomes
-  a typed failure at that boundary; a raw `Error` never escapes it.
-- **Errors are a sealed set, matched without a wildcard.** The web returns them as values, the app throws them
-  ([ADR 0004](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)).
+Two of those rules shape every layer in both clients: repositories are interfaces in `domain/` that
+`infrastructure/` implements, and failures are a sealed set matched without a wildcard, which the web returns as
+values and the app throws
+([ADR 0004](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)).
 
 ---
 

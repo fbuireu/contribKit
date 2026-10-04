@@ -41,7 +41,7 @@ describe("computeContributionStats", () => {
 		expect(computeContributionStats({ days, year: 2021, today: iso("2026-08-28") }).currentStreak).toBe(0);
 	});
 
-	it("totals counts and computes trailing streak + longest run", () => {
+	it("adds up the Counts and computes the current and longest streaks", () => {
 		const stats = computeContributionStats({
 			year: 2024,
 			today: iso("2024-01-04"),
@@ -95,7 +95,7 @@ describe("statsWithScrapedTotal", () => {
 		day({ date: "2024-01-02", level: 1, count: 4 }),
 	] as const;
 
-	it("lets a scraped total win over the computed sum", () => {
+	it("lets the scraped Total Contributions win over the computed figure", () => {
 		expect(
 			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: 99 })
 				.totalContributions,
@@ -109,14 +109,14 @@ describe("statsWithScrapedTotal", () => {
 		).toBe(0);
 	});
 
-	it("keeps the computed sum when nothing was scraped", () => {
+	it("keeps the computed Total Contributions when nothing was scraped", () => {
 		expect(
 			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: null })
 				.totalContributions,
 		).toBe(7);
 	});
 
-	it("keeps the computed sum when no total is passed at all", () => {
+	it("keeps the computed Total Contributions when no scraped figure is passed at all", () => {
 		expect(statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02") }).totalContributions).toBe(7);
 	});
 
@@ -137,7 +137,7 @@ describe("totalContributionsFor", () => {
 				day({ date: "2024-01-01", level: 4, count: null }),
 				day({ date: "2024-01-02", level: 2, count: 5 }),
 			]),
-			"an unknown Count on an active day voids the total",
+			"an unknown Count on an active day voids Total Contributions",
 		).toBeNull();
 		expect(
 			totalContributionsFor([
@@ -148,7 +148,7 @@ describe("totalContributionsFor", () => {
 		).toBe(5);
 	});
 
-	it("is the total computeContributionStats reports, known or not", () => {
+	it("is the Total Contributions computeContributionStats reports, known or not", () => {
 		const known = [
 			day({ date: "2024-01-01", level: 1, count: 2 }),
 			day({ date: "2024-01-02", level: 0, count: null }),

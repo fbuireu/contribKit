@@ -1,32 +1,22 @@
 # app/lib/ui/theme
 
-The single source of truth for every visual constant. Never hardcode a hex value, an `EdgeInsets` or a `Duration`
-anywhere in the widget tree; reference these files.
+The single source of truth for every visual constant: the widget tree takes its colours, spacings, sizes and
+durations from these files, and builds an `EdgeInsets` from `Tokens`.
 
-That claim is only true because [`main.dart`](../../main.dart) was made to obey it. The `ShadThemeData` colour schemes there (which is
-what every `shadcn_ui` primitive actually paints from) held raw hex of their own, so `AppColors.dark.accent` and the
-theme's `primary` were two literals nobody kept in step. Both schemes now feed all twelve `AppColors` fields into
-thirteen scheme keys: `border` feeds `border` and `input`, `accent`/`accentForeground` feed `primary`/
-`primaryForeground` (deliberately, since the scheme's own `accent` is a hover grey and ours is the contribution
-green), and the other ten map by name. `AppColors.of(context)` takes only the *brightness* from `ShadTheme`, so the
-two would diverge silently again the moment a field stops being wired.
-
-`destructive` was the case that proved it, and it was not alone. It stayed out of the `copyWith`, so the scheme kept
-shadcn's Slate red (`#EF4444`) while `AppColors.dark.destructive` said `#7F1D1D`. Widgets picked whichever lookup
-they happened to use, drawing two different reds for the same failure, and on the `#09090B` background the token's
-value is 1.99:1, below anything readable. `foreground` had the same split (`#F4F4F5` against Slate's `#F8FAFC` in
-dark, `#18181B` against `#020817` in light), as did `cardForeground` in the light scheme; those were merely
-invisible rather than illegible, which is why they outlived the first fix. Resolving them went the other way:
-`destructive` took the colour that was already rendering, because the token's own value failed contrast, while
-`foreground` kept the token and the theme adopted it, because both were legible and `AppColors` is meant to be the
-source of truth. Every field is wired now, and every widget reads `AppColors.of(context)`.
+[`main.dart`](../../main.dart) reads them too. Its `ShadThemeData` colour schemes, which every `shadcn_ui` primitive
+actually paints from, feed all twelve `AppColors` fields into thirteen scheme keys: `border` feeds `border` and
+`input`, `accent`/`accentForeground` feed `primary`/`primaryForeground` (deliberately, since the scheme's own
+`accent` is a hover grey and ours is the contribution green), and the other ten map by name. `AppColors.of(context)`
+takes only the *brightness* from `ShadTheme`, so the two diverge silently the moment a field stops being wired: a
+primitive that paints from the scheme and a widget that reads `AppColors` draw two colours for one purpose. Every
+field is wired, and every widget reads its theme colours through `AppColors`.
 
 | File | Contents |
 |---|---|
-| [`tokens.dart`](./tokens.dart) | `Tokens`: spacing on a 4 px scale (`space1`…`space12`), radii (`radiusSm`…`radiusFull`), font sizes (`textXs`…`text3Xl`), icon sizes (`iconXs`…`iconLg`), animation durations (`durationFast`…`durationSlow` for interaction, plus `durationEntrance`, `durationBreathe`, `durationSpin`, `durationCopiedFeedback`, `cellStaggerStep` and `pulseDotDelays` for the longer set pieces), the customizer's `swatch*` sizes and `swatchGap`, the named one-off dimensions (`dragHandle*`, `formatTileSize`, `tipTileHeight`, `logoSize`, `emojiSize`, `hairlineGap`), `animScaleBegin`, `gridPadding`, `badgePadding`, `filenamePadding` and `pillPadding` |
+| [`tokens.dart`](./tokens.dart) | `Tokens`: spacing on a 4 px scale (`space1`…`space12`), radii (`radiusSm`…`radiusFull`), font sizes (`textXs`…`text3Xl`), icon sizes (`iconXs`…`iconLg`), `minTapTarget`, animation durations (`durationFast`…`durationSlow` for interaction, plus `durationEntrance`, `durationBreathe`, `durationSpin`, `durationCopiedFeedback`, `cellStaggerStep` and `pulseDotDelays` for the longer set pieces), the customizer's `swatch*` sizes and `swatchGap`, the `tileBorder*` widths of the Export and Tip tiles, the named one-off dimensions (`dragHandle*`, `formatTileSize`, `tipTileHeight`, `logoSize`, `emojiSize`, `hairlineGap`, `pillGap`, `pulseDotSize*`, `checkerSize`), `animScaleBegin`, `gridPadding`, `badgePadding`, `filenamePadding` and `pillPadding` |
 | [`app_colors.dart`](./app_colors.dart) | Semantic colours (`background`, `foreground`, `muted`, `accent`, `border`, …) with `light` and `dark` variants, plus the two that do not vary by theme (`AppColors.scrim` for a modal barrier and `AppColors.transparent`), and `AppColors.isDark(context)`, the only brightness read outside `main.dart` |
 | [`app_text_styles.dart`](./app_text_styles.dart) | `AppTextStyles`: one builder, `mono`, over JetBrains Mono with the zero-slash and `ss01` features enabled |
-| [`background_presets.dart`](./background_presets.dart) | The `BackgroundPreset` enum and the colours behind it: the glossary's Background Preset |
+| [`background_presets.dart`](./background_presets.dart) | `BackgroundPresetPainting`, which paints the glossary's Background Preset as a Flutter colour, and a re-export of the domain's `BackgroundPreset` enum |
 
 **Palettes are not here.** They are loaded at runtime from [`shared/palettes.json`](../../../../shared/palettes.json) through the bundled asset copy, by
 `AssetPaletteRepository`, and reached via `palettesProvider`. There is no compile-time palette table to edit: a new
@@ -35,32 +25,24 @@ palette is an edit to `shared/palettes.json` plus `pnpm sync:assets`
 
 ## `BackgroundPreset`
 
-`system` · `charcoal` · `github` · `navy` · `black`. `label` and `color` are getters on the enum, each an
-exhaustive `switch (this)`, so a sixth case is a compile error in both: the same shape `CellSize` already had.
-They were two hand-maintained `const Map`s reached as `labels[preset]!`, and that `!` was the crash: a case added
-to the enum and not to the map took down the Customizer the first time it rendered.
+`system` · `charcoal` · `github` · `navy` · `black`. The enum, its `label` and its `color` live in
+[`background_preset.dart`](../../domain/value_objects/background_preset.dart) in the domain, each getter an
+exhaustive `switch (this)`, so a sixth case is a compile error in both; this folder adds only the painting.
 
 - **`color` is `null` for `system` on purpose**: that is what makes "system" follow the light/dark toggle instead
-  of pinning a shade. **Read it through `colorOr(fallback)`**, never the raw getter: the call sites each
-  re-decided the `?? colors.card` / `?? systemColor` fallback, and one of them could have forgotten.
-- **`BackgroundPreset.byName` returns `null` for an unknown name**, and the caller pairs it with
-  `BackgroundPreset.fallback`. It used to coerce silently to `system`, which is the same answer but hides from the
-  reader that a stored value was rejected.
+  of pinning a shade, and `colorOr(fallback)` is where the `?? colors.card` fallback is decided.
+- **`BackgroundPreset.byName` returns `null` for an unknown name**, so a rejected stored value is visible where
+  `ViewerNotifier` pairs it with `BackgroundPreset.fallback`.
 - **Persisted by `name`, under the `backgroundPreset` key, with a legacy fallback to `cardBackground`.** Renaming a
-  case is therefore a migration: add the fallback and a test, or every user silently loses their background.
+  case is therefore a migration: add the fallback and a test, or every person silently loses their Background.
 
 ## Gotchas
 
-- **These are Flutter colours; the domain's are not.** `background_presets.dart` imports
-  `package:flutter/widgets.dart` for `Color`, while `Palette` in `domain/value_objects/` carries the project's own
-  ARGB `Color`. The two are different types with the same name: an import of the wrong one is a confusing error
-  message, and the domain one must never appear in `theme/`.
+- **Two types are called `Color`.** `background_presets.dart` holds both: the domain's ARGB `Color` that
+  `BackgroundPreset.color` returns, and Flutter's, imported `as flutter` so the two cannot be confused. The domain
+  one converts where it is painted, through `.argb`.
 - **`AppTextStyles` builds through `google_fonts`,** so a style is a function call rather than a `const`. It cannot
   be used where a `const` is required, which is why callers take the builder rather than a stored constant.
-- **It covers only the monospace face, and the widget tree does not honour the "no inline `TextStyle`" rule.**
-  `mono` is the sole builder, and call sites under [`app/lib/ui`](..) still construct a `TextStyle` directly:
-  the proportional text mostly rides on `ShadTheme`'s own text theme instead. Treat the rule as the target, not as a
-  description of the code, and do not cite this file as proof that no widget does it. (Count it with
-  `grep -rn "TextStyle(" app/lib/ui` rather than trusting a number written here.)
+- **`mono` is the only builder.** The proportional text rides on `ShadTheme`'s own text theme.
 - The spacing scale skips values (`space1, 2, 3, 4, 5, 6, 8, 10, 12`); the number is the *step*, not the pixel
   count. `Tokens.space8` is 32 px, not 8.

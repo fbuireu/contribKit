@@ -5,8 +5,8 @@ import type { ContributionDay } from "@domain/entities/types";
 import { isFailure } from "@domain/failures/failure";
 import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
-import { Selector } from "@ui/utils/dom-contract";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ClassName, ElementId, Selector } from "./dom-contract";
 import {
 	getActiveExportTab,
 	getActivePalette,
@@ -21,8 +21,8 @@ import { setDays, setUsername } from "./state";
 
 const recordUsageEvent = vi.hoisted(() => vi.fn());
 
-vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@ui/components/core/telemetry/usage-event")>()),
+vi.mock("../components/core/telemetry/usage-event", async (importOriginal) => ({
+	...(await importOriginal<typeof import("../components/core/telemetry/usage-event")>()),
 	recordUsageEvent,
 }));
 
@@ -50,52 +50,78 @@ afterEach(() => {
 
 describe("setHeroError", () => {
 	it("shows then clears the hero error", () => {
-		document.body.innerHTML = `<div id="hero-error" hidden></div>`;
+		document.body.innerHTML = `<div id="${ElementId.HeroError}" hidden></div>`;
 		setHeroError("boom");
-		expect(byId("hero-error").textContent).toBe("↳ boom");
-		expect(byId("hero-error").hidden).toBe(false);
+		expect(byId(ElementId.HeroError).textContent).toBe("↳ boom");
+		expect(byId(ElementId.HeroError).hidden).toBe(false);
 		setHeroError(null);
-		expect(byId("hero-error").hidden).toBe(true);
+		expect(byId(ElementId.HeroError).hidden).toBe(true);
 	});
 });
 
 describe("updateHeroStats", () => {
 	it("writes the totals into the bar and legend", () => {
-		document.body.innerHTML = `<span class="bar-tag"></span><div class="legend-stats"></div>`;
+		document.body.innerHTML = `<span class="${ClassName.BarTag}"></span><div class="${ClassName.LegendStats}"></div>`;
 		updateHeroStats({ totalContributions: 1234, currentStreak: 5, longestStreak: 9 });
-		expect($(".bar-tag").innerHTML).toContain("1,234");
-		expect($(".legend-stats").innerHTML).toContain("5");
-		expect($(".legend-stats").innerHTML).toContain("9");
+		expect($(Selector.BarTag).innerHTML).toContain("1,234");
+		expect($(Selector.LegendStats).innerHTML).toContain("5");
+		expect($(Selector.LegendStats).innerHTML).toContain("9");
+	});
+
+	it("prints every figure it was not given as unknown, never as 0", () => {
+		document.body.innerHTML = `<span class="${ClassName.BarTag}"></span><div class="${ClassName.LegendStats}"></div>`;
+		updateHeroStats({ totalContributions: null, currentStreak: null, longestStreak: null });
+
+		expect($(Selector.BarTag).textContent).toBe("unknown contributions");
+		expect($(Selector.LegendStats).textContent).toBe("unknown day streak·unknown longest");
+	});
+
+	it("writes what Hero.astro renders: no colour of its own, and a separator screen readers skip", () => {
+		document.body.innerHTML = `<span class="${ClassName.BarTag}"></span><div class="${ClassName.LegendStats}"></div>`;
+		updateHeroStats({ totalContributions: 1234, currentStreak: 5, longestStreak: 9 });
+
+		expect($(Selector.BarTag).innerHTML).toBe(`<span class="mono">1,234</span> contributions`);
+		expect($(`.${ClassName.LegendStats} .${ClassName.Separator}`).getAttribute("aria-hidden")).toBe("true");
 	});
 });
 
 describe("updateYearRange", () => {
 	it("takes the year from the 8th cell", () => {
-		document.body.innerHTML = `<span id="hero-year-range"></span>`;
+		document.body.innerHTML = `<span id="${ElementId.HeroYearRange}"></span>`;
 		updateYearRange(days);
-		expect(byId("hero-year-range").textContent).toBe("2024");
+		expect(byId(ElementId.HeroYearRange).textContent).toBe("2024");
 	});
 });
 
 describe("renderExportPreview", () => {
 	it("renders a png card by default", () => {
-		document.body.innerHTML = `<div id="export-preview"></div>`;
+		document.body.innerHTML = `<div id="${ElementId.ExportPreview}"></div>`;
 		renderExportPreview();
 		expect(document.querySelector(Selector.ExportPngPreview)).not.toBeNull();
 	});
 
+	it("draws the default preview for a selected tab whose key names no Export Format", () => {
+		document.body.innerHTML = `<div id="${ElementId.ExportTabs}"><button data-key="gif" aria-selected="true"></button></div><div id="${ElementId.ExportPreview}"></div>`;
+
+		expect(getActiveExportTab()).toBeNull();
+		renderExportPreview();
+
+		expect(document.querySelector(Selector.ExportPngPreview)).not.toBeNull();
+		expect(document.querySelector(Selector.ExportCodePreview)).toBeNull();
+	});
+
 	it("renders a code preview when the svg tab is active", () => {
-		document.body.innerHTML = `<div id="export-tabs"><button data-key="svg" aria-selected="true"></button></div><div id="export-preview"></div>`;
+		document.body.innerHTML = `<div id="${ElementId.ExportTabs}"><button data-key="svg" aria-selected="true"></button></div><div id="${ElementId.ExportPreview}"></div>`;
 		expect(getActiveExportTab()).toBe("svg");
 		renderExportPreview();
-		expect(document.querySelector("#export-preview .code-preview")).not.toBeNull();
-		expect(document.querySelector("#export-preview .copy-btn")).not.toBeNull();
+		expect(document.querySelector(Selector.ExportCodePreview)).not.toBeNull();
+		expect(document.querySelector(Selector.ExportCopyButton)).not.toBeNull();
 	});
 });
 
 describe("getActivePalette", () => {
 	const withActiveKey = (key: string) => {
-		document.body.innerHTML = `<div id="palette-list"><div class="palette-row active" data-key="${key}"></div></div>`;
+		document.body.innerHTML = `<div id="${ElementId.PaletteList}"><div class="${ClassName.PaletteRow} ${ClassName.Active}" data-key="${key}"></div></div>`;
 	};
 
 	it("reads the key the markup marks active", () => {
@@ -106,7 +132,7 @@ describe("getActivePalette", () => {
 	});
 
 	it("falls back to the default when no row is active", () => {
-		document.body.innerHTML = '<div id="palette-list"></div>';
+		document.body.innerHTML = `<div id="${ElementId.PaletteList}"></div>`;
 
 		expect(getActivePalette().key).toBe(DEFAULT_PALETTE_KEY);
 	});
@@ -129,7 +155,7 @@ describe("getActivePalette", () => {
 describe("the copy button", () => {
 	const clickCopy = async (writeText: () => Promise<void>) => {
 		vi.stubGlobal("navigator", { clipboard: { writeText } });
-		document.body.innerHTML = `<div id="export-tabs"><button data-key="svg" aria-selected="true"></button></div><div id="export-preview"></div>`;
+		document.body.innerHTML = `<div id="${ElementId.ExportTabs}"><button data-key="svg" aria-selected="true"></button></div><div id="${ElementId.ExportPreview}"></div>`;
 		renderExportPreview();
 		const button = document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton);
 		button?.click();
@@ -175,19 +201,17 @@ describe("the copy button", () => {
 	it("records the copy with the Export Format it copied", async () => {
 		await clickCopy(async () => {});
 
-		expect(recordUsageEvent).toHaveBeenCalledWith({
-			event: "export_copied",
-			properties: { format: "svg", outcome: "copied" },
-		});
+		expect(recordUsageEvent.mock.calls).toEqual([
+			[{ event: "export_copied", properties: { format: "svg", outcome: "copied" } }],
+		]);
 	});
 
 	it("records a refused clipboard as a failed copy", async () => {
 		await clickCopy(() => Promise.reject(new Error("denied")));
 
-		expect(recordUsageEvent).toHaveBeenCalledWith({
-			event: "export_copied",
-			properties: { format: "svg", outcome: "failed" },
-		});
+		expect(recordUsageEvent.mock.calls).toEqual([
+			[{ event: "export_copied", properties: { format: "svg", outcome: "failed" } }],
+		]);
 	});
 
 	it("does not claim success when the second click is the one that failed", async () => {
@@ -209,53 +233,53 @@ describe("the copy button", () => {
 });
 
 const CUSTOMIZE_DOM = `
-	<div id="palette-list"><button class="palette-row active" data-key="nord"></button></div>
-	<div id="shape-list"><button class="shape-btn active" data-key="square"></button></div>
-	<div id="custom-grid-container"></div>
-	<div id="hero-grid-container"></div>
-	<span id="custom-palette-label"></span>
-	<span id="custom-shape-label"></span>
+	<div id="${ElementId.PaletteList}"><button class="${ClassName.PaletteRow} ${ClassName.Active}" data-key="nord"></button></div>
+	<div id="${ElementId.ShapeList}"><button class="${ClassName.ShapeButton} ${ClassName.Active}" data-key="square"></button></div>
+	<div id="${ElementId.CustomGrid}"></div>
+	<div id="${ElementId.HeroGrid}"></div>
+	<span id="${ElementId.CustomPaletteLabel}"></span>
+	<span id="${ElementId.CustomShapeLabel}"></span>
 `;
 
 describe("getActiveShape", () => {
 	it("falls back rather than trusting a data-key naming no Cell Shape", () => {
-		document.body.innerHTML = `<div id="shape-list"><button class="shape-btn active" data-key="hexagram"></button></div><span id="custom-shape-label"></span>`;
+		document.body.innerHTML = `<div id="${ElementId.ShapeList}"><button class="${ClassName.ShapeButton} ${ClassName.Active}" data-key="hexagram"></button></div><span id="${ElementId.CustomShapeLabel}"></span>`;
 		renderCustomize();
 
-		expect(byId("custom-shape-label").textContent).toBe(DEFAULT_CELL_SHAPE);
+		expect(byId(ElementId.CustomShapeLabel).textContent).toBe(DEFAULT_CELL_SHAPE);
 	});
 
 	it("falls back when nothing is marked active at all", () => {
-		document.body.innerHTML = `<span id="custom-shape-label"></span>`;
+		document.body.innerHTML = `<span id="${ElementId.CustomShapeLabel}"></span>`;
 		renderCustomize();
 
-		expect(byId("custom-shape-label").textContent).toBe(DEFAULT_CELL_SHAPE);
+		expect(byId(ElementId.CustomShapeLabel).textContent).toBe(DEFAULT_CELL_SHAPE);
 	});
 });
 
 describe("renderCustomize over a full customize panel", () => {
 	it("labels a Palette the markup does not define with the one it fell back to", () => {
-		document.body.innerHTML = `<div id="palette-list"><button class="palette-row active" data-key="sepia"></button></div><span id="custom-palette-label"></span>`;
+		document.body.innerHTML = `<div id="${ElementId.PaletteList}"><button class="${ClassName.PaletteRow} ${ClassName.Active}" data-key="sepia"></button></div><span id="${ElementId.CustomPaletteLabel}"></span>`;
 
 		expect(() => renderCustomize()).not.toThrow();
-		expect(byId("custom-palette-label").textContent).toBe(DEFAULT_PALETTE_KEY);
+		expect(byId(ElementId.CustomPaletteLabel).textContent).toBe(DEFAULT_PALETTE_KEY);
 	});
 
 	it("names the Palette and the Cell Shape the reader picked", () => {
 		document.body.innerHTML = CUSTOMIZE_DOM;
 		renderCustomize();
 
-		expect(byId("custom-palette-label").textContent).toBe("nord");
-		expect(byId("custom-shape-label").textContent).toBe("square");
-		expect(byId("custom-grid-container").innerHTML).toContain("<svg");
-		expect(byId("hero-grid-container").innerHTML).toContain("<svg");
+		expect(byId(ElementId.CustomPaletteLabel).textContent).toBe("nord");
+		expect(byId(ElementId.CustomShapeLabel).textContent).toBe("square");
+		expect(byId(ElementId.CustomGrid).innerHTML).toContain("<svg");
+		expect(byId(ElementId.HeroGrid).innerHTML).toContain("<svg");
 	});
 
 	it("paints the legend from the Palette, and repeats the first colour past its end", () => {
-		document.body.innerHTML = `${CUSTOMIZE_DOM}<div class="legend">${'<span class="legend-sq"></span>'.repeat(6)}</div>`;
+		document.body.innerHTML = `${CUSTOMIZE_DOM}<div class="${ClassName.Legend}">${`<span class="${ClassName.LegendSquare}"></span>`.repeat(6)}</div>`;
 		renderCustomize();
 
-		const squares = document.querySelectorAll<HTMLElement>(".legend .legend-sq");
+		const squares = document.querySelectorAll<HTMLElement>(Selector.LegendSquares);
 		const colours = PALETTES.nord.colors;
 
 		expect(squares[0].style.background).toBe(colours[0].hex);
@@ -272,20 +296,20 @@ describe("renderCustomize over a full customize panel", () => {
 
 describe("renderWidget", () => {
 	it("paints the phone preview from the active Palette and names the viewer", () => {
-		document.body.innerHTML = `${CUSTOMIZE_DOM}<div id="phone-screen"></div><div id="widget-mini-grid"></div><span id="widget-username"></span>`;
+		document.body.innerHTML = `${CUSTOMIZE_DOM}<div id="${ElementId.PhoneScreen}"></div><div id="${ElementId.WidgetMiniGrid}"></div><span id="${ElementId.WidgetUsername}"></span>`;
 		renderWidget();
 
-		expect(byId("phone-screen").style.getPropertyValue("--wp-peak")).toBe(PALETTES.nord.colors[4].hex);
-		expect(byId("widget-mini-grid").innerHTML).toContain("<svg");
-		expect(byId("widget-username").textContent).toBe("torvalds");
+		expect(byId(ElementId.PhoneScreen).style.getPropertyValue("--wp-peak")).toBe(PALETTES.nord.colors[4].hex);
+		expect(byId(ElementId.WidgetMiniGrid).innerHTML).toContain("<svg");
+		expect(byId(ElementId.WidgetUsername).textContent).toBe("torvalds");
 	});
 
 	it("leaves the username slot alone when there is no username to put in it", () => {
 		setUsername("");
-		document.body.innerHTML = `<span id="widget-username">previous</span>`;
+		document.body.innerHTML = `<span id="${ElementId.WidgetUsername}">previous</span>`;
 		renderWidget();
 
-		expect(byId("widget-username").textContent).toBe("previous");
+		expect(byId(ElementId.WidgetUsername).textContent).toBe("previous");
 	});
 
 	it("skips every node the page does not carry rather than throwing", () => {
@@ -297,17 +321,17 @@ describe("renderWidget", () => {
 
 describe("renderExportPreview on the markdown tab", () => {
 	const MARKDOWN_DOM = `
-		<div id="export-tabs"><button data-key="md" aria-selected="true"></button></div>
-		<div id="palette-list"><button class="palette-row active" data-key="nord"></button></div>
-		<div id="shape-list"><button class="shape-btn active" data-key="square"></button></div>
-		<div id="export-preview"></div>
+		<div id="${ElementId.ExportTabs}"><button data-key="md" aria-selected="true"></button></div>
+		<div id="${ElementId.PaletteList}"><button class="${ClassName.PaletteRow} ${ClassName.Active}" data-key="nord"></button></div>
+		<div id="${ElementId.ShapeList}"><button class="${ClassName.ShapeButton} ${ClassName.Active}" data-key="square"></button></div>
+		<div id="${ElementId.ExportPreview}"></div>
 	`;
 
 	it("names the file README.md rather than an image", () => {
 		document.body.innerHTML = MARKDOWN_DOM;
 		renderExportPreview();
 
-		expect($("#export-preview .preview-tag").textContent).toBe("README.md");
+		expect($(`#${ElementId.ExportPreview} .${ClassName.PreviewTag}`).textContent).toBe("README.md");
 	});
 
 	it("records a copy as markdown, and never the username the snippet carries", async () => {
@@ -316,20 +340,41 @@ describe("renderExportPreview on the markdown tab", () => {
 		renderExportPreview();
 
 		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
-		await vi.waitFor(() => expect(recordUsageEvent).toHaveBeenCalledOnce());
+		await vi.waitFor(() =>
+			expect(recordUsageEvent.mock.calls).toEqual([
+				[{ event: "export_copied", properties: { format: "md", outcome: "copied" } }],
+			]),
+		);
 
-		expect(recordUsageEvent).toHaveBeenCalledWith({
-			event: "export_copied",
-			properties: { format: "md", outcome: "copied" },
-		});
 		expect(JSON.stringify(recordUsageEvent.mock.calls)).not.toContain("torvalds");
+	});
+
+	it("shows exactly the text its copy button copies, with the Cell Shape at its default", async () => {
+		const copied: string[] = [];
+		vi.stubGlobal("navigator", {
+			clipboard: {
+				writeText: async (text: string) => {
+					copied.push(text);
+				},
+			},
+		});
+		document.body.innerHTML = MARKDOWN_DOM.replace('data-key="square"', `data-key="${DEFAULT_CELL_SHAPE}"`);
+		renderExportPreview();
+
+		const shown = [...document.querySelectorAll(`${Selector.ExportCodePreview} .code-line`)]
+			.map((line) => line.textContent)
+			.join("\n");
+		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
+		await vi.waitFor(() => expect(copied).toHaveLength(1));
+
+		expect(shown).toBe(copied[0]);
 	});
 
 	it("shows a code block naming the viewer, the Palette and the Cell Shape", () => {
 		document.body.innerHTML = MARKDOWN_DOM;
 		renderExportPreview();
 
-		const code = $("#export-preview .code-preview").textContent ?? "";
+		const code = $(Selector.ExportCodePreview).textContent ?? "";
 
 		expect(getActiveExportTab()).toBe("md");
 		expect(code).toContain("torvalds");

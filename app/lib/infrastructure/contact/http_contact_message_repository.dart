@@ -11,12 +11,16 @@ import 'package:http/http.dart' as http;
 const contactEndpointPath = '/api/contact';
 
 final class HttpContactMessageRepository implements ContactMessageRepository {
-  HttpContactMessageRepository({http.Client? httpClient})
-    : _httpClient = httpClient ?? http.Client(),
-      _ownsClient = httpClient == null;
+  HttpContactMessageRepository({
+    http.Client? httpClient,
+    DateTime Function()? now,
+  }) : _httpClient = httpClient ?? http.Client(),
+       _ownsClient = httpClient == null,
+       _now = now ?? DateTime.now;
 
   final http.Client _httpClient;
   final bool _ownsClient;
+  final DateTime Function() _now;
 
   static const _timeout = Duration(seconds: 20);
 
@@ -45,8 +49,6 @@ final class HttpContactMessageRepository implements ContactMessageRepository {
               message: 'Request timed out after ${_timeout.inSeconds}s',
             ),
           );
-    } on NetworkFailure {
-      rethrow;
     } on IOException catch (e) {
       throw NetworkFailure(message: e.toString());
     } on http.ClientException catch (e) {
@@ -55,7 +57,7 @@ final class HttpContactMessageRepository implements ContactMessageRepository {
 
     if (response.statusCode == 429) {
       throw RateLimitedFailure(
-        resetAt: RetryAfter.resetAtFrom(response.headers),
+        resetAt: RetryAfter.resetAtFrom(response.headers, now: _now()),
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {

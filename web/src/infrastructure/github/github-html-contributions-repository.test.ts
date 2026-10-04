@@ -253,7 +253,7 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 		expect("days" in result).toBe(true);
 		if (!("days" in result)) return;
 		expect(result.days.map((day) => day.count)).toEqual([null, null]);
-		expect(result.totalContributions, "a NaN Count used to reach the sum and print as NaN").toBe(0);
+		expect(result.totalContributions, "a NaN Count would reach the sum and print as NaN").toBe(0);
 	});
 
 	it("voids the total when only some tool-tips parse, rather than understating it", async () => {

@@ -33,14 +33,14 @@ flowchart TD
 1. **Middleware** runs first on every request. For `/api/*` paths it applies per-IP rate limiting via the Cloudflare `API_RATE_LIMITER` binding, or `CONTACT_RATE_LIMITER` for `POST /api/contact` (keyed on `CF-Connecting-IP`); over the limit it returns `429` with `Retry-After: 60`. On every response it attaches the security headers (CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, COOP/CORP, `Referrer-Policy`, `Permissions-Policy`). See **[Web Application](Web-Application)** for the full header list.
 2. **Validation** parses query/route params with Zod, then constructs domain value objects:
    - `parseUsername` trims input and tests it against a deliberately looser approximation of GitHub's rules: alphanumeric, hyphens allowed inside, 1–39 chars. It does **not** reject consecutive hyphens, so `a--b` passes here and 404s at GitHub. If a `Username` exists, it is valid.
-   - `parseYear` accepts `null`/empty (→ latest rolling year), rejects non-integers, and bounds the year to `2005 … currentYear`.
+   - `parseYear` accepts `null`/empty (→ latest rolling year), rejects non-integers, and bounds the year to `2005 …` the year the route read off the clock.
    - Any invalid input becomes a typed `Failure` **before any network call**.
 3. **`loadContributions({ username, year })`** reaches the repository. It is a one-line arrow over `githubHtmlContributionRepository.fetchCalendar`, bound once at the module scope of [`pages/_contributions.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/_contributions.ts). There is no use case between the route and the repository, because the one that used to sit there was `repository => params => repository.fetchCalendar(params)` and asserted only that JavaScript forwards arguments.
 4. **Fetching** requests the public contributions HTML from GitHub with browser-like headers. See **[Fetching Contributions](Fetching-Contributions)**.
 5. **Parsing** extracts each day's `date`, `level` (0–4, run through `clampLevel`), and exact `count` (from the linked `<tool-tip>`) via regex over the HTML. See **[HTML Parsing](HTML-Parsing)**.
 6. **Grid building** maps the parsed days onto a fixed 53×7 (371-cell) grid aligned to week boundaries. See **[Calendar Grid](Calendar-Grid)**.
 7. **Rendering** turns the grid into an SVG string using the selected palette, shape, and background. See **[SVG Rendering](SVG-Rendering)**.
-8. **Response** is returned with cache headers `public, max-age=3600, stale-while-revalidate=86400` on the data routes. Two exceptions: `/api/health` is `no-store`, and the landing page is `private` either way: `private, max-age=3600, stale-while-revalidate=86400` for an explicitly requested user, `private, no-store` otherwise.
+8. **Response** is returned with cache headers `public, max-age=3600, stale-while-revalidate=86400` on the data routes. Two exceptions: `/api/health` is `no-store`, and the landing page is `private` either way: `private, max-age=3600, stale-while-revalidate=86400` when the visitor asked for someone and the calendar loaded, `private, no-store` otherwise.
 
 The `/api/contributions` and `/user/:username.svg` routes instantiate the repository and use cases **once at module load** (not per request), so warm Worker isolates reuse them.
 
@@ -60,7 +60,7 @@ type Failure =
   | { kind: "Delivery"; message: string };
 ```
 
-At the HTTP boundary, `statusFor` and `messageFor` (in [`application/http/failure-http.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/application/http/failure-http.ts)) map a `Failure` to a status code and a user-facing message. This is the **only** place that mapping lives:
+At the HTTP boundary, `statusFor` and `messageFor` (in [`application/http/failure-http.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/application/http/failure-http.ts)) map a `Failure` to a status code and a user-facing message, and `errorBodyFor` builds the JSON error body from them: the message as `error`, the failure's `kind`, and the `field` of an `InvalidInput`. This is the **only** place that mapping lives:
 
 | Failure | Typical cause | `statusFor` | `messageFor` |
 |---------|---------------|-------------|--------------|

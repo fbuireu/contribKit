@@ -141,11 +141,6 @@
 		min-width: 7.5rem;
 		color: var(--contrib-peak);
 	}
-	.us-sep {
-		width: 0.0625rem;
-		background: var(--border-strong);
-		align-self: stretch;
-	}
 	.us-year-wrap {
 		position: relative;
 		display: flex;

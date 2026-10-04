@@ -4,7 +4,8 @@ Date: 2026-07-26
 
 ## Status
 
-Accepted.
+Accepted. Amended 2026-10-02: the web's JSON API names a failure's kind, so the kinds are part of its published
+contract; the *Decision* section carries the amendment.
 
 ## Context
 
@@ -18,9 +19,11 @@ The two clients differ in how a failure travels, and this is deliberate rather t
 
 Value objects follow the same split. On the web, `parseUsername` and `parseYear` return `T | Failure`, so an existing `Username` is always valid and nothing downstream re-validates. In the app, `Username` and `Year` validate in their constructors and throw `ArgumentError` / `RangeError` (framework errors, not `Failure`s), which the UI catches at the input boundary.
 
+*Amended 2026-10-02.* The web publishes the kind. Every `Failure` `/api/contributions` answers with becomes a JSON body built by `errorBodyFor` in [`failure-http.ts`](../../web/src/application/http/failure-http.ts): the `error` text it always carried, the variant's name as `kind`, and the `field` of an `InvalidInput`. A client words the failure from the kind, because the status conflates causes: a `Parse` failure answers 502 like a `Network` one, and a rejected Year answers 400 like a rejected Username. The landing page's `contributionError` keeps one sentence per kind in a `Record<Failure["kind"], string>`, so a new kind is a compile error there too. A separate vocabulary of public error codes was the alternative, and it would be one more table kept in step with the union for no reader who needs the two to differ. The cost is that the kind names are a published contract: renaming or splitting a variant breaks a client of the API and waits for a release that says so, while adding one is additive. The SVG route keeps its `text/plain` body, because an `<img>` reads none of it.
+
 ## Consequences
 
-- **No wildcard arm.** A `_ =>` in the app's match compiles fine and silently disables Dart's exhaustiveness check; it is how four failure kinds once collapsed into one generic string. The one match is `FailureMessage.of`, and it lists every subclass on purpose. Do not widen it to silence the compiler. It used to sit in a private method on a private widget, which is why this ADR named `_ErrorState` for a year after the match had moved out of it.
+- **No wildcard arm.** A `_ =>` in the app's match compiles fine and silently disables Dart's exhaustiveness check; it is how four failure kinds once collapsed into one generic string. There are three matches, `FailureMessage.of`, `DiagnosticReportService.warrants` and `CalendarFailureKind.of`, and each lists every subclass on purpose. Do not widen one to silence the compiler; the docs contract fails on a `switch` over a `Failure` that carries a `_` or `default` arm.
 - A typed failure is only worth having if something constructs it. `RateLimitedFailure` sat in the app's hierarchy with a message wired up in the UI and no code path that could produce it, because every non-200 became a `NetworkFailure`. **That is closed**: the app throws it on an upstream 429 with `resetAt` parsed from `Retry-After`.
 - The web had the mirror of that gap for longer: no `RateLimited` at all, so GitHub's 429 arrived as `Network`, mapped to 502, and told the reader "could not reach github" about a service that had answered and said *slow down*. The web set is now `NotFound`, `InvalidInput`, `Network`, `Parse`, `RateLimited`, and `RateLimited` carries `retryAfterSeconds`, which is read: `retryAfterHeader` turns it back into a `Retry-After` on the way out and both data routes spread it into their error response, so the wait GitHub named survives the round trip instead of being parsed and dropped. It answers `{}` for every other kind and for a 429 that named no wait, because a fabricated `Retry-After` is worse than none.
 - The taxonomies do not match one-for-one, and mostly should not: the app exports files, reads bundled assets and takes Tips, so it carries `Export`, `Asset`, `Tip` and `Cache` failures the web has no use for.

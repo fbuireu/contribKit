@@ -25,7 +25,6 @@ describe("an unexpected throw never escapes a public route", () => {
 	it("answers the JSON API with a structured 500 and logs it", async () => {
 		const res = (await apiGet({
 			url: new URL("https://contribkit.app/api/contributions?user=torvalds"),
-			locals: {},
 		} as never)) as Response;
 
 		expect(res.status).toBe(500);
@@ -39,7 +38,6 @@ describe("an unexpected throw never escapes a public route", () => {
 		const res = (await svgGet({
 			url: new URL("https://contribkit.app/user/torvalds.svg"),
 			params: { username: "torvalds" },
-			locals: {},
 		} as never)) as Response;
 
 		expect(res.status).toBe(500);
@@ -52,7 +50,6 @@ describe("an unexpected throw never escapes a public route", () => {
 		const res = (await svgGet({
 			url: new URL("https://contribkit.app/user/torvalds.svg"),
 			params: { username: "torvalds" },
-			locals: {},
 		} as never)) as Response;
 
 		expect(await res.text()).not.toContain(boom.message);

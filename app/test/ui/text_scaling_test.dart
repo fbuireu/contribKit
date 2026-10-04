@@ -6,8 +6,10 @@ import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/ui/features/contact/contact_sheet.dart';
 import 'package:contribkit/ui/features/customizer/customizer_sheet.dart';
 import 'package:contribkit/ui/features/export/export_sheet.dart';
+import 'package:contribkit/ui/features/privacy/privacy_sheet.dart';
 import 'package:contribkit/ui/features/tip/tip_jar_sheet.dart';
 import 'package:contribkit/ui/features/viewer/viewer_screen.dart';
+import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -24,7 +26,7 @@ List<Override> _loaded() => appOverrides(
   settings: FakeSettingsRepository(
     settings: AppSettings(
       lastUsername: Username('octocat'),
-      lastYear: Year(2024),
+      lastYear: Year(2024, today: testToday),
     ),
   ),
   contributions: FakeContributionRepository(
@@ -33,9 +35,9 @@ List<Override> _loaded() => appOverrides(
 );
 
 Future<void> _atEveryScale(
-  WidgetTester tester,
-  Future<void> Function(WidgetTester tester) pump,
-) async {
+  WidgetTester tester, {
+  required Future<void> Function(Size screen) pump,
+}) async {
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -44,7 +46,7 @@ Future<void> _atEveryScale(
       tester.platformDispatcher.textScaleFactorTestValue = scale;
       await tester.binding.setSurfaceSize(screen);
 
-      await pump(tester);
+      await pump(screen);
 
       expect(
         tester.takeException(),
@@ -59,37 +61,48 @@ Future<void> _atEveryScale(
 void main() {
   group('nothing overflows when the system font grows', () {
     testWidgets('the Viewer, before a username and after one', (tester) async {
-      await _atEveryScale(tester, (tester) async {
-        await tester.pumpWidget(
-          host(overrides: appOverrides(), child: const ViewerScreen()),
-        );
-        await tester.pumpAndSettle();
-      });
+      await _atEveryScale(
+        tester,
+        pump: (_) async {
+          await tester.pumpWidget(
+            host(overrides: appOverrides(), child: const ViewerScreen()),
+          );
+          await tester.pumpAndSettle();
+        },
+      );
 
-      await _atEveryScale(tester, (tester) async {
-        await tester.pumpWidget(
-          host(overrides: _loaded(), child: const ViewerScreen()),
-        );
-        await tester.pumpAndSettle();
-      });
+      await _atEveryScale(
+        tester,
+        pump: (_) async {
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pumpWidget(
+            host(overrides: _loaded(), child: const ViewerScreen()),
+          );
+          await tester.pumpAndSettle();
+
+          expect(find.byType(ContributionGrid), findsOneWidget);
+        },
+      );
     });
 
     testWidgets('the Customizer', (tester) async {
-      await _atEveryScale(tester, (tester) async {
-        await pumpSheet(
+      await _atEveryScale(
+        tester,
+        pump: (screen) => pumpSheet(
           tester,
-          surfaceSize: tester.view.physicalSize / tester.view.devicePixelRatio,
+          surfaceSize: screen,
           overrides: _loaded(),
           builder: (_) => const CustomizerSheet(),
-        );
-      });
+        ),
+      );
     });
 
     testWidgets('the Export sheet', (tester) async {
-      await _atEveryScale(tester, (tester) async {
-        await pumpSheet(
+      await _atEveryScale(
+        tester,
+        pump: (screen) => pumpSheet(
           tester,
-          surfaceSize: tester.view.physicalSize / tester.view.devicePixelRatio,
+          surfaceSize: screen,
           overrides: appOverrides(),
           builder: (_) => ExportSheet(
             calendar: testCalendar(weeks: 3),
@@ -97,30 +110,44 @@ void main() {
             cellShape: CellShape.rounded,
             cellSize: CellSize.normal,
           ),
-        );
-      });
+        ),
+      );
     });
 
     testWidgets('the Contact sheet', (tester) async {
-      await _atEveryScale(tester, (tester) async {
-        await pumpSheet(
+      await _atEveryScale(
+        tester,
+        pump: (screen) => pumpSheet(
           tester,
-          surfaceSize: tester.view.physicalSize / tester.view.devicePixelRatio,
+          surfaceSize: screen,
           overrides: appOverrides(),
           builder: (_) => const ContactSheet(),
-        );
-      });
+        ),
+      );
     });
 
     testWidgets('the Tip Jar', (tester) async {
-      await _atEveryScale(tester, (tester) async {
-        await pumpSheet(
+      await _atEveryScale(
+        tester,
+        pump: (screen) => pumpSheet(
           tester,
-          surfaceSize: tester.view.physicalSize / tester.view.devicePixelRatio,
+          surfaceSize: screen,
           overrides: appOverrides(),
           builder: (_) => const TipJarSheet(),
-        );
-      });
+        ),
+      );
+    });
+
+    testWidgets('the Privacy sheet', (tester) async {
+      await _atEveryScale(
+        tester,
+        pump: (screen) => pumpSheet(
+          tester,
+          surfaceSize: screen,
+          overrides: appOverrides(),
+          builder: (_) => const PrivacySheet(),
+        ),
+      );
     });
   });
 }

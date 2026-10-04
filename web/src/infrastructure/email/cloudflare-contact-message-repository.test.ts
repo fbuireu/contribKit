@@ -119,7 +119,7 @@ describe("cloudflareContactMessageRepository", () => {
 		expect(await repository.deliver(sending)).toBe(sending);
 	});
 
-	it("answers Delivery when the binding is absent, which is every local run", async () => {
+	it("answers Delivery when the binding is absent, as it is in a build run outside wrangler", async () => {
 		env.CONTACT_EMAIL = undefined;
 
 		const result = await repository.deliver(message());

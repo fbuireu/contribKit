@@ -5,7 +5,7 @@ import { GET } from "../api/contributions";
 const HTML = `<td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="c1"></td><tool-tip for="c1">5 contributions</tool-tip>`;
 
 const call = (query: string): Promise<Response> =>
-	GET({ url: new URL(`https://contribkit.app/api/contributions${query}`), locals: {} } as never) as Promise<Response>;
+	GET({ url: new URL(`https://contribkit.app/api/contributions${query}`) } as never) as Promise<Response>;
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -13,7 +13,11 @@ describe("GET /api/contributions", () => {
 	it("400 when user is missing", async () => {
 		const res = await call("");
 		expect(res.status).toBe(400);
-		expect(await res.json()).toEqual({ error: "Missing required parameter: user" });
+		expect(await res.json()).toEqual({
+			error: "Missing required parameter: user",
+			kind: "InvalidInput",
+			field: "username",
+		});
 	});
 
 	it("400 when user is present but empty, which the shape check rejects before any value object", async () => {
@@ -23,7 +27,11 @@ describe("GET /api/contributions", () => {
 		const res = await call("?user=&year=2024");
 
 		expect(res.status).toBe(400);
-		expect(await res.json()).toEqual({ error: "Missing required parameter: user" });
+		expect(await res.json()).toEqual({
+			error: "Missing required parameter: user",
+			kind: "InvalidInput",
+			field: "username",
+		});
 		expect(fetch).not.toHaveBeenCalled();
 	});
 
@@ -31,8 +39,26 @@ describe("GET /api/contributions", () => {
 		const badUser = await call("?user=foo_bar");
 		const badYear = await call("?user=torvalds&year=1999");
 
-		expect(await badUser.json()).toMatchObject({ field: "username" });
-		expect(await badYear.json()).toMatchObject({ field: "year" });
+		expect(await badUser.json()).toEqual({ error: "Invalid GitHub username", kind: "InvalidInput", field: "username" });
+		expect(await badYear.json()).toMatchObject({ kind: "InvalidInput", field: "year" });
+	});
+
+	it("names the kind of every failure GitHub's answer causes, beside the message it already carried", async () => {
+		const answers: [Response, Record<string, string>][] = [
+			[new Response("", { status: 404 }), { error: "User not found", kind: "NotFound" }],
+			[new Response("", { status: 503 }), { error: "GitHub returned 503", kind: "Network" }],
+			[new Response("<p>no calendar</p>", { status: 200 }), { error: "Could not parse contributions", kind: "Parse" }],
+			[new Response("", { status: 429 }), { error: "GitHub is rate-limiting this Worker", kind: "RateLimited" }],
+		];
+
+		for (const [answer, body] of answers) {
+			vi.stubGlobal(
+				"fetch",
+				vi.fn(async () => answer),
+			);
+
+			expect(await (await call("?user=torvalds")).json()).toEqual(body);
+		}
 	});
 
 	it("400 on an invalid username", async () => {
@@ -79,7 +105,7 @@ describe("GET /api/contributions", () => {
 		const res = await call("?user=ghost");
 
 		expect(res.status).toBe(404);
-		expect(await res.json()).toEqual({ error: "User not found" });
+		expect(await res.json()).toEqual({ error: "User not found", kind: "NotFound" });
 	});
 
 	it("502 when GitHub is unavailable", async () => {

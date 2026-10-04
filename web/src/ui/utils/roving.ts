@@ -1,4 +1,4 @@
-import { ClassName, ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "./dom-contract";
 export const RovingOrientation = {
 	Horizontal: "horizontal",
 	Both: "both",

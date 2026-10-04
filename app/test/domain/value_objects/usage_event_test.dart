@@ -33,7 +33,7 @@ final List<_Expected> _catalogue = [
   (event: UsageEvent.privacyOpened, name: 'privacyOpened', properties: {}),
   (
     event: UsageEvent.calendarViewed(
-      year: Year(2024),
+      year: Year(2024, today: testToday),
       source: CalendarRequestSource.suggestion,
       fromCache: true,
     ),
@@ -49,7 +49,7 @@ final List<_Expected> _catalogue = [
     properties: {'source': 'refresh', 'reason': 'rateLimited'},
   ),
   (
-    event: UsageEvent.yearChosen(year: Year(2019)),
+    event: UsageEvent.yearChosen(year: Year(2019, today: testToday)),
     name: 'yearChosen',
     properties: {'year': 2019},
   ),
@@ -87,17 +87,17 @@ final List<_Expected> _catalogue = [
     properties: {'format': 'png'},
   ),
   (
-    event: UsageEvent.tipGiven(product: testTipProducts.first),
+    event: UsageEvent.tipGiven(tipProduct: testTipProducts.first),
     name: 'tipGiven',
     properties: {'product': 'tip.small'},
   ),
   (
-    event: UsageEvent.tipCancelled(product: testTipProducts.last),
+    event: UsageEvent.tipCancelled(tipProduct: testTipProducts.last),
     name: 'tipCancelled',
     properties: {'product': 'tip.large'},
   ),
   (
-    event: UsageEvent.tipFailed(product: testTipProducts[1]),
+    event: UsageEvent.tipFailed(tipProduct: testTipProducts[1]),
     name: 'tipFailed',
     properties: {'product': 'tip.medium'},
   ),
@@ -138,7 +138,7 @@ void main() {
       final username = Username('octocat');
       final calendarEvents = [
         UsageEvent.calendarViewed(
-          year: Year(2024),
+          year: Year(2024, today: testToday),
           source: CalendarRequestSource.typed,
           fromCache: false,
         ),
@@ -156,17 +156,17 @@ void main() {
 
     test('compares by name and properties', () {
       final one = UsageEvent.calendarViewed(
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
         fromCache: false,
       );
       final same = UsageEvent.calendarViewed(
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
         fromCache: false,
       );
       final otherYear = UsageEvent.calendarViewed(
-        year: Year(2023),
+        year: Year(2023, today: testToday),
         source: CalendarRequestSource.typed,
         fromCache: false,
       );
@@ -175,7 +175,7 @@ void main() {
       expect(one.hashCode, same.hashCode);
       expect(one, isNot(otherYear));
       expect(
-        UsageEvent.yearChosen(year: Year(2024)),
+        UsageEvent.yearChosen(year: Year(2024, today: testToday)),
         isNot(UsageEvent.customizerOpened),
       );
       expect(UsageEvent.customizerOpened, isNot(UsageEvent.exportOpened));
@@ -205,7 +205,7 @@ void main() {
         'UsageEvent(customizerOpened)',
       );
       expect(
-        UsageEvent.yearChosen(year: Year(2020)).toString(),
+        UsageEvent.yearChosen(year: Year(2020, today: testToday)).toString(),
         'UsageEvent(yearChosen, {year: 2020})',
       );
     });

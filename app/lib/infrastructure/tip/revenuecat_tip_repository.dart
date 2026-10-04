@@ -8,7 +8,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 final class RevenueCatTipRepository implements TipRepository {
   @override
-  Future<List<TipProduct>> getProducts() async {
+  Future<List<TipProduct>> getTipProducts() async {
     try {
       final offerings = await Purchases.getOfferings();
       final current = offerings.current;
@@ -35,11 +35,11 @@ final class RevenueCatTipRepository implements TipRepository {
   }
 
   @override
-  Future<TipOutcome> give(TipProduct product) async {
+  Future<TipOutcome> give(TipProduct tipProduct) async {
     try {
       final offerings = await Purchases.getOfferings();
       final matches = offerings.current?.availablePackages.where(
-        (p) => p.storeProduct.identifier == product.id,
+        (p) => p.storeProduct.identifier == tipProduct.id,
       );
       if (matches == null || matches.isEmpty) {
         throw const TipFailure(message: 'Tip Product not found');

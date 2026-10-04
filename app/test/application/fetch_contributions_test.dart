@@ -5,6 +5,8 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/fixtures.dart';
+
 final class _FakeContributionRepository implements ContributionRepository {
   _FakeContributionRepository({
     required this._calendar,
@@ -33,7 +35,7 @@ final class _FakeContributionRepository implements ContributionRepository {
 
 void main() {
   final username = Username('octocat');
-  final year = Year(2023);
+  final year = Year(2023, today: testToday);
   final emptyCalendar = ContributionCalendar(
     username: username,
     year: year,

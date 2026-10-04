@@ -95,7 +95,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
     namedSize: widget.cellSize,
   );
 
-  Future<void> _save() async {
+  Future<void> _export() async {
     if (_exporting) return;
     final format = _selected;
     final usageEvents = ref.read(usageEventRepositoryProvider);
@@ -193,7 +193,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
             children: [
               Expanded(
                 child: AppButton(
-                  onPressed: _exporting ? null : _save,
+                  onPressed: _exporting ? null : _export,
                   semanticLabel: _actionLabel,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -201,7 +201,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                     children: [
                       Icon(_actionIcon, size: Tokens.iconSm),
                       const SizedBox(width: Tokens.space2),
-                      Text(_actionLabel),
+                      Flexible(child: Text(_actionLabel)),
                     ],
                   ),
                 ),
@@ -294,7 +294,7 @@ class _CheckerPainter extends CustomPainter {
   final Color color1;
   final Color color2;
 
-  static const _step = 12.0;
+  static const _step = Tokens.checkerSize;
 
   @override
   void paint(Canvas canvas, Size size) {

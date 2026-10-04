@@ -1,10 +1,4 @@
-import {
-	recordUsageEvent,
-	SiteSection,
-	StoreLinkPlacement,
-	StoreName,
-	UsageEventName,
-} from "@ui/components/core/telemetry/usage-event";
+import { recordUsageEvent, SiteSection, StoreLinkPlacement, StoreName, UsageEventName } from "./usage-event";
 
 export const UsageAttribute = {
 	Event: "data-usage-event",

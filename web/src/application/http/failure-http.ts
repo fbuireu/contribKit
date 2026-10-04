@@ -17,6 +17,12 @@ export const statusFor = (failure: Failure): number => STATUS_BY_KIND[failure.ki
 export const fieldFor = (failure: Failure): Record<string, string> =>
 	failure.kind === FailureKind.InvalidInput ? { field: failure.field } : {};
 
+export interface FailureBody {
+	readonly error: string;
+	readonly kind: Failure["kind"];
+	readonly field?: string;
+}
+
 export const messageFor = (failure: Failure): string => {
 	if (failure.kind === FailureKind.NotFound) return NOT_FOUND_MESSAGE;
 	if (failure.kind === FailureKind.Delivery) return DELIVERY_MESSAGE;
@@ -30,3 +36,9 @@ export const retryAfterHeader = (failure: Failure): Record<string, string> =>
 	failure.kind === FailureKind.RateLimited && failure.retryAfterSeconds !== null
 		? { "Retry-After": String(failure.retryAfterSeconds) }
 		: {};
+
+export const errorBodyFor = (failure: Failure): FailureBody => ({
+	error: messageFor(failure),
+	kind: failure.kind,
+	...fieldFor(failure),
+});

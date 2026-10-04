@@ -6,6 +6,8 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fixtures.dart';
+
 ContributionDay _day(int day) => ContributionDay(
   date: DateTime(2024, 1, day),
   count: day,
@@ -14,7 +16,7 @@ ContributionDay _day(int day) => ContributionDay(
 
 ContributionCalendar _calendar() => ContributionCalendar(
   username: Username('octocat'),
-  year: Year(2024),
+  year: Year(2024, today: testToday),
   weeks: [
     ContributionWeek(days: [_day(1), _day(2)]),
   ],

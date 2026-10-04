@@ -57,7 +57,7 @@ describe("buildEmbedUrl", () => {
 	});
 
 	it("never emits a background, because nothing on the web chooses one", () => {
-		const url = buildEmbedUrl({ username: "torvalds", palette: "nord", shape: "hex", keepDefaults: true });
+		const url = buildEmbedUrl({ username: "torvalds", palette: "nord", shape: "hex" });
 
 		expect(url).not.toContain(EmbedParam.Background);
 	});

@@ -6,9 +6,12 @@ import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/telemetry/posthog_usage_event_repository.dart';
 import 'package:contribkit/infrastructure/telemetry/telemetry_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
+
+import '../../support/fixtures.dart';
 
 const _configured = TelemetryConfig(
   sentryDsn: '',
@@ -154,7 +157,7 @@ void main() {
         await expectLater(
           repository.record(
             UsageEvent.calendarViewed(
-              year: Year(2024),
+              year: Year(2024, today: testToday),
               source: CalendarRequestSource.typed,
               fromCache: false,
             ),
@@ -198,6 +201,110 @@ void main() {
     });
   });
 
+  group('an SDK that throws', () {
+    late List<FlutterErrorDetails> reported;
+
+    setUp(() {
+      reported = [];
+      final original = FlutterError.onError;
+      FlutterError.onError = reported.add;
+      addTearDown(() => FlutterError.onError = original);
+    });
+
+    PostHogUsageEventRepository throwing({
+      Object? onSetUp,
+      Object? onOptOut,
+      Object? onClose,
+      List<_Captured>? captured,
+      List<String>? closes,
+    }) => PostHogUsageEventRepository(
+      config: _configured,
+      setUp: (_) async {
+        if (onSetUp != null) throw onSetUp;
+      },
+      capture: ({required eventName, properties}) async =>
+          captured?.add((eventName: eventName, properties: properties)),
+      optOut: ({required bool optOut}) async {
+        if (onOptOut != null) throw onOptOut;
+      },
+      close: () async {
+        closes?.add('close');
+        if (onClose != null) throw onClose;
+      },
+    );
+
+    test('cannot stop the app starting, and reports what it threw', () async {
+      final error = StateError('posthog setup failed');
+      final captured = <_Captured>[];
+      final repository = throwing(onSetUp: error, captured: captured);
+
+      await expectLater(repository.start(), completes);
+      await repository.record(UsageEvent.tipJarOpened);
+
+      expect(repository.isStarted, isFalse);
+      expect(captured, isEmpty);
+      expect(reported.map((details) => details.exception), [error]);
+    });
+
+    test('leaves Usage Events off when a grant throws', () async {
+      final error = StateError('posthog enable failed');
+      final captured = <_Captured>[];
+      final repository = throwing(onOptOut: error, captured: captured);
+
+      await expectLater(repository.applyConsent(granted: true), completes);
+      await repository.record(UsageEvent.tipJarOpened);
+
+      expect(captured, isEmpty);
+      expect(reported.map((details) => details.exception), [error]);
+    });
+
+    test(
+      'sends nothing once a revocation throws, and closes the SDK instead',
+      () async {
+        final error = StateError('posthog disable failed');
+        final captured = <_Captured>[];
+        final closes = <String>[];
+        final repository = throwing(
+          onOptOut: error,
+          captured: captured,
+          closes: closes,
+        );
+        await repository.start();
+
+        await expectLater(repository.applyConsent(granted: false), completes);
+        await repository.record(UsageEvent.tipJarOpened);
+
+        expect(captured, isEmpty);
+        expect(closes, ['close']);
+        expect(reported.map((details) => details.exception), [error]);
+      },
+    );
+
+    test(
+      'still sends nothing when closing after a failed revocation throws too',
+      () async {
+        final disabling = StateError('posthog disable failed');
+        final closing = StateError('posthog close failed');
+        final captured = <_Captured>[];
+        final repository = throwing(
+          onOptOut: disabling,
+          onClose: closing,
+          captured: captured,
+        );
+        await repository.start();
+
+        await expectLater(repository.applyConsent(granted: false), completes);
+        await repository.record(UsageEvent.tipJarOpened);
+
+        expect(captured, isEmpty);
+        expect(reported.map((details) => details.exception), [
+          disabling,
+          closing,
+        ]);
+      },
+    );
+  });
+
   group('the SDK entry points it uses by default', () {
     late List<MethodCall> sdkCalls;
 
@@ -225,6 +332,26 @@ void main() {
       expect(arguments['eventName'], 'cellShapeChosen');
       expect(arguments['properties'], {'cellShape': 'hex'});
     });
+
+    test(
+      'hands the SDK a Tip Product under the product key its history uses',
+      () async {
+        final repository = defaults();
+        await repository.start();
+
+        await repository.record(
+          UsageEvent.tipGiven(tipProduct: testTipProducts.first),
+        );
+
+        final capture = sdkCalls.singleWhere(
+          (call) => call.method == 'capture',
+        );
+        expect(capture.arguments as Map, {
+          'eventName': 'tipGiven',
+          'properties': {'product': 'tip.small'},
+        });
+      },
+    );
 
     test(
       'hands the SDK no properties map for an event that has none',

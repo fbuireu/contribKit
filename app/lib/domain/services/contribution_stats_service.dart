@@ -38,23 +38,23 @@ abstract final class ContributionStatsService {
     }
 
     var longestStreak = 0;
-    var run = 0;
+    var streak = 0;
     var bestCount = 0;
     DateTime? bestDate;
     var totalActive = 0;
 
     for (final day in allDays) {
       if (day.isActive) {
-        run++;
+        streak++;
         totalActive++;
-        if (run > longestStreak) longestStreak = run;
+        if (streak > longestStreak) longestStreak = streak;
         final count = day.count;
         if (count != null && count > bestCount) {
           bestCount = count;
           bestDate = day.date;
         }
       } else {
-        run = 0;
+        streak = 0;
       }
     }
 

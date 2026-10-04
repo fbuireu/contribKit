@@ -1,18 +1,34 @@
 import type { CookieConsentConfig } from "vanilla-cookieconsent";
 import { acceptedCategory } from "vanilla-cookieconsent";
+import { USERNAME_COOKIE } from "../../../utils/cookie";
 
 export const CONSENT_COOKIE_NAME = "cc_cookie";
-export const ANALYTICS_CATEGORY = "analytics";
+
+export const ConsentCategory = {
+	Necessary: "necessary",
+	Analytics: "analytics",
+} as const;
+
+export const ConsentService = {
+	GoogleAnalytics: "ga4",
+	BetterStack: "betterstack",
+} as const;
 
 const GOOGLE_ANALYTICS_COOKIES = /^_ga/;
 const GOOGLE_ANALYTICS_LEGACY_COOKIES = /^(_ga|_gid)/;
 const BETTER_STACK_COOKIES = /^bs_/;
 
 export const config: CookieConsentConfig = {
+	cookie: {
+		name: CONSENT_COOKIE_NAME,
+	},
+
 	onChange: ({ changedCategories, changedServices }) => {
-		const analyticsChanged = changedCategories.includes("analytics") || Object.hasOwn(changedServices, "analytics");
+		const analyticsChanged =
+			changedCategories.includes(ConsentCategory.Analytics) ||
+			Object.hasOwn(changedServices, ConsentCategory.Analytics);
 		if (!analyticsChanged) return;
-		if (!acceptedCategory("analytics")) globalThis.location.reload();
+		if (!acceptedCategory(ConsentCategory.Analytics)) globalThis.location.reload();
 	},
 
 	guiOptions: {
@@ -30,21 +46,21 @@ export const config: CookieConsentConfig = {
 	},
 
 	categories: {
-		necessary: {
+		[ConsentCategory.Necessary]: {
 			enabled: true,
 			readOnly: true,
 		},
-		analytics: {
+		[ConsentCategory.Analytics]: {
 			autoClear: {
 				cookies: [{ name: GOOGLE_ANALYTICS_COOKIES }, { name: "_gid" }, { name: BETTER_STACK_COOKIES }],
 			},
 			services: {
-				ga4: {
+				[ConsentService.GoogleAnalytics]: {
 					label:
 						'<a href="https://marketingplatform.google.com/about/analytics/terms/us/" target="_blank">Google Analytics 4</a>',
 					cookies: [{ name: GOOGLE_ANALYTICS_LEGACY_COOKIES }],
 				},
-				betterstack: {
+				[ConsentService.BetterStack]: {
 					label: '<a href="https://betterstack.com/privacy" target="_blank">Better Stack Telemetry</a>',
 					cookies: [{ name: BETTER_STACK_COOKIES }],
 				},
@@ -80,7 +96,7 @@ export const config: CookieConsentConfig = {
 						{
 							title: "Strictly necessary",
 							description: "Required for the site to work. These cannot be disabled.",
-							linkedCategory: "necessary",
+							linkedCategory: ConsentCategory.Necessary,
 							cookieTable: {
 								headers: {
 									name: "Cookie",
@@ -96,7 +112,7 @@ export const config: CookieConsentConfig = {
 										expiration: "6 months",
 									},
 									{
-										name: "ck_user",
+										name: USERNAME_COOKIE,
 										service: "ContribKit",
 										description: "Remembers the last GitHub username you viewed.",
 										expiration: "1 week",
@@ -107,7 +123,7 @@ export const config: CookieConsentConfig = {
 						{
 							title: "Analytics",
 							description: "Help us understand traffic and usage patterns. All data is anonymous and never sold.",
-							linkedCategory: "analytics",
+							linkedCategory: ConsentCategory.Analytics,
 							cookieTable: {
 								headers: {
 									name: "Cookie",

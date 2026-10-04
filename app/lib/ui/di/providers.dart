@@ -6,6 +6,7 @@ import 'package:contribkit/application/use_cases/fetch_tip_products.dart';
 import 'package:contribkit/application/use_cases/give_tip.dart';
 import 'package:contribkit/application/use_cases/invalidate_contribution_cache.dart';
 import 'package:contribkit/application/use_cases/send_contact_message.dart';
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/repositories/diagnostics_repository.dart';
@@ -40,6 +41,9 @@ part 'providers.g.dart';
 
 Duration? _neverRetry(int retryCount, Object error) => null;
 
+@Riverpod(keepAlive: true)
+DateTime Function() clock(Ref ref) => DateTime.now;
+
 @riverpod
 PaletteRepository paletteRepository(Ref ref) => AssetPaletteRepository();
 
@@ -57,11 +61,11 @@ Future<List<String>> suggestedUsernames(Ref ref) =>
 
 @Riverpod(keepAlive: true)
 ContributionRepository contributionRepository(Ref ref) =>
-    GitHubContributionRepository();
+    GitHubContributionRepository(now: ref.watch(clockProvider));
 
 @Riverpod(keepAlive: true)
 ContactMessageRepository contactMessageRepository(Ref ref) =>
-    HttpContactMessageRepository();
+    HttpContactMessageRepository(now: ref.watch(clockProvider));
 
 @riverpod
 SendContactMessage sendContactMessage(Ref ref) =>
@@ -79,7 +83,8 @@ GiveTip giveTip(Ref ref) =>
     GiveTip(repository: ref.watch(tipRepositoryProvider));
 
 @riverpod
-SettingsRepository settingsRepository(Ref ref) => HiveSettingsRepository();
+SettingsRepository settingsRepository(Ref ref) =>
+    HiveSettingsRepository(now: ref.watch(clockProvider));
 
 @Riverpod(keepAlive: true)
 TelemetryConfig telemetryConfig(Ref ref) =>
@@ -155,7 +160,11 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
           .read(usageEventRepositoryProvider)
           .record(UsageEvent.themeChanged(mode: mode)),
     );
-    await ref.read(settingsRepositoryProvider).saveThemeMode(mode);
+    try {
+      await ref.read(settingsRepositoryProvider).saveThemeMode(mode);
+    } on Failure {
+      return;
+    }
   }
 
   ThemeMode _toFlutter(AppThemeMode m) => switch (m) {

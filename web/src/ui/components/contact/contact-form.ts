@@ -5,9 +5,9 @@ import {
 	validateContactEmail,
 	validateContactName,
 } from "@domain/value-objects/contact-message";
-import { ContactMessageOutcome, recordUsageEvent, UsageEventName } from "@ui/components/core/telemetry/usage-event";
-import { ElementId } from "@ui/utils/dom-contract";
 import { z } from "astro/zod";
+import { ElementId } from "../../utils/dom-contract";
+import { ContactMessageOutcome, recordUsageEvent, UsageEventName } from "../core/telemetry/usage-event";
 
 export const ContactStatusTone = {
 	Sent: "sent",
@@ -61,14 +61,14 @@ const FIELD_SPECS: readonly FieldSpec[] = [
 	},
 ];
 
-const errorBody = z
+const contactMessageErrorSchema = z
 	.object({
 		error: z.string().min(1).optional().catch(undefined),
 		field: z.enum(FailureField).optional().catch(undefined),
 	})
 	.catch({});
 
-type ErrorBody = z.output<typeof errorBody>;
+type ErrorBody = z.output<typeof contactMessageErrorSchema>;
 
 const messageFrom = ({ error }: ErrorBody): string => error?.toLowerCase() ?? FALLBACK_ERROR;
 
@@ -192,7 +192,7 @@ export function initContactForm(): void {
 				announce({ status, text: SENT_MESSAGE, tone: ContactStatusTone.Sent });
 				recordContactMessage(ContactMessageOutcome.Sent);
 			} else {
-				const body = errorBody.parse(await response.json().catch(() => null));
+				const body = contactMessageErrorSchema.parse(await response.json().catch(() => null));
 				if (!pointAt(body)) announce({ status, text: messageFrom(body), tone: ContactStatusTone.Failed });
 				recordContactMessage(ContactMessageOutcome.Rejected);
 			}

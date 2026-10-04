@@ -28,6 +28,7 @@ void main() {
         child: StatsPanel(
           calendar: testCalendar(year: 2024, totalContributions: 1234),
           stats: _stats(),
+          today: testToday,
         ),
       );
 
@@ -47,10 +48,11 @@ void main() {
         child: StatsPanel(
           calendar: testCalendar(year: 2024, totalContributions: null),
           stats: _stats(),
+          today: testToday,
         ),
       );
 
-      expect(find.text(unknownTotalText), findsOneWidget);
+      expect(find.text(unknownTotalContributionsText), findsOneWidget);
       expect(find.text('0'), findsNothing);
     });
 
@@ -59,7 +61,11 @@ void main() {
     ) async {
       await pumpHosted(
         tester,
-        child: StatsPanel(calendar: testCalendar(year: 2020), stats: _stats()),
+        child: StatsPanel(
+          calendar: testCalendar(year: 2020),
+          stats: _stats(),
+          today: testToday,
+        ),
       );
 
       expect(find.text('FINAL'), findsOneWidget);
@@ -70,8 +76,9 @@ void main() {
       await pumpHosted(
         tester,
         child: StatsPanel(
-          calendar: testCalendar(year: DateTime.now().year),
+          calendar: testCalendar(year: testToday.year),
           stats: _stats(),
+          today: testToday,
         ),
       );
 
@@ -84,7 +91,11 @@ void main() {
     ) async {
       await pumpHosted(
         tester,
-        child: StatsPanel(calendar: testCalendar(), stats: _stats()),
+        child: StatsPanel(
+          calendar: testCalendar(),
+          stats: _stats(),
+          today: testToday,
+        ),
       );
 
       expect(find.text('TOTAL'), findsOneWidget);

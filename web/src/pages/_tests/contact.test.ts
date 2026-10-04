@@ -21,7 +21,6 @@ const post = (body: unknown): Promise<Response> =>
 			body: typeof body === "string" ? body : JSON.stringify(body),
 		}),
 		url: new URL("https://contribkit.app/api/contact"),
-		locals: {},
 	} as never) as Promise<Response>;
 
 beforeEach(() => {
@@ -31,7 +30,7 @@ beforeEach(() => {
 });
 
 describe("POST /api/contact", () => {
-	it("400s a body that fails the shape check, which is the one hand-written status here", async () => {
+	it("400s a body that fails the shape check, the one error this route writes by hand", async () => {
 		for (const body of ["not json", "null", "[]", {}, { email: "ada@example.com" }, { email: 1, message: 2 }]) {
 			const response = await post(body);
 
@@ -93,7 +92,7 @@ describe("POST /api/contact", () => {
 		expect(await response.json()).toEqual({ error: "Could not send your message" });
 	});
 
-	it("502s when the binding is absent, which is every local run", async () => {
+	it("502s when the binding is absent, as it is in a build run outside wrangler", async () => {
 		env.CONTACT_EMAIL = undefined;
 
 		expect((await post(VALID)).status).toBe(502);
@@ -120,7 +119,6 @@ describe("POST /api/contact", () => {
 				},
 			},
 			url: new URL("https://contribkit.app/api/contact"),
-			locals: {},
 		} as never)) as Response;
 
 		expect(response.status).toBe(500);

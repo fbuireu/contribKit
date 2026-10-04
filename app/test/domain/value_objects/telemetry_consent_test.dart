@@ -62,16 +62,20 @@ void main() {
     });
 
     test('compares by value, because it rides in settings', () {
+      final granted = const TelemetryConsent().copyWith(
+        usageEvents: ConsentChoice.granted,
+      );
+
       expect(
-        const TelemetryConsent(usageEvents: ConsentChoice.granted),
+        granted,
         const TelemetryConsent(usageEvents: ConsentChoice.granted),
       );
       expect(
-        const TelemetryConsent(usageEvents: ConsentChoice.granted).hashCode,
+        granted.hashCode,
         const TelemetryConsent(usageEvents: ConsentChoice.granted).hashCode,
       );
       expect(
-        const TelemetryConsent(usageEvents: ConsentChoice.granted),
+        granted,
         isNot(const TelemetryConsent(usageEvents: ConsentChoice.denied)),
       );
     });

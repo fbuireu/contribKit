@@ -69,12 +69,12 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_username, username)
             }
 
-            val streakInt = when (streak) {
-                is Int -> streak
-                is Long -> streak.toInt()
-                else -> 0
+            val streakText = when (streak) {
+                is Int -> streak.toString()
+                is Long -> streak.toString()
+                else -> context.getString(R.string.widget_unknown_figure)
             }
-            views.setTextViewText(R.id.widget_streak_count, streakInt.toString())
+            views.setTextViewText(R.id.widget_streak_count, streakText)
 
             val totalText = totalContributions as? String
             if (totalText != null) {

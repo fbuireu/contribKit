@@ -1,13 +1,17 @@
-import { delivery, invalidInput, network, notFound, parse, rateLimited } from "@domain/failures/failure";
-import type { Username } from "@domain/value-objects/username";
+import { delivery, invalidInput, isFailure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
+import { parseUsername, type Username } from "@domain/value-objects/username";
 import { describe, expect, it } from "vitest";
-import { messageFor, reasonFor, retryAfterHeader, statusFor } from "./failure-http";
+import { errorBodyFor, messageFor, reasonFor, retryAfterHeader, statusFor } from "./failure-http";
 
-const handle = (value: string): Username => ({ _tag: "Username", value });
+const username = (raw: string): Username => {
+	const parsed = parseUsername(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not a Username: ${raw}`);
+	return parsed;
+};
 
 describe("statusFor", () => {
 	it("maps each failure kind to a status", () => {
-		expect(statusFor(notFound(handle("x")))).toBe(404);
+		expect(statusFor(notFound(username("x")))).toBe(404);
 		expect(statusFor(invalidInput({ field: "username", message: "bad" }))).toBe(400);
 		expect(statusFor(network({ message: "down" }))).toBe(502);
 		expect(statusFor(parse("oops"))).toBe(502);
@@ -18,7 +22,7 @@ describe("statusFor", () => {
 
 describe("messageFor", () => {
 	it("uses a friendly message for not-found", () => {
-		expect(messageFor(notFound(handle("ghost")))).toBe("User not found");
+		expect(messageFor(notFound(username("ghost")))).toBe("User not found");
 	});
 
 	it("answers a fixed sentence for a Delivery failure, because its message is the platform's", () => {
@@ -37,7 +41,7 @@ describe("reasonFor", () => {
 	});
 
 	it("still never echoes a username for NotFound", () => {
-		expect(reasonFor(notFound(handle("ghost")))).toBe("User not found");
+		expect(reasonFor(notFound(username("ghost")))).toBe("User not found");
 	});
 
 	it("agrees with messageFor everywhere the two are not deliberately apart", () => {
@@ -69,10 +73,35 @@ describe("retryAfterHeader", () => {
 	});
 
 	it("is empty for every other kind, so a 404 never carries one", () => {
-		expect(retryAfterHeader(notFound(handle("ghost")))).toEqual({});
+		expect(retryAfterHeader(notFound(username("ghost")))).toEqual({});
 		expect(retryAfterHeader(network({ message: "down" }))).toEqual({});
 		expect(retryAfterHeader(parse("oops"))).toEqual({});
 		expect(retryAfterHeader(invalidInput({ field: "username", message: "bad" }))).toEqual({});
 		expect(retryAfterHeader(delivery("no destination"))).toEqual({});
+	});
+});
+
+describe("errorBodyFor", () => {
+	it("names the failure's kind beside its message, so a client can word what happened", () => {
+		expect(errorBodyFor(notFound(username("ghost")))).toEqual({ error: "User not found", kind: "NotFound" });
+		expect(errorBodyFor(network({ message: "GitHub returned 503" }))).toEqual({
+			error: "GitHub returned 503",
+			kind: "Network",
+		});
+		expect(errorBodyFor(parse("Could not parse contributions"))).toEqual({
+			error: "Could not parse contributions",
+			kind: "Parse",
+		});
+		expect(
+			errorBodyFor(rateLimited({ message: "GitHub is rate-limiting this Worker", retryAfterSeconds: 60 })),
+		).toEqual({ error: "GitHub is rate-limiting this Worker", kind: "RateLimited" });
+	});
+
+	it("adds the field a rejected input names", () => {
+		expect(errorBodyFor(invalidInput({ field: "year", message: "Year must be an integer" }))).toEqual({
+			error: "Year must be an integer",
+			kind: "InvalidInput",
+			field: "year",
+		});
 	});
 });

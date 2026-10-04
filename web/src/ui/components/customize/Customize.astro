@@ -1,15 +1,15 @@
 ---
-import { ClassName, ElementId } from "@ui/utils/dom-contract";
+import { ClassName, ElementId } from "../../utils/dom-contract";
 import "./customize.css";
-import { CELL_SHAPES } from "@domain/value-objects/cell-shape";
-import { PALETTES } from "@domain/value-objects/palette";
-import { shapePreviewSVG } from "@ui/components/grid/render-svg";
-import ArrowRight from "@ui/components/icons/ArrowRight.astro";
+import { CELL_SHAPES, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
+import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
+import { shapePreviewSVG } from "../grid/render-svg";
+import ArrowRight from "../icons/ArrowRight.astro";
 
 const palettes = Object.values(PALETTES);
 ---
 
-<section class="section" id="custom" aria-label="Customize">
+<section class="section" id={ElementId.CustomizerSection} aria-label="Customizer">
   <div class="wrap">
     <div class="eyebrow" aria-hidden="true"><span class="mono">customize</span></div>
     <h2 class="section-title">
@@ -21,10 +21,10 @@ const palettes = Object.values(PALETTES);
         <div class="preview-frame" id={ElementId.CustomGrid} aria-live="polite" aria-label="Calendar preview"></div>
         <div class="preview-meta">
           <span class="mono dim">palette</span>
-          <span class="mono" id={ElementId.CustomPaletteLabel}>github</span>
+          <span class="mono" id={ElementId.CustomPaletteLabel}>{DEFAULT_PALETTE_KEY}</span>
           <span class="mono dimmer">/</span>
           <span class="mono dim">shape</span>
-          <span class="mono" id={ElementId.CustomShapeLabel}>rounded</span>
+          <span class="mono" id={ElementId.CustomShapeLabel}>{DEFAULT_CELL_SHAPE}</span>
         </div>
       </div>
       <div class="custom-controls">
@@ -34,11 +34,11 @@ const palettes = Object.values(PALETTES);
             <span class="mono dimmer">{palettes.length}</span>
           </div>
           <div class="palette-list" id={ElementId.PaletteList} role="radiogroup" aria-label="Color palette">
-            {palettes.map(({ key, name, colors }, index) => (
+            {palettes.map(({ key, name, colors }) => (
               <button
-                class:list={[ClassName.PaletteRow, { [ClassName.Active]: index === 0 }]}
+                class:list={[ClassName.PaletteRow, { [ClassName.Active]: key === DEFAULT_PALETTE_KEY }]}
                 role="radio"
-                aria-checked={index === 0 ? 'true' : 'false'}
+                aria-checked={key === DEFAULT_PALETTE_KEY ? 'true' : 'false'}
                 data-key={key}
               >
                 <span class="palette-swatches">
@@ -56,15 +56,15 @@ const palettes = Object.values(PALETTES);
             <span class="mono dimmer">{CELL_SHAPES.length}</span>
           </div>
           <div class="shape-list" id={ElementId.ShapeList} role="radiogroup" aria-label="Cell shape">
-            {CELL_SHAPES.map((kind, index) => (
+            {CELL_SHAPES.map((shape) => (
               <button
-                class:list={[ClassName.ShapeButton, { [ClassName.Active]: index === 0 }]}
+                class:list={[ClassName.ShapeButton, { [ClassName.Active]: shape === DEFAULT_CELL_SHAPE }]}
                 role="radio"
-                aria-checked={index === 0 ? 'true' : 'false'}
-                data-key={kind}
+                aria-checked={shape === DEFAULT_CELL_SHAPE ? 'true' : 'false'}
+                data-key={shape}
               >
-                <Fragment set:html={shapePreviewSVG(kind)} />
-                <span class="mono">{kind}</span>
+                <Fragment set:html={shapePreviewSVG(shape)} />
+                <span class="mono">{shape}</span>
               </button>
             ))}
           </div>

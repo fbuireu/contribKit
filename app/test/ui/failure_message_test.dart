@@ -2,6 +2,7 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/ui/failure_message.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 final _everyFailure = <Failure>[
   const NetworkFailure(message: 'offline'),
@@ -18,29 +19,46 @@ final _everyFailure = <Failure>[
 
 void main() {
   group('FailureMessage', () {
-    test('names the user a NotFoundFailure could not find', () {
+    test('names the Username a NotFoundFailure could not find', () {
       expect(
         FailureMessage.of(NotFoundFailure(username: Username('octocat'))),
-        contains('octocat'),
+        'Username "octocat" not found.',
       );
     });
 
-    test('carries the reason for the failures that have one', () {
+    test(
+      'keeps a network error off the screen, and the Username in its URL',
+      () {
+        final raw = http.ClientException(
+          'Connection closed before full header was received',
+          Uri.parse(
+            'https://github.com/users/octocat/contributions'
+            '?from=2024-01-01&to=2024-12-31',
+          ),
+        ).toString();
+
+        final message = FailureMessage.of(NetworkFailure(message: raw));
+
+        expect(raw, contains('octocat'));
+        expect(message, isNot(contains('octocat')));
+        expect(message, isNot(contains('github.com')));
+        expect(message, isNot(contains('Connection closed')));
+      },
+    );
+
+    test('keeps the raw reason of every Failure off the screen', () {
       expect(
         FailureMessage.of(const NetworkFailure(message: 'offline')),
-        contains('offline'),
+        isNot(contains('offline')),
       );
       expect(
         FailureMessage.of(const ExportFailure(message: 'no bytes')),
-        contains('no bytes'),
+        isNot(contains('no bytes')),
       );
       expect(
         FailureMessage.of(const TipFailure(message: 'declined')),
-        contains('declined'),
+        isNot(contains('declined')),
       );
-    });
-
-    test('keeps the reason out of the ones that would leak internals', () {
       expect(
         FailureMessage.of(const CacheFailure(message: 'box closed')),
         isNot(contains('box closed')),
@@ -95,7 +113,11 @@ void main() {
     test('ofAny keeps a Failure that arrived as an Object', () {
       const Object error = ExportFailure(message: 'no bytes');
 
-      expect(FailureMessage.ofAny(error), contains('no bytes'));
+      expect(
+        FailureMessage.ofAny(error),
+        FailureMessage.of(const ExportFailure(message: 'no bytes')),
+      );
+      expect(FailureMessage.ofAny(error), isNot(FailureMessage.fallback));
     });
 
     test('tells the reader when the rate limit lifts, when GitHub said', () {

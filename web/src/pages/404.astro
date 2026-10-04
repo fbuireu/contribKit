@@ -1,8 +1,9 @@
 ---
+import { NOT_CACHEABLE } from "@application/http/cache-control";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
 import ErrorView from "@ui/components/error/ErrorView.astro";
-import { type TerminalLine, TerminalLineKind } from "@ui/components/error/types";
+import { ErrorActionIcon, type TerminalLine, TerminalLineKind, Tone } from "@ui/components/error/types";
 
 const path = Astro.url.pathname || "/";
 
@@ -19,16 +20,17 @@ const terminal: TerminalLine[] = [
 ];
 
 Astro.response.status = 404;
+Astro.response.headers.set("Cache-Control", NOT_CACHEABLE);
 ---
 
 <BaseLayout metadata={metadata}>
   <ErrorView
     code={404}
-    tone="accent"
+    tone={Tone.Accent}
     eyebrow={`GET ${path} → 404`}
     title="This page ghosted you."
     message="The page you’re after doesn’t exist, like a contribution square that never lit up. It may have moved, or it was never here at all."
     terminal={terminal}
-    primary={{ href: "/", label: "Back to home", icon: "back" }}
+    primary={{ href: "/", label: "Back to home", icon: ErrorActionIcon.Back }}
   />
 </BaseLayout>

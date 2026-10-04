@@ -1,6 +1,6 @@
 import type { ContributionDay } from "@domain/entities/types";
 import { addDays, GRID_CELL_COUNT, getWeekday, toIsoDate } from "@domain/services/dates";
-import { mulberry32 } from "@ui/utils/mulberry";
+import { mulberry32 } from "../../utils/mulberry";
 
 const COUNT_SPREAD_PER_LEVEL = [0, 3, 7, 12, 24] as const;
 

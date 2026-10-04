@@ -73,5 +73,5 @@ final class ContactMessage {
   int get hashCode => Object.hash(name, email, body);
 
   @override
-  String toString() => 'ContactMessage(${name ?? '(no name)'} <$email>)';
+  String toString() => 'ContactMessage(@${email.split('@').last})';
 }

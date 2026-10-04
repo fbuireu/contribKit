@@ -14,14 +14,14 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/fakes.dart';
 import '../../../support/harness.dart';
 
-const _products = [
+const _tipProducts = [
   TipProduct(id: 'tip.coffee', title: 'Coffee', priceString: r'$1.00'),
   TipProduct(id: 'tip.croissant', title: 'Croissant', priceString: r'$5.00'),
 ];
 
 Future<void> _openJar(
-  WidgetTester tester,
-  FakeTipRepository repository, {
+  WidgetTester tester, {
+  required FakeTipRepository repository,
   FakeUsageEventRepository? usageEvents,
 }) => pumpSheet(
   tester,
@@ -37,7 +37,10 @@ Future<void> _openJar(
 void main() {
   group('TipJarSheet', () {
     testWidgets('says what a Tip is for', (tester) async {
-      await _openJar(tester, FakeTipRepository(products: _products));
+      await _openJar(
+        tester,
+        repository: FakeTipRepository(tipProducts: _tipProducts),
+      );
 
       expect(find.text('Support ContribKit'), findsOneWidget);
       expect(
@@ -48,16 +51,17 @@ void main() {
       );
     });
 
-    testWidgets('offers one tier per Tip Product, with its own price', (
-      tester,
-    ) async {
-      await _openJar(tester, FakeTipRepository(products: _products));
+    testWidgets('offers each Tip Product, with its own price', (tester) async {
+      await _openJar(
+        tester,
+        repository: FakeTipRepository(tipProducts: _tipProducts),
+      );
 
-      for (final product in _products) {
-        final look = TipProductPresentation.of(product);
-        expect(find.text(look.label), findsOneWidget, reason: product.id);
+      for (final tipProduct in _tipProducts) {
+        final look = TipProductPresentation.of(tipProduct);
+        expect(find.text(look.label), findsOneWidget, reason: tipProduct.id);
         expect(find.text(look.emoji), findsOneWidget);
-        expect(find.text(product.priceString), findsOneWidget);
+        expect(find.text(tipProduct.priceString), findsOneWidget);
       }
     });
 
@@ -70,7 +74,7 @@ void main() {
         overrides: [
           tipRepositoryProvider.overrideWithValue(
             FakeTipRepository(
-              products: _products,
+              tipProducts: _tipProducts,
               gate: Completer<void>().future,
             ),
           ),
@@ -86,7 +90,10 @@ void main() {
     testWidgets('a store with nothing to offer says so, rather than failing', (
       tester,
     ) async {
-      await _openJar(tester, FakeTipRepository(products: const []));
+      await _openJar(
+        tester,
+        repository: FakeTipRepository(tipProducts: const []),
+      );
 
       expect(
         find.text('No tips are available on this device right now.'),
@@ -101,7 +108,10 @@ void main() {
     ) async {
       const failure = TipFailure(message: 'store unreachable');
 
-      await _openJar(tester, FakeTipRepository(productsFailure: failure));
+      await _openJar(
+        tester,
+        repository: FakeTipRepository(tipProductsFailure: failure),
+      );
 
       expect(find.text(FailureMessage.of(failure)), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
@@ -111,11 +121,11 @@ void main() {
       tester,
     ) async {
       final repository = FakeTipRepository(
-        products: _products,
+        tipProducts: _tipProducts,
         failLoadsBefore: 1,
       );
 
-      await _openJar(tester, repository);
+      await _openJar(tester, repository: repository);
       expect(find.text('Retry'), findsOneWidget);
 
       await tester.tap(find.text('Retry'));
@@ -128,13 +138,13 @@ void main() {
     testWidgets('a completed Tip is marked, and the sheet says thanks', (
       tester,
     ) async {
-      final repository = FakeTipRepository(products: _products);
+      final repository = FakeTipRepository(tipProducts: _tipProducts);
 
-      await _openJar(tester, repository);
+      await _openJar(tester, repository: repository);
       await tester.tap(find.text('Coffee'));
       await tester.pumpAndSettle();
 
-      expect(repository.given, [_products.first]);
+      expect(repository.given, [_tipProducts.first]);
       expect(find.byIcon(LucideIcons.check), findsOneWidget);
       expect(find.text('Thanks! ❤️'), findsOneWidget);
       expect(find.text('Maybe later'), findsNothing);
@@ -144,48 +154,52 @@ void main() {
       tester,
     ) async {
       final repository = FakeTipRepository(
-        products: _products,
+        tipProducts: _tipProducts,
         outcome: TipOutcome.cancelled,
       );
 
-      await _openJar(tester, repository);
+      await _openJar(tester, repository: repository);
       await tester.tap(find.text('Coffee'));
       await tester.pumpAndSettle();
 
-      expect(repository.given, [_products.first]);
+      expect(repository.given, [_tipProducts.first]);
       expect(find.byIcon(LucideIcons.check), findsNothing);
       expect(find.byIcon(LucideIcons.alertCircle), findsNothing);
       expect(find.text('Maybe later'), findsOneWidget);
     });
 
-    testWidgets('a failed Tip marks its own tier and says what went wrong', (
-      tester,
-    ) async {
-      const failure = TipFailure(message: 'card declined');
+    testWidgets(
+      'a failed Tip marks its own Tip Product and says what went wrong',
+      (tester) async {
+        const failure = TipFailure(message: 'card declined');
 
-      await _openJar(
-        tester,
-        FakeTipRepository(products: _products, giveFailure: failure),
-      );
-      await tester.tap(find.text('Croissant'));
-      await tester.pumpAndSettle();
+        await _openJar(
+          tester,
+          repository: FakeTipRepository(
+            tipProducts: _tipProducts,
+            giveFailure: failure,
+          ),
+        );
+        await tester.tap(find.text('Croissant'));
+        await tester.pumpAndSettle();
 
-      expect(find.byIcon(LucideIcons.alertCircle), findsOneWidget);
-      expect(find.text(FailureMessage.of(failure)), findsOneWidget);
-    });
+        expect(find.byIcon(LucideIcons.alertCircle), findsOneWidget);
+        expect(find.text(FailureMessage.of(failure)), findsOneWidget);
+      },
+    );
 
     testWidgets('records a completed Tip against the Tip Product it concerns', (
       tester,
     ) async {
       final usageEvents = FakeUsageEventRepository();
-      final repository = FakeTipRepository(products: _products);
+      final repository = FakeTipRepository(tipProducts: _tipProducts);
 
-      await _openJar(tester, repository, usageEvents: usageEvents);
+      await _openJar(tester, repository: repository, usageEvents: usageEvents);
       await tester.tap(find.text('Coffee'));
       await tester.pumpAndSettle();
 
       expect(usageEvents.recorded, [
-        UsageEvent.tipGiven(product: _products.first),
+        UsageEvent.tipGiven(tipProduct: _tipProducts.first),
       ]);
     });
 
@@ -194,57 +208,58 @@ void main() {
     ) async {
       final usageEvents = FakeUsageEventRepository();
       final repository = FakeTipRepository(
-        products: _products,
+        tipProducts: _tipProducts,
         outcome: TipOutcome.cancelled,
       );
 
-      await _openJar(tester, repository, usageEvents: usageEvents);
+      await _openJar(tester, repository: repository, usageEvents: usageEvents);
       await tester.tap(find.text('Croissant'));
       await tester.pumpAndSettle();
 
       expect(usageEvents.recorded, [
-        UsageEvent.tipCancelled(product: _products.last),
+        UsageEvent.tipCancelled(tipProduct: _tipProducts.last),
       ]);
     });
 
-    testWidgets('a failed Tip is recorded by its product, never its message', (
-      tester,
-    ) async {
-      final usageEvents = FakeUsageEventRepository();
+    testWidgets(
+      'a failed Tip is recorded by its Tip Product, never its message',
+      (tester) async {
+        final usageEvents = FakeUsageEventRepository();
 
-      await _openJar(
-        tester,
-        FakeTipRepository(
-          products: _products,
-          giveFailure: const TipFailure(message: 'card declined'),
-        ),
-        usageEvents: usageEvents,
-      );
-      await tester.tap(find.text('Croissant'));
-      await tester.pumpAndSettle();
+        await _openJar(
+          tester,
+          repository: FakeTipRepository(
+            tipProducts: _tipProducts,
+            giveFailure: const TipFailure(message: 'card declined'),
+          ),
+          usageEvents: usageEvents,
+        );
+        await tester.tap(find.text('Croissant'));
+        await tester.pumpAndSettle();
 
-      expect(usageEvents.recorded, [
-        UsageEvent.tipFailed(product: _products.last),
-      ]);
-    });
+        expect(usageEvents.recorded, [
+          UsageEvent.tipFailed(tipProduct: _tipProducts.last),
+        ]);
+      },
+    );
 
     testWidgets('a Tip in flight blocks a second one, so nobody pays twice', (
       tester,
     ) async {
       final inFlight = Completer<void>();
       final repository = FakeTipRepository(
-        products: _products,
+        tipProducts: _tipProducts,
         giveGate: inFlight.future,
       );
 
-      await _openJar(tester, repository);
+      await _openJar(tester, repository: repository);
       await tester.tap(find.text('Coffee'));
       await tester.pump();
       await tester.tap(find.text('Croissant'));
       await tester.pump();
 
       expect(repository.given, [
-        _products.first,
+        _tipProducts.first,
       ], reason: 'the second tap arrived while the first Tip was in flight');
 
       inFlight.complete();
@@ -255,9 +270,9 @@ void main() {
     testWidgets('Maybe later closes the sheet without paying anything', (
       tester,
     ) async {
-      final repository = FakeTipRepository(products: _products);
+      final repository = FakeTipRepository(tipProducts: _tipProducts);
 
-      await _openJar(tester, repository);
+      await _openJar(tester, repository: repository);
       await tester.tap(find.text('Maybe later'));
       await tester.pumpAndSettle();
 

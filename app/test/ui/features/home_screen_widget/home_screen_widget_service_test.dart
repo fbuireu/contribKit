@@ -1,6 +1,6 @@
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
-import 'package:contribkit/ui/features/widget/calendar_widget_service.dart';
-import 'package:contribkit/ui/features/widget/home_screen_widget_payload.dart';
+import 'package:contribkit/ui/features/home_screen_widget/home_screen_widget_payload.dart';
+import 'package:contribkit/ui/features/home_screen_widget/home_screen_widget_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,12 +34,13 @@ void main() {
       (call.arguments as Map)['id'] as String: (call.arguments as Map)['data'],
   };
 
-  group('CalendarWidgetService.update', () {
+  group('HomeScreenWidgetService.update', () {
     test('saves every key the Kotlin side reads, and nothing else', () async {
-      await CalendarWidgetService.update(
+      await HomeScreenWidgetService.update(
         calendar: testCalendar(weeks: 3),
         palette: testPalette,
         cellShape: CellShape.hex,
+        today: testToday,
       );
 
       expect(savedData().keys, {
@@ -56,10 +57,11 @@ void main() {
     test('sends the payload the Home Screen Widget was built from', () async {
       final calendar = testCalendar(weeks: 3, totalContributions: 1234);
 
-      await CalendarWidgetService.update(
+      await HomeScreenWidgetService.update(
         calendar: calendar,
         palette: testPalette,
         cellShape: CellShape.hex,
+        today: testToday,
       );
 
       final data = savedData();
@@ -85,10 +87,11 @@ void main() {
     });
 
     test('refreshes both Home Screen Widget sizes, never only one', () async {
-      await CalendarWidgetService.update(
+      await HomeScreenWidgetService.update(
         calendar: testCalendar(weeks: 2),
         palette: testPalette,
         cellShape: CellShape.rounded,
+        today: testToday,
       );
 
       final updated = calls
@@ -108,10 +111,11 @@ void main() {
         refuse = true;
 
         await expectLater(
-          CalendarWidgetService.update(
+          HomeScreenWidgetService.update(
             calendar: testCalendar(weeks: 2),
             palette: testPalette,
             cellShape: CellShape.rounded,
+            today: testToday,
           ),
           completes,
         );

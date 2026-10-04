@@ -7,5 +7,6 @@ final class GiveTip {
 
   final TipRepository _repository;
 
-  Future<TipOutcome> call(TipProduct product) => _repository.give(product);
+  Future<TipOutcome> call(TipProduct tipProduct) =>
+      _repository.give(tipProduct);
 }

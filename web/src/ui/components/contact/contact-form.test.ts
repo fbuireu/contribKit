@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 
 import { CONTACT_ROUTE } from "@domain/value-objects/contact-message";
-import { ElementId } from "@ui/utils/dom-contract";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ElementId } from "../../utils/dom-contract";
 import { initContactForm } from "./contact-form";
 
 const recordUsageEvent = vi.hoisted(() => vi.fn());
 
-vi.mock("@ui/components/core/telemetry/usage-event", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@ui/components/core/telemetry/usage-event")>()),
+vi.mock("../core/telemetry/usage-event", async (importOriginal) => ({
+	...(await importOriginal<typeof import("../core/telemetry/usage-event")>()),
 	recordUsageEvent,
 }));
 
@@ -331,7 +331,7 @@ describe("validation", () => {
 
 describe("the Usage Event a submit records", () => {
 	const sentWith = (outcome: string) =>
-		expect(recordUsageEvent).toHaveBeenCalledWith({ event: "contact_message_sent", properties: { outcome } });
+		expect(recordUsageEvent.mock.calls).toEqual([[{ event: "contact_message_sent", properties: { outcome } }]]);
 
 	it("is sent when the server accepted the message", async () => {
 		fill();
@@ -343,7 +343,6 @@ describe("the Usage Event a submit records", () => {
 		await submit();
 
 		sentWith("sent");
-		expect(recordUsageEvent).toHaveBeenCalledOnce();
 	});
 
 	it("is rejected when the server answered with an error that names a field", async () => {

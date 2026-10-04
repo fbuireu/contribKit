@@ -3,12 +3,14 @@ import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fixtures.dart';
+
 void main() {
   final username = Username('octocat');
-  final year = Year(2024);
+  final year = Year(2024, today: testToday);
 
   group('ExportFormat', () {
-    test('names a saved Export after the user and the Year', () {
+    test('names a saved Export after the Username and the Year', () {
       expect(
         ExportFormat.png.fileNameFor(username: username, year: year),
         'octocat_2024.png',

@@ -55,6 +55,10 @@ abstract final class Tokens {
   static const double logoSize = 22;
   static const double emojiSize = 22;
   static const double hairlineGap = 2;
+  static const double pillGap = 6;
+  static const double pulseDotSize = 8;
+  static const double pulseDotSizeSm = 5;
+  static const double checkerSize = 12;
 
   static const double swatchSize = 14;
   static const double swatchBorderSelected = 2;

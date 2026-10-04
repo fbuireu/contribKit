@@ -2,15 +2,15 @@ import type { ContributionDay } from "@domain/entities/types";
 import type { ContributionStats } from "@domain/services/contribution-stats";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, type Palette, paletteByKey } from "@domain/value-objects/palette";
-import { ExportCopyOutcome, recordUsageEvent, UsageEventName } from "@ui/components/core/telemetry/usage-event";
-import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "@ui/components/export/code-preview";
-import { DEFAULT_EXPORT_FORMAT, ExportFormatKey } from "@ui/components/export/export-formats";
-import { formatTotalContributions } from "@ui/components/grid/contribution";
-import { CUSTOMIZE_GRID_GEOMETRY, EXPORT_GRID_GEOMETRY, HERO_GRID_GEOMETRY } from "@ui/components/grid/grid-geometry";
-import { generateMiniGrid } from "@ui/components/grid/mini-grid";
-import { renderCalendarString } from "@ui/components/grid/render-svg";
-import { ClassName, ElementId, Selector } from "@ui/utils/dom-contract";
+import { ExportCopyOutcome, recordUsageEvent, UsageEventName } from "../components/core/telemetry/usage-event";
+import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "../components/export/code-preview";
+import { DEFAULT_EXPORT_FORMAT, ExportFormatKey, isExportFormatKey } from "../components/export/export-formats";
+import { formatStreak, formatTotalContributions } from "../components/grid/contribution";
+import { CUSTOMIZE_GRID_GEOMETRY, EXPORT_GRID_GEOMETRY, HERO_GRID_GEOMETRY } from "../components/grid/grid-geometry";
+import { generateMiniGrid } from "../components/grid/mini-grid";
+import { renderCalendarString } from "../components/grid/render-svg";
 import { formatHeroError } from "./contribution-errors";
+import { ClassName, ElementId, Selector } from "./dom-contract";
 import { getDays, getUsername } from "./state";
 
 const COPIED_FEEDBACK_MS = 1500;
@@ -28,7 +28,12 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
 
 const COPY_LABEL = "copy";
 
-const flash = ({ button, message }: { button: HTMLButtonElement; message: string }): void => {
+interface FlashParams {
+	button: HTMLButtonElement;
+	message: string;
+}
+
+const flash = ({ button, message }: FlashParams): void => {
 	const pending = flashTimers.get(button);
 	if (pending !== undefined) clearTimeout(pending);
 	button.textContent = message;
@@ -49,8 +54,10 @@ export const getActiveShape = (): CellShape => {
 	return key !== undefined && isCellShape(key) ? key : DEFAULT_CELL_SHAPE;
 };
 
-export const getActiveExportTab = (): string =>
-	document.querySelector<HTMLElement>(Selector.SelectedExportTab)?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
+export const getActiveExportTab = (): ExportFormatKey | null => {
+	const key = document.querySelector<HTMLElement>(Selector.SelectedExportTab)?.dataset.key ?? DEFAULT_EXPORT_FORMAT;
+	return isExportFormatKey(key) ? key : null;
+};
 
 export function renderWidget(): void {
 	const palette = getActivePalette().colors;
@@ -95,25 +102,25 @@ export function renderExportPreview(): void {
 	if (!preview) return;
 	preview.innerHTML = "";
 	const card = document.createElement("div");
-	card.className = "preview-card";
+	card.className = ClassName.PreviewCard;
 	const palette = getActivePalette().colors;
 	const shape = getActiveShape();
-	const exportTab = getActiveExportTab();
+	const exportTab = getActiveExportTab() ?? DEFAULT_EXPORT_FORMAT;
 	const days = getDays();
 	const username = getUsername();
 
 	if (exportTab === ExportFormatKey.Png) {
 		card.classList.add(ClassName.PngPreview);
 		const checker = document.createElement("div");
-		checker.className = "preview-checker";
+		checker.className = ClassName.PreviewChecker;
 		checker.setAttribute("aria-hidden", "true");
 		card.appendChild(checker);
 		const content = document.createElement("div");
-		content.className = "preview-content";
+		content.className = ClassName.PreviewContent;
 		content.innerHTML = renderCalendarString({ days, palette, shape, ...EXPORT_GRID_GEOMETRY, showLabels: false });
 		card.appendChild(content);
 		const tag = document.createElement("div");
-		tag.className = "preview-tag mono";
+		tag.className = `${ClassName.PreviewTag} mono`;
 		tag.textContent = `${username}.png`;
 		card.appendChild(tag);
 	} else {
@@ -143,7 +150,7 @@ export function renderExportPreview(): void {
 		});
 		card.appendChild(copyButton);
 		const tag = document.createElement("div");
-		tag.className = "preview-tag mono";
+		tag.className = `${ClassName.PreviewTag} mono`;
 		tag.textContent = isSvgTab ? `${username}.svg` : "README.md";
 		card.appendChild(tag);
 	}
@@ -159,10 +166,10 @@ export function updateYearRange(days: ContributionDay[]): void {
 export function updateHeroStats(stats: ContributionStats): void {
 	const bar = document.querySelector(Selector.BarTag);
 	if (bar)
-		bar.innerHTML = `<span class="mono" style="color:var(--contrib-peak)">${formatTotalContributions(stats.totalContributions)}</span> contributions`;
+		bar.innerHTML = `<span class="mono">${formatTotalContributions(stats.totalContributions)}</span> contributions`;
 	const legend = document.querySelector(Selector.LegendStats);
 	if (legend)
-		legend.innerHTML = `<span><b class="mono">${stats.currentStreak}</b> day streak</span><span class="sep">·</span><span><b class="mono">${stats.longestStreak}</b> longest</span>`;
+		legend.innerHTML = `<span><b class="mono">${formatStreak(stats.currentStreak)}</b> day streak</span><span class="${ClassName.Separator}" aria-hidden="true">·</span><span><b class="mono">${formatStreak(stats.longestStreak)}</b> longest</span>`;
 }
 
 export function setHeroError(message: string | null): void {

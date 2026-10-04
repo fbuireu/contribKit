@@ -9,23 +9,23 @@ final class TipIdle extends TipPhase {
 }
 
 final class TipInFlight extends TipPhase {
-  const TipInFlight(this.product);
-  final TipProduct product;
+  const TipInFlight(this.tipProduct);
+  final TipProduct tipProduct;
 }
 
 final class TipCompleted extends TipPhase {
-  const TipCompleted(this.product);
-  final TipProduct product;
+  const TipCompleted(this.tipProduct);
+  final TipProduct tipProduct;
 }
 
 final class TipCancelled extends TipPhase {
-  const TipCancelled(this.product);
-  final TipProduct product;
+  const TipCancelled(this.tipProduct);
+  final TipProduct tipProduct;
 }
 
 final class TipFailed extends TipPhase {
-  const TipFailed({required this.product, required this.message});
-  final TipProduct product;
+  const TipFailed({required this.tipProduct, required this.message});
+  final TipProduct tipProduct;
   final String message;
 }
 
@@ -43,13 +43,14 @@ final class TipJarUnavailable extends TipJarState {
 }
 
 final class TipJarReady extends TipJarState {
-  const TipJarReady(this.products, {this.phase = const TipIdle()});
+  const TipJarReady(this.tipProducts, {this.phase = const TipIdle()});
 
-  final List<TipProduct> products;
+  final List<TipProduct> tipProducts;
   final TipPhase phase;
 
-  static TipJarState of(List<TipProduct> products) =>
-      products.isEmpty ? const TipJarUnavailable() : TipJarReady(products);
+  static TipJarState of(List<TipProduct> tipProducts) => tipProducts.isEmpty
+      ? const TipJarUnavailable()
+      : TipJarReady(tipProducts);
 
   bool get isBusy => phase is TipInFlight;
 
@@ -60,23 +61,23 @@ final class TipJarReady extends TipJarState {
     _ => null,
   };
 
-  bool isInFlight(TipProduct product) => switch (phase) {
-    TipInFlight(product: final p) => p.id == product.id,
+  bool isInFlight(TipProduct tipProduct) => switch (phase) {
+    TipInFlight(tipProduct: final p) => p.id == tipProduct.id,
     _ => false,
   };
 
-  bool isCompleted(TipProduct product) => switch (phase) {
-    TipCompleted(product: final p) => p.id == product.id,
+  bool isCompleted(TipProduct tipProduct) => switch (phase) {
+    TipCompleted(tipProduct: final p) => p.id == tipProduct.id,
     _ => false,
   };
 
-  bool hasFailed(TipProduct product) => switch (phase) {
-    TipFailed(product: final p) => p.id == product.id,
+  bool hasFailed(TipProduct tipProduct) => switch (phase) {
+    TipFailed(tipProduct: final p) => p.id == tipProduct.id,
     _ => false,
   };
 
-  TipJarReady? beginning(TipProduct product) =>
-      isBusy ? null : TipJarReady(products, phase: TipInFlight(product));
+  TipJarReady? beginning(TipProduct tipProduct) =>
+      isBusy ? null : TipJarReady(tipProducts, phase: TipInFlight(tipProduct));
 
-  TipJarReady settling(TipPhase next) => TipJarReady(products, phase: next);
+  TipJarReady settling(TipPhase next) => TipJarReady(tipProducts, phase: next);
 }

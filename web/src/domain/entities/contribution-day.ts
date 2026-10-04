@@ -15,8 +15,6 @@ export const contributionDay = ({ date, level, count }: ContributionDayParams): 
 	return { date: parsed, level: clampLevel(level), count };
 };
 
-export interface EmptyDayParams {
-	readonly date: IsoDate;
-}
+export const emptyDay = (date: IsoDate): ContributionDay => ({ date, level: 0, count: null });
 
-export const emptyDay = ({ date }: EmptyDayParams): ContributionDay => ({ date, level: 0, count: null });
+export const isCount = (value: number): boolean => Number.isSafeInteger(value) && value >= 0;

@@ -3,26 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('TipProduct', () {
-    test(
-      'is the store identifier, so a re-priced tier is still the same tier',
-      () {
-        const before = TipProduct(
-          id: 'tip.small',
-          title: 'Small tip',
-          priceString: r'$1.00',
-        );
-        const after = TipProduct(
-          id: 'tip.small',
-          title: 'Pequena propina',
-          priceString: '1,09 EUR',
-        );
+    test('is the store identifier, so a re-priced Tip Product is still the same one', () {
+      const before = TipProduct(
+        id: 'tip.small',
+        title: 'Small tip',
+        priceString: r'$1.00',
+      );
+      const after = TipProduct(
+        id: 'tip.small',
+        title: 'Pequena propina',
+        priceString: '1,09 EUR',
+      );
 
-        expect(after, before);
-        expect(after.hashCode, before.hashCode);
-      },
-    );
+      expect(after, before);
+      expect(after.hashCode, before.hashCode);
+    });
 
-    test('two tiers with different identifiers are different products', () {
+    test('two Tip Products with different identifiers are not the same', () {
       const small = TipProduct(
         id: 'tip.small',
         title: 'Small tip',

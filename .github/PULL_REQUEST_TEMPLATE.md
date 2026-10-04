@@ -45,11 +45,11 @@
 <!-- Check all that apply, with an "x" -->
 
 - [ ] Web: `pnpm verify` passes (format check, typecheck, `astro check` and coverage)
-- [ ] App: `dart format` ran, no `dynamic` outside the JSON boundary, spacing and colours go through the tokens, and generated files (`*.freezed.dart`, `*.g.dart`) are up to date
-- [ ] I have performed a self-review of my own code
-- [ ] My change carries no inline comments; rationale lives in this PR, the commit messages, an ADR or the folder's guide
-- [ ] I used the glossary's words ([`CONTEXT.md`](../CONTEXT.md)) rather than synonyms, and edited `shared/` rather than `app/assets/`
-- [ ] I updated any `AGENTS.md`, [`CONTEXT.md`](../CONTEXT.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), ADR or wiki page my change affects, in this same PR, and `pnpm test:docs` passes
+- [ ] App: `dart format` ran and generated files (`*.freezed.dart`, `*.g.dart`) are up to date
+- [ ] I have reviewed my own diff against [`CODING_STANDARDS.md`](../CODING_STANDARDS.md)
+- [ ] My change carries no inline comments; rationale lives in this PR, the commit messages, an ADR or a rule in [`CODING_STANDARDS.md`](../CODING_STANDARDS.md)
+- [ ] I used the glossary's words ([`CONTEXT.md`](../CONTEXT.md)) rather than synonyms
+- [ ] I updated any `AGENTS.md`, [`CODING_STANDARDS.md`](../CODING_STANDARDS.md), [`CONTEXT.md`](../CONTEXT.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), ADR or wiki page my change affects, in this same PR, and `pnpm test:docs` passes
 - [ ] My changes generate no new warnings or errors
 - [ ] I have added tests that prove my fix is effective or that my feature works
 

@@ -40,12 +40,12 @@ class ContribKitSmallWidgetProvider : AppWidgetProvider() {
             val streakRaw = prefs.getAll()["widget_streak"]
 
             val streak = when (streakRaw) {
-                is Int -> streakRaw
-                is Long -> streakRaw.toInt()
-                else -> 0
+                is Int -> streakRaw.toString()
+                is Long -> streakRaw.toString()
+                else -> context.getString(R.string.widget_unknown_figure)
             }
 
-            views.setTextViewText(R.id.widget_small_count, streak.toString())
+            views.setTextViewText(R.id.widget_small_count, streak)
 
             val intent = Intent(context, MainActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(

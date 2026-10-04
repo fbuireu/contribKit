@@ -44,10 +44,15 @@ final class _FakePaletteRepository implements PaletteRepository {
 }
 
 final class _FakeContributionRepository implements ContributionRepository {
-  _FakeContributionRepository({this.answer, this.failure});
+  _FakeContributionRepository({
+    this.answer,
+    this.failure,
+    this.invalidationFailure,
+  });
 
-  final Future<_Fetched> Function(Username username, Year year)? answer;
+  final Future<_Fetched> Function(Year year)? answer;
   final Object? failure;
+  final Object? invalidationFailure;
 
   int invalidations = 0;
 
@@ -57,7 +62,7 @@ final class _FakeContributionRepository implements ContributionRepository {
     required Year year,
   }) {
     if (failure != null) return Future.error(failure!);
-    if (answer != null) return answer!(username, year);
+    if (answer != null) return answer!(year);
     return Future.value((
       calendar: testCalendar(year: year.value),
       fromCache: false,
@@ -67,6 +72,7 @@ final class _FakeContributionRepository implements ContributionRepository {
   @override
   Future<void> invalidateCache(Username username) async {
     invalidations++;
+    if (invalidationFailure case final error?) throw error;
   }
 }
 
@@ -124,9 +130,11 @@ ProviderContainer _container({
   _FakePaletteRepository? palettes,
   _FakeContributionRepository? contributions,
   FakeUsageEventRepository? usageEvents,
+  FakeDiagnosticsRepository? diagnostics,
 }) {
   final container = ProviderContainer(
     overrides: [
+      clockProvider.overrideWithValue(() => testToday),
       settingsRepositoryProvider.overrideWithValue(
         settings ?? _FakeSettingsRepository(),
       ),
@@ -138,6 +146,9 @@ ProviderContainer _container({
       ),
       usageEventRepositoryProvider.overrideWithValue(
         usageEvents ?? FakeUsageEventRepository(),
+      ),
+      diagnosticsRepositoryProvider.overrideWithValue(
+        diagnostics ?? FakeDiagnosticsRepository(),
       ),
     ],
   );
@@ -196,21 +207,21 @@ void main() {
 
       await notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
       expect(container.read(viewerProvider).calendar, isNotNull);
 
       final pending = notifier.fetchContributions(
         username: Username('gaearon'),
-        year: Year(2023),
+        year: Year(2023, today: testToday),
         source: CalendarRequestSource.typed,
       );
 
       expect(
         container.read(viewerProvider).calendar,
         isNull,
-        reason: 'the previous user must not sit under a new username',
+        reason: 'the previous calendar must not sit under a new Username',
       );
       expect(container.read(viewerProvider).stats, isNull);
       await pending;
@@ -221,20 +232,19 @@ void main() {
       final fast = Completer<_Fetched>();
       final container = _container(
         contributions: _FakeContributionRepository(
-          answer: (username, year) =>
-              year.value == 2023 ? slow.future : fast.future,
+          answer: (year) => year.value == 2023 ? slow.future : fast.future,
         ),
       );
       final notifier = await _ready(container);
 
       final first = notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2023),
+        year: Year(2023, today: testToday),
         source: CalendarRequestSource.typed,
       );
       final second = notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
 
@@ -245,8 +255,8 @@ void main() {
 
       final state = container.read(viewerProvider);
 
-      expect(state.calendar?.year, Year(2024));
-      expect(state.year, Year(2024));
+      expect(state.calendar?.year, Year(2024, today: testToday));
+      expect(state.year, Year(2024, today: testToday));
       expect(
         state.fromCache,
         isFalse,
@@ -267,7 +277,7 @@ void main() {
 
       await notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
 
@@ -287,7 +297,7 @@ void main() {
 
       await notifier.fetchContributions(
         username: Username('ghost'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
 
@@ -302,7 +312,7 @@ void main() {
 
       await notifier.fetchContributions(
         username: Username('ghost'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
 
@@ -417,10 +427,7 @@ void main() {
         expect(
           state.paletteFailure,
           isA<AssetFailure>(),
-          reason:
-              'we ship that file, so zero Palettes in it is a fault, and '
-              '_Body used to synthesise this failure because the state could '
-              'not express it',
+          reason: 'we ship that file, so zero Palettes in it is a fault',
         );
         expect(state.blockingFailure, isA<AssetFailure>());
       },
@@ -467,7 +474,7 @@ void main() {
       final answer = Completer<_Fetched>();
       final container = bare(
         contributions: _FakeContributionRepository(
-          answer: (username, year) => answer.future,
+          answer: (year) => answer.future,
         ),
       );
       container.listen(viewerProvider, (_, _) {});
@@ -477,7 +484,7 @@ void main() {
           .read(viewerProvider.notifier)
           .fetchContributions(
             username: Username('torvalds'),
-            year: Year(2024),
+            year: Year(2024, today: testToday),
             source: CalendarRequestSource.typed,
           );
 
@@ -492,7 +499,7 @@ void main() {
       final answer = Completer<_Fetched>();
       final container = bare(
         contributions: _FakeContributionRepository(
-          answer: (username, year) => answer.future,
+          answer: (year) => answer.future,
         ),
       );
       container.listen(viewerProvider, (_, _) {});
@@ -502,7 +509,7 @@ void main() {
           .read(viewerProvider.notifier)
           .fetchContributions(
             username: Username('torvalds'),
-            year: Year(2024),
+            year: Year(2024, today: testToday),
             source: CalendarRequestSource.typed,
           );
 
@@ -525,13 +532,47 @@ void main() {
 
       await notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
       await notifier.refreshContributions();
 
       expect(contributions.invalidations, 1);
     });
+
+    test(
+      'reports a cache it cannot clear, and fetches fresh data all the same',
+      () async {
+        const failure = CacheFailure(message: 'box is gone');
+        var fetches = 0;
+        final contributions = _FakeContributionRepository(
+          answer: (year) async {
+            fetches++;
+            return (calendar: testCalendar(year: year.value), fromCache: false);
+          },
+          invalidationFailure: failure,
+        );
+        final diagnostics = FakeDiagnosticsRepository();
+        final container = _container(
+          contributions: contributions,
+          diagnostics: diagnostics,
+        );
+        final notifier = await _ready(container);
+        await notifier.fetchContributions(
+          username: Username('torvalds'),
+          year: Year(2024, today: testToday),
+          source: CalendarRequestSource.typed,
+        );
+
+        await expectLater(notifier.refreshContributions(), completes);
+        final state = container.read(viewerProvider);
+
+        expect(fetches, 2);
+        expect(diagnostics.reported, [failure]);
+        expect(state.error, isNull);
+        expect(state.calendar, isNotNull);
+      },
+    );
   });
 
   group('the Usage Events it records', () {
@@ -540,7 +581,7 @@ void main() {
       final container = _container(
         usageEvents: usageEvents,
         contributions: _FakeContributionRepository(
-          answer: (username, year) => Future.value((
+          answer: (year) => Future.value((
             calendar: testCalendar(year: year.value),
             fromCache: true,
           )),
@@ -550,13 +591,13 @@ void main() {
 
       await notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2023),
+        year: Year(2023, today: testToday),
         source: CalendarRequestSource.suggestion,
       );
 
       expect(usageEvents.recorded, [
         UsageEvent.calendarViewed(
-          year: Year(2023),
+          year: Year(2023, today: testToday),
           source: CalendarRequestSource.suggestion,
           fromCache: true,
         ),
@@ -570,7 +611,7 @@ void main() {
         settings: _FakeSettingsRepository(
           settings: AppSettings(
             lastUsername: Username('torvalds'),
-            lastYear: Year(2022),
+            lastYear: Year(2022, today: testToday),
           ),
         ),
       );
@@ -578,7 +619,7 @@ void main() {
 
       expect(usageEvents.recorded, [
         UsageEvent.calendarViewed(
-          year: Year(2022),
+          year: Year(2022, today: testToday),
           source: CalendarRequestSource.restored,
           fromCache: false,
         ),
@@ -599,7 +640,7 @@ void main() {
 
         await notifier.fetchContributions(
           username: Username('ghost'),
-          year: Year(2024),
+          year: Year(2024, today: testToday),
           source: CalendarRequestSource.typed,
         );
 
@@ -625,7 +666,7 @@ void main() {
 
       await notifier.fetchContributions(
         username: Username('ghost'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.retry,
       );
 
@@ -643,7 +684,7 @@ void main() {
       final container = _container(
         usageEvents: usageEvents,
         contributions: _FakeContributionRepository(
-          answer: (username, year) => year.value == 2023
+          answer: (year) => year.value == 2023
               ? slow.future
               : Future.value((
                   calendar: testCalendar(year: 2024),
@@ -655,12 +696,12 @@ void main() {
 
       final first = notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2023),
+        year: Year(2023, today: testToday),
         source: CalendarRequestSource.typed,
       );
       await notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
       slow.completeError(const NetworkFailure(message: 'down'));
@@ -668,7 +709,7 @@ void main() {
 
       expect(usageEvents.recorded, [
         UsageEvent.calendarViewed(
-          year: Year(2024),
+          year: Year(2024, today: testToday),
           source: CalendarRequestSource.typed,
           fromCache: false,
         ),
@@ -681,18 +722,18 @@ void main() {
       final notifier = await _ready(container);
       await notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
       usageEvents.recorded.clear();
 
-      notifier.setYear(Year(2021));
+      notifier.setYear(Year(2021, today: testToday));
       await _settle();
 
       expect(usageEvents.recorded, [
-        UsageEvent.yearChosen(year: Year(2021)),
+        UsageEvent.yearChosen(year: Year(2021, today: testToday)),
         UsageEvent.calendarViewed(
-          year: Year(2021),
+          year: Year(2021, today: testToday),
           source: CalendarRequestSource.year,
           fromCache: false,
         ),
@@ -704,11 +745,13 @@ void main() {
       final container = _container(usageEvents: usageEvents);
       final notifier = await _ready(container);
 
-      notifier.setYear(Year(2021));
+      notifier.setYear(Year(2021, today: testToday));
       await _settle();
 
-      expect(usageEvents.recorded, [UsageEvent.yearChosen(year: Year(2021))]);
-      expect(container.read(viewerProvider).year, Year(2021));
+      expect(usageEvents.recorded, [
+        UsageEvent.yearChosen(year: Year(2021, today: testToday)),
+      ]);
+      expect(container.read(viewerProvider).year, Year(2021, today: testToday));
     });
 
     test('a refresh and a retry each name themselves as the source', () async {
@@ -717,7 +760,7 @@ void main() {
       final notifier = await _ready(container);
       await notifier.fetchContributions(
         username: Username('torvalds'),
-        year: Year(2024),
+        year: Year(2024, today: testToday),
         source: CalendarRequestSource.typed,
       );
       usageEvents.recorded.clear();

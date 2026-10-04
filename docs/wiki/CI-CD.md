@@ -48,7 +48,7 @@ flowchart LR
 `check` is inside `verify` because `tsc --noEmit` does not typecheck `.astro` files: only `astro check` does. It used to run solely in a `web-build` job, so a type error in a component's props passed `verify`, passed `pre-push`, and failed a later CI job. A prop typed `readonly string[]` that started receiving a value object is exactly how that was found. That job is gone: once `verify` typechecked everything, it only rebuilt what the deploy job builds again.
 - **deploy-production:** on push to `main`, build with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. The `--env` is load-bearing and was missing until 2026-08-28: without it wrangler ships the top level of `wrangler.toml`, which declares no routes and no rate limiter. It does declare observability, its export destinations and placement, mirroring production, because wrangler switches observability off on a deploy whose config omits it and the top-level `name` is production's.
 - **deploy-development:** on PRs, build with `CLOUDFLARE_ENV=development`, deploy an ephemeral worker `pr-<n>-contribkit-development` on `*.workers.dev`; a bot comment posts the preview URL; the worker is removed on PR close by `cleanup-development.yml`, which carries no path filter at all, so no preview can outlive its pull request.
-- **smoke:** on push to `main`, the only job that ever requests `https://contribkit.app`. It runs the cases tagged `@smoke`, all of them in `web/e2e/smoke.spec.ts`, against production: the homepage with a non-empty title, an unknown path answering 404, `robots.txt`, and `/user/<name>.svg` returning an SVG. The shared cases are the set every sibling repository runs, so a difference between them is drift; the SVG one is this repository's own, and earns its place because that route cannot be prerendered and is therefore the one that proves the Worker is running rather than serving assets. `/api/health` was in the set until production answered it with an HTML document while a browser got the expected JSON; the root guide records why that points at a zone rule rather than at the Worker. The grep carries no `--pass-with-no-tests`: Playwright exits 1 on an empty set, so a tag that stops matching fails the job instead of passing vacuously.
+- **smoke:** on push to `main`, the only job that ever requests `https://contribkit.app`. It runs the cases tagged `@smoke`, all of them in `web/e2e/smoke.spec.ts`, against production: the homepage with a non-empty title, an unknown path answering 404, `robots.txt`, and `/user/foo_bar.svg` answering `400`, `text/plain` and `Invalid GitHub username`. The shared cases are the set every sibling repository runs, so a difference between them is drift; the SVG one is this repository's own, and earns its place because that route cannot be prerendered and is therefore the one that proves the Worker is running rather than serving assets. It asks for a Username the Worker refuses (`_` is not allowed) before any request leaves it, so an outage at GitHub cannot fail the run and roll back a healthy deploy. `/api/health` is not in the set, because the production zone answers some automated clients on that path itself, before the Worker, as [`SECURITY.md`](https://github.com/fbuireu/contribKit/blob/main/.github/SECURITY.md) records, and a smoke case has to fail only for a reason inside the Worker. The grep carries no `--pass-with-no-tests`: Playwright exits 1 on an empty set, so a tag that stops matching fails the job instead of passing vacuously.
 - **rollback:** on push to `main`, runs `wrangler rollback --env production` when the deploy succeeded and `smoke` failed, so a version that does not answer stops serving rather than merely going untagged. It is a separate job because it needs the Cloudflare credentials `smoke` deliberately does without.
 - **release:** semantic-release versions the web component. It needs `deploy-production` **and** `smoke`, so a `web-v*` tag means the version is live and answering. It used to need only `web-ci`, which meant the tag, the GitHub release and the changelog entry could all be published for a version whose deploy had just failed, and `workflow_dispatch` could cut one without deploying at all; that trigger is gone from its condition for the same reason.
 
@@ -88,11 +88,12 @@ flowchart LR
 - **flutter-build:** builds a debug APK to catch build breakages early.
 
 **The e2e suite runs against a deployed preview Worker in CI, and against a local one everywhere else.** `BASE_URL`
-points the run at `pr-<n>-contribkit-development.fbuireu.workers.dev`, which is the only place the Workers runtime is real:
-the rate-limiter binding, the security headers and the SVG route's `Cross-Origin-Resource-Policy` exemption do not
-exist in a plain Astro dev server. With `BASE_URL` unset, Playwright's `webServer` starts `pnpm wrangler:dev` on
-`localhost:8787` instead, so `pnpm test:e2e` works on a laptop. That fallback used to be declared in `baseURL` and
-wired to nothing, so a local run pointed at an empty port.
+points the run at `pr-<n>-contribkit-development.fbuireu.workers.dev`. With `BASE_URL` unset, Playwright's `webServer`
+starts `pnpm wrangler:dev` on `localhost:8787` instead, so `pnpm test:e2e` works on a laptop. Both are the Workers
+runtime, which a plain Astro dev server is not: the rate-limiter bindings and the headers
+[`public/_headers`](https://github.com/fbuireu/contribKit/blob/main/web/public/_headers) sets on static files exist
+only there. The middleware's own headers, the SVG route's `Cross-Origin-Resource-Policy` exemption among them, run
+under `astro dev` as well.
 
 Both `dart analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
 
@@ -159,7 +160,7 @@ semantic-release runs per component and tags `web-vX.Y.Z` / `app-vX.Y.Z`, driven
 
 ## Hardening & automation worth noting
 
-- **Pinned actions:** every `uses:` is pinned to a full commit SHA, not a floating tag.
+- **Pinned actions:** every `uses:` of another repository names a full commit SHA, with its version in a trailing comment, never a floating tag. The rule lives in [`CODING_STANDARDS.md`](https://github.com/fbuireu/contribKit/blob/main/CODING_STANDARDS.md), and the docs test holds it.
 - **Least privilege:** workflows declare minimal `permissions`; `release-app.yml` starts from `permissions: {}` and grants per-job.
 - **zizmor:** static security analysis of the workflows themselves.
 - **Secrets never touch disk in the repo:** keystore and service-account JSON are base64/secret-decoded into `$RUNNER_TEMP` at runtime.

@@ -54,7 +54,7 @@
 
 ## Architecture
 
-Same DDD-ish layering as the web; each layer documents its rules in a colocated [`AGENTS.md`](../AGENTS.md):
+Same DDD-ish layering as the web. The rules are in [`CODING_STANDARDS.md`](../CODING_STANDARDS.md), and each layer has a colocated `AGENTS.md` for whoever works in it:
 
 | Layer                                                    | Role                                                                  |
 | --------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -62,7 +62,7 @@ Same DDD-ish layering as the web; each layer documents its rules in a colocated 
 | **[application](lib/application/AGENTS.md)**             | One class per use case, dependencies via constructor                  |
 | **[infrastructure](lib/infrastructure/AGENTS.md)**       | GitHub client, Hive persistence, export implementations               |
 | **[infrastructure/github/dtos](lib/infrastructure/github/dtos/AGENTS.md)** | JSON DTOs, converted to entities at the boundary    |
-| **[ui](lib/ui/AGENTS.md)**                               | Widgets + Riverpod providers: the only Flutter-aware layer             |
+| **[ui](lib/ui/AGENTS.md)**                               | Widgets + Riverpod providers: the only layer that knows Riverpod      |
 | **[ui/di](lib/ui/di/AGENTS.md)**                         | All dependency wiring                                                 |
 | **[ui/theme](lib/ui/theme/AGENTS.md)**                   | Design tokens and semantic colors                                     |
 

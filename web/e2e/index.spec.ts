@@ -1,11 +1,12 @@
 import { expect, type Page, test } from "@playwright/test";
-import { ClassName, ElementId, Selector } from "../src/ui/utils/dom-contract";
+import { ExportFormatKey } from "../src/ui/components/export/export-formats";
+import { ClassName, ElementId, Selector, ThemeClass } from "../src/ui/utils/dom-contract";
 
-const RESOLVED_THEME_CLASS = /theme-(light|dark)/;
+const RESOLVED_THEME_CLASS = new RegExp(`${ThemeClass.Light}|${ThemeClass.Dark}`);
 const ACTIVE_ROW_CLASS = new RegExp(ClassName.Active);
 const HEX_BACKGROUND = /^background:#[0-9a-f]{6}$/i;
 
-const byId = (id: string) => `#${id}`;
+const byId = (id: ElementId): string => `#${id}`;
 
 test.describe("homepage", () => {
 	test.beforeEach(async ({ page }) => {
@@ -13,7 +14,7 @@ test.describe("homepage", () => {
 	});
 
 	test("renders the hero with the username input", async ({ page }) => {
-		await expect(page.locator("section.hero")).toBeVisible();
+		await expect(page.locator(`section.${ClassName.Hero}`)).toBeVisible();
 		await expect(page.locator(byId(ElementId.HeroUsername))).toBeVisible();
 	});
 
@@ -40,9 +41,9 @@ test.describe("homepage", () => {
 
 	test("BaseLayout renders the page shell (lang, skip link, main, footer)", async ({ page }) => {
 		await expect(page.locator("html")).toHaveAttribute("lang", "en");
-		await expect(page.locator("a.skip-link")).toHaveAttribute("href", "#main-content");
-		await expect(page.locator("main#main-content")).toBeVisible();
-		await expect(page.locator("footer.footer")).toBeVisible();
+		await expect(page.locator(`a.${ClassName.SkipLink}`)).toHaveAttribute("href", byId(ElementId.MainContent));
+		await expect(page.locator(`main${byId(ElementId.MainContent)}`)).toBeVisible();
+		await expect(page.locator(`footer.${ClassName.Footer}`)).toBeVisible();
 	});
 
 	test("renders the footer store/link icons (svgs)", async ({ page }) => {
@@ -51,10 +52,10 @@ test.describe("homepage", () => {
 	});
 
 	test("renders every home section", async ({ page }) => {
-		await expect(page.locator("#how")).toBeVisible();
-		await expect(page.locator("#custom")).toBeVisible();
-		await expect(page.locator("#export")).toBeVisible();
-		await expect(page.locator("#widget")).toBeVisible();
+		await expect(page.locator(byId(ElementId.HowItWorksSection))).toBeVisible();
+		await expect(page.locator(byId(ElementId.CustomizerSection))).toBeVisible();
+		await expect(page.locator(byId(ElementId.ExportSection))).toBeVisible();
+		await expect(page.locator(byId(ElementId.HomeScreenWidgetSection))).toBeVisible();
 	});
 
 	test("switching the palette moves the active state", async ({ page }) => {
@@ -72,7 +73,7 @@ test.describe("homepage", () => {
 	});
 
 	test("switching the export tab to SVG shows the code preview", async ({ page }) => {
-		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="svg"]`).click();
+		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="${ExportFormatKey.Svg}"]`).click();
 		await expect(page.locator(Selector.ExportCodePreview)).toBeVisible();
 		await expect(page.locator(Selector.ExportCopyButton)).toBeVisible();
 	});
@@ -108,6 +109,17 @@ test.describe("homepage", () => {
 			expect(headers["referrer-policy"], path).toBe("strict-origin-when-cross-origin");
 			expect(headers["x-frame-options"], path).toBe("DENY");
 		}
+	});
+});
+
+test.describe("a server-rendered error state", () => {
+	test("prints every figure as unknown, never as 0", async ({ page }) => {
+		const response = await page.goto("/?user=foo_bar");
+
+		expect(response?.status()).toBe(200);
+		await expect(page.locator(byId(ElementId.HeroError))).toContainText("invalid username");
+		await expect(page.locator(Selector.BarTag)).toHaveText("unknown contributions");
+		await expect(page.locator(Selector.LegendStats)).toHaveText("unknown day streak·unknown longest");
 	});
 });
 
@@ -178,18 +190,20 @@ test.describe("rendering a username", () => {
 });
 
 test.describe("the DOM contract", () => {
-	const CODE_TAB_ONLY = ["ExportCodePreview", "ExportCopyButton"];
-	const PNG_TAB_ONLY = ["ExportPngPreview"];
+	type SelectorName = keyof typeof Selector;
+
+	const CODE_TAB_ONLY: readonly SelectorName[] = ["ExportCodePreview", "ExportCopyButton"];
+	const PNG_TAB_ONLY: readonly SelectorName[] = ["ExportPngPreview"];
 
 	interface UnmatchedParams {
 		page: Page;
-		names: string[];
+		names: readonly SelectorName[];
 	}
 
 	const unmatched = async ({ page, names }: UnmatchedParams): Promise<string[]> => {
 		const missing: string[] = [];
 		for (const name of names) {
-			const selector = Selector[name as keyof typeof Selector];
+			const selector = Selector[name];
 			if ((await page.locator(selector).count()) === 0) missing.push(`${name} -> ${selector}`);
 		}
 		return missing;
@@ -198,7 +212,7 @@ test.describe("the DOM contract", () => {
 	test("every Selector matches something in the state that owns it", async ({ page }) => {
 		await page.goto("/");
 
-		const all = Object.keys(Selector);
+		const all = Object.keys(Selector) as SelectorName[];
 		const onLoad = all.filter((name) => !CODE_TAB_ONLY.includes(name));
 
 		expect(
@@ -206,13 +220,13 @@ test.describe("the DOM contract", () => {
 			"a Selector matching nothing is a renderer that has silently become a no-op",
 		).toEqual([]);
 
-		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="svg"]`).click();
+		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="${ExportFormatKey.Svg}"]`).click();
 		await expect(page.locator(Selector.ExportCodePreview)).toBeVisible();
 
 		expect(await unmatched({ page, names: CODE_TAB_ONLY })).toEqual([]);
 		expect(
 			await unmatched({ page, names: PNG_TAB_ONLY }),
 			"the PNG preview belongs to the PNG tab and must go when it is not selected",
-		).toEqual(PNG_TAB_ONLY.map((name) => `${name} -> ${Selector[name as keyof typeof Selector]}`));
+		).toEqual(PNG_TAB_ONLY.map((name) => `${name} -> ${Selector[name]}`));
 	});
 });

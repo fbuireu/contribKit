@@ -1,11 +1,14 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/entities/contribution_week.dart';
+import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/services/streak_service.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/fixtures.dart';
 
 ContributionCalendar calendarFor({
   required int year,
@@ -13,9 +16,10 @@ ContributionCalendar calendarFor({
 }) {
   final firstOfYear = DateTime(year, 1, 1);
   final start = DateTime(year, 1, 1 - (firstOfYear.weekday % 7));
+  final weekCount = ContributionGridService.weeksFor(year);
   final weeks = <ContributionWeek>[];
 
-  for (var week = 0; week < 53; week++) {
+  for (var week = 0; week < weekCount; week++) {
     final days = <ContributionDay>[];
     for (var day = 0; day < 7; day++) {
       final date = DateTime(
@@ -37,7 +41,7 @@ ContributionCalendar calendarFor({
 
   return ContributionCalendar(
     username: Username('torvalds'),
-    year: Year(year),
+    year: Year(year, today: testToday),
     weeks: weeks,
     totalContributions: 0,
   );
@@ -45,7 +49,7 @@ ContributionCalendar calendarFor({
 
 void main() {
   group('StreakService.currentFor a past Year', () {
-    test('reports the run the Year actually ended on, not zero', () {
+    test('reports the streak the Year actually ended on, not zero', () {
       final calendar = calendarFor(
         year: 2019,
         isActive: (date) => date.isAfter(DateTime(2019, 12, 21)),
@@ -136,7 +140,7 @@ void main() {
       );
     });
 
-    test('is zero when the run broke before today', () {
+    test('is zero when the streak broke before today', () {
       final calendar = calendarFor(
         year: 2026,
         isActive: (date) => date.isBefore(DateTime(2026, 8, 1)),
@@ -156,8 +160,9 @@ void main() {
     ContributionCalendar withUnknownCounts({required int year}) {
       final firstOfYear = DateTime(year, 1, 1);
       final start = DateTime(year, 1, 1 - (firstOfYear.weekday % 7));
+      final weekCount = ContributionGridService.weeksFor(year);
       final weeks = <ContributionWeek>[];
-      for (var week = 0; week < 53; week++) {
+      for (var week = 0; week < weekCount; week++) {
         final days = <ContributionDay>[];
         for (var day = 0; day < 7; day++) {
           final date = DateTime(
@@ -179,7 +184,7 @@ void main() {
       }
       return ContributionCalendar(
         username: Username('torvalds'),
-        year: Year(year),
+        year: Year(year, today: testToday),
         weeks: weeks,
         totalContributions: null,
       );

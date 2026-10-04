@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { ClassName, ElementId } from "./dom-contract";
 import { activateRadio, activateTab, initRovingGroup, RovingOrientation } from "./roving";
 
 type Handler = (event: { key: string; preventDefault: () => void }) => void;
@@ -44,9 +45,9 @@ describe("activateRadio", () => {
 	it("activates the target and resets the others", () => {
 		const els = [makeEl(), makeEl(), makeEl()];
 		activateRadio({ buttons: asList(els), target: asEl(els[1]) });
-		expect(els[1].classes.has("active")).toBe(true);
+		expect(els[1].classes.has(ClassName.Active)).toBe(true);
 		expect(els[1].attrs["aria-checked"]).toBe("true");
-		expect(els[0].classes.has("active")).toBe(false);
+		expect(els[0].classes.has(ClassName.Active)).toBe(false);
 		expect(els[2].attrs["aria-checked"]).toBe("false");
 	});
 });
@@ -67,7 +68,7 @@ describe("initRovingGroup", () => {
 	it("activates the clicked element", () => {
 		const { els, onActivate } = setup();
 		els[2].click?.();
-		expect(els[2].classes.has("active")).toBe(true);
+		expect(els[2].classes.has(ClassName.Active)).toBe(true);
 		expect(onActivate).toHaveBeenCalledOnce();
 	});
 
@@ -76,7 +77,7 @@ describe("initRovingGroup", () => {
 		const preventDefault = vi.fn();
 		els[0].keydown?.({ key: "ArrowDown", preventDefault });
 		expect(preventDefault).toHaveBeenCalled();
-		expect(els[1].classes.has("active")).toBe(true);
+		expect(els[1].classes.has(ClassName.Active)).toBe(true);
 		expect(els[1].focus).toHaveBeenCalledOnce();
 		expect(onActivate).toHaveBeenCalledOnce();
 	});
@@ -84,13 +85,13 @@ describe("initRovingGroup", () => {
 	it("wraps from the first item to the last on ArrowUp", () => {
 		const { els } = setup();
 		els[0].keydown?.({ key: "ArrowUp", preventDefault: vi.fn() });
-		expect(els[2].classes.has("active")).toBe(true);
+		expect(els[2].classes.has(ClassName.Active)).toBe(true);
 	});
 
 	it("jumps to the last item with End", () => {
 		const { els } = setup();
 		els[1].keydown?.({ key: "End", preventDefault: vi.fn() });
-		expect(els[2].classes.has("active")).toBe(true);
+		expect(els[2].classes.has(ClassName.Active)).toBe(true);
 	});
 
 	it("ignores unrelated keys", () => {
@@ -104,7 +105,7 @@ describe("initRovingGroup", () => {
 		els[0].keydown?.({ key: "ArrowDown", preventDefault: vi.fn() });
 		expect(onActivate).not.toHaveBeenCalled();
 		els[0].keydown?.({ key: "ArrowRight", preventDefault: vi.fn() });
-		expect(els[1].classes.has("active")).toBe(true);
+		expect(els[1].classes.has(ClassName.Active)).toBe(true);
 	});
 });
 
@@ -112,8 +113,8 @@ describe("activateTab", () => {
 	afterEach(() => vi.unstubAllGlobals());
 
 	it("selects the target tab and links the panel to it", () => {
-		const panel = makeEl("export-preview");
-		vi.stubGlobal("document", { getElementById: (id: string) => (id === "export-preview" ? panel : null) });
+		const panel = makeEl(ElementId.ExportPreview);
+		vi.stubGlobal("document", { getElementById: (id: string) => (id === ElementId.ExportPreview ? panel : null) });
 		const tabs = [makeEl("tab-a"), makeEl("tab-b")];
 		activateTab({ tabs: asList(tabs), target: asEl(tabs[1]) });
 		expect(tabs[1].attrs["aria-selected"]).toBe("true");

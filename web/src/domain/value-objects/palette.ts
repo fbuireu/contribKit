@@ -9,7 +9,7 @@ export interface Palette {
 	readonly colors: PaletteColors;
 }
 
-export const PALETTES: Record<string, Palette> = Object.fromEntries(
+export const PALETTES: Readonly<Record<string, Palette>> = Object.fromEntries(
 	palettes.map((palette) => [
 		palette.key,
 		{

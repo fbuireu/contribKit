@@ -3,7 +3,6 @@ import { type ContributionDayParams, contributionDay } from "../entities/contrib
 import type { ContributionDay } from "../entities/types";
 import { isFailure } from "../failures/failure";
 import { buildGridFromApi } from "./calendar-grid";
-import { GRID_CELL_COUNT, WEEKS_PER_YEAR } from "./dates";
 import { calendarLayout, cornerRadiusFor, dotRadius, hexPoints } from "./svg-geometry";
 
 const day = (params: ContributionDayParams): ContributionDay => {
@@ -62,15 +61,15 @@ describe("calendarLayout: the radius each Cell Shape is drawn with", () => {
 });
 
 describe("calendarLayout: dimensions", () => {
-	it("is a whole Contribution Grid wide, plus the weekday gutter and the padding", () => {
-		expect(layoutFor().width).toBe(WEEKS_PER_YEAR * CELL_WIDTH + 28 + 12 * 2);
+	it("is as wide as the 53 weeks of 2024, plus the weekday gutter and the padding", () => {
+		expect(layoutFor().width).toBe(53 * CELL_WIDTH + 28 + 12 * 2);
 	});
 
 	it("drops both gutters when labels are hidden", () => {
 		const hidden = layoutFor({ showLabels: false });
 
 		expect(hidden.origin).toEqual({ x: 12, y: 12 });
-		expect(hidden.width).toBe(WEEKS_PER_YEAR * CELL_WIDTH + 12 * 2);
+		expect(hidden.width).toBe(53 * CELL_WIDTH + 12 * 2);
 		expect(hidden.monthLabels).toEqual([]);
 		expect(hidden.weekdayLabels).toEqual([]);
 	});
@@ -135,7 +134,7 @@ describe("calendarLayout: weekday labels", () => {
 
 describe("calendarLayout: cells", () => {
 	it("places one Cell per Contribution Day of the whole grid", () => {
-		expect(layoutFor().cells).toHaveLength(GRID_CELL_COUNT);
+		expect(layoutFor().cells).toHaveLength(53 * 7);
 	});
 
 	it("lays cells out week by column and day by row, relative to the origin", () => {

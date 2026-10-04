@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
+import { NOT_CACHEABLE } from "@application/http/cache-control";
 import { CONTACT_ROUTE } from "@domain/value-objects/contact-message";
 import { EMBED_ROUTE } from "@domain/value-objects/embed";
 
@@ -50,7 +51,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	if (url.pathname === AGENT_GUIDE_ROUTE) {
 		return withSecurityHeaders({
 			pathname: url.pathname,
-			response: new Response(null, { status: 404 }),
+			response: new Response(null, { status: 404, headers: { "Cache-Control": NOT_CACHEABLE } }),
 		});
 	}
 
@@ -68,6 +69,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 						headers: {
 							"Content-Type": "application/json",
 							"Retry-After": "60",
+							"Cache-Control": NOT_CACHEABLE,
 						},
 					}),
 				});

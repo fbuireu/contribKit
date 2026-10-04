@@ -5,163 +5,53 @@ half of a domain implemented twice: the TypeScript mirror is
 [`web/src/domain/`](../../../web/src/domain/AGENTS.md), and the two are meant to stay diffable concept by concept
 ([ADR 0003](../../../docs/adr/0003-layered-domain-architecture-in-both-clients.md)).
 
-The vocabulary these types are named after is [`CONTEXT.md`](../../../CONTEXT.md), and it is prescriptive: an
-identifier that says something an `_Avoid_` list names is the thing that is wrong.
+## Layout
 
-## Invariants & rules
-
-- **No third-party packages.** Only `dart:core`, `dart:async` and `dart:math` from the SDK: `dart:math` for
-  `CellGeometryService` alone, which is trigonometry and not a framework dependency; the only `package:` imports are
-  this project's own (`package:contribkit/domain/…`), which is how every file here reaches its siblings.
-- **Colours are the project's own `Color` value object**, a wrapper over an ARGB `int`, never `dart:ui.Color`. That
-  single rule is what keeps this layer compilable without Flutter; the conversion to a Flutter colour happens in the
-  widgets that paint.
-- **The value objects that can be invalid validate on construction**, and the ones that carry data compare by
-  value. Neither is universal, and the difference matters: `Username` and `Year` reject bad input in their factory,
-  and so does `Color.fromHex`, which throws `ArgumentError` on anything that is not 6 or 8 hex digits. It checks
-  the characters as well as the length: it used to check only the length, so `'#ZZZZZZ'` reached `int.parse` and
-  threw a `FormatException` instead, and the claim on this line was false for every wrong-character input (though
-  `Color`'s primary constructor takes any `int` unchecked). `TipProduct` and `ContributionStats` validate nothing. `Username`, `Year`, `Color` and
-  `Palette` override `==` and `hashCode`, and so does `ContributionStats`; `TipProduct` compares by `id` alone.
-  **`ContributionStats` overrode neither until it started riding on `ViewerState`**, where identity equality would
-  have made every state unequal and rebuilt the screen on every notification. A value object carried in Riverpod
-  state needs value equality or it is not behaving as one. `CellShape`, `CellSize`, `ExportFormat` and
-  `ContributionLevel` are plain enums and need nothing.
-  **`AssetPaletteRepository` calls `Color.fromHex`**, and did not always: it carried its own `_hex` that ran
-  `hex.substring(1)` unconditionally, so a value without a leading `#` lost its first digit and produced a silently
-  wrong colour instead of throwing into the `ParseFailure` that layer exists to raise. The validated parser had no
-  production caller at all while the unvalidated copy was the only one running.
-- **Errors are `Failure` subclasses**, never a raw `Exception` or a `String`, with the one documented exception
-  below.
-- **Repositories are `abstract interface class` only**, and every implementation is in `infrastructure/`. Most
-  model storage or a service the app reads from. The Telemetry ports, `DiagnosticsRepository` and
-  `UsageEventRepository`, only write, and they are **the one place in this layer with no `Failure` channel at
-  all**: a method on either catches everything and returns, because telemetry that breaks the
-  app is worse than no telemetry and no caller could act on the failure anyway
-  ([ADR 0027](../../../docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
-- **`UsageEvent` is a final class whose constructors take only domain enums, value objects and numbers, and the
-  guarantee is that no parameter is a `String`.** It was an enum with no payload, which could say that the
-  Customizer was opened and not which Palette was chosen; it carries a `name` and a `Map<String, Object>` of
-  `properties` now, but the constructor is private and every static constructor takes a closed type: a `Palette`
-  contributes its `key`, a `TipProduct` its `id`, a `Year` its number, an enum its `name`, `fromCache` a bool.
-  `record` still takes a `UsageEvent`, never a string with a properties map, so there is still no parameter
-  through which a Username or free text could reach an analytics vendor; adding a `String` parameter to any
-  constructor deletes that, and `usage_event_test.dart` asserts every property value is a `String` from a closed
-  set, an `int` or a `bool`. The wire names are the enum's old `.name`s, so PostHog's history continues.
-  `CalendarRequestSource` (`restored` / `typed` / `suggestion` / `year` / `refresh` / `retry`) says what asked for
-  a calendar, `CalendarFailureKind.of(failure)` maps a `Failure` to the kind a request failed as with an exhaustive
-  switch (the kinds a calendar request never raises fold into `unexpected`), `ExportDelivery` is `share` or
-  `clipboard`, and `ContactOutcome` is `sent` or `failed`. Mapping to a kind keeps the failure's message, and anything
-  typed, out of the event. `TelemetryConsent` beside it holds two `ConsentChoice` values read
-  asymmetrically: `mayReportDiagnostics` is `!= denied` and `mayRecordUsageEvents` is `== granted`, so unasked
-  means yes for one and no for the other
-  ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). Never
-  compare either field to `granted` directly, or the asymmetry quietly becomes symmetric.
-
-## Two error channels, and the difference matters
-
-`Failure` is a `sealed class` implementing `Exception`, thrown by operations and matched exhaustively without a
-wildcard ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)):
-
-`NetworkFailure` · `NotFoundFailure` · `RateLimitedFailure` · `ParseFailure` · `AssetFailure` · `CacheFailure` ·
-`DeliveryFailure` · `ExportFailure` · `TipFailure` · `UnexpectedFailure`
-
-**`DeliveryFailure` is the only kind whose web twin was added in the same change.** It says a Contact
-Message was refused: the server answered a non-2xx that was not a 429, and the sentence it carries is the server's
-own `error` field or the bare status. It is **not** `NetworkFailure`: the request arrived and was answered
-([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
-
-**`AssetFailure` exists because `ParseFailure` meant two different things.** The asset repositories threw
-`ParseFailure` when [`assets/palettes.json`](../../assets/palettes.json) could not be read, and `FailureMessage` renders that kind as *"GitHub
-changed its contributions page. Please update the app."*: a sentence about the scrape, shown for a file the app
-ships with itself. It carries the asset key and says so.
-
-**It is `TipFailure`, not `PurchaseFailure`.** The glossary's `_Avoid_` list for Tip names `purchase`, and the whole
-stack was named after it: `PurchaseRepository`, `PurchaseTip`, `PurchaseFailure`, `purchase()`. The
-docs-consistency guard could not see it: it policed only `_Avoid_` terms that are *code-shaped* (`ShapeKind`,
-`DOW`, `IAP`, `SKU`), which is four of a hundred and six, and every plain lowercase word went unchecked. It now
-polices a curated set of unambiguous ones, and `purchase` is in it.
-
-**Value-object constructors do not throw those.** `Username` and `ContactMessage` throw `ArgumentError`, `Year` throws `RangeError`.
-That is intentional and worth stating because it looks like a violation: a `Failure` describes something that went
-wrong at runtime and that a user should be told about, while an invalid `Username` reaching the constructor is a
-programmer error: the input should have been validated at the UI boundary before a value object was ever asked for.
-Anything catching `Failure` and expecting to catch a bad username is wrong.
-
-`sealed` is doing real work here: adding a subclass turns every `switch` over `Failure` into a compile error until
-it is handled. **Never widen one with `_` to silence the compiler.**
+| Folder | Holds |
+| --- | --- |
+| `entities/` | `ContributionCalendar`, `ContributionWeek`, `ContributionDay` |
+| `value_objects/` | every value object and closed set, `Embed` and `AppSettings` included |
+| `failures/` | the sealed `Failure` set |
+| `repositories/` | the ports `infrastructure/` implements, the two Telemetry ports among them |
+| `services/` | eight `abstract final class`es of static functions |
 
 ## Value objects
 
-| Type | Rule |
-| --- | --- |
-| `Username` | trimmed; non-empty; at most 39 characters, checked separately from the pattern; `^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$` |
-| `ContactMessage` | every field trimmed; a blank name becomes `null`; `email` at most `maxEmailLength` and matching a pattern with exactly one `@`, a dot in the domain and no whitespace, `<`, `>` or `"`; `body` between `minBodyLength` and `maxBodyLength`. Otherwise `ArgumentError`, whose `message` the Contact sheet renders under the fields |
-| `Year` | integer in `Year.minYear` (2005) … the current year, else `RangeError`. `Year.current` is the shorthand |
-| `CellSize` | `compact` / `normal` / `large`, each mapping to a `pixels` and a `gap` |
-| `ExportFormat` | `png` / `svg` / `markdown`, each carrying its `label`, `mimeType`, `suffix` and `fileNameFor` |
-| `TipOutcome` | `completed` / `cancelled`: what came back from the store when a Tip was offered |
-| `UsageEvent` | a `name` and typed `properties`, built only through static constructors over closed types; value `==` over both, with the map compared entry by entry because Dart's `Map` `==` is identity. See the rule above |
-| `CalendarRequestSource` · `CalendarFailureKind` · `ExportDelivery` · `ContactOutcome` | the closed sets a Usage Event's properties are drawn from; `CalendarFailureKind.of` is the one place a `Failure` becomes one of them |
-| `ContactMessage` | validates on construction like `Username`: every field trimmed, an empty name becomes `null`, and the email pattern is the same strict one the web uses. Carries its length limits as `static const` ints, which the docs contract diffs against the TypeScript. Value `==` |
-| `Embed` | the one spelling of an Embed URL: origin, segment, extension, and which options are worth a query param. It has a TypeScript twin the docs contract diffs it against; see below |
-| `AppSettings` | everything the app remembers, already defaulted. `SettingsRepository.load()` returns one, and `year` is `lastYear ?? Year.current` so no caller re-decides that. **No `==`**: nothing compares one, so it would be surface with no reader |
-| `CellShape`, `Palette`, `ContributionLevel`, `ContributionStats`, `TipProduct`, `Color` | - |
-
-`Year.minYear` is **2005**, a product floor rather than GitHub's launch year: GitHub launched in 2008, and the
-documents once justified the 2005 by calling it the launch year. Do not "correct" it.
-
-**`ExportFormat` is the one value object with no web counterpart.** The web offers the same Export Formats
-from [`ui/components/export/export-formats.ts`](../../../web/src/ui/components/export/export-formats.ts), because there the choice never leaves the browser; here it crosses
-from a widget through a provider to a repository, and it used to cross as a private enum each surface declared for
-itself. The glossary named it long before any module did.
-
-**`ContributionLevel` is an enum here and a `0–4` union on the web.** Both are five bands in the same order; the
-representations differ because the languages do. Anything serialising a level has to pick a side explicitly.
+- **`Username`'s length check is separate from its pattern.** `[a-zA-Z0-9-]*` is unbounded, so the explicit
+  `trimmed.length > 39` guard is the only thing enforcing the limit. Deleting it as "already covered by the regex"
+  would silently accept a 200-character handle. The web bounds the length inside the pattern instead.
+- **`Year.minYear` is 2005**, a product floor rather than GitHub's launch year, which is 2008. Do not "correct" it.
+- **Nothing here reads the clock.** `Year(value, today:)` takes its upper bound from the day its caller passes, and
+  `Year.current(today:)` is the Year that day falls in, so a test says which year it is; the edges read the clock
+  through `clockProvider` ([`ui/di/`](../ui/di/AGENTS.md)). `ContributionGridService` takes an `int` year, which is
+  how its tests reach 2028 and later.
+- **`AppSettings` is everything the app remembers.** `SettingsRepository.load()` returns one with the Cell Shape, the
+  Cell Size, the theme and the Telemetry Consent already defaulted, and `year(today:)` is
+  `lastYear ?? Year.current(today: today)`. `backgroundPresetName` is the stored name, which the Viewer parses through
+  `BackgroundPreset.byName` and defaults itself. It has no `==`, because nothing compares one.
+- **`UsageEvent`'s names and property keys continue PostHog's history**, so renaming one splits that history in two.
+  That is why the Tip events carry their `tipProduct` under the key `product`, the exception
+  [`CODING_STANDARDS.md`](../../../CODING_STANDARDS.md) states to the glossary rule.
+  [`usage_event_test.dart`](../../test/domain/value_objects/usage_event_test.dart) pins every constructor's wire
+  name and properties, and that every property value is a `String`, an `int` or a `bool`.
+- **`ExportFormat` has no web value object.** The web offers the same Export Formats from
+  [`ui/components/export/export-formats.ts`](../../../web/src/ui/components/export/export-formats.ts), because there
+  the choice never leaves the browser; here it crosses from a widget through a provider to a repository.
+- **`ContributionLevel` is an enum here and a `0–4` union on the web.** Both are five bands in the same order; the
+  representations differ because the languages do. Anything serialising a level has to pick a side explicitly.
 
 ## Entities, and where they differ from the web's
 
 | | App | Web |
 | --- | --- | --- |
 | Calendar holds | `List<ContributionWeek>` | a flat `readonly ContributionDay[]` |
-| Calendar carries | `Username`, `Year`, `totalContributions` | `string` username, `days`, `total` |
+| Calendar carries | `Username`, `Year`, `totalContributions` | `Username`, `Year \| null` (`null` for a Rolling Window), `totalContributions` |
 | `ContributionDay.count` | `int?` | `number \| null` |
 | Total | `int?` | `number \| null` |
 
-**An unknown Count is `null`, and `null` is not `0`**: the glossary's distinction, now expressible on both sides
+A day whose tool-tip carried no number, and a day the scrape never mentioned, both arrive with a `null` Count; the
+Contribution Grid pads with `null` too, because a day outside the requested Year is not a day with no contributions
 ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)).
-A day whose tool-tip carried no number, and a day the scrape never mentioned, both arrive as `null`; the Contribution
-Grid pads with `null` too, because a day outside the requested Year is not a day with no contributions.
-
-Two rules follow, and they are the whole reason the type changed:
-
-- **Activity is a Contribution Level question, not a Count question.** `ContributionDay.isActive` is
-  `level != ContributionLevel.none`. A day GitHub coloured but whose Count did not parse is active, and it neither
-  breaks a Streak nor drops out of `totalDaysActive`. It used to do both, because it arrived as `0`.
-- **Total Contributions is `null` the moment an active day has an unknown Count.** A sum that skipped those days
-  would be a lower bound presented as a measurement. `formatTotalContributions` in `ui/` prints it as `unknown`,
-  never as a figure: the same word, for the same reason, as the web's function of that name.
-
-The week-based shape is what makes `ContributionStatsService`'s `weeklyAverage` a simple division: every week is
-whole, so `weeks.length` is never a partial year. It is **not** a constant. This line used to say the grid is
-always 53x7, which is the very claim
-[ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md) removed, and the constant it
-named is what let the grid drop 31 December 2028 in silence. Divide by `weeks.length`, never by 53.
-
-**Every figure derived from Counts is nullable, and `null` means "not knowable" rather than zero.** `weeklyAverage`
-is `null` when Total Contributions is; `bestDayCount` and `bestMonthContributions` are `null` the moment any active
-day has an unknown Count, because the largest Count *seen* is a lower bound and reporting it as the best day is the
-same lie `totalFor` refuses to tell. `currentStreak`, `longestStreak` and `totalDaysActive` stay
-non-nullable: they count *days*, which the Contribution Level answers on its own. `bestMonth` does not count days
-(it names the month with the highest summed Count), so it is nulled by the same rule as `bestMonthContributions`,
-and it is an `int?`.
-
-**Six of the eight figures have no reader.** `StatsPanel` renders `currentStreak` and `longestStreak`, plus the
-calendar's own `totalContributions`, and nothing else in `lib/` touches the rest. They are computed for a surface
-that does not exist yet, which is exactly why their handling of an unknown Count was wrong for a while with
-nothing going visibly wrong. They are computed **once per Contribution Calendar** now, in `ViewerNotifier`;
-`StatsPanel` used to call `ContributionStatsService.compute` from its own `build`, so all eight were re-derived on
-every frame and no test could reach the derivation through the notifier at all.
 
 ## `ContactMessage` is the other half of a cross-language contract
 
@@ -172,217 +62,84 @@ They have to agree because the app posts to that server's own `/api/contact`, so
 server refuses is a round trip spent being told no. Nothing links the two languages, so the docs contract diffs
 them with a regex over both, and **the shape of these declarations is load-bearing** exactly as `Embed`'s are.
 
-**The email pattern is a guard, not a validator.** It is stricter than the RFC on purpose: that address becomes a
-`Reply-To` header on the server, and rejecting whitespace, `<`, `>` and `"` is what rejects CR and LF. The **body**
-is deliberately unguarded, because the server base64-encodes it and a message may carry any line break
+**`ContactMessage.toString()` prints the domain of the address and nothing else**, so a log line, a test failure or
+a report that prints one carries no name, address or message
 ([ADR 0030](../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 
 ## `Embed` is half of a cross-language contract
 
 `Embed.origin`, `Embed.segment` and `Embed.extension` are the same three strings
-[`web/src/domain/value-objects/embed.ts`](../../../web/src/domain/value-objects/embed.ts) exports as `EMBED_ORIGIN`, `EMBED_SEGMENT` and `EMBED_EXTENSION`, because
+[`web/src/domain/value-objects/embed.ts`](../../../web/src/domain/value-objects/embed.ts) declares as `EMBED_ORIGIN`, `EMBED_SEGMENT` and `EMBED_EXTENSION`, because
 the Markdown Export writes a URL the web has to serve. Nothing links the two languages, so the docs contract diffs
 them: it parses the `static const` values here with a regex and asserts the TypeScript contains each one verbatim.
 The defaults are checked too: `defaultPaletteKey` must be `github`, and `defaultShape` must be **the first key in
-[`shared/shapes.json`](../../../shared/shapes.json)**, which is what the web derives its own default from. Reordering that file therefore changes
-the Dart default as well, and the test is the only thing that will say so.
+[`shared/shapes.json`](../../../shared/shapes.json)**, which is what the web derives its own default from. Reordering
+that file therefore moves the web's default and not this one, and the test is the only thing that will say so.
 
-`Embed.urlFor` takes a Palette key and a Cell Shape and omits either when it equals the default. So does the web's
-`buildEmbedUrl`, and neither takes a Background. This used to say the web's builder took one, and justified it by
-saying the Customizer had a Background to embed: it does not, it offers a Palette and a Cell Shape and nothing
-else, and no production caller ever passed a background. The parameter was dead surface a false sentence kept
-alive, and it is gone. The **SVG endpoint** still reads a `background` query parameter, because an Embed URL a
-person writes by hand may carry one; what no client does is *build* one.
+`Embed.urlFor` omits a Palette key or a Cell Shape equal to its default, and so does the web's `buildEmbedUrl`.
+Neither builds a Background. The **SVG endpoint** reads a `background` query parameter,
+because an Embed URL a person writes by hand may carry one.
 
 ## Services
 
-- **`ContributionLevelService.levelFor({ count, yearMax })`** buckets a count into a level by ratio: `0` → `none`,
-  then `<= 0.25` → `low`, `<= 0.50` → `medium`, `<= 0.75` → `high`, else `veryHigh`, with `yearMax == 0` short-
-  circuiting to `low`. **GitHub does not publish its bucketing algorithm; this matches observed behaviour and is a
-  guess.** It is only ever a fallback: the parser reads `data-level` and this runs solely when that attribute is
-  missing. The web has no equivalent, because it drops such a day and lets the grid backfill it.
-  The `yearMax == 0` arm is unreachable from its call sites: it sits after the `count == 0` check, and they all
-  derive `yearMax` as the maximum over the counts, so a positive count implies a positive maximum. It is kept as a
-  total function's answer for an input the callers happen not to produce, not as a live branch.
+- **`ContributionLevelService.levelFor({ count, yearMax })`** maps a Count to a Contribution Level by ratio. **GitHub
+  does not publish how it assigns levels; this matches observed behaviour and is a guess.** It is only ever a
+  fallback: the parser reads `data-level` and this runs solely when that attribute is missing. The web has no
+  equivalent, because it drops such a day and lets the grid backfill it.
 - **`ContributionGridService.buildFor`** turns a flat list of Contribution Days into a lattice of whole
-  Sunday-aligned weeks covering the requested Year, padding every date outside it as a day with no Count
-  ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). `weeksFor` answers how many weeks that
-  takes: 53 for every Year the app offers except 2028 and 2056, where a leap Year opening on a Saturday needs 372
-  cells and 53 × 7 is 371. There is deliberately **no** `weeksPerYear` constant, because a constant is what let
-  the grid drop 31 December 2028 in silence. `daysPerWeek` is declared here and is 7.
-  [ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md) is the superseded decision that fixed
-  the lattice at 53, and is worth reading for why the lattice exists at all.
-- **`CellSize` carries its own `label` and `step`.** `label` is an exhaustive `switch (this)`, like `CellShape.label`
-  and `BackgroundPreset.label`, so a fourth Cell Size is a compile error. `SizePicker` held a hand-maintained
-  `const Map` reached as `labels[size]!` until this landed, which is the **exact** shape
-  [`app/lib/ui/theme/AGENTS.md`](../ui/theme/AGENTS.md) records as a past crash: the fix was applied to the other two enums and not to this
-  one. `step` is `pixels + gap`, the pitch a renderer advances by, and it exists so that number is written once:
-  `ExportGeometryService` and both Export repositories each spelled it out, and `RenderOptions` carried a `cellSize`
-  getter that restated `pixels` under the name [ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) reserves for pixel geometry. That getter is gone.
-- **`Color.fromARGB` and `Color.fromRGB` take named channels.** They took four and three positional `int`s, which is
-  the case the argument convention names by its own rationale: transposing red and blue produces a valid `Color`
-  and a wrong colour, with nothing to catch it.
-- **`ContributionStats` pairs its two facts in the constructor.** `bestDayCount` with `bestDayDate`, and
-  `bestMonth` with `bestMonthContributions`, are each **one fact**, and the rule lived only in
-  `ContributionStatsService.compute`, one keystroke from being violated by the next caller. It was violated once
-  already: the stats said the best day was 15 June and that we could not tell you how many. Asserts, not nested
-  value objects: six of the eight figures have **no reader** in `lib/`, so wrapping them would invent types for
-  surface nothing consumes. The month is bounded to 1 to 12 while we are here.
-- **A `ContributionCalendar` and a `ContributionWeek` freeze their lists.** Both stored a `final List`, which
-  freezes the reference and not the contents, so `calendar.weeks.clear()` compiled and analyzed clean. That matters
-  more here than usually: `hashCode` is `Object.hash(..., Object.hashAll(weeks))`, so mutating a week in place
-  changed the object's `==` **and** `hashCode` while `ViewerState.calendar` still pointed at the same instance,
-  and freezed compared it to itself, reported equal, and left the screen rendering data it no longer held. Nothing
-  in `lib/` did it, so this is a guard. The constructors lost `const`, which cost nothing: no call site used it.
-- **`Color`'s constructor asserts its range, and stays `const`.** It took any `int` unchecked, so `Color(-1)`
-  compared unequal to `Color(0xFFFFFFFF)` despite painting identically, and `toHex()` emitted `#0000-1` for it,
-  which `SvgExportRepository` writes into a `fill=` attribute. A masking factory would have fixed it and cost every
-  `const Color(0x...)` in the tree, including `BackgroundPreset`'s five; the assert makes an out-of-range **literal**
-  a compile error instead, and catches a computed one in debug. No production path can reach it today, because
-  `fromHex` parses at most eight hex digits, so this is a guard rather than a bug fix.
-- **Every `CellFigure` compares by value, and a polygon's vertices are unmodifiable.** The guide called it a value
-  object and none of them declared `==`, so two identical figures were unequal. `_PolygonPainter.shouldRepaint`
-  had to hand-roll `listEquals` over the vertices in `ui/`, doing in a widget what the value object should do, on a
-  path that runs for every cell in the grid on every rebuild. Note the trap this hid behind: a test written with `const`
-  figures **passes without the fix**, because Dart canonicalises const instances and identity equality succeeds.
-  `CellGeometryService.figureFor` allocates fresh ones, so the test builds through it.
-- **`BackgroundPreset` is a domain value object, and the Flutter colour is an adapter.** Background is a glossary
-  concept and the web modelled it in `domain/`; here it lived in [`ui/theme/background_presets.dart`](../ui/theme/background_presets.dart) because its
-  `color` returned a **Flutter** `Color`, which the domain may not name. The identity (`system` / `charcoal` /
-  `github` / `navy` / `black`), the labels and the ARGB values are in `value_objects/background_preset.dart` now,
-  typed with the project's own `Color`; `ui/theme/` keeps a `BackgroundPresetPainting` extension with
-  `flutterColor` and `colorOr`, which is the same shape the guide already mandates for `Palette` ("the conversion
-  to a Flutter colour happens in the widgets that paint"). That also puts the persisted preset name's meaning in
-  the layer that owns the migration.
-- **`ContributionStatsService.compute` requires `today`.** It used to take `DateTime? today` and fall back to
-  `today ?? DateTime.now()`, and the only production caller passed nothing, so the app's **pure** layer read the
-  wall clock on every render. That defeated the reason `StreakService` takes `today` at all, one level up, and it
-  is why every test in `contribution_stats_service_test.dart` rebuilt its expectation from the same clock it was
-  testing. `ViewerNotifier` passes `DateTime.now()` now, which is where an impure read belongs, and the web's
-  `computeContributionStats` has required it all along.
-- **`NotFoundFailure` carries a `Username`, not a `String`.** The web's `NotFound` carries the value object and this
-  did not, so the repository unwrapped a perfectly good `Username` to throw. The cost is that the failure is no
-  longer `const`-constructible, because `Username`'s factory validates; failures are built at runtime, so that is
-  a price worth paying for the type surviving the boundary.
-- **`ContributionStatsService.totalFor(days)`** owns the Total Contributions rule: an unknown Count on an active
-  day voids the Total, a level-`none` unknown does not, because GitHub's level `none` is the zero it means
-  ([ADR 0019](../../../docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)). The parser calls it. It used
-  to be `_totalFor`, private to `contribution_repository_impl.dart`, so the project's flagship rule lived in
-  **infrastructure** while `compute` implemented it again in the domain: one rule, two layers, two spellings,
-  nothing making them agree. The web had the same split and was moved in the same commit.
+  Sunday-aligned weeks covering the requested Year, padding every date it was not given as a day with no Count, and
+  `weeksFor` answers how many weeks that takes
+  ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). `daysPerWeek` is declared
+  here and is 7. [ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md) is the superseded decision that
+  fixed the lattice at 53, and is worth reading for why the lattice exists at all.
+- **`CellSize.step`** is `pixels + gap`, the pitch a renderer advances by, written once: `ExportGeometryService` and
+  the PNG and SVG Export repositories read it.
+- **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
+  `pngPixelSizeFor` (those units times `pngPixelRatio`). The Export sheet's format tile asks the same function the
+  PNG renderer sizes its canvas with.
 - **`PaletteService.resolve({ palettes, storedKey })`** answers which Palette a stored setting names. It accepts a
   **key or a name**, which is the in-code half of the `paletteKey` / `paletteName` migration, and falls back to the
   first Palette rather than throwing: a Palette removed from [`shared/palettes.json`](../../../shared/palettes.json) degrades to the default
   instead of bricking the Viewer. It returns `null` only for an empty list, which is a broken asset rather than a
-  missing setting, and is what `ViewerState.paletteFailure` exists to report. `ViewerNotifier` spelled this out
-  inline before, so the background isolate could not reuse it.
+  missing setting, and is what `ViewerState.paletteFailure` exists to report. `ViewerNotifier` and
+  `HomeScreenWidgetRefresh` both call it.
 - **`DiagnosticReportService.warrants(failure)`** answers whether a `Failure` is a defect worth a Diagnostic Report
-  or the world's doing. `NetworkFailure`, `RateLimitedFailure` and `NotFoundFailure` are the second kind: no route to
-  GitHub, GitHub saying wait, an account renamed since it was stored. Everything else means the code or the bundle is
-  wrong. It exists for the background isolate, which has no person to show a `FailureMessage` to and used to report
-  every failure instead; the foreground reports none of them, because a `Failure` the Viewer renders is handled. The
-  match is exhaustive, so a new kind has to be placed on one side or the other before the app compiles.
-- **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
-  `pngPixelSizeFor` (those units times `pngPixelRatio`, 3.0). The PNG repository used to compute this inline while
-  the Export sheet's format tile advertised the constant string `2880×720`: a size no `CellSize` produces, against
-  a renderer that emits 2061×267 at `normal`. The tile computes it now, from the same function the renderer uses.
-- **`ContributionStatsService.compute(calendar)`** returns the full `ContributionStats`: current and longest streak,
-  best day and its date, active days, weekly average, best month and its total. The web's `ContributionStats` shares
-  exactly **two** of those eight (the two streaks) and adds a `totalContributions` the app keeps on the calendar
-  rather than in its stats. The remaining six are an unbuilt half, not a decision. So is most of this one: `StatsPanel` reads
-  `currentStreak` and `longestStreak` and nothing else, so six of the eight figures are computed and shown nowhere.
-  They are in the glossary's definition of Contribution Stats, so they stay; they are just not wired up yet.
-- **`bestMonth` is a month number, 1–12**, straight out of `DateTime.month`. It was called `bestMonthIndex`, which
-  invited a zero-based read and an off-by-one against any month-name table. The field is `null` when no day in the
-  calendar has a known Count above zero, and also (more often) the moment any *active* day has an unknown Count,
-  because `compute` guards the whole month block on `!incomplete`. A month total assembled from a partial tool-tip
-  pass is a lower bound, and naming a best month out of lower bounds is the lie `_totalFor` already refuses.
-- **`StreakService.currentFor` owns the current streak, and it is the only copy.** `ContributionStatsService` and
-  `HomeScreenWidgetPayload` both call it, so the Viewer and the Home Screen Widget cannot drift apart. And because
-  the payload is pure, the widget's streak is the one thing about it a test can assert without a device. It takes
-  `today` rather than reading the clock, which is what makes it testable at all: the rule had no test before,
-  precisely because there was no way to say what day it was.
-- **It anchors on the last day belonging to the calendar's Year, capped at today.** That is the whole fix for past
-  Years. The Contribution Grid pads the days on either side of the Year with an unknown Count, so a walk back from
-  `DateTime.now()` (or from the end of the padded day list) hit a zero immediately and returned **0** for every
-  past Year. `StatsPanel` labels that figure `FINAL`, so a year that closed on a forty-day run read as `FINAL 0 day
-  streak`. Days outside `calendar.year` are dropped before the walk begins.
-- **Trailing days after the anchor are skipped, and the anchor day itself is skipped while it is inactive**:
-  otherwise a streak would appear to break at midnight over a day that has not happened yet. The web's
-  `computeContributionStats` makes the same allowance, keyed on the level rather than the count.
+  or the world's doing: `NetworkFailure`, `RateLimitedFailure`, `NotFoundFailure` and `DeliveryFailure` are the
+  world's. It exists for the background isolate, which has no person to show a `FailureMessage` to; the foreground
+  reports none of them, because a `Failure` the Viewer renders is handled.
+- **`StreakService.currentFor`** anchors on the last day belonging to the calendar's Year, capped at today, and skips
+  the anchor day when it is today and still inactive, so a Streak does not break at midnight over a day that has not
+  happened yet. `ContributionStatsService` and `HomeScreenWidgetPayload` both call it, so the Viewer and the Home
+  Screen Widget cannot drift apart.
 
 ## `CellGeometryService`: one Cell, five renderers
 
-The decision, including why the published Embed's corner moved and why Kotlin cannot be held to it, is
+The decision, including why the published Embed's corner moved and why Kotlin keeps a copy of its own, is
 [ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md).
 
-**`figureFor` is the one place a Cell Shape becomes a primitive.** It answers a `CellFigure`: `SquareFigure`,
-`RoundedFigure(radius)`, `CircleFigure(radius)` or `PolygonFigure(vertices)`, in the cell's own coordinates, with
-the centre at `cellSize / 2`. The three Dart renderers match on those four cases instead of on the five Cell
-Shapes, so **a sixth Cell Shape needs no renderer change at all** unless it needs a primitive none of them draws.
-It still needs a `label` arm on the enum, which is a compile error until you write it, and a `when` arm in Kotlin,
-which is not.
-
-It collapses two arms into one: a Circle and a Dot are both a circle at the cell's centre, differing only in
-radius, and each renderer used to know that. Each also re-derived its own radius inline, which is how the
-on-screen Cell and the two Exports came to be three copies of the same five-arm mapping.
-
-`CellFigure` is a value object rather than a service return type because it says *what to draw*, not how: a
-`RoundedFigure` is a `DecoratedBox` on screen, an `rx` attribute in the SVG and an `RRect` on the PNG canvas, and
-none of those belongs in `domain/`. Kotlin still spells its own mapping, for the reason
-[ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md) gives.
-
-The maths a Cell Shape is drawn with lives here, not in whichever renderer needs it: `cornerRadiusFor`,
-`dotRadiusFor` and `hexVerticesFor`. **No renderer calls them any more**: they go through `figureFor`, which
-is the only caller left outside the tests.
-
-**It exists because the copies had drifted.** The dot radius and the hex vertices agreed everywhere, but the
-rounded corner did not: the exports and the Android widget scaled it with the Cell Size (`cell * 0.2`) while the
-screen drew a fixed `2.0`. At the `large` Cell Size that is 2.8 against 2.0: you chose a look, exported it, and
-the corners changed. The screen was the outlier, so the screen moved.
+`figureFor` answers a `CellFigure` (`SquareFigure`, `RoundedFigure(radius)`, `CircleFigure(radius)` or
+`PolygonFigure(vertices)`) in the cell's own coordinates, with the centre at `cellSize / 2`, and the three Dart
+renderers match on those four cases. **A sixth Cell Shape needs an arm in `figureFor` and in the enum's `label`**,
+which are compile errors until you write them, **and a `when` arm in Kotlin, which is not**:
+`dart_kotlin_seam_test.dart` is what catches that one. A Circle and a Dot are both a circle at the cell's centre,
+differing only in radius.
 
 `ContribKitWidgetProvider.kt` is the fourth copy and cannot import Dart, so it stays a deliberate mirror. If a
-constant here changes, that file changes in the same commit. The constants themselves still do not cross, so a
-change here produces no compile error there; what it does produce is a **failing test**. The docs contract reads
-`cornerRadiusRatio`, `dotBaseRadius`, `dotReferenceCellSize` and `hexVertexCount` out of this file and asserts the
-TypeScript constants and the Kotlin literals match, the same way it already diffs the Embed contract across two
-languages. That closes the gap [ADR 0020](../../../docs/adr/0020-the-cell-geometry-is-the-apps-in-three-languages.md)
-called unclosable: the *bitmap* is unassertable, the four numbers in the source are not.
+constant here changes, that file changes in the same commit. The constants do not cross, so a change here produces
+no compile error there; what it does produce is a **failing test**. The docs contract reads `cornerRadiusRatio`,
+`dotBaseRadius`, `dotReferenceCellSize` and `hexVertexCount` out of this file and asserts the TypeScript constants
+and the Kotlin literals match.
 
-**There is a fifth renderer, and it agrees now.** [`web/src/domain/services/svg-geometry.ts`](../../../web/src/domain/services/svg-geometry.ts) draws the same Cell for
-the Embed and the browser preview, and it used to hold its own numbers: a corner radius fixed at `2.5` where this
-service returns `cell * 0.2`, and a dot radius of `1.4 + level` unscaled where this one multiplies by
-`cellSize / 10`. There was **no** Cell Size at which the corners agreed, and the dots agreed only at exactly 10
-(which the web itself does not always use, since [`grid-geometry.ts`](../../../web/src/ui/components/grid/grid-geometry.ts) draws the hero at 13 and the customizer at 12).
-
-It carries `CORNER_RADIUS_RATIO = 0.2`, `DOT_BASE_RADIUS = 1.4` and `DOT_REFERENCE_CELL_SIZE = 10` now, and its
-`cornerRadiusFor` / `dotRadius` are this service's formulas in TypeScript. The published Embed's rounded corner
-therefore moved from `2.5` to `2.0`: the visible cost of a single shared rule, taken deliberately.
-
-This does **not** contradict
-[ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md): that
-decision is about Cell Size being a person's choice in the app and fixed pixel geometry on the web, and a ratio
-applied to a fixed size is still a fixed number. The direction was the one this codebase had already chosen once:
-the service exists because the screen drew a fixed `2.0` while the exports scaled, and they were unified **on the
-ratio**.
+**There is a fifth renderer.** [`web/src/domain/services/svg-geometry.ts`](../../../web/src/domain/services/svg-geometry.ts)
+draws the same Cell for the Embed and the browser preview from `CORNER_RADIUS_RATIO`, `DOT_BASE_RADIUS` and
+`DOT_REFERENCE_CELL_SIZE`, and its `cornerRadiusFor` / `dotRadius` are this service's formulas in TypeScript.
 
 ## Gotchas
 
-- **`Username` accepts consecutive hyphens; GitHub does not.** `a--b` constructs cleanly and then 404s upstream. The
-  web's regex is loose in the same way, on purpose: a truthful "user not found" beats a misleading "invalid
-  username" for any handle GitHub later starts allowing.
-- **The app's length check is separate from its pattern.** `[a-zA-Z0-9-]*` is unbounded, so the explicit
-  `trimmed.length > 39` guard is the only thing enforcing the limit. Deleting it as "already covered by the regex"
-  would silently accept a 200-character handle. The web bounds the length inside the pattern instead.
-- **Streaks read `day.isActive`, not `day.count > 0`.** They keyed on the Count until the Count could be unknown,
-  which meant a day GitHub had coloured broke a run whenever its tool-tip failed to parse, and made the app
-  disagree with the web, which has always keyed on the level.
 - **`bestDayDate` and `bestMonth` are `null` for an empty or wholly inactive calendar.** They are two of the
-  **five** optional fields: `bestDayCount`, `weeklyAverage` and `bestMonthContributions` are the others, and every
-  one of the five is derived from Counts. A UI that force-unwraps any of them will crash on a brand-new account.
-- **`bestDayDate` is nulled with `bestDayCount`, not separately.** The date used to survive the `incomplete` flag
-  that nulls the count, so the stats said *the best day was 15 June, and we cannot tell you how many* (which is a
-  claim about which day was best, made from counts that are known to be partial). The pair is one fact.
-- `ContributionCalendar` and `ContributionWeek` each carry a private `_listEquals`, because Dart's `==` on `List` is
-  identity. Any new entity holding a list needs the same treatment or its equality is quietly wrong. And Riverpod
-  rebuilds hang off exactly that comparison.
+  **five** optional fields of `ContributionStats`: `bestDayCount`, `weeklyAverage` and `bestMonthContributions` are
+  the others, and every one of the five is derived from Counts. A UI that force-unwraps any of them will crash on a
+  brand-new account.
+- **`bestMonth` is a month number, 1–12**, straight out of `DateTime.month`.
+- **`NotFoundFailure` cannot be built `const`**, because it carries a `Username` and `Username`'s factory validates;
+  failures are built at runtime, so that is the price of the type surviving the boundary.

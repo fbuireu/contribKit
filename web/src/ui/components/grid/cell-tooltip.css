@@ -30,8 +30,4 @@
 	:scope::backdrop {
 		background: transparent;
 	}
-
-	[data-date] {
-		cursor: default;
-	}
 }

@@ -1,10 +1,11 @@
 ---
-import { ANALYTICS_CATEGORY, CONSENT_COOKIE_NAME } from "../cookie-consent/config";
+import { CONSENT_COOKIE_NAME, ConsentCategory } from "../cookie-consent/config";
+import { GoogleConsentState } from "./telemetry";
 
 const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 ---
 
-<script is:inline define:vars={{ GA_ID, CONSENT_COOKIE_NAME, ANALYTICS_CATEGORY }}>
+<script is:inline define:vars={{ GA_ID, CONSENT_COOKIE_NAME, ConsentCategory, GoogleConsentState }}>
   window.dataLayer = window.dataLayer || [];
   function gtag() { dataLayer.push(arguments); }
   window.gtag = gtag;
@@ -16,10 +17,12 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
       const match = document.cookie.match(consentPattern);
       if (match) {
         const data = JSON.parse(decodeURIComponent(match[2]));
-        return Array.isArray(data.categories) && data.categories.includes(ANALYTICS_CATEGORY) ? 'granted' : 'denied';
+        return Array.isArray(data.categories) && data.categories.includes(ConsentCategory.Analytics)
+          ? GoogleConsentState.Granted
+          : GoogleConsentState.Denied;
       }
     } catch {}
-    return 'denied';
+    return GoogleConsentState.Denied;
   })();
 
   gtag('consent', 'default', { analytics_storage: analyticsConsent });
@@ -28,20 +31,9 @@ const GA_ID = import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID;
 </script>
 
 <script>
-  import { acceptedService } from "vanilla-cookieconsent";
-  import { getTelemetry } from "@ui/components/core/telemetry/telemetry";
-  import { initUsageEventLinks } from "@ui/components/core/telemetry/usage-event-links";
+  import { initTelemetry } from "./telemetry";
+  import { initUsageEventLinks } from "./usage-event-links";
 
-  function applyConsent() {
-    const telemetry = getTelemetry();
-    const googleGranted = acceptedService("ga4", "analytics");
-    telemetry.syncGoogleConsent(googleGranted);
-    if (googleGranted) telemetry.loadGoogleAnalytics();
-    if (acceptedService("betterstack", "analytics")) telemetry.loadBetterStack();
-  }
-
-  applyConsent();
-  window.addEventListener("cc:onConsent", applyConsent);
-  window.addEventListener("cc:onChange", applyConsent);
+  initTelemetry();
   initUsageEventLinks();
 </script>

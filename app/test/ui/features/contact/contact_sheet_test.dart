@@ -14,8 +14,8 @@ import '../../../support/harness.dart';
 const _body = 'a message long enough to send';
 
 Future<void> _openSheet(
-  WidgetTester tester,
-  FakeContactMessageRepository repository, {
+  WidgetTester tester, {
+  required FakeContactMessageRepository repository,
   FakeUsageEventRepository? usageEvents,
 }) => pumpSheet(
   tester,
@@ -41,7 +41,7 @@ void main() {
     testWidgets('says what the sheet is for and offers three fields', (
       tester,
     ) async {
-      await _openSheet(tester, FakeContactMessageRepository());
+      await _openSheet(tester, repository: FakeContactMessageRepository());
 
       expect(find.text('Contact'), findsOneWidget);
       expect(find.byType(AppTextField), findsNWidgets(3));
@@ -53,7 +53,7 @@ void main() {
       tester,
     ) async {
       final repository = FakeContactMessageRepository();
-      await _openSheet(tester, repository);
+      await _openSheet(tester, repository: repository);
 
       await _fillIn(tester, email: 'not-an-address');
       await tester.tap(find.text('Send'));
@@ -68,7 +68,7 @@ void main() {
       tester,
     ) async {
       final repository = FakeContactMessageRepository();
-      await _openSheet(tester, repository);
+      await _openSheet(tester, repository: repository);
 
       await _fillIn(tester, body: 'hi');
       await tester.tap(find.text('Send'));
@@ -82,7 +82,7 @@ void main() {
       tester,
     ) async {
       final repository = FakeContactMessageRepository();
-      await _openSheet(tester, repository);
+      await _openSheet(tester, repository: repository);
 
       await _fillIn(tester, name: '  Ada  ', email: '  ada@example.com  ');
       await tester.tap(find.text('Send'));
@@ -102,7 +102,7 @@ void main() {
       final repository = FakeContactMessageRepository(
         failure: const DeliveryFailure(message: 'destination not verified'),
       );
-      await _openSheet(tester, repository);
+      await _openSheet(tester, repository: repository);
 
       await _fillIn(tester);
       await tester.tap(find.text('Send'));
@@ -123,7 +123,7 @@ void main() {
       final usageEvents = FakeUsageEventRepository();
       await _openSheet(
         tester,
-        FakeContactMessageRepository(),
+        repository: FakeContactMessageRepository(),
         usageEvents: usageEvents,
       );
 
@@ -144,7 +144,7 @@ void main() {
       final usageEvents = FakeUsageEventRepository();
       await _openSheet(
         tester,
-        FakeContactMessageRepository(
+        repository: FakeContactMessageRepository(
           failure: const DeliveryFailure(message: 'destination not verified'),
         ),
         usageEvents: usageEvents,
@@ -162,7 +162,7 @@ void main() {
     testWidgets('sends once however many times Send is tapped', (tester) async {
       final gate = Completer<void>();
       final repository = FakeContactMessageRepository(gate: gate.future);
-      await _openSheet(tester, repository);
+      await _openSheet(tester, repository: repository);
 
       await _fillIn(tester);
       await tester.tap(find.text('Send'));
@@ -181,7 +181,7 @@ void main() {
     testWidgets('Close after a sent message dismisses the sheet', (
       tester,
     ) async {
-      await _openSheet(tester, FakeContactMessageRepository());
+      await _openSheet(tester, repository: FakeContactMessageRepository());
 
       await _fillIn(tester);
       await tester.tap(find.text('Send'));
@@ -194,7 +194,7 @@ void main() {
 
     testWidgets('Cancel closes the sheet and sends nothing', (tester) async {
       final repository = FakeContactMessageRepository();
-      await _openSheet(tester, repository);
+      await _openSheet(tester, repository: repository);
 
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();

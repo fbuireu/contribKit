@@ -1,19 +1,19 @@
 ---
-import { ElementId } from "@ui/utils/dom-contract";
+import { ElementId } from "../../utils/dom-contract";
 import "./widget.css";
 import { PALETTES } from "@domain/value-objects/palette";
 import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import { generateMiniGrid } from "@ui/components/grid/mini-grid";
-import Clock from "@ui/components/icons/Clock.astro";
-import Flame from "@ui/components/icons/Flame.astro";
-import Grid from "@ui/components/icons/Grid.astro";
-import Palette from "@ui/components/icons/Palette.astro";
-import Phone from "@ui/components/icons/Phone.astro";
+import { generateMiniGrid } from "../grid/mini-grid";
+import Clock from "../icons/Clock.astro";
+import Flame from "../icons/Flame.astro";
+import Grid from "../icons/Grid.astro";
+import Palette from "../icons/Palette.astro";
+import Phone from "../icons/Phone.astro";
 
 const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
 ---
 
-<section class="section" id="widget" aria-label="Widget">
+<section class="section" id={ElementId.HomeScreenWidgetSection} aria-label="Home screen widget">
   <div class="wrap">
     <div class="eyebrow" aria-hidden="true"><span class="mono">widget</span></div>
     <h2 class="section-title">
@@ -29,7 +29,7 @@ const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
           <div class="phone-screen" id={ElementId.PhoneScreen}>
             <div class="home-glow" aria-hidden="true"></div>
             <div class="home-widgets">
-              <div class="w-card w-medium" role="img" aria-label="Medium widget showing contribution grid">
+              <div class="w-card w-medium" role="img" aria-label="Medium home screen widget showing contribution grid">
                 <div class="w-head">
                   <span class="mono w-name" id={ElementId.WidgetUsername}>{DEFAULT_USERNAME}</span>
                   <span class="w-streak">
@@ -44,7 +44,7 @@ const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
               </div>
 
               <div class="home-row">
-                <div class="w-card w-small" role="img" aria-label="Small widget showing streak count">
+                <div class="w-card w-small" role="img" aria-label="Small home screen widget showing streak count">
                   <div class="ws-count mono">42</div>
                   <div class="ws-label mono">day streak</div>
                 </div>
@@ -68,7 +68,7 @@ const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
           </div>
           <div class="feat-text">
             <h3 class="feat-title">iOS &amp; Android</h3>
-            <p class="feat-body">Native home screen widget for both platforms. Follows each OS's widget conventions and size grid.</p>
+            <p class="feat-body">Native home screen widget for both platforms. Follows each OS's home screen widget conventions and size grid.</p>
           </div>
         </div>
         <div class="feat">
@@ -95,7 +95,7 @@ const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
           </div>
           <div class="feat-text">
             <h3 class="feat-title">All palettes</h3>
-            <p class="feat-body">All 11 color palettes available. The widget matches whatever you set in the app.</p>
+            <p class="feat-body">All {Object.keys(PALETTES).length} color palettes available. The home screen widget matches whatever you set in the app.</p>
           </div>
         </div>
       </div>

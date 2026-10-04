@@ -34,7 +34,7 @@ class PrivacySheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ConsentRow(
-            title: 'Crash reports',
+            title: 'Diagnostic reports',
             description:
                 'Sends the type of an error, where in the code it happened and '
                 'a short recording of the screens before it with all text and '

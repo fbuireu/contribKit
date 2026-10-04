@@ -3,7 +3,7 @@
 import { GRID_CELL_COUNT } from "@domain/services/dates";
 import { cornerRadiusFor, SVG_DEFAULT_CELL_SIZE } from "@domain/services/svg-geometry";
 import { CELL_SHAPES, CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
-import { buildEmbedUrl, EmbedParam } from "@domain/value-objects/embed";
+import { buildEmbedUrl } from "@domain/value-objects/embed";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
 import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "./code-preview";
@@ -20,7 +20,7 @@ describe("markdownSnippet", () => {
 	});
 
 	it("carries the chosen palette and shape, so copying preserves the customization", () => {
-		expect(markdownSnippet({ username: "torvalds", palette: "catppuccin", shape: "hex" })).toBe(
+		expect(markdownSnippet({ username: "torvalds", palette: "catppuccin", shape: CellShape.Hex })).toBe(
 			"![contributions](https://contribkit.app/user/torvalds.svg?palette=catppuccin&shape=hex)",
 		);
 	});
@@ -54,7 +54,7 @@ describe("every Cell Shape draws its own preview", () => {
 	it("never falls through to a rect for a shape it does not know", () => {
 		expect(
 			Object.fromEntries(CELL_SHAPES.map((shape) => [shape, tagFor(shape)])),
-			"the preview used to dispatch on an if-chain, so a sixth shape showed rects while the clipboard got the real markup",
+			"a shape that falls through to a rect shows rects while the clipboard gets its real markup",
 		).toEqual({
 			square: "rect",
 			rounded: "rect",
@@ -66,38 +66,35 @@ describe("every Cell Shape draws its own preview", () => {
 });
 
 describe("buildMarkdownLines", () => {
+	it("shows the one snippet markdownSnippet copies and nothing else, whichever options are at their defaults", () => {
+		for (const params of [
+			{ username: "torvalds", palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE },
+			{ username: "torvalds", palette: "nord", shape: DEFAULT_CELL_SHAPE },
+			{ username: "torvalds", palette: "catppuccin", shape: CellShape.Hex },
+		]) {
+			expect(toText(buildMarkdownLines(params)), JSON.stringify(params)).toBe(markdownSnippet(params));
+		}
+	});
+
 	it("embeds the username, palette and shape", () => {
-		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: "hex" }));
+		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: CellShape.Hex }));
 		expect(text).toContain(buildEmbedUrl({ username: "torvalds" }));
 		expect(text).toContain("catppuccin");
 		expect(text).toContain("hex");
 	});
 
 	it("never emits a doubled query separator", () => {
-		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: "hex" }));
+		const text = toText(buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: CellShape.Hex }));
 		expect(text).not.toContain("&&");
 		expect(text).not.toContain("?&");
 	});
 
-	it("keeps each markdown image on one line, so the snippet pastes as a link", () => {
-		const lines = buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: "hex" });
-		const images = lines.filter((line) => line.some(([, text]) => text === "!["));
+	it("keeps the markdown image on one line, so the snippet pastes as a link", () => {
+		const lines = buildMarkdownLines({ username: "torvalds", palette: "catppuccin", shape: CellShape.Hex });
 
-		expect(images).toHaveLength(2);
-		for (const image of images) {
-			const text = image.map(([, value]) => value).join("");
-			expect(text.startsWith("![contributions](")).toBe(true);
-			expect(text.endsWith(")")).toBe(true);
-		}
-	});
-
-	it("shows exactly what markdownSnippet copies", () => {
-		const params = { username: "torvalds", palette: "catppuccin", shape: CellShape.Hex };
-		const shown = buildMarkdownLines(params)
-			.map((line) => line.map(([, text]) => text).join(""))
-			.filter((line) => line.startsWith("!["));
-
-		expect(shown).toContain(markdownSnippet(params));
+		expect(lines).toHaveLength(1);
+		expect(toText(lines).startsWith("![contributions](")).toBe(true);
+		expect(toText(lines).endsWith(")")).toBe(true);
 	});
 });
 
@@ -111,25 +108,6 @@ describe("buildCodeBlock", () => {
 	it("renders a non-breaking space for empty lines", () => {
 		const pre = buildCodeBlock([[]]);
 		expect(pre.querySelector(".code-line")?.innerHTML).toBe("&nbsp;");
-	});
-});
-
-describe("buildMarkdownLines with the defaults the page opens on", () => {
-	it("does not print the same line twice", () => {
-		const lines = buildMarkdownLines({ username: "torvalds", palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE })
-			.map((line) => line.map(([, text]) => text).join(""))
-			.filter((line) => line.startsWith("!["));
-
-		expect(new Set(lines).size).toBe(lines.length);
-	});
-
-	it("shows the options on the line that says it has options", () => {
-		const lines = buildMarkdownLines({ username: "torvalds", palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE })
-			.map((line) => line.map(([, text]) => text).join(""))
-			.filter((line) => line.startsWith("!["));
-
-		expect(lines[1]).toContain(`?${EmbedParam.Palette}=`);
-		expect(lines[1]).toContain(`&${EmbedParam.Shape}=`);
 	});
 });
 

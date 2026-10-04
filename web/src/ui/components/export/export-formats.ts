@@ -10,6 +10,6 @@ export type ExportFormatKey = (typeof ExportFormatKey)[keyof typeof ExportFormat
 
 export const DEFAULT_EXPORT_FORMAT: ExportFormatKey = ExportFormatKey.Png;
 
-const exportFormatKey = z.enum(ExportFormatKey);
+const exportFormatKeySchema = z.enum(ExportFormatKey);
 
-export const isExportFormatKey = (value: unknown): value is ExportFormatKey => exportFormatKey.validate(value);
+export const isExportFormatKey = (value: unknown): value is ExportFormatKey => exportFormatKeySchema.validate(value);

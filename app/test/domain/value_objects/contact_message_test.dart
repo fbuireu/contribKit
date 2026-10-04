@@ -118,12 +118,24 @@ void main() {
       expect(_message(), isNot(_message(email: 'grace@example.com')));
     });
 
-    test('names itself without repeating the message body', () {
-      expect(
-        _message(name: 'Ada').toString(),
-        'ContactMessage(Ada <ada@example.com>)',
+    test('prints the domain of its address and no name, address or body, '
+        'because a log or a report prints whatever toString says', () {
+      final message = _message(
+        name: 'Ada Lovelace',
+        email: 'ada.lovelace@analytical.example',
+        body: 'Please render my Contribution Calendar in hex.',
       );
-      expect(_message().toString(), contains('(no name)'));
+
+      expect(message.toString(), 'ContactMessage(@analytical.example)');
+      expect(
+        '$message',
+        allOf(
+          isNot(contains('Ada')),
+          isNot(contains('lovelace')),
+          isNot(contains('hex')),
+        ),
+      );
+      expect(_message().toString(), 'ContactMessage(@example.com)');
     });
   });
 }

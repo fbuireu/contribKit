@@ -123,7 +123,7 @@ final class GitHubContributionRepository implements ContributionRepository {
     }
     if (response.statusCode == 429) {
       throw RateLimitedFailure(
-        resetAt: RetryAfter.resetAtFrom(response.headers),
+        resetAt: RetryAfter.resetAtFrom(response.headers, now: _now()),
       );
     }
     if (response.statusCode != 200) {

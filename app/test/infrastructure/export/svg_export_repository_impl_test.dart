@@ -17,6 +17,8 @@ import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/export/svg_export_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fixtures.dart';
+
 const _palette = Palette(
   key: 'test',
   name: 'Test',
@@ -49,7 +51,7 @@ ContributionCalendar _calendar({
 
   return ContributionCalendar(
     username: Username(username),
-    year: Year(2024),
+    year: Year(2024, today: testToday),
     weeks: weeks,
     totalContributions: count,
   );

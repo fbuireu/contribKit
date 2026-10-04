@@ -1,13 +1,15 @@
 ---
-import "@ui/styles/index.css";
+import "../../../styles/index.css";
 import Font from "astro/components/Font.astro";
+import { ClassName, ElementId, ThemeClass } from "../../../utils/dom-contract";
 import CookieConsent from "../cookie-consent/CookieConsent.astro";
 import Footer from "../footer/Footer.astro";
 import Header from "../header/Header.astro";
-import { COLOR_SCHEME_KEY, COLOR_SCHEME_META_SELECTOR, ThemeClass } from "../header/theme-toggle";
+import { COLOR_SCHEME_KEY, COLOR_SCHEME_META_SELECTOR } from "../header/theme-toggle";
 import SEO from "../seo/SEO.astro";
 import type { Metadata } from "../seo/types";
 import Telemetry from "../telemetry/Telemetry.astro";
+import { ThemeChoice } from "../telemetry/usage-event";
 
 interface Props {
 	metadata: Metadata;
@@ -25,10 +27,10 @@ const { metadata } = Astro.props;
     <meta name={COLOR_SCHEME_KEY} content="light dark" />
     <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
-    <script is:inline define:vars={{ COLOR_SCHEME_KEY, COLOR_SCHEME_META_SELECTOR, ThemeClass }}>
+    <script is:inline define:vars={{ COLOR_SCHEME_KEY, COLOR_SCHEME_META_SELECTOR, ThemeClass, ThemeChoice }}>
       const pinnedScheme = localStorage.getItem(COLOR_SCHEME_KEY);
-      if (pinnedScheme === 'light' || pinnedScheme === 'dark') {
-        document.documentElement.classList.add(pinnedScheme === 'light' ? ThemeClass.Light : ThemeClass.Dark);
+      if (pinnedScheme === ThemeChoice.Light || pinnedScheme === ThemeChoice.Dark) {
+        document.documentElement.classList.add(pinnedScheme === ThemeChoice.Light ? ThemeClass.Light : ThemeClass.Dark);
         document.querySelector(COLOR_SCHEME_META_SELECTOR).content = pinnedScheme;
       }
     </script>
@@ -44,9 +46,9 @@ const { metadata } = Astro.props;
     <slot name="head" />
   </head>
   <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <a href={`#${ElementId.MainContent}`} class={ClassName.SkipLink}>Skip to main content</a>
     <Header />
-    <main id="main-content">
+    <main id={ElementId.MainContent}>
       <slot />
     </main>
     <Footer />

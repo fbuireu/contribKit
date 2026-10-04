@@ -1,8 +1,8 @@
 import { z } from "astro/zod";
 
-const nonBlankText = z.string().trim().min(1);
+const nonBlankTextSchema = z.string().trim().min(1);
 
 export const nonBlank = (raw: unknown): string | null => {
-	const result = nonBlankText.safeParse(raw);
+	const result = nonBlankTextSchema.safeParse(raw);
 	return result.success ? result.data : null;
 };

@@ -9,6 +9,53 @@ part of 'providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(clock)
+final clockProvider = ClockProvider._();
+
+final class ClockProvider
+    extends
+        $FunctionalProvider<
+          DateTime Function(),
+          DateTime Function(),
+          DateTime Function()
+        >
+    with $Provider<DateTime Function()> {
+  ClockProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'clockProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$clockHash();
+
+  @$internal
+  @override
+  $ProviderElement<DateTime Function()> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DateTime Function() create(Ref ref) {
+    return clock(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DateTime Function() value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DateTime Function()>(value),
+    );
+  }
+}
+
+String _$clockHash() => r'3f65ad34ac6fcd532de9004042bdf2ed2bd85b13';
+
 @ProviderFor(paletteRepository)
 final paletteRepositoryProvider = PaletteRepositoryProvider._();
 
@@ -230,7 +277,7 @@ final class ContributionRepositoryProvider
 }
 
 String _$contributionRepositoryHash() =>
-    r'd92cbf55c7e69c567ed748d019c91494b149b2fb';
+    r'80d0128ed2d49d2acf82fb7d53da4593547f7112';
 
 @ProviderFor(contactMessageRepository)
 final contactMessageRepositoryProvider = ContactMessageRepositoryProvider._();
@@ -278,7 +325,7 @@ final class ContactMessageRepositoryProvider
 }
 
 String _$contactMessageRepositoryHash() =>
-    r'705a03e37f3269b1b901b1aea11e7304dcea247a';
+    r'ffadc59c0f08c40eaf8ec7b1ab9e7e6c4232f22a';
 
 @ProviderFor(sendContactMessage)
 final sendContactMessageProvider = SendContactMessageProvider._();
@@ -502,7 +549,7 @@ final class SettingsRepositoryProvider
 }
 
 String _$settingsRepositoryHash() =>
-    r'b8e323aee5b4426edbac0e1ac573ba54c1edefe8';
+    r'057736d7e2f70e3416c0b88a010c9e708b45d9cd';
 
 @ProviderFor(telemetryConfig)
 final telemetryConfigProvider = TelemetryConfigProvider._();
@@ -1036,7 +1083,7 @@ final class ThemeModeNotifierProvider
   }
 }
 
-String _$themeModeNotifierHash() => r'6ddb94a7744510f30cf45dddb8ad9b6ad20aa9a3';
+String _$themeModeNotifierHash() => r'fd92ba66faa07ec217fadec6cc734ae925c3a495';
 
 abstract class _$ThemeModeNotifier extends $Notifier<ThemeMode> {
   ThemeMode build();

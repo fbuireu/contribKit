@@ -27,5 +27,6 @@ final class AppSettings {
   final AppThemeMode themeMode;
   final TelemetryConsent telemetryConsent;
 
-  Year get year => lastYear ?? Year.current;
+  Year year({required DateTime today}) =>
+      lastYear ?? Year.current(today: today);
 }

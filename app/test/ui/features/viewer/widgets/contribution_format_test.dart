@@ -6,17 +6,23 @@ void main() {
   final format = NumberFormat.decimalPattern('en');
 
   test('formats a known Total Contributions', () {
-    expect(formatTotalContributions(format: format, total: 1234), '1,234');
+    expect(
+      formatTotalContributions(format: format, totalContributions: 1234),
+      '1,234',
+    );
   });
 
   test('formats a measured zero as a number, because zero is a fact', () {
-    expect(formatTotalContributions(format: format, total: 0), '0');
+    expect(
+      formatTotalContributions(format: format, totalContributions: 0),
+      '0',
+    );
   });
 
   test('says unknown for a Total nobody could measure', () {
     expect(
-      formatTotalContributions(format: format, total: null),
-      unknownTotalText,
+      formatTotalContributions(format: format, totalContributions: null),
+      unknownTotalContributionsText,
     );
   });
 }

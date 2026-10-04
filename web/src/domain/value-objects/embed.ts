@@ -31,8 +31,6 @@ export interface BuildEmbedUrlParams {
 	readonly username: string;
 	readonly palette?: string;
 	readonly shape?: CellShape;
-	readonly origin?: string;
-	readonly keepDefaults?: boolean;
 }
 
 const embedPathFor = (username: string): string =>
@@ -40,13 +38,7 @@ const embedPathFor = (username: string): string =>
 
 type EmbedQueryEntry = readonly [name: string, value: string | undefined, fallback: string];
 
-export const buildEmbedUrl = ({
-	username,
-	palette,
-	shape,
-	origin = EMBED_ORIGIN,
-	keepDefaults = false,
-}: BuildEmbedUrlParams): string => {
+export const buildEmbedUrl = ({ username, palette, shape }: BuildEmbedUrlParams): string => {
 	const entries: readonly EmbedQueryEntry[] = [
 		[EmbedParam.Palette, palette, DEFAULT_EMBED_QUERY.palette],
 		[EmbedParam.Shape, shape, DEFAULT_EMBED_QUERY.shape],
@@ -54,11 +46,11 @@ export const buildEmbedUrl = ({
 	const query = entries
 		.filter((entry): entry is readonly [string, string, string] => {
 			const [, value, fallback] = entry;
-			return value !== undefined && (keepDefaults || value !== fallback);
+			return value !== undefined && value !== fallback;
 		})
 		.map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
 		.join("&");
 
-	const url = `${origin}${embedPathFor(username)}`;
+	const url = `${EMBED_ORIGIN}${embedPathFor(username)}`;
 	return query ? `${url}?${query}` : url;
 };

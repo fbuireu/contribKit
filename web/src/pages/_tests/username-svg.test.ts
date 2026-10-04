@@ -13,7 +13,6 @@ const call = ({ username, query = "" }: CallParams): Promise<Response> =>
 	GET({
 		params: { username },
 		url: new URL(`https://contribkit.app/user/${username}.svg${query}`),
-		locals: {},
 	} as never) as Promise<Response>;
 
 afterEach(() => vi.unstubAllGlobals());
@@ -32,11 +31,16 @@ describe("GET /user/[username].svg", () => {
 		expect((await res.text()).startsWith("<svg")).toBe(true);
 	});
 
-	it("400 text/plain on an invalid username", async () => {
+	it("answers 400 text/plain to the smoke run's malformed Username without a request leaving the Worker", async () => {
+		const request = vi.fn(async () => new Response(HTML, { status: 200 }));
+		vi.stubGlobal("fetch", request);
+
 		const res = await call({ username: "foo_bar" });
 
+		expect(request).not.toHaveBeenCalled();
 		expect(res.status).toBe(400);
 		expect(res.headers.get("Content-Type")).toBe("text/plain");
+		expect(await res.text()).toBe("Invalid GitHub username");
 	});
 
 	it("404 'User not found' when the user does not exist", async () => {
@@ -117,7 +121,6 @@ describe("GET /user/[username].svg", () => {
 		const res = await GET({
 			params: {},
 			url: new URL("https://contribkit.app/user/.svg"),
-			locals: {},
 		} as never);
 
 		expect(res.status).toBe(400);

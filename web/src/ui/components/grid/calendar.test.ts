@@ -26,9 +26,9 @@ describe("generateData", () => {
 
 	it("gives every day a real count that agrees with its level", () => {
 		const days = generateData(7);
-		expect(days.every((cell) => cell.count !== null)).toBe(true);
-		expect(days.every((cell) => (cell.count === 0) === (cell.level === 0))).toBe(true);
-		expect(days.some((cell) => cell.level === 0)).toBe(true);
-		expect(days.some((cell) => cell.level > 0)).toBe(true);
+		expect(days.every((day) => day.count !== null)).toBe(true);
+		expect(days.every((day) => (day.count === 0) === (day.level === 0))).toBe(true);
+		expect(days.some((day) => day.level === 0)).toBe(true);
+		expect(days.some((day) => day.level > 0)).toBe(true);
 	});
 });

@@ -1,12 +1,15 @@
 import 'dart:io';
 
 abstract final class RetryAfter {
-  static DateTime? resetAtFrom(Map<String, String> headers) {
+  static DateTime? resetAtFrom(
+    Map<String, String> headers, {
+    required DateTime now,
+  }) {
     final header = headers['retry-after'];
     if (header == null) return null;
     final trimmed = header.trim();
     final seconds = int.tryParse(trimmed);
-    if (seconds != null) return DateTime.now().add(Duration(seconds: seconds));
+    if (seconds != null) return now.add(Duration(seconds: seconds));
     try {
       return HttpDate.parse(trimmed);
     } catch (_) {

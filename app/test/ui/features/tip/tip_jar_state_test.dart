@@ -63,7 +63,7 @@ void main() {
 
     test('a failed Tip carries its reason and thanks nobody', () {
       final settled = giving.settling(
-        const TipFailed(product: _coffee, message: 'card declined'),
+        const TipFailed(tipProduct: _coffee, message: 'card declined'),
       );
 
       expect(settled.hasFailed(_coffee), isTrue);
@@ -74,14 +74,24 @@ void main() {
     test('only one Tip Product can be in a terminal state at a time', () {
       final settled = giving
           .settling(const TipCompleted(_coffee))
-          .settling(const TipFailed(product: _lunch, message: 'nope'));
+          .settling(const TipFailed(tipProduct: _lunch, message: 'nope'));
 
       expect(settled.isCompleted(_coffee), isFalse);
       expect(settled.hasFailed(_lunch), isTrue);
     });
 
+    test('a settled Tip lets the next one begin', () {
+      for (final settled in [
+        giving.settling(const TipCompleted(_coffee)),
+        giving.settling(const TipCancelled(_coffee)),
+        giving.settling(const TipFailed(tipProduct: _coffee, message: 'nope')),
+      ]) {
+        expect(settled.beginning(_lunch)?.isInFlight(_lunch), isTrue);
+      }
+    });
+
     test('keeps the Tip Products it was built with', () {
-      expect(giving.settling(const TipCancelled(_coffee)).products, const [
+      expect(giving.settling(const TipCancelled(_coffee)).tipProducts, const [
         _coffee,
         _lunch,
       ]);

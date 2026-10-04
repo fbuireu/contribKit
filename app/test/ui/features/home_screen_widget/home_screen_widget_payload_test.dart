@@ -9,9 +9,11 @@ import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
+import 'package:contribkit/ui/features/home_screen_widget/home_screen_widget_payload.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_format.dart';
-import 'package:contribkit/ui/features/widget/home_screen_widget_payload.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/fixtures.dart';
 
 const _palette = Palette(
   key: 'test',
@@ -46,7 +48,7 @@ ContributionCalendar _calendar({ContributionLevel? level}) {
 
   return ContributionCalendar(
     username: Username('torvalds'),
-    year: Year(2024),
+    year: Year(2024, today: testToday),
     weeks: weeks,
     totalContributions: 7,
   );
@@ -105,7 +107,8 @@ version in the same commit, or do not change the order.''',
       expect(
         colors.first,
         _palette.none.argb.toString(),
-        reason: 'the dark none, so noneLight never reaches the widget',
+        reason:
+            'the dark none, so noneLight never reaches the Home Screen Widget',
       );
       expect(colors.last, _palette.veryHigh.argb.toString());
     });
@@ -171,8 +174,13 @@ version in the same commit, or do not change the order.''',
     test(
       'never sends an empty string, which Kotlin cannot tell from absent',
       () {
-        for (final total in [null, 0, 42]) {
-          expect(HomeScreenWidgetPayload.encodeTotal(total), isNotEmpty);
+        for (final totalContributions in [null, 0, 42]) {
+          expect(
+            HomeScreenWidgetPayload.encodeTotalContributions(
+              totalContributions,
+            ),
+            isNotEmpty,
+          );
         }
       },
     );
@@ -210,7 +218,7 @@ version in the same commit, or do not change the order.''',
       for (final gridYear in [2019, 2020, 2023, 2024, 2028]) {
         final calendar = ContributionCalendar(
           username: Username('octocat'),
-          year: Year(2024),
+          year: Year(2024, today: testToday),
           weeks: ContributionGridService.buildFor(
             days: const [],
             year: gridYear,
@@ -238,34 +246,37 @@ version in the same commit, or do not change the order.''',
       }
     });
 
-    test('sends exactly weeks x 7 level digits, so the Kotlin bounds check holds', () {
-      final calendar = ContributionCalendar(
-        username: Username('octocat'),
-        year: Year(2024),
-        weeks: ContributionGridService.buildFor(days: const [], year: 2024),
-        totalContributions: null,
-      );
+    test(
+      'sends exactly weeks x 7 level digits, so the Kotlin bounds check holds',
+      () {
+        final calendar = ContributionCalendar(
+          username: Username('octocat'),
+          year: Year(2024, today: testToday),
+          weeks: ContributionGridService.buildFor(days: const [], year: 2024),
+          totalContributions: null,
+        );
 
-      final payload = HomeScreenWidgetPayload.from(
-        calendar: calendar,
-        palette: _palette,
-        cellShape: CellShape.rounded,
-        today: DateTime(2024, 6, 15),
-      );
+        final payload = HomeScreenWidgetPayload.from(
+          calendar: calendar,
+          palette: _palette,
+          cellShape: CellShape.rounded,
+          today: DateTime(2024, 6, 15),
+        );
 
-      expect(
-        payload.levels.length,
-        ContributionGridService.weeksFor(2024) *
-            ContributionGridService.daysPerWeek,
-      );
-      expect(
-        payload.levels.length,
-        payload.weeks * ContributionGridService.daysPerWeek,
-        reason:
-            'CalendarWidgetService writes these two keys separately, so Kotlin '
-            'can read a new one beside a stale one. They agree inside one '
-            'payload, which is what makes idx < levels.length sufficient',
-      );
-    });
+        expect(
+          payload.levels.length,
+          ContributionGridService.weeksFor(2024) *
+              ContributionGridService.daysPerWeek,
+        );
+        expect(
+          payload.levels.length,
+          payload.weeks * ContributionGridService.daysPerWeek,
+          reason:
+              'HomeScreenWidgetService writes these two keys separately, so Kotlin '
+              'can read a new one beside a stale one. They agree inside one '
+              'payload, which is what makes idx < levels.length sufficient',
+        );
+      },
+    );
   });
 }

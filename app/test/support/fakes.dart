@@ -2,6 +2,7 @@ import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/repositories/contribution_repository.dart';
+import 'package:contribkit/domain/repositories/diagnostics_repository.dart';
 import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/repositories/palette_repository.dart';
@@ -23,10 +24,15 @@ import 'package:contribkit/domain/value_objects/year.dart';
 import 'fixtures.dart';
 
 final class FakeSettingsRepository implements SettingsRepository {
-  FakeSettingsRepository({this.settings = const AppSettings(), this.failure});
+  FakeSettingsRepository({
+    this.settings = const AppSettings(),
+    this.failure,
+    this.writeFailure,
+  });
 
   final AppSettings settings;
   final Object? failure;
+  final Object? writeFailure;
 
   final writes = <String, Object>{};
 
@@ -38,41 +44,49 @@ final class FakeSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> saveLastUsername(Username username) async {
+    if (writeFailure case final error?) throw error;
     writes['lastUsername'] = username;
   }
 
   @override
   Future<void> saveLastYear(Year year) async {
+    if (writeFailure case final error?) throw error;
     writes['lastYear'] = year;
   }
 
   @override
   Future<void> savePaletteKey(String key) async {
+    if (writeFailure case final error?) throw error;
     writes['paletteKey'] = key;
   }
 
   @override
   Future<void> saveCellShape(CellShape shape) async {
+    if (writeFailure case final error?) throw error;
     writes['cellShape'] = shape;
   }
 
   @override
   Future<void> saveCellSize(CellSize size) async {
+    if (writeFailure case final error?) throw error;
     writes['cellSize'] = size;
   }
 
   @override
   Future<void> saveBackgroundPreset(String presetName) async {
+    if (writeFailure case final error?) throw error;
     writes['backgroundPreset'] = presetName;
   }
 
   @override
   Future<void> saveThemeMode(AppThemeMode mode) async {
+    if (writeFailure case final error?) throw error;
     writes['themeMode'] = mode;
   }
 
   @override
   Future<void> saveTelemetryConsent(TelemetryConsent consent) async {
+    if (writeFailure case final error?) throw error;
     writes['telemetryConsent'] = consent;
   }
 }
@@ -202,18 +216,18 @@ final class FakeExportRepository implements ExportRepository {
 
 final class FakeTipRepository implements TipRepository {
   FakeTipRepository({
-    this.products = testTipProducts,
+    this.tipProducts = testTipProducts,
     this.outcome = TipOutcome.completed,
-    this.productsFailure,
+    this.tipProductsFailure,
     this.giveFailure,
     this.gate,
     this.giveGate,
     this.failLoadsBefore = 0,
   });
 
-  final List<TipProduct> products;
+  final List<TipProduct> tipProducts;
   final TipOutcome outcome;
-  final Object? productsFailure;
+  final Object? tipProductsFailure;
   final Object? giveFailure;
   final Future<void>? gate;
   final Future<void>? giveGate;
@@ -224,19 +238,19 @@ final class FakeTipRepository implements TipRepository {
   int loads = 0;
 
   @override
-  Future<List<TipProduct>> getProducts() async {
+  Future<List<TipProduct>> getTipProducts() async {
     loads++;
     if (gate case final wait?) await wait;
     if (loads <= failLoadsBefore) {
       throw const TipFailure(message: 'store unreachable');
     }
-    if (productsFailure case final error?) throw error;
-    return products;
+    if (tipProductsFailure case final error?) throw error;
+    return tipProducts;
   }
 
   @override
-  Future<TipOutcome> give(TipProduct product) async {
-    given.add(product);
+  Future<TipOutcome> give(TipProduct tipProduct) async {
+    given.add(tipProduct);
     if (giveGate case final wait?) await wait;
     if (giveFailure case final error?) throw error;
     return outcome;
@@ -245,6 +259,7 @@ final class FakeTipRepository implements TipRepository {
 
 final class FakeUsageEventRepository implements UsageEventRepository {
   final recorded = <UsageEvent>[];
+  final consents = <bool>[];
 
   @override
   Future<void> start() async {}
@@ -255,7 +270,27 @@ final class FakeUsageEventRepository implements UsageEventRepository {
   }
 
   @override
-  Future<void> applyConsent({required bool granted}) async {}
+  Future<void> applyConsent({required bool granted}) async {
+    consents.add(granted);
+  }
+}
+
+final class FakeDiagnosticsRepository implements DiagnosticsRepository {
+  final consents = <bool>[];
+  final reported = <Object>[];
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<void> report({required Object error, StackTrace? stackTrace}) async {
+    reported.add(error);
+  }
+
+  @override
+  Future<void> applyConsent({required bool granted}) async {
+    consents.add(granted);
+  }
 }
 
 final class FakeExportDelivery implements ExportDeliveryRepository {

@@ -11,8 +11,8 @@ abstract final class TipProductPresentation {
     'lunch': (emoji: '🍱', label: 'Lunch'),
   };
 
-  static TipProductLook of(TipProduct product) {
-    final id = product.id.toLowerCase();
+  static TipProductLook of(TipProduct tipProduct) {
+    final id = tipProduct.id.toLowerCase();
     for (final entry in byIdFragment.entries) {
       if (id.contains(entry.key)) return entry.value;
     }

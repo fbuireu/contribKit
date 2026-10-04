@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const acceptedService = vi.hoisted(() => vi.fn<(service: string, category: string) => boolean>());
+
+vi.mock("vanilla-cookieconsent", () => ({ acceptedService, acceptedCategory: vi.fn() }));
+
 interface StubbedScript {
 	src?: string;
 	async?: boolean;
@@ -130,19 +134,85 @@ describe("getTelemetry", () => {
 	});
 });
 
-describe("trackingEnvironmentFor", () => {
+describe("telemetryEnvironmentFor", () => {
 	it("calls the preview Workers and localhost development", async () => {
-		const { trackingEnvironmentFor } = await import("./telemetry");
+		const { telemetryEnvironmentFor } = await import("./telemetry");
 
-		expect(trackingEnvironmentFor("localhost")).toBe("development");
-		expect(trackingEnvironmentFor("127.0.0.1")).toBe("development");
-		expect(trackingEnvironmentFor("pr-12-contribkit-development.fbuireu.workers.dev")).toBe("development");
+		expect(telemetryEnvironmentFor("localhost")).toBe("development");
+		expect(telemetryEnvironmentFor("127.0.0.1")).toBe("development");
+		expect(telemetryEnvironmentFor("pr-12-contribkit-development.fbuireu.workers.dev")).toBe("development");
 	});
 
 	it("calls the real domain production", async () => {
-		const { trackingEnvironmentFor } = await import("./telemetry");
+		const { telemetryEnvironmentFor } = await import("./telemetry");
 
-		expect(trackingEnvironmentFor("contribkit.app")).toBe("production");
-		expect(trackingEnvironmentFor("www.contribkit.app")).toBe("production");
+		expect(telemetryEnvironmentFor("contribkit.app")).toBe("production");
+		expect(telemetryEnvironmentFor("www.contribkit.app")).toBe("production");
+	});
+});
+
+describe("initTelemetry", () => {
+	afterEach(() => {
+		acceptedService.mockReset();
+		vi.unstubAllGlobals();
+		vi.unstubAllEnvs();
+		vi.resetModules();
+	});
+
+	const stubWindow = (gtag: (...args: unknown[]) => void = vi.fn()) => {
+		const addEventListener = vi.fn();
+		vi.stubGlobal("window", { addEventListener, gtag, location: { hostname: "contribkit.app" } });
+		return { addEventListener };
+	};
+
+	it("asks each vendor's own consent service under the analytics category", async () => {
+		stubWindow();
+		acceptedService.mockReturnValue(false);
+		const { initTelemetry } = await import("./telemetry");
+
+		initTelemetry();
+
+		expect(acceptedService).toHaveBeenCalledWith("ga4", "analytics");
+		expect(acceptedService).toHaveBeenCalledWith("betterstack", "analytics");
+	});
+
+	it("grants and loads Google alone when only Google's service is accepted", async () => {
+		vi.stubEnv("PUBLIC_GOOGLE_ANALYTICS_ID", "G-TEST");
+		vi.stubEnv("PUBLIC_BETTER_STACK_TRACKING_TOKEN", "tok_123");
+		const { scripts } = stubDocument();
+		const gtag = vi.fn();
+		stubWindow(gtag);
+		acceptedService.mockImplementation((service) => service === "ga4");
+		const { initTelemetry } = await import("./telemetry");
+
+		initTelemetry();
+
+		expect(gtag).toHaveBeenCalledWith("consent", "update", { analytics_storage: "granted" });
+		expect(scripts.map(({ src }) => src)).toEqual(["https://www.googletagmanager.com/gtag/js?id=G-TEST"]);
+	});
+
+	it("keeps Google denied and loads nothing while no service is accepted", async () => {
+		vi.stubEnv("PUBLIC_GOOGLE_ANALYTICS_ID", "G-TEST");
+		vi.stubEnv("PUBLIC_BETTER_STACK_TRACKING_TOKEN", "tok_123");
+		const { appendChild } = stubDocument();
+		const gtag = vi.fn();
+		stubWindow(gtag);
+		acceptedService.mockReturnValue(false);
+		const { initTelemetry } = await import("./telemetry");
+
+		initTelemetry();
+
+		expect(gtag).toHaveBeenCalledWith("consent", "update", { analytics_storage: "denied" });
+		expect(appendChild).not.toHaveBeenCalled();
+	});
+
+	it("applies the consent again whenever the banner reports a consent or a change", async () => {
+		const { addEventListener } = stubWindow();
+		acceptedService.mockReturnValue(false);
+		const { initTelemetry } = await import("./telemetry");
+
+		initTelemetry();
+
+		expect(addEventListener.mock.calls.map(([name]) => name)).toEqual(["cc:onConsent", "cc:onChange"]);
 	});
 });

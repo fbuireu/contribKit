@@ -101,16 +101,19 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
 
 ### Errors
 
-Errors return `{ "error": "<message>" }` with an appropriate status. A **400** carries one extra key, `field`,
-naming the parameter that was rejected (`username` or `year`), because this endpoint is consumed by code and
-"something was wrong" is not enough to act on:
+Errors return `{ "error": "<message>", "kind": "<kind>" }` with an appropriate status, because this endpoint is
+consumed by code and "something was wrong" is not enough to act on. `kind` names the failure, one of `InvalidInput`,
+`NotFound`, `RateLimited`, `Network` and `Parse`, so a client can word it without parsing `error`. A **400** carries
+one extra key, `field`, naming the parameter that was rejected (`username` or `year`). Two answers carry no `kind`,
+because no failure of the lookup produced them: this endpoint's own per-IP `429` and the `500` an unexpected error
+gets.
 
-| Status | Meaning |
-|--------|---------|
-| `400` | Missing `user`, or invalid username/year |
-| `404` | GitHub has no such user (`"User not found"`) |
-| `429` | **Two different things, and the body is what tells them apart.** `"Too many requests"` is this endpoint's own per-IP limit, refused by the middleware before the route runs. `"GitHub is rate-limiting this Worker"` is upstream. Both carry `Retry-After` when a wait is known (a fixed `60` for ours, GitHub's own figure for theirs), and neither carries one when it is not |
-| `502` | GitHub unreachable, or the page couldn't be parsed |
+| Status | `kind` | Meaning |
+|--------|--------|---------|
+| `400` | `InvalidInput` | Missing `user`, or invalid username/year |
+| `404` | `NotFound` | GitHub has no such user (`"User not found"`) |
+| `429` | `RateLimited`, or none | **Two different things, and `kind` is what tells them apart.** No `kind` (`"Too many requests"`) is this endpoint's own per-IP limit, refused by the middleware before the route runs. `RateLimited` (`"GitHub is rate-limiting this Worker"`) is upstream. Both carry `Retry-After` when a wait is known (a fixed `60` for ours, GitHub's own figure for theirs), and neither carries one when it is not |
+| `502` | `Network` or `Parse` | `Network`: GitHub unreachable or answering a non-OK status. `Parse`: GitHub answered, and the page held no Contribution Day |
 
 ---
 
@@ -186,6 +189,7 @@ Returns `200` when everything is present, `503` (`"status": "misconfigured"`) ot
 HTTP/1.1 429 Too Many Requests
 Retry-After: 60
 Content-Type: application/json
+Cache-Control: no-store
 
 { "error": "Too many requests" }
 ```

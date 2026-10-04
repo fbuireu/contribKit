@@ -90,6 +90,12 @@ describe("the pages-layer agent guide", () => {
 		expect(response.headers.get("X-Frame-Options")).toBe("DENY");
 	});
 
+	it("keeps its 404 out of every cache", async () => {
+		const response = await run({ path: "/AGENTS", next: ok });
+
+		expect(response.headers.get("Cache-Control")).toBe("no-store");
+	});
+
 	it("does not block a real route that merely starts the same way", async () => {
 		const response = await run({ path: "/AGENTSX", next: ok });
 		expect(response.status).toBe(200);
@@ -112,6 +118,18 @@ describe("api rate limiting", () => {
 		expect(response.headers.get("Retry-After")).toBe("60");
 		expect(await response.json()).toEqual({ error: "Too many requests" });
 		expect(next).not.toHaveBeenCalled();
+	});
+
+	it("keeps both limiters' 429 out of every cache, as the API reference promises for every 429", async () => {
+		const refuse: Limiter = { limit: () => Promise.resolve({ success: false }) };
+		env.API_RATE_LIMITER = refuse;
+		env.CONTACT_RATE_LIMITER = refuse;
+
+		for (const path of ["/api/contributions", "/api/contact"]) {
+			const response = await run({ path, next: ok });
+			expect(response.status, path).toBe(429);
+			expect(response.headers.get("Cache-Control"), path).toBe("no-store");
+		}
 	});
 
 	it("allows requests under the limit, keyed by the client IP", async () => {

@@ -16,9 +16,14 @@ final _message = ContactMessage(
   body: 'a message long enough to send',
 );
 
+final _now = DateTime.utc(2031, 6, 15, 12);
+
 HttpContactMessageRepository _repositoryAnswering(
   Future<http.Response> Function(http.Request request) handler,
-) => HttpContactMessageRepository(httpClient: MockClient(handler));
+) => HttpContactMessageRepository(
+  httpClient: MockClient(handler),
+  now: () => _now,
+);
 
 void main() {
   group('HttpContactMessageRepository', () {
@@ -113,7 +118,7 @@ void main() {
             isA<RateLimitedFailure>().having(
               (failure) => failure.resetAt,
               'resetAt',
-              isNotNull,
+              _now.add(const Duration(seconds: 60)),
             ),
           ),
         );

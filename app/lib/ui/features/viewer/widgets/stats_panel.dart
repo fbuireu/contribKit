@@ -10,15 +10,21 @@ import 'package:intl/intl.dart';
 final _statsFmt = NumberFormat.decimalPattern();
 
 class StatsPanel extends StatelessWidget {
-  const StatsPanel({super.key, required this.calendar, required this.stats});
+  const StatsPanel({
+    super.key,
+    required this.calendar,
+    required this.stats,
+    required this.today,
+  });
 
   final ContributionCalendar calendar;
   final ContributionStats stats;
+  final DateTime today;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final isCurrentYear = calendar.year.value == DateTime.now().year;
+    final isCurrentYear = calendar.year.value == today.year;
 
     return Row(
       spacing: Tokens.space2,
@@ -28,7 +34,7 @@ class StatsPanel extends StatelessWidget {
             label: 'TOTAL',
             value: formatTotalContributions(
               format: _statsFmt,
-              total: calendar.totalContributions,
+              totalContributions: calendar.totalContributions,
             ),
             unit: 'contributions',
             colors: colors,

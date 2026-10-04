@@ -12,6 +12,7 @@ test.describe("user svg endpoint", () => {
 		const github = await request.get("/user/torvalds.svg");
 
 		expect(nord.status()).toBe(200);
+		expect(github.status()).toBe(200);
 		expect(await nord.text()).not.toBe(await github.text());
 	});
 

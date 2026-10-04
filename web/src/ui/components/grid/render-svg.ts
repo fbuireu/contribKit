@@ -11,7 +11,7 @@ import {
 import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import type { PaletteColors } from "@domain/value-objects/palette";
 
-export interface RenderCalendarParams {
+export interface RenderCalendarStringParams {
 	days: ContributionDay[];
 	palette: PaletteColors;
 	shape?: CellShape;
@@ -27,7 +27,7 @@ export function renderCalendarString({
 	size,
 	gap,
 	showLabels,
-}: RenderCalendarParams): string {
+}: RenderCalendarStringParams): string {
 	const layout = calendarLayout({ days, shape, size, gap, showLabels });
 
 	const parts: string[] = [];
@@ -80,6 +80,6 @@ const SHAPE_PREVIEWS: Record<CellShape, (fill: string) => string> = {
 	[CellShape.Square]: (fill) => `<rect x="3" y="3" width="14" height="14" rx="0" style="fill:${fill}"/>`,
 };
 
-export function shapePreviewSVG(kind: CellShape): string {
-	return wrapPreviewSvg(SHAPE_PREVIEWS[kind]("var(--contrib-peak)"));
+export function shapePreviewSVG(shape: CellShape): string {
+	return wrapPreviewSvg(SHAPE_PREVIEWS[shape]("var(--contrib-peak)"));
 }
