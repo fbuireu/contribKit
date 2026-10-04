@@ -1,3 +1,10 @@
+# [contribkit-web-v1.22.2](https://github.com/fbuireu/contribKit/compare/web-v1.22.1...web-v1.22.2) (2026-10-04)
+
+
+### Bug Fixes
+
+* write down the coding standards and fix what reviewing against them found ([b0d5e53](https://github.com/fbuireu/contribKit/commit/b0d5e53e158eb0ce1d98d29e54d955ab34e54cb2))
+
 # [contribkit-web-v1.22.1](https://github.com/fbuireu/contribKit/compare/web-v1.22.0...web-v1.22.1) (2026-09-30)
 
 
