@@ -1,3 +1,10 @@
+# [contribkit-web-v1.22.3](https://github.com/fbuireu/contribKit/compare/web-v1.22.2...web-v1.22.3) (2026-10-05)
+
+
+### Bug Fixes
+
+* close the known inconsistencies of both clients ([c065265](https://github.com/fbuireu/contribKit/commit/c065265ea30e2697370421813dbdef826fb0eb65))
+
 # [contribkit-web-v1.22.2](https://github.com/fbuireu/contribKit/compare/web-v1.22.1...web-v1.22.2) (2026-10-04)
 
 
