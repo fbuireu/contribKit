@@ -158,7 +158,7 @@ void main() {
           await _pumpOnScreen(tester, width: width, scale: 1);
 
           for (final text in ['TOTAL CONTRIBUTIONS', '1,234']) {
-            expect(_lineCount(tester, text), 1, reason: text);
+            expect(_lineCount(tester, text: text), 1, reason: text);
           }
         },
       );
@@ -187,7 +187,7 @@ Finder _tile(String label) => find
     .ancestor(of: find.text(label), matching: find.byType(DecoratedBox))
     .first;
 
-int _lineCount(WidgetTester tester, String text) {
+int _lineCount(WidgetTester tester, {required String text}) {
   final paragraph = tester.renderObject<RenderParagraph>(find.text(text));
   final painter = TextPainter(
     text: paragraph.text,
