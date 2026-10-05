@@ -38,10 +38,12 @@ No rule below restates these, and a diff that breaks one fails CI:
   - which layer imports which, in both clients: the app's pure core free of Flutter, Riverpod and the platform, its
     domain importing only `dart:math` and itself, and `app/lib/ui` reaching `infrastructure/` only from `ui/di/`; the
     web's domain, its tests aside, importing only itself and `@shared`, `ui/` importing neither `@application` nor
-    `@infrastructure`, and an import that leaves its layer written with the alias and one that stays inside it
-    written relative;
+    `@infrastructure`, an import that leaves its layer written with the alias and one that stays inside it written
+    relative, and none written out of `web/src`;
   - the glossary's code-shaped terms and its policed plain words as identifiers, in `web/src`, `web/e2e`, `app/lib`
-    and `app/test`, bar the SDK seams and their own tests;
+    and `app/test`, bar the SDK seams and their own tests, and the web's copy (the text and labels of every `.astro`
+    page, the string literals of every other source file) free of those plain words and of `monitoring`, and of a bare
+    "widget";
   - `shadcn_ui` inside `ui/widgets/`, the theme and the composition root;
   - in the app: every class outside `ui/` `final`, `sealed`, `abstract final` or `abstract interface`, every
     repository an `abstract interface class`, every use case taking its repository as `{required this._repository}`
@@ -51,15 +53,16 @@ No rule below restates these, and a diff that breaks one fails CI:
     no clock read (`DateTime.now`) in `domain/`, and in `app/lib/ui` outside `ui/theme/` no colour or `Duration`
     literal and no read of a `colorScheme`;
   - on the web: no class, no `Math.random`, no `toISOString().slice(0, 10)`, no clock read (`new Date()`, `Date.now()`)
-    in `domain/`, no custom property registered with `@property` in the CSS or an `.astro` file, `FailureKind` read
-    outside tests only in `domain/failures/`, `application/http/failure-http.ts` and
-    `ui/utils/contribution-errors.ts`, a module-level `/g` regex never driven by `.exec` or `.test`, `astro:env`
-    never read in `infrastructure/`, React and `.tsx` only in `infrastructure/email/`, the logger called and the
-    server-error threshold compared only in `application/http/failure-log.ts`, every `.ts` route exporting
-    `prerender = false` and every page rendering through `BaseLayout`, Zod imported only from `astro/zod` and never
-    declared a dependency of `web/`, every module-level schema named `<concept>Schema`, no `schema.validate` on a
-    schema that catches, defaults, transforms or coerces, every `.json()` body read into `unknown` or straight into a
-    schema, and `window.__INITIAL_DAYS__` declared `unknown`;
+    in `domain/`, no `default` arm in a `switch`, every robots directive written through `RobotsDirective`, every
+    `fetch` given the shared timeout, no custom property registered with `@property` in the CSS or an `.astro` file,
+    `FailureKind` read outside tests only in `domain/failures/`, `application/http/failure-http.ts` and
+    `ui/utils/contribution-errors.ts`, a module-level `/g` regex never driven by `.exec` or `.test`, `astro:env` never
+    read in `infrastructure/`, React and `.tsx` only in `infrastructure/email/`, the logger called and the server-error
+    threshold compared only in `application/http/failure-log.ts`, every `.ts` route exporting `prerender = false` and
+    wrapping its handler in the failure boundary, and every page rendering through `BaseLayout`, Zod imported only from
+    `astro/zod` and never declared a dependency of `web/`, every module-level schema named `<concept>Schema`, no
+    `schema.validate` on a schema that catches, defaults, transforms or coerces, every `.json()` body read into
+    `unknown` or straight into a schema, and `window.__INITIAL_DAYS__` declared `unknown`;
   - every sheet under `app/lib/ui/features` in both the semantics and the text-scaling sweep, and `@smoke` only in
     `web/e2e/smoke.spec.ts`;
   - in the web's tests, every `vi.stubGlobal`, `vi.stubEnv`, `vi.spyOn` and `vi.useFakeTimers` in a test file undone
@@ -68,8 +71,9 @@ No rule below restates these, and a diff that breaks one fails CI:
     bracket in a unit test, and no `toHaveBeenCalledWith`, `toHaveBeenLastCalledWith`, `toHaveBeenNthCalledWith` or
     `toHaveBeenCalledOnce` on `recordUsageEvent` or on the vendor spies that stand for it, whose `mock.calls` a test
     asserts as the exact list; in the app's tests, no `DateTime.now`;
-  - the twins: the Embed contract and the Contact Message limits in Dart and TypeScript, the Cell geometry in Dart,
-    TypeScript and Kotlin, the dark theme's two CSS blocks, and `app/assets/*.json` equal to `shared/*.json`;
+  - the twins: the Embed contract, the Contact Message limits and the request timeout in Dart and TypeScript, the Cell
+    geometry in Dart, TypeScript and Kotlin, the dark theme's two CSS blocks, and `app/assets/*.json` equal to
+    `shared/*.json`;
   - every `uses:` of another repository pinned to a full commit SHA with its version or branch in a trailing
     comment, and no comment in a YAML file (`pnpm-lock.yaml`, which pnpm writes, aside) but that one, a tool
     directive and the line Renovate writes above an entry it adds to `minimumReleaseAgeExclude`;
@@ -91,13 +95,18 @@ No rule below restates these, and a diff that breaks one fails CI:
 ### Words
 
 - **hard**: Name identifiers, payload fields and user-facing copy with the glossary's words; where code and glossary
-  disagree the code changes. The glossary guard reads identifiers only, so copy is the reviewer's. The Usage Event
-  property `product`, which carries a Tip Product's store id, is the one stated exception: PostHog's event history and
-  dashboards are keyed on it, so the identifiers say `tipProduct` and the key stays.
+  disagree the code changes. The glossary guard reads the web's copy for the plain words it rejects (`purchase`,
+  `intensity`, `density`, `monitoring` and the rest of its list, plural included) and for a "widget" that is not a home
+  screen widget, and the app's copy and every other glossary term in copy are the reviewer's. The legal pages say Tip
+  where a store says in-app purchase. The Usage Event property `product`, which carries a Tip Product's store id, is the
+  one stated exception: PostHog's event history and dashboards are keyed on it, so the identifiers say `tipProduct` and
+  the key stays.
 - **hard**: Spell a type, a field and a port method the same way in both clients
   (`ContributionRepository.fetchCalendar`, `totalContributions`), so the two domains stay diffable concept by
   concept ([ADR 0003](./docs/adr/0003-layered-domain-architecture-in-both-clients.md)). A free function follows its
-  language's idiom (`totalFor` in Dart, `totalContributionsFor` in TypeScript).
+  language's idiom (`totalFor` in Dart, `totalContributionsFor` in TypeScript). The one field that differs is a rate
+  limit's wait, `retryAfterSeconds` on the web and `resetAt` in the app, because one is a duration to forward and the
+  other an instant to print; both domain guides say so.
 - **judgement**: Name a TypeScript parameter object after the function that takes it, `<FunctionName>Params`, so a
   reader landing on the type finds what takes it; a function handed one record keeps that record's type. Sibling
   functions that take the same input may share one type named for that role (`CellShapeParams` for the Cell Shape
@@ -112,8 +121,9 @@ No rule below restates these, and a diff that breaks one fails CI:
 
 - **hard**: Import across layers through the path alias and within one by relative path (a layer is a top-level
   folder of `web/src`: `domain`, `application`, `infrastructure`, `ui` or `pages`), so an alias always marks a
-  crossed boundary; mixing both forms for one module breaks Biome's import sorting. The app imports by `package:`
-  path throughout, which its `always_use_package_imports` lint enforces.
+  crossed boundary; mixing both forms for one module breaks Biome's import sorting. No relative path leaves `web/src`:
+  a value from a manifest arrives as a build-time constant (`__WEB_VERSION__`, `__APP_VERSION__`). The app imports by
+  `package:` path throughout, which its `always_use_package_imports` lint enforces.
 
 ### Failures
 
@@ -121,8 +131,13 @@ No rule below restates these, and a diff that breaks one fails CI:
   failure, a refused send as a delivery failure), because a kind that means two things tells the reader the wrong
   story ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)).
 - **judgement**: Construct every kind you declare and read every field you add to one; a field nothing reads is how
-  a sealed set rots ([ADR 0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md)).
-- **hard**: Write a failure message as public copy, because it reaches the screen and HTTP bodies.
+  a sealed set rots ([ADR 0025](./docs/adr/0025-how-much-ddd-and-where-it-stops.md)). The detail of an app `Failure`
+  (`message`, `AssetFailure.asset`) is the one reader that is `toString`, what a debug console and a failing test
+  print: it reaches no screen, because `FailureMessage.of` paints fixed copy, and no Diagnostic Report, because
+  `_scrub` replaces every exception value.
+- **hard**: Write a failure message that reaches the screen or an HTTP body as public copy, and answer a fixed
+  sentence for a kind whose message is a platform's own wording (`Network`, `Delivery`), which goes to the log
+  through `reasonFor` instead.
 
 ### Counts, totals and figures
 
@@ -152,10 +167,10 @@ No rule below restates these, and a diff that breaks one fails CI:
 
 - **hard**: Implement a rule once, in `domain/`, and call it from every site that needs it, in every layer and
   surface (`totalFor`, `totalContributionsFor`, `StreakService.currentFor`, `PaletteService.resolve`,
-  `statsWithScrapedTotal`, `RetryAfter`, `resolveYear`, `isCount`), because a second copy drifts with nothing to catch
+  `statsWithScrapedTotalContributions`, `RetryAfter`, `resolveYear`, `isCount`), because a second copy drifts with nothing to catch
   it.
-- **hard**: Build an Embed URL through `Embed.urlFor` or `buildEmbedUrl`, which omit the defaults, because a
-  hand-built URL doubles an `&` or drops the visitor's options.
+- **hard**: Build an Embed URL through `Embed.urlFor` or `buildEmbedUrl`, which take the `Username` and omit the
+  defaults, because a hand-built URL doubles an `&` or drops the visitor's options.
 - **hard**: Add a shared token, a constant or a field in the same change as the code that reads it, because a value
   nothing reads is a claim nothing checks
   ([ADR 0024](./docs/adr/0024-calendar-labels-are-a-web-only-surface.md),
@@ -182,7 +197,8 @@ No rule below restates these, and a diff that breaks one fails CI:
   ([ADR 0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)).
 - **hard**: Validate input before any outbound request, the browser's request to this project's own API included, so
   an invalid Username or Contact Message costs no call.
-- **hard**: Give every outbound HTTP request the Worker and the app make a 20-second timeout.
+- **hard**: Give every outbound HTTP request the Worker, the browser and the app make a 20-second timeout
+  (`REQUEST_TIMEOUT_MS` on the web, `RequestTimeout` in the app).
 - **judgement**: Test a nullable number with `!= null`, because `0` is a fact and not an absence.
 
 ### Telemetry and personal data
@@ -265,6 +281,9 @@ No rule below restates these, and a diff that breaks one fails CI:
   `reportTelemetryFailure`, so a broken SDK neither stops the app nor goes unreported. Fail consent closed: stop
   sending before asking the SDK to stop, and leave the adapter off when a grant throws
   ([ADR 0027](./docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)).
+- **hard**: Fail a bundled asset that is missing, malformed or empty as an `AssetFailure` in its repository, because an
+  empty list is no failure to a caller that draws what it is given (`ViewerNotifier` holds the same line for a Palette
+  list that still arrives empty).
 - **hard**: Treat a cache read that throws as a miss and swallow a cache write that throws, because a bad cache entry
   must never make the app unusable.
 - **hard**: Declare DTOs `@JsonSerializable()` with generated `fromJson` and `toJson`, so the cache's read and write
@@ -283,12 +302,11 @@ No rule below restates these, and a diff that breaks one fails CI:
   and an entry write when the method can start after its caller is gone.
 - **hard**: In a sheet's `State`, write `setState` after an `await` only behind `mounted`, and read every provider
   before the first `await`, because the `ref` of an unmounted `ConsumerState` throws.
-- **hard**: Model a sheet's state as a sealed class (`TipJarState`, `ContactSheetState`), so illegal combinations
-  cannot be written.
+- **hard**: Model a sheet's state as a sealed class (`TipJarState`, `ContactSheetState`, `ExportSheetState`), so illegal
+  combinations cannot be written.
 - **hard**: Turn a `Failure` into text only through `FailureMessage.of` or `FailureMessage.ofAny`; a widget that cares
   about one kind tests it with `is`.
 - **hard**: Show `FailureMessage.ofAny` when an `AsyncValue` row fails, and hide the row only while it loads.
-- **hard**: Report an asset we ship that loads empty as an `AssetFailure`.
 - **hard**: Build a Customizer setting as a `SettingPicker<T>` given a label, options and an `optionBuilder`.
 - **hard**: Open every bottom sheet through `AppSheet`, which owns the scrim, the motion, the handle, the drag and the
   height cap.
@@ -370,7 +388,7 @@ No rule below restates these, and a diff that breaks one fails CI:
   (`emptyDay`, the grid walk) builds it directly.
 - **hard**: Turn a `Date` into an ISO date through `toIsoDate` and parse one at local noon, because both halves stay
   local or the pair stops round-tripping.
-- **hard**: Let a scraped total beat a computed sum only through `statsWithScrapedTotal`.
+- **hard**: Let a scraped total beat a computed sum only through `statsWithScrapedTotalContributions`.
 - **hard**: Take render geometry from one `calendarLayout` call; a renderer computes no dimension, position or radius.
 - **hard**: Hand days to a renderer through a grid builder, `buildGridFromApi` for a Year and `buildRollingGrid` for
   the Rolling Window, because `chunkWeeks` alone transposes GitHub's weekday-major table.
@@ -406,6 +424,9 @@ No rule below restates these, and a diff that breaks one fails CI:
 
 - **hard**: Take a value from a closed set (a tone, an icon, a status) from its const object, never a bare string, so a
   typo fails the typecheck.
+- **hard**: Match a closed set in a `switch` that names every member and carries no `default` arm, so a member added to
+  the set leaves a variable unassigned or a function without a return where it is matched (`DaySource` in
+  `index.astro`).
 - **hard**: Compose repositories and use cases at module scope in an underscore-prefixed module, because `.astro`
   frontmatter runs on every request.
 - **judgement**: Keep rules out of routes and frontmatter: request policy is a function vitest can import, as

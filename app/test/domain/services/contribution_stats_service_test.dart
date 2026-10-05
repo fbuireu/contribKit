@@ -174,7 +174,9 @@ void main() {
         (_d(month: 1, day: 14), 4),
       ]);
       final stats = ContributionStatsService.compute(cal, today: _today);
-      expect(stats.weeklyAverage, closeTo(10.0 / cal.weeks.length, 0.01));
+
+      expect(cal.weeks, hasLength(2));
+      expect(stats.weeklyAverage, 5.0);
     });
 
     test('longestStreak equals all days when every day is active', () {

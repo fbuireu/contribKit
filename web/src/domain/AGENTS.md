@@ -34,8 +34,8 @@ to 2000, so it fails the floor rather than the format).
 **Nothing here reads the clock.** `parseYear({ requested, thisYear })` takes the upper bound from its caller, and
 `currentYear(thisYear)` is the Year of the number the caller read, so no `Year` after this one can be built and a
 test says which year it is. The edges read the clock once: `/api/contributions` before `parseYear`, the landing page
-before `loadInitial` and `statsWithScrapedTotal`, and `page-init.ts` when it loads. `buildGridFromApi`, `weeksFor`,
-`leadingDaysFor`, `computeContributionStats` and `statsWithScrapedTotal` take the Year as a bare `number`, which is
+before `loadInitial` and `statsWithScrapedTotalContributions`, and `page-init.ts` when it loads. `buildGridFromApi`, `weeksFor`,
+`leadingDaysFor`, `computeContributionStats` and `statsWithScrapedTotalContributions` take the Year as a bare `number`, which is
 how the tests reach 2028 and the Years after it. **`resolveYear` is the one reading of a requested Year**: a whole
 number from `MIN_YEAR` to this year is that Year, and anything else answers this year. The landing page's server
 render (through `loadInitialContributions`) and the client's `renderFromGitHub` and `readYearFromUrl` all call it,
@@ -69,8 +69,8 @@ interpolated from these constants.
 
 [`value-objects/embed.ts`](./value-objects/embed.ts) is the one spelling of what an Embed URL is: `EMBED_ROUTE` (the path the middleware
 exempts from `Cross-Origin-Resource-Policy`), `EmbedParam` (the three query names), `DEFAULT_EMBED_QUERY`,
-`EMBED_BACKGROUND_PATTERN`, and `buildEmbedUrl`, which omits any option equal to its default, joins the rest with a
-single `&`, takes a `CellShape` and URL-encodes the Username into the path.
+`EMBED_BACKGROUND_PATTERN`, and `buildEmbedUrl`, which takes the `Username` whole, omits any option equal to its
+default, joins the rest with a single `&`, takes a `CellShape` and URL-encodes the Username's value into the path.
 
 **This file has a Dart twin, and the docs contract diffs them.** [`app/lib/domain/value_objects/embed.dart`](../../../app/lib/domain/value_objects/embed.dart) holds
 the same origin, segment and extension, because the app's Markdown Export writes an Embed URL the web has to serve.
@@ -81,6 +81,13 @@ Palette `github`, and the Cell Shape that is **first in [`shared/shapes.json`](.
 the Dart spells as a literal, so reordering that file fails the contract until the two agree again. Neither builder
 emits a Background. The **route** accepts `background`, validated by `EMBED_BACKGROUND_PATTERN`, which is what an
 Embed URL written by hand may carry; `embed.test.ts` tests the pattern against what it must reject.
+
+## One timeout for every request
+
+[`value-objects/request-timeout.ts`](./value-objects/request-timeout.ts) holds `REQUEST_TIMEOUT_MS`, the 20 seconds
+the scraper, the contact form and the calendar request each pass to `AbortSignal.timeout`. It lives here because
+`ui/` may import nothing but this layer. The app's `RequestTimeout.duration` is its twin, and the docs contract fails
+when the two numbers differ or when a `fetch` in `web/src` passes another signal.
 
 ## Dates live in local time, both halves
 
@@ -103,17 +110,18 @@ the calendar renders blank. Workers run in UTC and never show it. Before touchin
   ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). Every date it was not
   given emerges from `emptyDay` as `{ level: 0, count: null }`: **an absent day is not a zero day**, it is a day with
   an unknown Count that happens to render like an empty one.
-- **`GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7)` is the Rolling Window's size**, every one of them
-  declared in [`services/dates.ts`](./services/dates.ts). Despite its name, `WEEKS_PER_YEAR` is not a Year's week count, which only
-  `weeksFor` answers. `buildRollingGrid` is the anchor-free sibling of `buildGridFromApi`: it keys the days by date
-  and ends on the Saturday of the latest day it was given, because the Embed shows a Rolling Window and never a
-  pinned Year. `chunkWeeks` slices whatever it is given into sevens, the last week short if the days run out, and
-  `calendarLayout` calls it through `weeksOf`.
-- **`statsWithScrapedTotal` is where the stats meet the calendar's own figure**: it computes the stats and then lets
-  the calendar's `totalContributions`, passed as `scrapedTotal`, beat the computed one unless it is `null`. The
-  scraper computes that figure with `totalContributionsFor` too, over exactly the days GitHub returned, while the
-  stats run over the days the caller hands them. Both call sites (the server render in
-  [`pages/index.astro`](../pages/index.astro) and the client refresh in [`ui/utils/page-init.ts`](../ui/utils/page-init.ts)) go through it.
+- **`GRID_CELL_COUNT = ROLLING_WINDOW_WEEKS (53) × DAYS_PER_WEEK (7)` is the Rolling Window's size**, every one of them
+  declared in [`services/dates.ts`](./services/dates.ts). `ROLLING_WINDOW_WEEKS` is the Rolling Window's width and not a
+  Year's week count, which only `weeksFor` answers. `buildRollingGrid` is the anchor-free sibling of `buildGridFromApi`:
+  it keys the days by date and ends on the Saturday of the latest day it was given, because the Embed shows a Rolling
+  Window and never a pinned Year. `chunkWeeks` slices whatever it is given into sevens, the last week short if the days
+  run out, and `calendarLayout` calls it through `weeksOf`.
+- **`statsWithScrapedTotalContributions` is where the stats meet the calendar's own figure**: it computes the stats and
+  then lets the calendar's `totalContributions`, passed as `scrapedTotalContributions`, beat the computed one unless it
+  is `null`. The scraper computes that figure with `totalContributionsFor` too, over exactly the days GitHub returned,
+  while the stats run over the days the caller hands them. Both call sites (the server render in
+  [`pages/index.astro`](../pages/index.astro) and the client refresh in
+  [`ui/utils/page-init.ts`](../ui/utils/page-init.ts)) go through it.
 - **A shape needs two edits, not one.** `CELL_SHAPES` is built from `shared/shapes.json` *filtered through the
   hand-written `CellShape` union*, so a token added to the JSON alone is dropped everywhere: it never reaches the
   Customizer, the endpoint or `renderCellShape`. Add the `CellShape` member in the same change as the JSON; the
@@ -159,6 +167,12 @@ the calendar renders blank. Workers run in UTC and never show it. Before touchin
   `error` text, and the landing page words its sentence from it, so renaming a kind breaks a client that reads the
   API ([ADR 0004](../../../docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)). `isFailureKind` is the
   guard a reader of that field checks it with.
+- **The rate limit's wait is spelled differently in the two clients, on purpose.** The web's `RateLimited` carries
+  `retryAfterSeconds`, a duration, because the Worker forwards it as `Retry-After` in the request that learnt it, and
+  an instant converted back would drift by the seconds in between; the app's `RateLimitedFailure` carries `resetAt`,
+  an instant, because the Viewer prints the time the limit ends, and a duration read at render time would move with
+  every rebuild. Each is `null` when GitHub named no wait, and `0` is an answer
+  ([`app/lib/domain/AGENTS.md`](../../../app/lib/domain/AGENTS.md)).
 - **The aggregate knows its own span: `year: Year | null`.** `null` is not "missing": it is the **Rolling Window**,
   the span the Embed asks for. The app's `ContributionRepository.fetchCalendar` takes a required `Year`, because the
   app has no Rolling Window.
@@ -182,4 +196,4 @@ the calendar renders blank. Workers run in UTC and never show it. Before touchin
 - **The aggregate's field is `totalContributions`, and the endpoint's JSON key is still `total`**, a published
   contract like the `cells` alias; the two are decoupled at the one line in `pages/api/contributions.ts` that
   serialises the field. The glossary guard does not police `total`: it would fire on that published key and on the
-  code that carries it (`data.total` in `ui/utils/page-init.ts`, `scrapedTotal` here).
+  code that carries it (`data.total` in `ui/utils/page-init.ts`, `scrapedTotalContributions` here).

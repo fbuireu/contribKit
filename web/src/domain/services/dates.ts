@@ -1,8 +1,8 @@
 import type { ContributionDay, ContributionWeek } from "../entities/types";
 import { type IsoDate, isoDateOf } from "../value-objects/iso-date";
-export const WEEKS_PER_YEAR = 53;
+export const ROLLING_WINDOW_WEEKS = 53;
 export const DAYS_PER_WEEK = 7;
-export const GRID_CELL_COUNT = WEEKS_PER_YEAR * DAYS_PER_WEEK;
+export const GRID_CELL_COUNT = ROLLING_WINDOW_WEEKS * DAYS_PER_WEEK;
 
 export const toIsoDate = isoDateOf;
 
@@ -29,7 +29,7 @@ export const leadingDaysFor = (year: number): number => getWeekday(`${year}-01-0
 export const weeksFor = (year: number): number =>
 	Math.ceil((leadingDaysFor(year) + (isLeapYear(year) ? DAYS_IN_LEAP_YEAR : DAYS_IN_COMMON_YEAR)) / DAYS_PER_WEEK);
 
-export const chunkWeeks = <T>(days: readonly T[]): T[][] =>
+export const chunkWeeks = <T>(days: readonly T[]): readonly (readonly T[])[] =>
 	Array.from({ length: Math.ceil(days.length / DAYS_PER_WEEK) }, (_, weekIndex) =>
 		days.slice(weekIndex * DAYS_PER_WEEK, (weekIndex + 1) * DAYS_PER_WEEK),
 	);

@@ -7,6 +7,11 @@ export const formatTotalContributions = (totalContributions: number | null): str
 
 export const formatStreak = (streak: number | null): string => (streak === null ? UNKNOWN_FIGURE_TEXT : String(streak));
 
+export const formatHomeScreenWidgetTotal = (totalContributions: number | null): string =>
+	totalContributions === null
+		? "contributions unknown"
+		: `${totalContributions.toLocaleString()} contributions this year`;
+
 export interface FormatContribLabelParams {
 	dateIso: IsoDate | null;
 	count: number | null;

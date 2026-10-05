@@ -26,16 +26,21 @@ $ViewerStateCopyWith<ViewerState> get copyWith => _$ViewerStateCopyWithImpl<View
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ViewerState&&(identical(other.username, username) || other.username == username)&&(identical(other.calendar, calendar) || other.calendar == calendar)&&(identical(other.stats, stats) || other.stats == stats)&&(identical(other.fromCache, fromCache) || other.fromCache == fromCache)&&(identical(other.isLoadingCalendar, isLoadingCalendar) || other.isLoadingCalendar == isLoadingCalendar)&&(identical(other.year, year) || other.year == year)&&(identical(other.isLoadingSettings, isLoadingSettings) || other.isLoadingSettings == isLoadingSettings)&&(identical(other.palette, palette) || other.palette == palette)&&(identical(other.cellShape, cellShape) || other.cellShape == cellShape)&&(identical(other.cellSize, cellSize) || other.cellSize == cellSize)&&(identical(other.backgroundPreset, backgroundPreset) || other.backgroundPreset == backgroundPreset)&&(identical(other.error, error) || other.error == error)&&(identical(other.paletteFailure, paletteFailure) || other.paletteFailure == paletteFailure));
+  final _this = this as ViewerState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ViewerState&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.calendar, _this.calendar) || other.calendar == _this.calendar)&&(identical(other.stats, _this.stats) || other.stats == _this.stats)&&(identical(other.fromCache, _this.fromCache) || other.fromCache == _this.fromCache)&&(identical(other.isLoadingCalendar, _this.isLoadingCalendar) || other.isLoadingCalendar == _this.isLoadingCalendar)&&(identical(other.year, _this.year) || other.year == _this.year)&&(identical(other.isLoadingSettings, _this.isLoadingSettings) || other.isLoadingSettings == _this.isLoadingSettings)&&(identical(other.palette, _this.palette) || other.palette == _this.palette)&&(identical(other.cellShape, _this.cellShape) || other.cellShape == _this.cellShape)&&(identical(other.cellSize, _this.cellSize) || other.cellSize == _this.cellSize)&&(identical(other.backgroundPreset, _this.backgroundPreset) || other.backgroundPreset == _this.backgroundPreset)&&(identical(other.error, _this.error) || other.error == _this.error)&&(identical(other.paletteFailure, _this.paletteFailure) || other.paletteFailure == _this.paletteFailure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,username,calendar,stats,fromCache,isLoadingCalendar,year,isLoadingSettings,palette,cellShape,cellSize,backgroundPreset,error,paletteFailure);
+int get hashCode {
+  final _this = this as ViewerState;
+  return Object.hash(runtimeType,_this.username,_this.calendar,_this.stats,_this.fromCache,_this.isLoadingCalendar,_this.year,_this.isLoadingSettings,_this.palette,_this.cellShape,_this.cellSize,_this.backgroundPreset,_this.error,_this.paletteFailure);
+}
 
 @override
 String toString() {
-  return 'ViewerState(username: $username, calendar: $calendar, stats: $stats, fromCache: $fromCache, isLoadingCalendar: $isLoadingCalendar, year: $year, isLoadingSettings: $isLoadingSettings, palette: $palette, cellShape: $cellShape, cellSize: $cellSize, backgroundPreset: $backgroundPreset, error: $error, paletteFailure: $paletteFailure)';
+  final _this = this as ViewerState;
+  return 'ViewerState(username: ${_this.username}, calendar: ${_this.calendar}, stats: ${_this.stats}, fromCache: ${_this.fromCache}, isLoadingCalendar: ${_this.isLoadingCalendar}, year: ${_this.year}, isLoadingSettings: ${_this.isLoadingSettings}, palette: ${_this.palette}, cellShape: ${_this.cellShape}, cellSize: ${_this.cellSize}, backgroundPreset: ${_this.backgroundPreset}, error: ${_this.error}, paletteFailure: ${_this.paletteFailure})';
 }
 
 
@@ -246,16 +251,18 @@ _$ViewerStateCopyWith<_ViewerState> get copyWith => __$ViewerStateCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ViewerState&&(identical(other.username, username) || other.username == username)&&(identical(other.calendar, calendar) || other.calendar == calendar)&&(identical(other.stats, stats) || other.stats == stats)&&(identical(other.fromCache, fromCache) || other.fromCache == fromCache)&&(identical(other.isLoadingCalendar, isLoadingCalendar) || other.isLoadingCalendar == isLoadingCalendar)&&(identical(other.year, year) || other.year == year)&&(identical(other.isLoadingSettings, isLoadingSettings) || other.isLoadingSettings == isLoadingSettings)&&(identical(other.palette, palette) || other.palette == palette)&&(identical(other.cellShape, cellShape) || other.cellShape == cellShape)&&(identical(other.cellSize, cellSize) || other.cellSize == cellSize)&&(identical(other.backgroundPreset, backgroundPreset) || other.backgroundPreset == backgroundPreset)&&(identical(other.error, error) || other.error == error)&&(identical(other.paletteFailure, paletteFailure) || other.paletteFailure == paletteFailure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ViewerState&&(identical(other.username, username) || other.username == username)&&(identical(other.calendar, calendar) || other.calendar == calendar)&&(identical(other.stats, stats) || other.stats == stats)&&(identical(other.fromCache, fromCache) || other.fromCache == fromCache)&&(identical(other.isLoadingCalendar, isLoadingCalendar) || other.isLoadingCalendar == isLoadingCalendar)&&(identical(other.year, year) || other.year == year)&&(identical(other.isLoadingSettings, isLoadingSettings) || other.isLoadingSettings == isLoadingSettings)&&(identical(other.palette, palette) || other.palette == palette)&&(identical(other.cellShape, cellShape) || other.cellShape == cellShape)&&(identical(other.cellSize, cellSize) || other.cellSize == cellSize)&&(identical(other.backgroundPreset, backgroundPreset) || other.backgroundPreset == backgroundPreset)&&(identical(other.error, error) || other.error == error)&&(identical(other.paletteFailure, paletteFailure) || other.paletteFailure == paletteFailure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,username,calendar,stats,fromCache,isLoadingCalendar,year,isLoadingSettings,palette,cellShape,cellSize,backgroundPreset,error,paletteFailure);
+int get hashCode {
+    return Object.hash(runtimeType,username,calendar,stats,fromCache,isLoadingCalendar,year,isLoadingSettings,palette,cellShape,cellSize,backgroundPreset,error,paletteFailure);
+}
 
 @override
 String toString() {
-  return 'ViewerState(username: $username, calendar: $calendar, stats: $stats, fromCache: $fromCache, isLoadingCalendar: $isLoadingCalendar, year: $year, isLoadingSettings: $isLoadingSettings, palette: $palette, cellShape: $cellShape, cellSize: $cellSize, backgroundPreset: $backgroundPreset, error: $error, paletteFailure: $paletteFailure)';
+    return 'ViewerState(username: $username, calendar: $calendar, stats: $stats, fromCache: $fromCache, isLoadingCalendar: $isLoadingCalendar, year: $year, isLoadingSettings: $isLoadingSettings, palette: $palette, cellShape: $cellShape, cellSize: $cellSize, backgroundPreset: $backgroundPreset, error: $error, paletteFailure: $paletteFailure)';
 }
 
 

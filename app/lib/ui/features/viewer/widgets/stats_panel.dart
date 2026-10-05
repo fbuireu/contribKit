@@ -26,36 +26,40 @@ class StatsPanel extends StatelessWidget {
     final colors = AppColors.of(context);
     final isCurrentYear = calendar.year.value == today.year;
 
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       spacing: Tokens.space2,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: _StatTile(
-            label: 'TOTAL',
-            value: formatTotalContributions(
-              format: _statsFmt,
-              totalContributions: calendar.totalContributions,
+        _StatTile(
+          label: 'TOTAL CONTRIBUTIONS',
+          value: formatTotalContributions(
+            format: _statsFmt,
+            totalContributions: calendar.totalContributions,
+          ),
+          colors: colors,
+        ),
+        Row(
+          spacing: Tokens.space2,
+          children: [
+            Expanded(
+              child: _StatTile(
+                label: isCurrentYear ? 'CURRENT' : 'FINAL',
+                value: stats.currentStreak.toString(),
+                unit: 'day streak',
+                accent: true,
+                colors: colors,
+              ),
             ),
-            unit: 'contributions',
-            colors: colors,
-          ),
-        ),
-        Expanded(
-          child: _StatTile(
-            label: isCurrentYear ? 'CURRENT' : 'FINAL',
-            value: stats.currentStreak.toString(),
-            unit: 'day streak',
-            accent: true,
-            colors: colors,
-          ),
-        ),
-        Expanded(
-          child: _StatTile(
-            label: 'LONGEST',
-            value: stats.longestStreak.toString(),
-            unit: 'days',
-            colors: colors,
-          ),
+            Expanded(
+              child: _StatTile(
+                label: 'LONGEST',
+                value: stats.longestStreak.toString(),
+                unit: 'days',
+                colors: colors,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -66,14 +70,14 @@ class _StatTile extends StatelessWidget {
   const _StatTile({
     required this.label,
     required this.value,
-    required this.unit,
     required this.colors,
+    this.unit,
     this.accent = false,
   });
 
   final String label;
   final String value;
-  final String unit;
+  final String? unit;
   final AppColors colors;
   final bool accent;
 
@@ -110,14 +114,16 @@ class _StatTile extends StatelessWidget {
               color: accent ? colors.accent : colors.foreground,
             ),
           ),
-          const SizedBox(height: Tokens.hairlineGap),
-          Text(
-            unit,
-            style: TextStyle(
-              fontSize: Tokens.textXs,
-              color: colors.mutedForeground,
+          if (unit case final unit?) ...[
+            const SizedBox(height: Tokens.hairlineGap),
+            Text(
+              unit,
+              style: TextStyle(
+                fontSize: Tokens.textXs,
+                color: colors.mutedForeground,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     ),

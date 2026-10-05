@@ -45,6 +45,28 @@ describe("ContactMessageEmail", () => {
 		expect(document).toContain("Reply to Ada");
 	});
 
+	it("percent-encodes the address in both mailto links, so one that passes the address rule adds no header to the reply", async () => {
+		const document = await html({ email: "ada?bcc=victim%40evil.com&x=@example.com" });
+		const links = [...document.matchAll(/href="(mailto:[^"]*)"/g)].map(([, href]) => href);
+
+		expect(links).toHaveLength(2);
+		for (const href of links) {
+			expect(href.startsWith("mailto:ada%3Fbcc%3Dvictim%2540evil.com%26x%3D@example.com")).toBe(true);
+			expect(href.split("?").length - 1).toBeLessThanOrEqual(1);
+		}
+		expect(document).not.toContain("mailto:ada?bcc");
+	});
+
+	it("keeps a plain address legible in the links, and a comma from adding a second recipient", async () => {
+		const plain = await html({ email: "ada@example.com" });
+		const listed = await html({ email: "ada,evil@example.com" });
+
+		expect(plain).toContain('href="mailto:ada@example.com"');
+		expect(plain).toContain('href="mailto:ada@example.com?subject=Re%3A%20your%20message%20to%20ContribKit"');
+		expect(listed).toContain('href="mailto:ada%2Cevil@example.com"');
+		expect(listed).not.toContain("mailto:ada,evil");
+	});
+
 	it("says so rather than inventing a name when none was given, and addresses the reply to the email", async () => {
 		const document = await html({ name: null });
 

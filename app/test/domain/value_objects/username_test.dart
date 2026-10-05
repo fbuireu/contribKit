@@ -48,6 +48,24 @@ void main() {
       expect(() => Username('user@name'), throwsA(isA<ArgumentError>()));
     });
 
+    test('accepts consecutive hyphens, which GitHub answers with a 404', () {
+      expect(Username('a--b').value, 'a--b');
+    });
+
+    test('says what it accepts, consecutive hyphens included', () {
+      expect(
+        () => Username('user@name'),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            'may only contain letters, digits and hyphens, '
+                'and cannot begin or end with a hyphen',
+          ),
+        ),
+      );
+    });
+
     test('two instances with the same value are equal', () {
       expect(Username('octocat'), equals(Username('octocat')));
     });

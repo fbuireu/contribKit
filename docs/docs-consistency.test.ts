@@ -583,6 +583,19 @@ describe("the guides match the manifests", () => {
 		expect(repinned).toEqual([]);
 	});
 
+	it("keeps Renovate's release-age wait at least as long as pnpm's, which refuses to resolve a younger version", () => {
+		const MINUTES_PER_UNIT: Record<string, number> = { minute: 1, hour: 60, day: 1440, week: 10080 };
+		const pnpmWait = /^minimumReleaseAge: (\d+)$/m.exec(read(join(REPO, "pnpm-workspace.yaml")))?.[1];
+		const renovateWait = /^(\d+) (minute|hour|day|week)s?$/.exec(
+			json<{ minimumReleaseAge?: string }>(".github/renovate.json").minimumReleaseAge ?? "",
+		);
+		const renovateMinutes = renovateWait ? Number(renovateWait[1]) * MINUTES_PER_UNIT[renovateWait[2]] : Number.NaN;
+
+		expect(pnpmWait).toBeDefined();
+		expect(renovateMinutes).not.toBeNaN();
+		expect(renovateMinutes).toBeGreaterThanOrEqual(Number(pnpmWait));
+	});
+
 	it("mentions only pnpm scripts that a package.json declares, reading commands rather than prose", () => {
 		const builtins = new Set(["install", "exec", "dlx", "add", "remove", "run", "why", "workspaces"]);
 		const declared = new Set([...Object.keys(rootPackage.scripts), ...Object.keys(webPackage.scripts)]);
@@ -739,6 +752,44 @@ describe("the Contact Message limits are written twice and must agree", () => {
 			existsSync(join(REPO, "web/src/pages", `${spelled?.slice(1)}.ts`)),
 			`no route under web/src/pages answers ${spelled}`,
 		).toBe(true);
+	});
+});
+
+describe("the request timeout is twenty seconds in both languages", () => {
+	it("is the same number on the web and in the app", () => {
+		const web = /export const REQUEST_TIMEOUT_MS = (\d[\d_]*);/.exec(
+			read(join(REPO, "web/src/domain/value-objects/request-timeout.ts")),
+		)?.[1];
+		const app = /static const duration = Duration\(seconds: (\d+)\);/.exec(
+			read(join(REPO, "app/lib/infrastructure/http/request_timeout.dart")),
+		)?.[1];
+
+		expect(web).toBeDefined();
+		expect(app).toBeDefined();
+		expect(Number(web?.replaceAll("_", ""))).toBe(Number(app) * 1000);
+	});
+});
+
+describe("the rate limit's wait is a duration on the web and an instant in the app", () => {
+	const WEB_FAILURE = join(REPO, "web/src/domain/failures/failure.ts");
+	const DART_FAILURE = join(REPO, "app/lib/domain/failures/failure.dart");
+	const DOMAIN_GUIDES = ["web/src/domain/AGENTS.md", "app/lib/domain/AGENTS.md"];
+
+	it("is declared as each client's guide says, so the stated difference is the real one", () => {
+		expect(read(WEB_FAILURE)).toMatch(/\bretryAfterSeconds: number \| null\b/);
+		expect(read(DART_FAILURE)).toMatch(/\bfinal DateTime\? resetAt;/);
+	});
+
+	it("is named, in both spellings, by both domain guides and by the standards", () => {
+		const documents = [...DOMAIN_GUIDES, CODING_STANDARDS];
+		const silent = documents.flatMap((document) =>
+			["retryAfterSeconds", "resetAt"]
+				.filter((name) => !read(join(REPO, document)).includes(name))
+				.map((name) => `${document} does not name ${name}`),
+		);
+
+		expect(documents.length).toBeGreaterThan(1);
+		expect(silent).toEqual([]);
 	});
 });
 
@@ -1049,6 +1100,8 @@ describe("the glossary's forbidden names stay out of the code", () => {
 		"zoom",
 	];
 
+	const COPY_WORDS_POLICED: readonly string[] = [...PLAIN_WORDS_POLICED_IN_IDENTIFIERS, "monitoring"];
+
 	const avoidedTerms = (): Set<string> =>
 		new Set(
 			[...read(join(REPO, "CONTEXT.md")).matchAll(GLOSSARY_AVOID_LINE)].flatMap(([, list]) =>
@@ -1069,7 +1122,7 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 	it("polices only words the glossary actually rejects, so the list cannot invent a rule", () => {
 		const rejected = avoidedTerms();
-		expect(PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) => !rejected.has(word))).toEqual([]);
+		expect(COPY_WORDS_POLICED.filter((word) => !rejected.has(word))).toEqual([]);
 	});
 
 	it("exempts only the SDK seams and their own tests, each a file that exists", () => {
@@ -1077,16 +1130,114 @@ describe("the glossary's forbidden names stay out of the code", () => {
 		expect(SDK_SEAMS.length).toBeLessThanOrEqual(2);
 	});
 
+	const policedWordIn = (word: string): RegExp =>
+		new RegExp(`(?:(?<![A-Za-z0-9])|(?-i:(?<=[a-z0-9_])(?=[A-Z])))${word}(?-i:(?![a-z0-9]))`, "i");
+
+	it("tells a policed word that begins an identifier part from one inside a longer word", () => {
+		const shop = policedWordIn("shop");
+		const reported = ["shop", "const shop = 1", "fooShop", "foo1Shop", "foo_shop", "FOO_SHOP", "get-shop"];
+		const spared = ["workshopUrl", "bookshop", "photoshopped", "shopping", "shops", "WORKSHOP"];
+
+		expect(reported.filter((body) => !shop.test(body))).toEqual([]);
+		expect(spared.filter((body) => shop.test(body))).toEqual([]);
+	});
+
 	it("names no identifier after a plain word the glossary rejects", () => {
 		const files = identifierFiles();
 		const offenders = files.flatMap((file) => {
 			const body = withoutStringLiterals(read(file));
-			return PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) =>
-				new RegExp(`(?:(?<![A-Za-z0-9])|(?<=[a-z0-9_]))${word}(?-i:(?![a-z0-9]))`, "i").test(body),
-			).map((word) => `${relative(file)} uses ${word}`);
+			return PLAIN_WORDS_POLICED_IN_IDENTIFIERS.filter((word) => policedWordIn(word).test(body)).map(
+				(word) => `${relative(file)} uses ${word}`,
+			);
 		});
 
 		expect(emptyRoots({ paths: files.map(relative), roots: GUARDED_ROOTS })).toEqual([]);
+		expect(offenders).toEqual([]);
+	});
+
+	const copyWordIn = (word: string): RegExp => new RegExp(`(?<![A-Za-z0-9])${word}(?:s|es)?(?![A-Za-z0-9])`, "i");
+
+	const BARE_WIDGET = /(?<![A-Za-z0-9-])(?<!home screen )widget(?![A-Za-z0-9-])/i;
+
+	const withoutExpressions = (template: string): string => {
+		const stripped = template.replaceAll(/\{[^{}]*\}/g, "");
+		return stripped === template ? template : withoutExpressions(stripped);
+	};
+
+	const copyOfAstro = (source: string): string[] => {
+		const template = withoutExpressions(
+			source.replace(/^---\n[\s\S]*?\n---/, "").replaceAll(/<(style|script)\b[\s\S]*?<\/\1>/g, ""),
+		);
+		const labels = [...template.matchAll(/\b(?:aria-label|title|alt|placeholder|content)="([^"]*)"/g)].map(
+			([, value]) => value,
+		);
+		const text = template
+			.replaceAll(/<[^>]*>/g, "\n")
+			.split("\n")
+			.map((line) => line.trim())
+			.filter(Boolean);
+		return [...labels, ...text];
+	};
+
+	const literalsIn = (source: string): string[] =>
+		[...source.matchAll(/(["'`])((?:\\.|(?!\1)[^\\\n])*)\1/g)].map(([, , body]) => body);
+
+	it("reads a page's text and its labels, and none of its code, its styles or its markup", () => {
+		const page = [
+			"---",
+			'const widget = "purchase";',
+			"---",
+			'<section aria-label="Export" class="widget-layout" id="widget">',
+			"  <p>Tips {widgetCount} <b>pay</b></p>",
+			"  {items.map((item) => (<i>{item}</i>))}",
+			"</section>",
+			"<style>.purchase { color: red; }</style>",
+			"<script>const monitoring = 1;</script>",
+		].join("\n");
+
+		expect(copyOfAstro(page)).toEqual(["Export", "Tips", "pay"]);
+		expect(literalsIn("const a = \"Tips pay\"; const b = 'it\\'s'; const c = `monitoring`;")).toEqual([
+			"Tips pay",
+			"it\\'s",
+			"monitoring",
+		]);
+	});
+
+	it("tells a policed word in copy from one inside a longer word, and a bare widget from a qualified one", () => {
+		const purchase = copyWordIn("purchase");
+
+		expect(
+			["purchase", "In-app purchases", "Purchase history", "a purchase."].filter((text) => !purchase.test(text)),
+		).toEqual([]);
+		expect(["repurchased", "purchased", "purchasers"].filter((text) => purchase.test(text))).toEqual([]);
+		expect(["Pin the widget", "widget", "A widget."].filter((text) => !BARE_WIDGET.test(text))).toEqual([]);
+		expect(
+			["Home screen widget", "the home screen widget", "widget-layout", "HomeScreenWidget"].filter((text) =>
+				BARE_WIDGET.test(text),
+			),
+		).toEqual([]);
+	});
+
+	it("names nothing in the web's copy after a plain word the glossary rejects, or calls the Home Screen Widget a widget", () => {
+		const pages = walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".astro") });
+		const scripts = walk({
+			dir: join(REPO, "web/src"),
+			match: (path) => /\.tsx?$/.test(path) && !/\.test\.tsx?$/.test(path) && !path.endsWith(".d.ts"),
+		});
+		const copy = [
+			...pages.flatMap((file) => copyOfAstro(read(file)).map((text) => ({ file, text, isPage: true }))),
+			...scripts.flatMap((file) => literalsIn(read(file)).map((text) => ({ file, text, isPage: false }))),
+		];
+		const offenders = copy.flatMap(({ file, text, isPage }) => [
+			...COPY_WORDS_POLICED.filter((word) => copyWordIn(word).test(text)).map(
+				(word) => `${relative(file)} says ${word}: ${text.slice(0, 60)}`,
+			),
+			...(isPage && BARE_WIDGET.test(text) ? [`${relative(file)} says widget bare: ${text.slice(0, 60)}`] : []),
+		]);
+
+		expect(emptyRoots({ paths: [...pages, ...scripts].map(relative), roots: ["web/src"] })).toEqual([]);
+		expect(pages.length).toBeGreaterThan(0);
+		expect(copy.length).toBeGreaterThan(0);
 		expect(offenders).toEqual([]);
 	});
 
@@ -1337,7 +1488,7 @@ describe("the web layers only import inwards", () => {
 		expect(offenders).toEqual([]);
 	});
 
-	it("writes an import that leaves its layer with the alias and one that stays inside it relative", () => {
+	it("writes an import that leaves its layer with the alias, one that stays inside it relative, and none out of web/src", () => {
 		const MOCKED_MODULE = /\bvi\.(?:mock|doMock|unmock|importActual|importMock)\(\s*["']([^"']+)["']/g;
 		const ALIASED_LAYERS: Record<string, string> = {
 			"@domain/": "domain",
@@ -1360,9 +1511,11 @@ describe("the web layers only import inwards", () => {
 			const landed = landingOf(entry);
 			return isRelative(entry) && landed.startsWith("web/src/") && !landed.startsWith(`web/src/${entry.layer}/`);
 		});
+		const leavingSource = imports.filter((entry) => isRelative(entry) && !landingOf(entry).startsWith("web/src/"));
 		const stayingAliased = imports.filter((entry) => aliasedLayerOf(entry) === entry.layer);
 		const offenders = [
 			...crossingRelative.map(({ path, specifier }) => `${relative(path)} crosses its layer by ${specifier}`),
+			...leavingSource.map(({ path, specifier }) => `${relative(path)} leaves web/src by ${specifier}`),
 			...stayingAliased.map(({ path, specifier }) => `${relative(path)} stays in its layer by ${specifier}`),
 		];
 
@@ -1701,6 +1854,30 @@ describe("the web's code keeps the shapes the standards hold it to", () => {
 		expect(offenders).toEqual([]);
 	});
 
+	it("wraps every .ts route's handler in the boundary that logs and answers SERVER_ERROR_MESSAGE", () => {
+		const endpoints = productionFiles().filter(
+			(path) =>
+				path.endsWith(".ts") &&
+				relative(path).startsWith("web/src/pages/") &&
+				!relative(path)
+					.split("/")
+					.some((part) => part.startsWith("_")),
+		);
+		const unguarded = endpoints
+			.filter((path) => {
+				const source = read(path);
+				return !(
+					/\btry\s*\{/.test(source) &&
+					/\blogServerError\(/.test(source) &&
+					/\bSERVER_ERROR_MESSAGE\b/.test(source)
+				);
+			})
+			.map(relative);
+
+		expect(endpoints.length).toBeGreaterThan(1);
+		expect(unguarded).toEqual([]);
+	});
+
 	it("imports Zod only through astro/zod, and declares no zod of its own", () => {
 		const files = [...webFiles(), ...walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") })];
 		const imports = files.flatMap((path) => importsOf(read(path)).map((specifier) => ({ path, specifier })));
@@ -1813,6 +1990,62 @@ describe("the web's code keeps the shapes the standards hold it to", () => {
 		expect(calls.length).toBeGreaterThan(0);
 		expect(files.filter((path) => transformingIn(path).size > 0).length).toBeGreaterThan(0);
 		expect(offenders).toEqual([]);
+	});
+
+	it("gives every fetch of the Worker and the browser the shared timeout, so no request waits for ever", () => {
+		const FETCH_CALL = /\bfetch\(/;
+		const TIMEOUT = "AbortSignal.timeout(REQUEST_TIMEOUT_MS)";
+		const fetching = productionFiles().filter((path) => FETCH_CALL.test(withoutStringLiterals(read(path))));
+		const untimed = fetching.filter((path) => !read(path).includes(TIMEOUT)).map(relative);
+
+		expect(FETCH_CALL.test("await fetch(url)")).toBe(true);
+		expect(fetching.length).toBeGreaterThan(2);
+		expect(untimed).toEqual([]);
+	});
+
+	it("spells a robots directive only through RobotsDirective, which the type alone would let a bare string satisfy", () => {
+		const BARE_ROBOTS = /\brobots\s*[:=]\s*(?:""|''|``)/;
+		const files = productionFiles().filter((path) => !relative(path).endsWith("core/seo/types.ts"));
+		const naming = files.filter((path) => /\brobots\b/.test(read(path)));
+
+		expect(BARE_ROBOTS.test(withoutStringLiterals('robots: "noindex, nofollow",'))).toBe(true);
+		expect(BARE_ROBOTS.test(withoutStringLiterals("robots = RobotsDirective.NoIndexNoFollow,"))).toBe(false);
+		expect(naming.length).toBeGreaterThan(1);
+		expect(linesMatching({ files, pattern: BARE_ROBOTS })).toEqual([]);
+	});
+
+	it("matches a closed set in a switch that names every member and carries no default arm", () => {
+		const SWITCH_OPENER = /\bswitch\s*\([^)\n]*\)\s*\{/g;
+		const DEFAULT_ARM = /^default\s*:/;
+
+		const carriesDefaultArm = (body: string): boolean => {
+			let depth = 0;
+			for (let index = 0; index < body.length; index += 1) {
+				if (body[index] === "{") depth += 1;
+				else if (body[index] === "}") depth -= 1;
+				else if (depth === 0 && !/[\w$.]/.test(body[index - 1] ?? " ") && DEFAULT_ARM.test(body.slice(index))) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		const switchesIn = (source: string): string[] =>
+			[...source.matchAll(SWITCH_OPENER)].map((opener) =>
+				bracedBodyFrom({ source, open: (opener.index ?? 0) + opener[0].length - 1 }),
+			);
+
+		const files = productionFiles();
+		const switches = files.flatMap((path) => switchesIn(read(path)).map((body) => ({ path, body })));
+		const defaulting = switches.filter(({ body }) => carriesDefaultArm(body)).map(({ path }) => relative(path));
+
+		expect(carriesDefaultArm("case A:\n\treturn 1;\ndefault:\n\treturn 2;")).toBe(true);
+		expect(carriesDefaultArm("case A: {\n\tconst o = { default: 1 };\n\treturn o;\n}\ncase B:\n\treturn 2;")).toBe(
+			false,
+		);
+		expect(carriesDefaultArm("case A:\n\treturn isDefault;")).toBe(false);
+		expect(switches.length).toBeGreaterThan(0);
+		expect(defaulting).toEqual([]);
 	});
 });
 
@@ -2054,6 +2287,21 @@ describe("the workflows", () => {
 
 		expect(deploying).toBeGreaterThan(0);
 		expect(wrapped).toEqual([]);
+	});
+
+	it("runs the daylight-saving tests again under a zone that has daylight saving, which UTC cannot show", () => {
+		const DST_TEST = /^\s*test\(\s*['"][^'"\n]*daylight saving/m;
+		const appCi = read(join(WORKFLOWS, "_ci-app.yml"));
+		const rerun = [...appCi.matchAll(/^\s*run: TZ=Europe\/Madrid flutter test (.+)$/gm)].flatMap(([, files]) =>
+			files.trim().split(/\s+/),
+		);
+		const holding = walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith("_test.dart") })
+			.filter((path) => DST_TEST.test(read(path)))
+			.map((path) => relative(path).replace(/^app\//, ""))
+			.sort();
+
+		expect(holding.length).toBeGreaterThan(0);
+		expect([...rerun].sort()).toEqual(holding);
 	});
 
 	it("filters ci.yml by no path, and gates the docs contract on nothing", () => {

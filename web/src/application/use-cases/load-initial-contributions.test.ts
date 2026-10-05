@@ -27,10 +27,10 @@ describe("loadInitialContributions", () => {
 		}
 	});
 
-	it("passes a repository failure through as status + message", async () => {
-		const loadContributions = vi.fn().mockResolvedValue(network({ message: "github is down" }));
+	it("passes a repository failure through as kind + status + the wording the log keeps", async () => {
+		const loadContributions = vi.fn().mockResolvedValue(network("github is down"));
 		const result = await loadInitialContributions(loadContributions)({ username: "torvalds", thisYear: CURRENT_YEAR });
-		expect(result).toEqual({ ok: false, year: CURRENT_YEAR, kind: "Network", status: 502, message: "github is down" });
+		expect(result).toEqual({ ok: false, year: CURRENT_YEAR, kind: "Network", status: 502, reason: "github is down" });
 	});
 
 	it("chooses the Year the client's resolveYear would, so a server render and a client render agree", async () => {
@@ -60,7 +60,7 @@ describe("loadInitialContributions", () => {
 	});
 
 	it("keeps the Year it chose when the fetch fails, so the error state covers the Year asked for", async () => {
-		const loadContributions = vi.fn().mockResolvedValue(network({ message: "github is down" }));
+		const loadContributions = vi.fn().mockResolvedValue(network("github is down"));
 		const result = await loadInitialContributions(loadContributions)({
 			username: "torvalds",
 			year: "2010",

@@ -41,7 +41,7 @@ matter: a desktop Chrome `User-Agent` (a compatibility shim for an unauthenticat
 concealment), `Accept-Language`, a `Referer` pointing at the user's profile, and **`X-Requested-With:
 XMLHttpRequest`**, which is what makes GitHub return the calendar fragment. Dropping any of them is how this starts
 silently returning a full HTML page that the regexes then fail to parse. The fetch carries
-`AbortSignal.timeout(FETCH_TIMEOUT_MS)` and follows redirects.
+`AbortSignal.timeout(REQUEST_TIMEOUT_MS)` and follows redirects.
 
 **The parse**, in two passes over the same HTML:
 
@@ -71,10 +71,10 @@ derives a level from a count; the app does, and only when the attribute is missi
 
 | Situation | Result |
 | --- | --- |
-| `fetch` or `response.text()` throws, including the 20 s timeout | `network({ message })`, no status |
+| `fetch` or `response.text()` throws, including the 20 s timeout | `network(<the error's message>)` |
 | status 404 | `notFound(username)` |
 | status 429 | `rateLimited({ message, retryAfterSeconds })` |
-| any other non-OK status | `network({ message: "GitHub returned <status>", status })` |
+| any other non-OK status | `upstream("GitHub returned <status>")` |
 | zero days parsed | `parse("Could not parse contributions")` |
 
 `retryAfterSeconds` is parsed from `Retry-After` in either form the RFC allows, all digits or an HTTP date, and the
@@ -120,7 +120,9 @@ carries the React integration. The template takes the `ContactMessage`, the sent
 header strip and its button from `PALETTES.github`, the domain's own colours; the neutral greys are the email's own
 literals, because an email client reads no CSS variable. `cloudflareContactMessageRepository` renders it twice
 through `@react-email/render`, once as HTML and once with `plainText`, and hands both to `mime.ts`. Everything the
-visitor typed goes through React's escaping, and a colocated test pins that a message cannot add markup.
+visitor typed goes through React's escaping, and a colocated test pins that a message cannot add markup. The two
+`mailto:` links percent-encode the address on each side of its `@`, because the address rule admits `?`, `&`, `%` and
+`,`, and a link built from the raw text lets an address add a `bcc` or a second recipient to the maintainer's reply.
 
 **`mime.ts` builds the envelope by hand**: no `mimetext`, because a short header block and a
 `multipart/alternative` body of two base64 parts do not justify a dependency, the same trade
@@ -132,8 +134,9 @@ to the characters RFC 2046 allows; every header value has its CR and LF replaced
 and `EmailMessage` comes from `cloudflare:email`. `env.CONTACT_EMAIL` is a **local stand-in in development**:
 `wrangler dev` binds an unrestricted Send Email that writes the document to `web/.wrangler/tmp/email/` as an `.eml`
 and reports success, which is the quickest way to read the exact bytes the Worker would hand to Email Routing,
-rendered by workerd rather than by Node. The repository still answers `Delivery` rather than throwing when the
-binding is absent, because a hand-run build outside wrangler has none.
+rendered by workerd rather than by Node. **Only a `send` the platform rejects is a `Delivery`**: the `try` is around
+`binding.send` alone, so an absent binding (configuration) and a template that fails to render (a defect) throw, and
+the route's boundary logs them through `logServerError` and answers the 500 they are.
 
 ## `logging/`
 

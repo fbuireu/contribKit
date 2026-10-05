@@ -43,7 +43,7 @@ where `weeks` is how many weeks the days chunk into (53, or 54 for a Year that n
 
 - **Month labels** come from `MONTH_LABELS` in [`calendar-labels.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/value-objects/calendar-labels.ts) (12 short month names generated once via `Intl.DateTimeFormat("en", { month: "short" })`). `calendarLayout` emits a label at the first week of each new month, but only when that week's first day falls on or before day 7, which prevents a stray label when a month barely peeks into a column. That yields exactly twelve labels for a Year's grid. The SVG endpoint draws a Rolling Window, which can open and close in the same month, and then that month is labelled at both ends, thirteen labels in all.
 - **Day-of-week labels** are `WEEKDAY_LABELS = ["Mon", "Wed", "Fri"]`, drawn on alternating rows (rows 1, 3, 5) so they don't overlap.
-- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Fills are low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background and is close to invisible on a light one: a known inconsistency recorded in [`ARCHITECTURE.md`](https://github.com/fbuireu/contribKit/blob/main/ARCHITECTURE.md#9-known-inconsistencies).
+- Labels use `font-family: ui-monospace,monospace`; month labels are `9.5px` with `0.04em` letter-spacing, day labels `9px`. Each label carries a class, `month` or `weekday`, and a `fill` attribute of low-opacity white (`rgba(255,255,255,0.45)` / `0.35`), which reads on a dark background. A `<style>` right after the root tag changes it where it would not read. On a transparent Background it holds `@media (prefers-color-scheme:light)`, which an `<img>` evaluates against the viewer's scheme, and the labels turn low-opacity black (`0.55` / `0.45`). On a painted Background the tone follows the Background, which the endpoint knows: a relative colour reads its lightness, so a dark one keeps the white labels pixel for pixel and a light one gets black ones. A renderer that reads no stylesheet, or no relative colour, shows the white labels. The rule follows the viewer's setting and not the theme of the page that embeds the image; [ADR 0012](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0012-light-theme-palette-variant-is-app-only.md) has the reasoning, and the Cells are untouched.
 
 ---
 
@@ -136,20 +136,20 @@ through the same guarded lookup the SVG endpoint uses, and `getActiveShape` retu
 `string`, so no caller guards again. It also means the key it reports is the key it used, so the label under the picker cannot disagree with the colours on
 screen.
 
-**2. Single re-render entry point.** `renderCustomize()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_GEOMETRY` 13/3, `CUSTOMIZE_GRID_GEOMETRY` 12/3, `EXPORT_GRID_GEOMETRY` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderWidget()` (the phone mock), all consuming the same getters.
+**2. Single re-render entry point.** `renderCustomizer()` reads the active palette/shape plus `getDays()` and rebuilds each grid's `innerHTML` via `renderCalendarString`, applying a per-surface preset (`HERO_GRID_GEOMETRY` 13/3, `CUSTOMIZER_GRID_GEOMETRY` 12/3, `EXPORT_GRID_GEOMETRY` = defaults). It also repaints the legend swatches and the shape/palette labels, then cascades into `renderExportPreview()` (SVG/PNG/Markdown preview) and `renderHomeScreenWidget()` (the phone mock), all consuming the same getters.
 
-**3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in [`ui/utils/page-init.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/page-init.ts). `initRadioList` takes the group's `Selector` and the Usage Event to record, and its `onActivate` runs `renderCustomize` and then records that event:
+**3. Controls trigger the loop.** The shape and palette pickers are roving radio groups wired in [`ui/utils/page-init.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/page-init.ts). `initRadioList` takes the group's `Selector` and the Usage Event to record, and its `onActivate` runs `renderCustomizer` and then records that event:
 
 ```ts
 initRadioList({ selector: Selector.PaletteRows, onChosen: recordPaletteChosen });
 initRadioList({ selector: Selector.ShapeButtons, onChosen: recordCellShapeChosen });
 ```
 
-Activating a button moves the `.active` class (`activateRadio`), then `renderCustomize` re-reads the new selection from the DOM and the Usage Event records what was chosen.
+Activating a button moves the `.active` class (`activateRadio`), then `renderCustomizer` re-reads the new selection from the DOM and the Usage Event records what was chosen.
 
-**4. New data.** When a username is rendered, `renderFromGitHub` fetches `/api/contributions`, calls `setDays(buildGridFromApi(...))`, then `renderCustomize()`. The grid shape (whole weeks covering the Year, 53 or 54 of them) is always rebuilt by [Calendar Grid](Calendar-Grid); the fetch only fills `level`/`count`.
+**4. New data.** When a username is rendered, `renderFromGitHub` fetches `/api/contributions`, calls `setDays(buildGridFromApi(...))`, then `renderCustomizer()`. The grid shape (whole weeks covering the Year, 53 or 54 of them) is always rebuilt by [Calendar Grid](Calendar-Grid); the fetch only fills `level`/`count`.
 
-In one line: **change shape/palette → `activateRadio` flips `.active` → `onActivate` runs `renderCustomize` → it reads selection from the DOM + cells from the singleton → `renderCalendarString` regenerates each grid's `innerHTML`.** The same flow runs after a fetch, just triggered by new data instead of a click.
+In one line: **change shape/palette → `activateRadio` flips `.active` → `onActivate` runs `renderCustomizer` → it reads selection from the DOM + cells from the singleton → `renderCalendarString` regenerates each grid's `innerHTML`.** The same flow runs after a fetch, just triggered by new data instead of a click.
 
 > The first grid is the one the server rendered, handed to the client as `window.__INITIAL_DAYS__`: the visitor's calendar, an empty Year when the fetch failed, or, for a visitor who asked for no Username, the placeholder `generateData()` draws (see **[Deterministic Randomness](Mulberry32)**).
 

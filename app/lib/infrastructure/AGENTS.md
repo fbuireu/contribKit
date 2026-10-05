@@ -10,11 +10,11 @@ from `ui/` or `application/`. DTOs convert to entities inside `github/` and neve
 | Directory | Contents |
 |---|---|
 | `github/` | `GitHubContributionRepository`: scraping plus the Hive calendar cache |
-| `http/` | `RetryAfter`, the one `Retry-After` parser, which both HTTP repositories read |
+| `http/` | `RetryAfter`, the one `Retry-After` parser, and `RequestTimeout`, the one 20-second limit and the failure it ends in, which both HTTP repositories read |
 | `contact/` | `HttpContactMessageRepository`: **the only call this app makes to a ContribKit server** |
 | [`github/dtos/`](./github/dtos) | JSON transfer objects for the cache, converted before leaving the layer |
 | `persistence/` | `HiveSettingsRepository`: every stored setting |
-| `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`: a broken file we ship is not GitHub changing its markup |
+| `assets/` | Repositories over the bundled `assets/*.json` (palettes, suggested usernames): generated copies of `shared/`. They throw `AssetFailure`, not `ParseFailure`, for a file that is missing, malformed or empty: a broken file we ship is not GitHub changing its markup, and an empty one would draw a label with nothing after it. `asset_repositories_test.dart` mocks the `flutter/assets` channel, evicting the key from `rootBundle` first, because the bundle caches what it loaded |
 | `export/` | One repository per Export Format: PNG, SVG, Markdown, plus `PlatformExportDelivery`, the only file that names `share_plus` or `Clipboard` |
 | `tip/` | The RevenueCat implementation of `TipRepository` |
 | `telemetry/` | Sentry behind `DiagnosticsRepository`, PostHog behind `UsageEventRepository`, and the `--dart-define` config both read. All four methods of both adapters swallow every error, so an SDK that throws never reaches the caller; what `start` and `applyConsent` catch goes to `reportTelemetryFailure` in `telemetry_failure.dart`, which hands it to `FlutterError.reportError`, where Sentry's own integration captures it while Diagnostic Reports are on. Consent fails closed: an adapter stops sending before it asks its SDK to stop, a failed PostHog opt-out falls back to closing the SDK, and a grant that throws leaves the adapter off ([ADR 0027](../../../docs/adr/0027-the-app-sends-telemetry-through-two-ports-with-no-failure-channel.md)). `record` sends `event.name` and `event.properties`, omitting the map when it is empty, and nothing else. **Both SDKs are configured in Dart and never from the platform manifests**: PostHog would otherwise initialise itself from `onAttachedToEngine`, ahead of the consent gate ([ADR 0028](../../../docs/adr/0028-telemetry-consent-is-asked-twice-and-answered-asymmetrically.md)). The Sentry adapter records a replay only around an error, masks every text and image, and masks whole any widget whose `Type` is in its `maskedWidgets`; it cannot name those types itself, because they live in `ui/`, so the composition roots pass them in ([ADR 0029](../../../docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md)). `maskingDecision` is the callback itself and is public, so its test hands it real elements from a pumped tree |
@@ -39,7 +39,8 @@ equivalent, and the differences are the whole reason this section exists:
 | Unknown Count | `null` | `null` |
 | HTTP 429 | `rateLimited(…, retryAfterSeconds)` | `RateLimitedFailure`, with `resetAt` from `Retry-After` |
 | Timeout | 20 s → `network` | 20 s → `NetworkFailure` |
-| What else becomes a network failure | whatever `fetch` or `response.text()` throws, or a status that is not OK besides 404 and 429; the parse runs outside the `try` | an `IOException` or an `http.ClientException` from the request, or a status other than 200, 404 and 429, and nothing else; the parse runs outside the `try` |
+| What becomes a network failure | whatever `fetch` or `response.text()` throws; the parse runs outside the `try` | an `IOException` or an `http.ClientException` from the request, and nothing else; the parse runs outside the `try` |
+| A status other than 200, 404 and 429 | `upstream("GitHub returned <status>")` | `UpstreamFailure(message: 'HTTP <code>')` |
 | Grid construction | in the domain layer | in the domain layer, `ContributionGridService` |
 
 **Two passes over the HTML, joined on the `<td>`'s `id`.** Pass one collects `(date, level?, id?)` from every `<td>`
@@ -89,7 +90,11 @@ needs a binding only a Worker has. It takes an `http.Client` or owns one and exp
 answers the fixed sentence `"Could not send your message"` and logs the reason itself. What arrives here is already
 public copy.
 
-## `http/`: one `Retry-After` parser, every reader
+## `http/`: one `Retry-After` parser and one timeout, every reader
+
+`RequestTimeout.duration` is the 20 seconds both HTTP repositories give a request, and `RequestTimeout.expired` is what
+they pass as `onTimeout`: it throws the `NetworkFailure` a request that outlasted it ends in. A third HTTP repository
+reads both rather than declaring a limit of its own.
 
 `RetryAfter.resetAtFrom` handles both forms the RFC allows: an integer count of seconds added to the `now` its
 caller passes, or an HTTP date through `HttpDate.parse`, falling back to ISO-8601. Anything neither can read leaves
@@ -98,8 +103,8 @@ caller passes, or an HTTP date through `HttpDate.parse`, falling back to ISO-860
 
 ## `persistence/`: settings
 
-`HiveSettingsRepository` over the `settings` box. `load()` fills the Cell Shape, Cell Size, theme mode and Telemetry
-Consent with their defaults and leaves the rest `null` when unset; a stored Year after the year of its `now`, which
+`HiveSettingsRepository` over the `settings` box. `load()` fills the Cell Shape, Cell Size, Background Preset, theme
+mode and Telemetry Consent with their defaults and leaves the rest `null` when unset; a stored Year after the year of its `now`, which
 only a clock set back can produce, reads as unset. **Every field tolerates its own corruption**:
 `_tolerating` wraps each read, so a `cellShape` written as an `int` by an older build costs you the Cell Shape and
 nothing else. `loses only the corrupt value` in
@@ -143,8 +148,9 @@ covers. `MarkdownExportRepository` builds an **Embed URL** through `Embed.urlFor
 `SharePlatform.instance` and no test can stand in front of it; `exportDeliveryProvider` is what a test overrides.
 `shareFile` answers whether the share went through: `false` only when the person dismissed the sheet, `true` for a
 completed share and for a platform that cannot report the outcome, so `exportShared` counts Exports that left the
-app rather than sheets that were opened. It converts nothing, so a `PlatformException` from the share sheet or the
-clipboard reaches `ExportSheet` raw.
+app rather than sheets that were opened. A share sheet or a clipboard that fails is an `ExportFailure`, converted
+here like every other adapter's, and a dismissed sheet is the `false` answer and no failure at all;
+`platform_export_delivery_test.dart` fails each channel.
 
 **`XFile.fromData(name: …)` does not name the file.** On the io implementation `XFile.name` is a getter over
 `_file.path`, and a data-backed `XFile` has no path, so `share_plus` sees an empty name and falls back to a UUID.
@@ -189,6 +195,6 @@ the SDK's wire shape. That is the reason to be suspicious of this file specifica
 - **`_toDto` builds the DTOs, and the DTOs generate both directions**; see [`github/dtos/`](./github/dtos/AGENTS.md).
 - **`yearMax` is computed over the days actually present**, so a derived level depends on the rest of the year. Two
   partial fetches of the same year can disagree about a day's level: another reason a parsed `data-level` is
-  preferred wherever it exists. On the cache path it is computed **lazily**, because `_toDto` always writes a
-  `level` and so the fallback never fires for an entry this version wrote; it stays for entries written before the
-  field existed.
+  preferred wherever it exists. Both the scrape and the cache read it through `ContributionLevelService.highestCount`
+  and choose the level through `levelOf`; `_toDto` always writes a `level`, so on the cache path the fallback never
+  fires for an entry this version wrote, and stays for entries written before the field existed.

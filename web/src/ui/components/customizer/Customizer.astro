@@ -1,6 +1,6 @@
 ---
 import { ClassName, ElementId } from "../../utils/dom-contract";
-import "./customize.css";
+import "./customizer.css";
 import { CELL_SHAPES, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
 import { shapePreviewSVG } from "../grid/render-svg";
@@ -11,7 +11,7 @@ const palettes = Object.values(PALETTES);
 
 <section class="section" id={ElementId.CustomizerSection} aria-label="Customizer">
   <div class="wrap">
-    <div class="eyebrow" aria-hidden="true"><span class="mono">customize</span></div>
+    <div class="eyebrow" aria-hidden="true"><span class="mono">customizer</span></div>
     <h2 class="section-title">
       Make it look like<br />
       <span class="dim">something you'd actually pin.</span>

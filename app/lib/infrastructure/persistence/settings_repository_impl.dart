@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
+import 'package:contribkit/domain/value_objects/background_preset.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
@@ -117,13 +118,16 @@ final class HiveSettingsRepository implements SettingsRepository {
             ),
           ) ??
           CellSize.fallback,
-      backgroundPresetName: _tolerating(
-        () => _readWithLegacy(
-          box: box,
-          key: _keyBackgroundPreset,
-          legacyKey: _keyLegacyCardBackground,
-        ),
-      ),
+      backgroundPreset:
+          _tolerating(() {
+            final name = _readWithLegacy(
+              box: box,
+              key: _keyBackgroundPreset,
+              legacyKey: _keyLegacyCardBackground,
+            );
+            return name == null ? null : BackgroundPreset.byName(name);
+          }) ??
+          BackgroundPreset.fallback,
       themeMode:
           _tolerating(
             () => _enumByName(
@@ -183,12 +187,12 @@ final class HiveSettingsRepository implements SettingsRepository {
       _write((box) => box.put(_keyCellSize, size.name));
 
   @override
-  Future<void> saveBackgroundPreset(String presetName) => _write(
+  Future<void> saveBackgroundPreset(BackgroundPreset preset) => _write(
     (box) => _writeReplacingLegacy(
       box: box,
       key: _keyBackgroundPreset,
       legacyKey: _keyLegacyCardBackground,
-      value: presetName,
+      value: preset.name,
     ),
   );
 

@@ -11,6 +11,13 @@ void main() {
       );
     });
 
+    test('an UpstreamFailure repeats the status GitHub answered with', () {
+      expect(
+        const UpstreamFailure(message: 'HTTP 503').toString(),
+        'UpstreamFailure: HTTP 503',
+      );
+    });
+
     test('a NotFoundFailure names the Username that was missing', () {
       expect(
         NotFoundFailure(username: Username('octocat')).toString(),
@@ -87,6 +94,7 @@ void main() {
   test('the set is sealed, so every Failure names a kind in it', () {
     const failures = <Failure>[
       NetworkFailure(message: 'x'),
+      UpstreamFailure(message: 'x'),
       RateLimitedFailure(),
       ParseFailure(message: 'x'),
       AssetFailure(asset: 'x'),
@@ -104,6 +112,7 @@ void main() {
       expect(failure, isA<Exception>());
       final named = switch (failure) {
         NetworkFailure() => 'NetworkFailure',
+        UpstreamFailure() => 'UpstreamFailure',
         NotFoundFailure() => 'NotFoundFailure',
         RateLimitedFailure() => 'RateLimitedFailure',
         ParseFailure() => 'ParseFailure',

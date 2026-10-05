@@ -15,7 +15,13 @@ const call = ({ username, query = "" }: CallParams): Promise<Response> =>
 		url: new URL(`https://contribkit.app/user/${username}.svg${query}`),
 	} as never) as Promise<Response>;
 
-afterEach(() => vi.unstubAllGlobals());
+const loggedLines = (spy: { mock: { calls: unknown[][] } }): Record<string, unknown>[] =>
+	spy.mock.calls.map(([line]) => JSON.parse(String(line)) as Record<string, unknown>);
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
+});
 
 describe("GET /user/[username].svg", () => {
 	it("returns an SVG image for a valid user", async () => {
@@ -53,6 +59,32 @@ describe("GET /user/[username].svg", () => {
 
 		expect(res.status).toBe(404);
 		expect(await res.text()).toBe("User not found");
+	});
+
+	it("keeps the platform's own wording out of the body and in the log line when the request itself fails", async () => {
+		const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => {
+				throw new TypeError("fetch failed: socket hang up");
+			}),
+		);
+
+		const res = await call({ username: "torvalds" });
+
+		expect(res.status).toBe(502);
+		expect(await res.text()).toBe("Could not reach GitHub");
+		expect(loggedLines(errors)).toEqual([
+			expect.objectContaining({
+				level: "error",
+				message: "GitHub contributions fetch failed",
+				kind: "Network",
+				reason: "fetch failed: socket hang up",
+				status: 502,
+				endpoint: "svg",
+				username: "torvalds",
+			}),
+		]);
 	});
 
 	it("passes GitHub's Retry-After on, even though the body is text", async () => {

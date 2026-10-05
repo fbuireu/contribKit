@@ -1,13 +1,13 @@
 ---
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
-import type { Metadata } from "@ui/components/core/seo/types";
+import { type Metadata, RobotsDirective } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
 import { type ShuffledData, unshuffle } from "@ui/utils/unshuffle";
 
 const TITLE = "Legal Notice: ContribKit";
 const EFFECTIVE_DATE = "2026-06-03";
 
-const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
+const metadata: Metadata = { title: TITLE, robots: RobotsDirective.NoIndexNoFollow };
 
 const OWNER_NAME: ShuffledData[] = [
 	{ letter: "u", order: 12 },

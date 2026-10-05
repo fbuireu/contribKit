@@ -1,33 +1,17 @@
 ---
 import { ClassName, ElementId } from "../../utils/dom-contract";
 import "./export.css";
-import { DAYS_PER_WEEK, WEEKS_PER_YEAR } from "@domain/services/dates";
-import { calendarLayout } from "@domain/services/svg-geometry";
-import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
-import { DEFAULT_USERNAME } from "@domain/value-objects/username";
-import { EXPORT_GRID_GEOMETRY } from "../grid/grid-geometry";
-import { ExportFormatKey } from "./export-formats";
+import type { ContributionDay } from "@domain/entities/types";
+import { FIRST_SUGGESTED_USERNAME } from "@domain/value-objects/username";
+import { ExportFormatKey, exportTabDetail } from "./export-formats";
 
 interface Props {
 	exportSvg: string;
+	days: readonly ContributionDay[];
 }
-const { exportSvg } = Astro.props;
+const { exportSvg, days } = Astro.props;
 
-const exportLayout = calendarLayout({
-	days: [],
-	shape: DEFAULT_CELL_SHAPE,
-	...EXPORT_GRID_GEOMETRY,
-	showLabels: false,
-});
-
-const EXPORT_FORMATS = [
-	{
-		key: ExportFormatKey.Png,
-		detail: `${exportLayout.width}×${exportLayout.height} · transparent`,
-	},
-	{ key: ExportFormatKey.Svg, detail: `Vector · ${WEEKS_PER_YEAR}×${DAYS_PER_WEEK} grid` },
-	{ key: ExportFormatKey.Md, detail: "Live embed, re-renders on view" },
-] as const;
+const EXPORT_FORMATS = Object.values(ExportFormatKey).map((key) => ({ key, detail: exportTabDetail({ key, days }) }));
 ---
 
 <section class="section" id={ElementId.ExportSection} aria-label="Export">
@@ -50,7 +34,7 @@ const EXPORT_FORMATS = [
           >
             <span class="mono tab-key">.{key}</span>
             <span class="tab-label">{key.toUpperCase()}</span>
-            <span class="tab-detail">{detail}</span>
+            <span class={ClassName.ExportTabDetail}>{detail}</span>
           </button>
         ))}
       </div>
@@ -60,7 +44,7 @@ const EXPORT_FORMATS = [
           <div class={ClassName.PreviewContent}>
             <Fragment set:html={exportSvg} />
           </div>
-          <div class:list={[ClassName.PreviewTag, "mono"]}>{DEFAULT_USERNAME}.png</div>
+          <div class:list={[ClassName.PreviewTag, "mono"]}>{FIRST_SUGGESTED_USERNAME}.png</div>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ interface ImportMeta {
 
 declare global {
 	const __APP_VERSION__: string;
+	const __WEB_VERSION__: string;
 	interface Window {
 		__INITIAL_DAYS__?: unknown;
 		dataLayer: unknown[];

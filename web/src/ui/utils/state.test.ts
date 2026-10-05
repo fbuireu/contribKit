@@ -1,7 +1,8 @@
 import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
 import { isFailure } from "@domain/failures/failure";
-import { describe, expect, it } from "vitest";
+import { parseUsername, type Username } from "@domain/value-objects/username";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { getDays, getUsername, setDays, setUsername } from "./state";
 
 const day = (params: ContributionDayParams): ContributionDay => {
@@ -17,8 +18,24 @@ describe("state", () => {
 		expect(getDays()).toBe(days);
 	});
 
-	it("stores and returns the username", () => {
-		setUsername("torvalds");
-		expect(getUsername()).toBe("torvalds");
+	it("hands out and takes readonly days, so no renderer can change the grid it draws", () => {
+		expectTypeOf(getDays()).toEqualTypeOf<readonly ContributionDay[]>();
+		expectTypeOf(setDays).parameter(0).toEqualTypeOf<readonly ContributionDay[]>();
+	});
+
+	it("stores and returns the Username as the value object, not as its text", () => {
+		const username = parseUsername("torvalds");
+		if (isFailure(username)) throw new Error("fixture is not a Username");
+
+		setUsername(username);
+
+		expect(getUsername()).toBe(username);
+		expectTypeOf(getUsername()).toEqualTypeOf<Username | null>();
+	});
+
+	it("holds no Username until one is set, and lets it go again", () => {
+		setUsername(null);
+
+		expect(getUsername()).toBeNull();
 	});
 });

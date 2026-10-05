@@ -4,7 +4,11 @@ import type { ContributionDay } from "../entities/types";
 import { isFailure } from "../failures/failure";
 import { type IsoDate, parseIsoDate } from "../value-objects/iso-date";
 import { buildGridFromApi } from "./calendar-grid";
-import { computeContributionStats, statsWithScrapedTotal, totalContributionsFor } from "./contribution-stats";
+import {
+	computeContributionStats,
+	statsWithScrapedTotalContributions,
+	totalContributionsFor,
+} from "./contribution-stats";
 
 const day = (params: ContributionDayParams): ContributionDay => {
 	const built = contributionDay(params);
@@ -89,7 +93,7 @@ describe("computeContributionStats", () => {
 	});
 });
 
-describe("statsWithScrapedTotal", () => {
+describe("statsWithScrapedTotalContributions", () => {
 	const days = [
 		day({ date: "2024-01-01", level: 1, count: 3 }),
 		day({ date: "2024-01-02", level: 1, count: 4 }),
@@ -97,31 +101,50 @@ describe("statsWithScrapedTotal", () => {
 
 	it("lets the scraped Total Contributions win over the computed figure", () => {
 		expect(
-			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: 99 })
-				.totalContributions,
+			statsWithScrapedTotalContributions({
+				days: [...days],
+				year: 2024,
+				today: iso("2024-01-02"),
+				scrapedTotalContributions: 99,
+			}).totalContributions,
 		).toBe(99);
 	});
 
 	it("keeps a scraped zero, because zero is a fact and not a missing value", () => {
 		expect(
-			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: 0 })
-				.totalContributions,
+			statsWithScrapedTotalContributions({
+				days: [...days],
+				year: 2024,
+				today: iso("2024-01-02"),
+				scrapedTotalContributions: 0,
+			}).totalContributions,
 		).toBe(0);
 	});
 
 	it("keeps the computed Total Contributions when nothing was scraped", () => {
 		expect(
-			statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: null })
-				.totalContributions,
+			statsWithScrapedTotalContributions({
+				days: [...days],
+				year: 2024,
+				today: iso("2024-01-02"),
+				scrapedTotalContributions: null,
+			}).totalContributions,
 		).toBe(7);
 	});
 
 	it("keeps the computed Total Contributions when no scraped figure is passed at all", () => {
-		expect(statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02") }).totalContributions).toBe(7);
+		expect(
+			statsWithScrapedTotalContributions({ days: [...days], year: 2024, today: iso("2024-01-02") }).totalContributions,
+		).toBe(7);
 	});
 
 	it("leaves the streaks to computeContributionStats", () => {
-		const stats = statsWithScrapedTotal({ days: [...days], year: 2024, today: iso("2024-01-02"), scrapedTotal: 99 });
+		const stats = statsWithScrapedTotalContributions({
+			days: [...days],
+			year: 2024,
+			today: iso("2024-01-02"),
+			scrapedTotalContributions: 99,
+		});
 
 		expect(stats.longestStreak).toBe(
 			computeContributionStats({ days: [...days], year: 2024, today: iso("2024-01-02") }).longestStreak,

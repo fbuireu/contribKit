@@ -1,11 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { env, send } = vi.hoisted(() => ({
+const { env, send, logServerError } = vi.hoisted(() => ({
 	env: {} as { CONTACT_EMAIL?: { send: (message: unknown) => Promise<void> } },
 	send: vi.fn(async () => undefined),
+	logServerError: vi.fn(),
 }));
 
 vi.mock("cloudflare:workers", () => ({ env }));
+vi.mock("@application/http/failure-log", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@application/http/failure-log")>()),
+	logServerError,
+}));
 vi.mock("astro:env/server", () => ({ MAINTAINER_EMAIL: "maintainer@example.com" }));
 vi.mock("cloudflare:email", () => ({ EmailMessage: class {} }));
 
@@ -25,6 +30,7 @@ const post = (body: unknown): Promise<Response> =>
 
 beforeEach(() => {
 	send.mockClear();
+	logServerError.mockClear();
 	send.mockImplementation(async () => undefined);
 	env.CONTACT_EMAIL = { send };
 });
@@ -92,10 +98,17 @@ describe("POST /api/contact", () => {
 		expect(await response.json()).toEqual({ error: "Could not send your message" });
 	});
 
-	it("502s when the binding is absent, as it is in a build run outside wrangler", async () => {
+	it("answers 500 through the boundary and reports it when the binding is absent, which is configuration", async () => {
 		env.CONTACT_EMAIL = undefined;
 
-		expect((await post(VALID)).status).toBe(502);
+		const response = await post(VALID);
+
+		expect(response.status).toBe(500);
+		expect(await response.json()).toEqual({ error: "Something went wrong. Please try again." });
+		expect(logServerError).toHaveBeenCalledOnce();
+		expect(logServerError).toHaveBeenCalledWith(
+			expect.objectContaining({ error: expect.objectContaining({ message: "CONTACT_EMAIL binding is absent" }) }),
+		);
 	});
 
 	it("stores no answer it ever gives, whichever one it is", async () => {

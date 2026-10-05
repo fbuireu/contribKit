@@ -12,7 +12,7 @@ import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape"
 import type { PaletteColors } from "@domain/value-objects/palette";
 
 export interface RenderCalendarStringParams {
-	days: ContributionDay[];
+	days: readonly ContributionDay[];
 	palette: PaletteColors;
 	shape?: CellShape;
 	size?: number;

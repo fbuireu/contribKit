@@ -11,7 +11,7 @@ const LEVEL_THRESHOLDS = [
 	{ minScore: 0.2, level: 1 },
 ] as const;
 
-export function generateData(seed = 7): ContributionDay[] {
+export function generateData(seed = 7): readonly ContributionDay[] {
 	const random = mulberry32(seed);
 	const days: ContributionDay[] = [];
 	const today = toIsoDate(new Date());

@@ -37,26 +37,28 @@ const renderEmail = async ({ message, date }: RenderEmailParams): Promise<Render
 export const cloudflareContactMessageRepository = (destination: string): ContactMessageRepository => ({
 	deliver: async (message) => {
 		const binding = env.CONTACT_EMAIL;
-		if (!binding) return delivery(MISSING_BINDING);
+		if (!binding) throw new Error(MISSING_BINDING);
+
+		const date = new Date();
+		const { text, html } = await renderEmail({ message, date });
+		const raw = buildMimeMessage({
+			from: CONTACT_SENDER,
+			to: destination,
+			replyTo: message.email,
+			subject: subjectFor(message),
+			text,
+			html,
+			date,
+			messageId: messageIdFor(date),
+			boundary: `=_${crypto.randomUUID()}`,
+		});
+		const email = new EmailMessage(CONTACT_SENDER, destination, raw);
 
 		try {
-			const date = new Date();
-			const { text, html } = await renderEmail({ message, date });
-			const raw = buildMimeMessage({
-				from: CONTACT_SENDER,
-				to: destination,
-				replyTo: message.email,
-				subject: subjectFor(message),
-				text,
-				html,
-				date,
-				messageId: messageIdFor(date),
-				boundary: `=_${crypto.randomUUID()}`,
-			});
-			await binding.send(new EmailMessage(CONTACT_SENDER, destination, raw));
-			return message;
+			await binding.send(email);
 		} catch (error) {
 			return delivery(errorMessageOf(error));
 		}
+		return message;
 	},
 });

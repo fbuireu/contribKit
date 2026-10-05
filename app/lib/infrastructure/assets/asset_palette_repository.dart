@@ -11,13 +11,16 @@ final class AssetPaletteRepository implements PaletteRepository {
 
   @override
   Future<List<Palette>> loadAll() async {
+    final List<Palette> palettes;
     try {
       final raw = await rootBundle.loadString(_assetKey);
       final data = jsonDecode(raw) as List<dynamic>;
-      return data.map(_fromJson).toList(growable: false);
+      palettes = data.map(_fromJson).toList(growable: false);
     } catch (e) {
       throw const AssetFailure(asset: _assetKey);
     }
+    if (palettes.isEmpty) throw const AssetFailure(asset: _assetKey);
+    return palettes;
   }
 
   static Palette _fromJson(dynamic json) {

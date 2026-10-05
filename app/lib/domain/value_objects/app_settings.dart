@@ -1,3 +1,4 @@
+import 'package:contribkit/domain/value_objects/background_preset.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/telemetry_consent.dart';
@@ -13,7 +14,7 @@ final class AppSettings {
     this.paletteKey,
     this.cellShape = CellShape.fallback,
     this.cellSize = CellSize.fallback,
-    this.backgroundPresetName,
+    this.backgroundPreset = BackgroundPreset.fallback,
     this.themeMode = AppThemeMode.system,
     this.telemetryConsent = const TelemetryConsent(),
   });
@@ -23,7 +24,7 @@ final class AppSettings {
   final String? paletteKey;
   final CellShape cellShape;
   final CellSize cellSize;
-  final String? backgroundPresetName;
+  final BackgroundPreset backgroundPreset;
   final AppThemeMode themeMode;
   final TelemetryConsent telemetryConsent;
 

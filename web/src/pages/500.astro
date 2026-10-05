@@ -3,7 +3,7 @@ import { NOT_CACHEABLE } from "@application/http/cache-control";
 import { logServerError } from "@application/http/failure-log";
 import { logger } from "@infrastructure/logging/logger";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
-import type { Metadata } from "@ui/components/core/seo/types";
+import { type Metadata, RobotsDirective } from "@ui/components/core/seo/types";
 import ErrorView from "@ui/components/error/ErrorView.astro";
 import { ErrorActionIcon, type TerminalLine, TerminalLineKind, Tone } from "@ui/components/error/types";
 
@@ -12,7 +12,7 @@ const path = Astro.url.pathname || "/";
 const metadata: Metadata = {
 	title: "500: something broke · ContribKit",
 	description: "Something went wrong on our end.",
-	robots: "noindex, nofollow",
+	robots: RobotsDirective.NoIndexNoFollow,
 };
 
 const error = (Astro.props as { error?: unknown }).error;
@@ -20,7 +20,7 @@ logServerError({ logger, error, path });
 
 const terminal: TerminalLine[] = [
 	{ kind: TerminalLineKind.Command, text: `contribkit render ${path}` },
-	{ kind: TerminalLineKind.Error, text: "error: 500, render pipeline crashed (E_RENDER)" },
+	{ kind: TerminalLineKind.Error, text: "error: 500, render pipeline crashed" },
 	{ kind: TerminalLineKind.Output, text: "reported automatically" },
 ];
 

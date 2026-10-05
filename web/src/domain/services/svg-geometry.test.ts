@@ -17,7 +17,7 @@ const SIZE = 10;
 const GAP = 2;
 const CELL_WIDTH = SIZE + GAP;
 
-const year = (value: number): ContributionDay[] => buildGridFromApi({ days: [], year: value });
+const year = (value: number): readonly ContributionDay[] => buildGridFromApi({ days: [], year: value });
 
 const layoutFor = (overrides: Partial<Parameters<typeof calendarLayout>[0]> = {}) =>
 	calendarLayout({ days: year(2024), shape: "rounded", size: SIZE, gap: GAP, ...overrides });
@@ -84,7 +84,7 @@ describe("calendarLayout: dimensions", () => {
 });
 
 describe("calendarLayout: month labels", () => {
-	const labelsFor = (days: ContributionDay[]) => calendarLayout({ days, shape: "rounded" }).monthLabels;
+	const labelsFor = (days: readonly ContributionDay[]) => calendarLayout({ days, shape: "rounded" }).monthLabels;
 
 	it("names twelve months for a calendar year, in order", () => {
 		const labels = labelsFor(year(2024));

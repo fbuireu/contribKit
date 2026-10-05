@@ -76,9 +76,9 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
             }
             views.setTextViewText(R.id.widget_streak_count, streakText)
 
-            val totalText = totalContributions as? String
-            if (totalText != null) {
-                views.setTextViewText(R.id.widget_contributions, totalText)
+            val totalContributionsText = totalContributions as? String
+            if (totalContributionsText != null) {
+                views.setTextViewText(R.id.widget_contributions, totalContributionsText)
             }
 
             val levels = prefs.getString("widget_levels", null)

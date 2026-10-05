@@ -53,4 +53,77 @@ void main() {
       );
     });
   });
+
+  group('ContributionLevelService.levelOf', () {
+    test('keeps the level it was stored with, whatever the Count says', () {
+      expect(
+        ContributionLevelService.levelOf(
+          storedIndex: ContributionLevel.high.index,
+          count: 1,
+          yearMax: 100,
+        ),
+        ContributionLevel.high,
+      );
+      expect(
+        ContributionLevelService.levelOf(
+          storedIndex: ContributionLevel.none.index,
+          count: 100,
+          yearMax: 100,
+        ),
+        ContributionLevel.none,
+      );
+    });
+
+    test('clamps a stored index that names no level into the enum', () {
+      expect(
+        ContributionLevelService.levelOf(
+          storedIndex: -3,
+          count: null,
+          yearMax: 0,
+        ),
+        ContributionLevel.none,
+      );
+      expect(
+        ContributionLevelService.levelOf(
+          storedIndex: 9,
+          count: null,
+          yearMax: 0,
+        ),
+        ContributionLevel.veryHigh,
+      );
+    });
+
+    test('derives the level from the Count when none was stored', () {
+      expect(
+        ContributionLevelService.levelOf(
+          storedIndex: null,
+          count: 10,
+          yearMax: 20,
+        ),
+        ContributionLevel.medium,
+      );
+    });
+
+    test('derives none from a Count nobody could read', () {
+      expect(
+        ContributionLevelService.levelOf(
+          storedIndex: null,
+          count: null,
+          yearMax: 20,
+        ),
+        ContributionLevel.none,
+      );
+    });
+  });
+
+  group('ContributionLevelService.highestCount', () {
+    test('is the largest Count, skipping the ones nobody could read', () {
+      expect(ContributionLevelService.highestCount([3, null, 9, 1]), 9);
+    });
+
+    test('is zero when there is no Count to be the highest', () {
+      expect(ContributionLevelService.highestCount(const []), 0);
+      expect(ContributionLevelService.highestCount(const [null, null]), 0);
+    });
+  });
 }

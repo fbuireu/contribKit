@@ -1,11 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { env, sent } = vi.hoisted(() => ({
+const { env, sent, template } = vi.hoisted(() => ({
 	env: {} as { CONTACT_EMAIL?: { send: (message: unknown) => Promise<void> } },
 	sent: [] as { from: string; to: string; raw: string }[],
+	template: { defect: false },
 }));
 
 vi.mock("cloudflare:workers", () => ({ env }));
+vi.mock("@react-email/render", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@react-email/render")>();
+	return {
+		...actual,
+		render: (...params: Parameters<typeof actual.render>) => {
+			if (template.defect) throw new Error("the template exploded");
+			return actual.render(...params);
+		},
+	};
+});
 vi.mock("cloudflare:email", () => ({
 	EmailMessage: class {
 		constructor(from: string, to: string, raw: string) {
@@ -14,7 +25,6 @@ vi.mock("cloudflare:email", () => ({
 	},
 }));
 
-import { isFailure } from "@domain/failures/failure";
 import type { ContactMessage } from "@domain/value-objects/contact-message";
 import { CONTACT_SENDER, cloudflareContactMessageRepository } from "./cloudflare-contact-message-repository";
 
@@ -54,14 +64,10 @@ const subjectOf = (raw: string): string => {
 	return new TextDecoder().decode(Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0)));
 };
 
-const kindOf = (value: unknown): string => {
-	expect(isFailure(value)).toBe(true);
-	return (value as { kind: string }).kind;
-};
-
 describe("cloudflareContactMessageRepository", () => {
 	beforeEach(() => {
 		sent.length = 0;
+		template.defect = false;
 		env.CONTACT_EMAIL = { send: vi.fn(async () => undefined) };
 	});
 
@@ -119,12 +125,17 @@ describe("cloudflareContactMessageRepository", () => {
 		expect(await repository.deliver(sending)).toBe(sending);
 	});
 
-	it("answers Delivery when the binding is absent, as it is in a build run outside wrangler", async () => {
+	it("throws when the binding is absent, because that is configuration and not a refused send", async () => {
 		env.CONTACT_EMAIL = undefined;
 
-		const result = await repository.deliver(message());
+		await expect(repository.deliver(message())).rejects.toThrow("CONTACT_EMAIL binding is absent");
+		expect(sent).toHaveLength(0);
+	});
 
-		expect(kindOf(result)).toBe("Delivery");
+	it("throws when the template fails to render, because that is a defect and not a refused send", async () => {
+		template.defect = true;
+
+		await expect(repository.deliver(message())).rejects.toThrow("the template exploded");
 		expect(sent).toHaveLength(0);
 	});
 

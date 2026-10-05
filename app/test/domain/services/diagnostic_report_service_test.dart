@@ -8,6 +8,7 @@ void main() {
     test('is false for the failures the world causes', () {
       final worldly = <Failure>[
         const NetworkFailure(message: 'Connection refused'),
+        const UpstreamFailure(message: 'HTTP 503'),
         RateLimitedFailure(resetAt: DateTime(2026)),
         NotFoundFailure(username: Username('octocat')),
         const DeliveryFailure(message: 'destination not verified'),

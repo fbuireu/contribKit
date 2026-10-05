@@ -6,5 +6,5 @@ export interface GridGeometry {
 }
 
 export const HERO_GRID_GEOMETRY: GridGeometry = { size: 13, gap: 3 };
-export const CUSTOMIZE_GRID_GEOMETRY: GridGeometry = { size: 12, gap: 3 };
+export const CUSTOMIZER_GRID_GEOMETRY: GridGeometry = { size: 12, gap: 3 };
 export const EXPORT_GRID_GEOMETRY: GridGeometry = { size: SVG_DEFAULT_CELL_SIZE, gap: SVG_DEFAULT_CELL_GAP };

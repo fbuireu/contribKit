@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 final _everyFailure = <Failure>[
   const NetworkFailure(message: 'offline'),
+  const UpstreamFailure(message: 'HTTP 503'),
   NotFoundFailure(username: Username('octocat')),
   const RateLimitedFailure(),
   const AssetFailure(asset: 'assets/palettes.json'),
@@ -52,6 +53,10 @@ void main() {
         isNot(contains('offline')),
       );
       expect(
+        FailureMessage.of(const UpstreamFailure(message: 'HTTP 503')),
+        isNot(contains('503')),
+      );
+      expect(
         FailureMessage.of(const ExportFailure(message: 'no bytes')),
         isNot(contains('no bytes')),
       );
@@ -94,6 +99,15 @@ void main() {
           reason: '${failure.runtimeType} leaks its own type name',
         );
       }
+    });
+
+    test('says GitHub answered, not that the server was unreachable', () {
+      final message = FailureMessage.of(
+        const UpstreamFailure(message: 'HTTP 503'),
+      );
+
+      expect(message, contains('GitHub'));
+      expect(message, isNot(contains('reach')));
     });
 
     test('gives every kind its own wording', () {

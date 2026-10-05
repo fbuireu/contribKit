@@ -13,6 +13,7 @@ import 'package:contribkit/domain/repositories/export_delivery_repository.dart';
 import 'package:contribkit/domain/repositories/export_repository.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/repositories/tip_repository.dart';
+import 'package:contribkit/domain/value_objects/background_preset.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/export_format.dart';
@@ -65,7 +66,7 @@ final class _SlowSettingsRepository implements SettingsRepository {
   Future<void> saveCellSize(CellSize size) async {}
 
   @override
-  Future<void> saveBackgroundPreset(String presetName) async {}
+  Future<void> saveBackgroundPreset(BackgroundPreset preset) async {}
 }
 
 void main() {

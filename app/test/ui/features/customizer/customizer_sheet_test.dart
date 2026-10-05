@@ -135,7 +135,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(settings.writes['backgroundPreset'], target.name);
+      expect(settings.writes['backgroundPreset'], target);
     });
 
     testWidgets(

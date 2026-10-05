@@ -3,18 +3,21 @@
 import { type ContributionDayParams, contributionDay } from "@domain/entities/contribution-day";
 import type { ContributionDay } from "@domain/entities/types";
 import { isFailure } from "@domain/failures/failure";
+import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
 import { DEFAULT_PALETTE_KEY, PALETTES } from "@domain/value-objects/palette";
+import { parseUsername, type Username } from "@domain/value-objects/username";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ClassName, ElementId, Selector } from "./dom-contract";
 import {
 	getActiveExportTab,
 	getActivePalette,
-	renderCustomize,
+	renderCustomizer,
 	renderExportPreview,
-	renderWidget,
+	renderHomeScreenWidget,
 	setHeroError,
 	updateHeroStats,
+	updateHomeScreenWidgetStats,
 	updateYearRange,
 } from "./render";
 import { setDays, setUsername } from "./state";
@@ -25,6 +28,12 @@ vi.mock("../components/core/telemetry/usage-event", async (importOriginal) => ({
 	...(await importOriginal<typeof import("../components/core/telemetry/usage-event")>()),
 	recordUsageEvent,
 }));
+
+const usernameOf = (raw: string): Username => {
+	const parsed = parseUsername(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not a Username: ${raw}`);
+	return parsed;
+};
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const $ = (selector: string) => document.querySelector(selector) as HTMLElement;
@@ -41,7 +50,7 @@ beforeEach(() => {
 	document.body.innerHTML = "";
 	recordUsageEvent.mockClear();
 	setDays(days);
-	setUsername("torvalds");
+	setUsername(usernameOf("torvalds"));
 });
 
 afterEach(() => {
@@ -82,6 +91,36 @@ describe("updateHeroStats", () => {
 
 		expect($(Selector.BarTag).innerHTML).toBe(`<span class="mono">1,234</span> contributions`);
 		expect($(`.${ClassName.LegendStats} .${ClassName.Separator}`).getAttribute("aria-hidden")).toBe("true");
+	});
+});
+
+describe("updateHomeScreenWidgetStats", () => {
+	const WIDGET_DOM = `<span class="${ClassName.HomeScreenWidgetStreak}"></span><span class="${ClassName.HomeScreenWidgetStreak}"></span><span id="${ElementId.HomeScreenWidgetTotal}"></span>`;
+	const streaks = () =>
+		[...document.querySelectorAll(Selector.HomeScreenWidgetStreaks)].map((node) => node.textContent);
+
+	it("writes the streak the hero prints into both widgets, and the total into the medium one", () => {
+		document.body.innerHTML = WIDGET_DOM;
+		updateHomeScreenWidgetStats({ totalContributions: 1234, currentStreak: 5, longestStreak: 9 });
+
+		expect(streaks()).toEqual(["5", "5"]);
+		expect(byId(ElementId.HomeScreenWidgetTotal).textContent).toBe("1,234 contributions this year");
+	});
+
+	it("says unknown for a figure it was not given, never a 0 and never a number made up for the mock-up", () => {
+		document.body.innerHTML = WIDGET_DOM;
+		updateHomeScreenWidgetStats({ totalContributions: null, currentStreak: null, longestStreak: null });
+
+		expect(streaks()).toEqual(["unknown", "unknown"]);
+		expect(byId(ElementId.HomeScreenWidgetTotal).textContent).toBe("contributions unknown");
+	});
+
+	it("skips every node the page does not carry rather than throwing", () => {
+		document.body.innerHTML = "";
+
+		expect(() =>
+			updateHomeScreenWidgetStats({ totalContributions: 1, currentStreak: 1, longestStreak: 1 }),
+		).not.toThrow();
 	});
 });
 
@@ -232,7 +271,7 @@ describe("the copy button", () => {
 	});
 });
 
-const CUSTOMIZE_DOM = `
+const CUSTOMIZER_DOM = `
 	<div id="${ElementId.PaletteList}"><button class="${ClassName.PaletteRow} ${ClassName.Active}" data-key="nord"></button></div>
 	<div id="${ElementId.ShapeList}"><button class="${ClassName.ShapeButton} ${ClassName.Active}" data-key="square"></button></div>
 	<div id="${ElementId.CustomGrid}"></div>
@@ -244,30 +283,30 @@ const CUSTOMIZE_DOM = `
 describe("getActiveShape", () => {
 	it("falls back rather than trusting a data-key naming no Cell Shape", () => {
 		document.body.innerHTML = `<div id="${ElementId.ShapeList}"><button class="${ClassName.ShapeButton} ${ClassName.Active}" data-key="hexagram"></button></div><span id="${ElementId.CustomShapeLabel}"></span>`;
-		renderCustomize();
+		renderCustomizer();
 
 		expect(byId(ElementId.CustomShapeLabel).textContent).toBe(DEFAULT_CELL_SHAPE);
 	});
 
 	it("falls back when nothing is marked active at all", () => {
 		document.body.innerHTML = `<span id="${ElementId.CustomShapeLabel}"></span>`;
-		renderCustomize();
+		renderCustomizer();
 
 		expect(byId(ElementId.CustomShapeLabel).textContent).toBe(DEFAULT_CELL_SHAPE);
 	});
 });
 
-describe("renderCustomize over a full customize panel", () => {
+describe("renderCustomizer over a full Customizer panel", () => {
 	it("labels a Palette the markup does not define with the one it fell back to", () => {
 		document.body.innerHTML = `<div id="${ElementId.PaletteList}"><button class="${ClassName.PaletteRow} ${ClassName.Active}" data-key="sepia"></button></div><span id="${ElementId.CustomPaletteLabel}"></span>`;
 
-		expect(() => renderCustomize()).not.toThrow();
+		expect(() => renderCustomizer()).not.toThrow();
 		expect(byId(ElementId.CustomPaletteLabel).textContent).toBe(DEFAULT_PALETTE_KEY);
 	});
 
 	it("names the Palette and the Cell Shape the reader picked", () => {
-		document.body.innerHTML = CUSTOMIZE_DOM;
-		renderCustomize();
+		document.body.innerHTML = CUSTOMIZER_DOM;
+		renderCustomizer();
 
 		expect(byId(ElementId.CustomPaletteLabel).textContent).toBe("nord");
 		expect(byId(ElementId.CustomShapeLabel).textContent).toBe("square");
@@ -276,8 +315,8 @@ describe("renderCustomize over a full customize panel", () => {
 	});
 
 	it("paints the legend from the Palette, and repeats the first colour past its end", () => {
-		document.body.innerHTML = `${CUSTOMIZE_DOM}<div class="${ClassName.Legend}">${`<span class="${ClassName.LegendSquare}"></span>`.repeat(6)}</div>`;
-		renderCustomize();
+		document.body.innerHTML = `${CUSTOMIZER_DOM}<div class="${ClassName.Legend}">${`<span class="${ClassName.LegendSquare}"></span>`.repeat(6)}</div>`;
+		renderCustomizer();
 
 		const squares = document.querySelectorAll<HTMLElement>(Selector.LegendSquares);
 		const colours = PALETTES.nord.colors;
@@ -290,32 +329,32 @@ describe("renderCustomize over a full customize panel", () => {
 	it("skips every node the page does not carry rather than throwing", () => {
 		document.body.innerHTML = "";
 
-		expect(() => renderCustomize()).not.toThrow();
+		expect(() => renderCustomizer()).not.toThrow();
 	});
 });
 
-describe("renderWidget", () => {
+describe("renderHomeScreenWidget", () => {
 	it("paints the phone preview from the active Palette and names the viewer", () => {
-		document.body.innerHTML = `${CUSTOMIZE_DOM}<div id="${ElementId.PhoneScreen}"></div><div id="${ElementId.WidgetMiniGrid}"></div><span id="${ElementId.WidgetUsername}"></span>`;
-		renderWidget();
+		document.body.innerHTML = `${CUSTOMIZER_DOM}<div id="${ElementId.PhoneScreen}"></div><div id="${ElementId.HomeScreenWidgetMiniGrid}"></div><span id="${ElementId.HomeScreenWidgetUsername}"></span>`;
+		renderHomeScreenWidget();
 
 		expect(byId(ElementId.PhoneScreen).style.getPropertyValue("--wp-peak")).toBe(PALETTES.nord.colors[4].hex);
-		expect(byId(ElementId.WidgetMiniGrid).innerHTML).toContain("<svg");
-		expect(byId(ElementId.WidgetUsername).textContent).toBe("torvalds");
+		expect(byId(ElementId.HomeScreenWidgetMiniGrid).innerHTML).toContain("<svg");
+		expect(byId(ElementId.HomeScreenWidgetUsername).textContent).toBe("torvalds");
 	});
 
 	it("leaves the username slot alone when there is no username to put in it", () => {
-		setUsername("");
-		document.body.innerHTML = `<span id="${ElementId.WidgetUsername}">previous</span>`;
-		renderWidget();
+		setUsername(null);
+		document.body.innerHTML = `<span id="${ElementId.HomeScreenWidgetUsername}">previous</span>`;
+		renderHomeScreenWidget();
 
-		expect(byId(ElementId.WidgetUsername).textContent).toBe("previous");
+		expect(byId(ElementId.HomeScreenWidgetUsername).textContent).toBe("previous");
 	});
 
 	it("skips every node the page does not carry rather than throwing", () => {
 		document.body.innerHTML = "";
 
-		expect(() => renderWidget()).not.toThrow();
+		expect(() => renderHomeScreenWidget()).not.toThrow();
 	});
 });
 
@@ -380,5 +419,122 @@ describe("renderExportPreview on the markdown tab", () => {
 		expect(code).toContain("torvalds");
 		expect(code).toContain("nord");
 		expect(code).toContain("square");
+	});
+});
+
+describe("renderExportPreview on the SVG tab", () => {
+	const SVG_DOM = `
+		<div id="${ElementId.ExportTabs}"><button data-key="svg" aria-selected="true"></button></div>
+		<div id="${ElementId.PaletteList}"><button class="${ClassName.PaletteRow} ${ClassName.Active}" data-key="nord"></button></div>
+		<div id="${ElementId.ShapeList}"><button class="${ClassName.ShapeButton} ${ClassName.Active}" data-key="hex"></button></div>
+		<div id="${ElementId.ExportPreview}"></div>
+	`;
+
+	const copiedAfterClick = async (): Promise<string> => {
+		const copied: string[] = [];
+		vi.stubGlobal("navigator", {
+			clipboard: {
+				writeText: async (text: string) => {
+					copied.push(text);
+				},
+			},
+		});
+		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
+		await vi.waitFor(() => expect(copied).toHaveLength(1));
+		return copied[0];
+	};
+
+	const shownLines = (): string[] =>
+		[...document.querySelectorAll(`${Selector.ExportCodePreview} .code-line`)].map((line) => line.textContent ?? "");
+
+	it("opens and closes with the markup its copy button copies, and counts the Cells between", async () => {
+		setDays(buildGridFromApi({ days: [], year: 2028 }));
+		document.body.innerHTML = SVG_DOM;
+		renderExportPreview();
+
+		const copied = await copiedAfterClick();
+		const lines = shownLines();
+		const at = lines.findIndex((line) => line.includes("more cells"));
+		const head = lines.slice(0, at).join("");
+		const tail = lines.slice(at + 1).join("");
+
+		expect(copied.startsWith(head)).toBe(true);
+		expect(copied.endsWith(tail)).toBe(true);
+		expect(head).toContain('viewBox="0 0 672 108"');
+		expect(lines[at]).toBe(`<!-- … ${54 * 7 - 3} more cells … -->`);
+	});
+
+	it("draws the Palette and the Cell Shape the reader picked", () => {
+		document.body.innerHTML = SVG_DOM;
+		renderExportPreview();
+
+		const code = $(Selector.ExportCodePreview).textContent ?? "";
+
+		expect(code).toContain("<polygon");
+		expect(code).toContain(PALETTES.nord.colors[2].hex);
+	});
+
+	it("names the file after the viewer", () => {
+		document.body.innerHTML = SVG_DOM;
+		renderExportPreview();
+
+		expect($(`#${ElementId.ExportPreview} .${ClassName.PreviewTag}`).textContent).toBe("torvalds.svg");
+	});
+});
+
+describe("the tabs' details", () => {
+	const TABS_DOM = `
+		<div id="${ElementId.ExportTabs}">
+			<button data-key="png" aria-selected="true"><span class="${ClassName.ExportTabDetail}">stale</span></button>
+			<button data-key="svg" aria-selected="false"><span class="${ClassName.ExportTabDetail}">stale</span></button>
+			<button data-key="md" aria-selected="false"><span class="${ClassName.ExportTabDetail}">stale</span></button>
+		</div>
+		<div id="${ElementId.ExportPreview}"></div>
+	`;
+	const details = (): string[] =>
+		[...document.querySelectorAll(Selector.ExportTabKeys)].map(
+			(tab) => tab.querySelector(Selector.ExportTabDetail)?.textContent ?? "",
+		);
+
+	it("are written from the days on screen", () => {
+		setDays(buildGridFromApi({ days: [], year: 2024 }));
+		document.body.innerHTML = TABS_DOM;
+		renderExportPreview();
+
+		expect(details()).toEqual(["660×108 · transparent", "Vector · 53×7 grid", "Live embed, re-renders on view"]);
+	});
+
+	it("are written again when a fetch brings a year of another length", () => {
+		setDays(buildGridFromApi({ days: [], year: 2024 }));
+		document.body.innerHTML = TABS_DOM;
+		renderExportPreview();
+		setDays(buildGridFromApi({ days: [], year: 2028 }));
+		renderExportPreview();
+
+		expect(details()).toEqual(["672×108 · transparent", "Vector · 54×7 grid", "Live embed, re-renders on view"]);
+	});
+
+	it("follow the days even when the Customizer redraws everything", () => {
+		setDays(buildGridFromApi({ days: [], year: 2028 }));
+		document.body.innerHTML = `${CUSTOMIZER_DOM}${TABS_DOM}`;
+		renderCustomizer();
+
+		expect(details()[0]).toBe("672×108 · transparent");
+	});
+
+	it("are written when there is no Username to draw a preview for", () => {
+		setUsername(null);
+		setDays(buildGridFromApi({ days: [], year: 2028 }));
+		document.body.innerHTML = TABS_DOM;
+		renderExportPreview();
+
+		expect(details()[0]).toBe("672×108 · transparent");
+	});
+
+	it("skip a tab whose key names no Export Format and one that carries no detail", () => {
+		document.body.innerHTML = `<div id="${ElementId.ExportTabs}"><button data-key="gif"><span class="${ClassName.ExportTabDetail}">kept</span></button><button data-key="png"></button></div>`;
+
+		expect(() => renderExportPreview()).not.toThrow();
+		expect(details()[0]).toBe("kept");
 	});
 });

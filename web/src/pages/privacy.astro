@@ -1,12 +1,12 @@
 ---
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
-import type { Metadata } from "@ui/components/core/seo/types";
+import { type Metadata, RobotsDirective } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
 
 const TITLE = "Privacy Policy: ContribKit";
-const EFFECTIVE_DATE = "2026-10-04";
+const EFFECTIVE_DATE = "2026-10-05";
 
-const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
+const metadata: Metadata = { title: TITLE, robots: RobotsDirective.NoIndexNoFollow };
 ---
 
 <BaseLayout metadata={metadata}>
@@ -60,12 +60,12 @@ const metadata: Metadata = { title: TITLE, robots: "noindex, nofollow" };
         <h2>Your choices</h2>
         <p>You can accept or reject analytics cookies at any time using the cookie banner or the <button type="button" data-cc="show-preferencesModal" class="inline-prefs-btn">cookie preferences</button> link in the footer. Rejecting analytics means neither Google Analytics nor Better Stack will load.</p>
 
-        <h2>In-app purchases</h2>
+        <h2>Tips</h2>
         <p>Tips are optional. Payments are processed entirely by Apple (App Store) or Google (Play Store); we never receive or store your payment details.</p>
-        <p>To deliver and restore purchases, the app uses RevenueCat (RevenueCat, Inc.) as its purchase-infrastructure provider. RevenueCat assigns an anonymous, randomly generated app user ID and receives device and transaction information (device model, OS version, IP address, and purchase history) solely to provide this functionality. It is not used for advertising or cross-app tracking. See <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat's Privacy Policy</a>. You can request deletion of your RevenueCat data by contacting us.</p>
+        <p>To take a Tip and record that it was given, the app uses RevenueCat (RevenueCat, Inc.) as its payments infrastructure provider. RevenueCat assigns an anonymous, randomly generated app user ID and receives device and transaction information (device model, OS version, IP address, and the Tips you have given) solely to provide this functionality. It is not used for advertising or cross-app tracking. See <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat's Privacy Policy</a>. You can request deletion of your RevenueCat data by contacting us.</p>
 
         <h2>Data retention</h2>
-        <p>App preferences remain on your device until you clear the app's data or uninstall it. Google Analytics data is retained for 14 months, after which it is automatically deleted. Better Stack telemetry is retained for 30 days. Sentry diagnostic reports and PostHog usage events are retained according to each provider's project settings and are deleted on request. RevenueCat retains purchase records for as long as needed to provide and restore purchases. We retain no other personal data.</p>
+        <p>App preferences remain on your device until you clear the app's data or uninstall it. Google Analytics data is retained for 14 months, after which it is automatically deleted. Better Stack telemetry is retained for 30 days. Sentry diagnostic reports and PostHog usage events are retained according to each provider's project settings and are deleted on request. RevenueCat retains its records of Tips for as long as needed to provide this functionality. We retain no other personal data.</p>
 
         <h2>Your rights</h2>
         <p>If you are in the European Economic Area or the United Kingdom, you have the right to access, rectify, erase, restrict, or object to the processing of your personal data, and to data portability. Because the app keeps your preferences only on your device, you can exercise most of these directly by clearing the app's data or uninstalling it. For website analytics, diagnostic reports, usage events or RevenueCat data, email <a href="mailto:contact@contribkit.app">contact@contribkit.app</a>.</p>

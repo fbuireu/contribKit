@@ -1,8 +1,9 @@
 ---
-import { ElementId } from "../../utils/dom-contract";
-import "./widget.css";
+import { ClassName, ElementId } from "../../utils/dom-contract";
+import "./home-screen-widget.css";
+import type { ContributionStats } from "@domain/services/contribution-stats";
 import { PALETTES } from "@domain/value-objects/palette";
-import { DEFAULT_USERNAME } from "@domain/value-objects/username";
+import { formatHomeScreenWidgetTotal, formatStreak } from "../grid/contribution";
 import { generateMiniGrid } from "../grid/mini-grid";
 import Clock from "../icons/Clock.astro";
 import Flame from "../icons/Flame.astro";
@@ -10,12 +11,19 @@ import Grid from "../icons/Grid.astro";
 import Palette from "../icons/Palette.astro";
 import Phone from "../icons/Phone.astro";
 
+interface Props {
+	stats: ContributionStats;
+	username: string;
+}
+const { stats, username } = Astro.props;
+
 const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
+const streak = formatStreak(stats.currentStreak);
 ---
 
 <section class="section" id={ElementId.HomeScreenWidgetSection} aria-label="Home screen widget">
   <div class="wrap">
-    <div class="eyebrow" aria-hidden="true"><span class="mono">widget</span></div>
+    <div class="eyebrow" aria-hidden="true"><span class="mono">home screen widget</span></div>
     <h2 class="section-title">
       Your streak.<br />
       <span class="dim">Always on your home screen.</span>
@@ -31,21 +39,21 @@ const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
             <div class="home-widgets">
               <div class="w-card w-medium" role="img" aria-label="Medium home screen widget showing contribution grid">
                 <div class="w-head">
-                  <span class="mono w-name" id={ElementId.WidgetUsername}>{DEFAULT_USERNAME}</span>
+                  <span class="mono w-name" id={ElementId.HomeScreenWidgetUsername}>{username}</span>
                   <span class="w-streak">
                     <Flame />
-                    <span class="mono">42</span>
+                    <span class:list={["mono", ClassName.HomeScreenWidgetStreak]}>{streak}</span>
                   </span>
                 </div>
-                <div class="w-grid" id={ElementId.WidgetMiniGrid}>
+                <div class="w-grid" id={ElementId.HomeScreenWidgetMiniGrid}>
                   <Fragment set:html={miniGrid} />
                 </div>
-                <div class="w-foot mono">1,234 contributions this year</div>
+                <div class="w-foot mono" id={ElementId.HomeScreenWidgetTotal}>{formatHomeScreenWidgetTotal(stats.totalContributions)}</div>
               </div>
 
               <div class="home-row">
                 <div class="w-card w-small" role="img" aria-label="Small home screen widget showing streak count">
-                  <div class="ws-count mono">42</div>
+                  <div class:list={["ws-count", "mono", ClassName.HomeScreenWidgetStreak]}>{streak}</div>
                   <div class="ws-label mono">day streak</div>
                 </div>
                 <div class="app-icons" aria-hidden="true">
@@ -67,8 +75,8 @@ const miniGrid = generateMiniGrid({ palette: PALETTES.github.colors });
             <Phone />
           </div>
           <div class="feat-text">
-            <h3 class="feat-title">iOS &amp; Android</h3>
-            <p class="feat-body">Native home screen widget for both platforms. Follows each OS's home screen widget conventions and size grid.</p>
+            <h3 class="feat-title">Android</h3>
+            <p class="feat-body">A native home screen widget that follows Android's home screen widget conventions and size grid.</p>
           </div>
         </div>
         <div class="feat">

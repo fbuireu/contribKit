@@ -1,4 +1,6 @@
+import { FailureKind } from "@domain/failures/failure";
 import { describe, expect, it } from "vitest";
+import { CalendarFailureReason } from "../components/core/telemetry/usage-event";
 import { contributionError, contributionFailureReason } from "./contribution-errors";
 
 const MENTIONS_REACHING_GITHUB = /reach github/i;
@@ -13,6 +15,9 @@ describe("contributionError", () => {
 		expect(contributionError({ status: 400, kind: "InvalidInput", field: "username" })).toBe("invalid username");
 		expect(contributionError({ status: 400, kind: "InvalidInput", field: "year" })).toBe("invalid year");
 		expect(contributionError({ status: 502, kind: "Network" })).toBe("could not reach github, try again in a moment");
+		expect(contributionError({ status: 502, kind: "Upstream" })).toBe(
+			"github could not serve the calendar, try again in a moment",
+		);
 		expect(contributionError({ status: 502, kind: "Parse" })).toBe(
 			"github answered, but the contribution calendar could not be read",
 		);
@@ -21,6 +26,7 @@ describe("contributionError", () => {
 
 	it("says it could not reach GitHub only for a network failure", () => {
 		expect(contributionError({ status: 502, kind: "Parse" })).not.toMatch(MENTIONS_REACHING_GITHUB);
+		expect(contributionError({ status: 502, kind: "Upstream" })).not.toMatch(MENTIONS_REACHING_GITHUB);
 		expect(contributionError({ status: 502 })).not.toMatch(MENTIONS_REACHING_GITHUB);
 		expect(contributionError({ status: 400, kind: "InvalidInput", field: "year" })).not.toMatch(MENTIONS_USERNAME);
 	});
@@ -58,15 +64,55 @@ describe("contributionError", () => {
 });
 
 describe("contributionFailureReason", () => {
-	it("names each status the sentence table knows by a closed reason", () => {
-		expect(contributionFailureReason(400)).toBe("invalid_username");
-		expect(contributionFailureReason(404)).toBe("not_found");
-		expect(contributionFailureReason(429)).toBe("rate_limited");
-		expect(contributionFailureReason(502)).toBe("upstream");
+	it("names each kind by a closed reason", () => {
+		expect(contributionFailureReason({ status: 404, kind: "NotFound" })).toBe("not_found");
+		expect(contributionFailureReason({ status: 400, kind: "InvalidInput", field: "username" })).toBe(
+			"invalid_username",
+		);
+		expect(contributionFailureReason({ status: 429, kind: "RateLimited" })).toBe("rate_limited");
+		expect(contributionFailureReason({ status: 502, kind: "Network" })).toBe("upstream");
+		expect(contributionFailureReason({ status: 502, kind: "Upstream" })).toBe("upstream");
+		expect(contributionFailureReason({ status: 502, kind: "Parse" })).toBe("upstream");
+		expect(contributionFailureReason({ status: 502, kind: "Delivery" })).toBe("unknown");
+	});
+
+	it("tells a rejected Year from a rejected Username", () => {
+		expect(contributionFailureReason({ status: 400, kind: "InvalidInput", field: "year" })).toBe("invalid_year");
+		expect(contributionFailureReason({ status: 400, kind: "InvalidInput", field: "username" })).toBe(
+			"invalid_username",
+		);
+		expect(contributionFailureReason({ status: 400, kind: "InvalidInput" })).toBe("invalid_username");
+	});
+
+	it("reads the field only where a kind carries one", () => {
+		expect(contributionFailureReason({ status: 404, kind: "NotFound", field: "year" })).toBe("not_found");
+		expect(contributionFailureReason({ status: 400, field: "year" })).toBe("invalid_year");
+	});
+
+	it("reads an answer that names no kind by its status, where the status names one", () => {
+		expect(contributionFailureReason({ status: 400 })).toBe("invalid_username");
+		expect(contributionFailureReason({ status: 404 })).toBe("not_found");
+		expect(contributionFailureReason({ status: 429 })).toBe("rate_limited");
+		expect(contributionFailureReason({ status: 502 })).toBe("upstream");
+	});
+
+	it("treats a kind it does not know as no kind at all", () => {
+		expect(contributionFailureReason({ status: 404, kind: "Martian" })).toBe("not_found");
+		expect(contributionFailureReason({ status: 418, kind: "Martian" })).toBe("unknown");
+		expect(contributionFailureReason({ status: 502, kind: null })).toBe("upstream");
 	});
 
 	it("answers unknown for any other status, so no status code leaks as a free value", () => {
-		expect(contributionFailureReason(418)).toBe("unknown");
-		expect(contributionFailureReason(500)).toBe("unknown");
+		expect(contributionFailureReason({ status: 418 })).toBe("unknown");
+		expect(contributionFailureReason({ status: 500 })).toBe("unknown");
+	});
+
+	it("never answers anything outside the closed set, whichever kind arrives", () => {
+		const closed: readonly string[] = Object.values(CalendarFailureReason);
+
+		for (const kind of Object.values(FailureKind)) {
+			expect(closed, kind).toContain(contributionFailureReason({ status: 400, kind, field: "year" }));
+			expect(closed, kind).toContain(contributionFailureReason({ status: 500, kind }));
+		}
 	});
 });

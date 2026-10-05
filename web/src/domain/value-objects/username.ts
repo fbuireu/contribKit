@@ -4,7 +4,7 @@ import { FailureField, type InvalidInputFailure, invalidInput } from "../failure
 const USERNAME_REGEX = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 export const MAX_USERNAME_LENGTH = 39;
 export const SUGGESTED_USERNAMES: readonly string[] = suggestedUsernames;
-export const DEFAULT_USERNAME = SUGGESTED_USERNAMES[0];
+export const FIRST_SUGGESTED_USERNAME = SUGGESTED_USERNAMES[0];
 export interface Username {
 	readonly _tag: "Username";
 	readonly value: string;

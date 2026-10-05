@@ -30,6 +30,7 @@ export type CalendarRequestSource = (typeof CalendarRequestSource)[keyof typeof 
 
 export const CalendarFailureReason = {
 	InvalidUsername: "invalid_username",
+	InvalidYear: "invalid_year",
 	NotFound: "not_found",
 	RateLimited: "rate_limited",
 	Upstream: "upstream",

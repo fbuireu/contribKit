@@ -15,15 +15,15 @@ import { PALETTES } from "@domain/value-objects/palette";
 import { logger } from "@infrastructure/logging/logger";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import type { Metadata } from "@ui/components/core/seo/types";
-import Customize from "@ui/components/customize/Customize.astro";
+import Customizer from "@ui/components/customizer/Customizer.astro";
 import Export from "@ui/components/export/Export.astro";
 import CellTooltip from "@ui/components/grid/CellTooltip.astro";
 import { generateData } from "@ui/components/grid/calendar";
 import { EXPORT_GRID_GEOMETRY, HERO_GRID_GEOMETRY } from "@ui/components/grid/grid-geometry";
 import { renderCalendarString } from "@ui/components/grid/render-svg";
 import Hero from "@ui/components/hero/Hero.astro";
+import HomeScreenWidget from "@ui/components/home-screen-widget/HomeScreenWidget.astro";
 import HowItWorks from "@ui/components/how-it-works/HowItWorks.astro";
-import Widget from "@ui/components/widget/Widget.astro";
 import { contributionError } from "@ui/utils/contribution-errors";
 import { USERNAME_COOKIE } from "@ui/utils/cookie";
 import { loadInitial } from "./_contributions";
@@ -57,7 +57,7 @@ const SCHEMA = [
 		name: "ContribKit",
 		description: DESCRIPTION,
 		applicationCategory: "DeveloperApplication",
-		operatingSystem: "iOS, Android, Web",
+		operatingSystem: "Android, Web",
 		offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 		url: SITE_URL,
 		image: OG_IMAGE,
@@ -78,13 +78,13 @@ if (!initial.ok) {
 		logger,
 		username,
 		kind: initial.kind,
-		reason: initial.message,
+		reason: initial.reason,
 		status: initial.status,
 		endpoint: ContributionsEndpoint.Page,
 	});
 }
 
-let days: ContributionDay[];
+let days: readonly ContributionDay[];
 let heroError: string | null = null;
 const source = daySourceFor({ loaded: initial.ok, isExplicit });
 switch (source) {
@@ -95,8 +95,9 @@ switch (source) {
 		days = buildGridFromApi({ days: [], year: initial.year });
 		heroError = initial.ok ? null : contributionError({ status: initial.status, kind: initial.kind });
 		break;
-	default:
+	case DaySource.Placeholder:
 		days = generateData();
+		break;
 }
 
 const stats = initialStatsFor({
@@ -104,7 +105,7 @@ const stats = initialStatsFor({
 	days,
 	year: initial.year,
 	today: toIsoDate(now),
-	scrapedTotal: initial.ok ? initial.data.totalContributions : null,
+	scrapedTotalContributions: initial.ok ? initial.data.totalContributions : null,
 });
 
 const heroSVG = renderCalendarString({
@@ -130,9 +131,9 @@ Astro.response.headers.set("Cache-Control", cacheControlFor({ loaded: initial.ok
 <BaseLayout metadata={metadata}>
   <Hero heroSVG={heroSVG} stats={stats} palette={CLASSIC} username={username} thisYear={thisYear} year={initial.year} error={heroError} />
   <HowItWorks />
-  <Customize />
-  <Export exportSvg={exportSvg} />
-  <Widget />
+  <Customizer />
+  <Export exportSvg={exportSvg} days={days} />
+  <HomeScreenWidget stats={stats} username={username} />
   <CellTooltip />
 </BaseLayout>
 

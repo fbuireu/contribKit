@@ -10,12 +10,15 @@ final class AssetSuggestedUsernameRepository
 
   @override
   Future<List<String>> loadAll() async {
+    final List<String> names;
     try {
       final raw = await rootBundle.loadString(_assetKey);
       final data = jsonDecode(raw) as List<dynamic>;
-      return List<String>.from(data);
+      names = List<String>.from(data);
     } catch (e) {
       throw const AssetFailure(asset: _assetKey);
     }
+    if (names.isEmpty) throw const AssetFailure(asset: _assetKey);
+    return names;
   }
 }

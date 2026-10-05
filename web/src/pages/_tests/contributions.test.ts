@@ -7,7 +7,13 @@ const HTML = `<td class="ContributionCalendar-day" data-date="2024-01-01" data-l
 const call = (query: string): Promise<Response> =>
 	GET({ url: new URL(`https://contribkit.app/api/contributions${query}`) } as never) as Promise<Response>;
 
-afterEach(() => vi.unstubAllGlobals());
+const loggedLines = (spy: { mock: { calls: unknown[][] } }): Record<string, unknown>[] =>
+	spy.mock.calls.map(([line]) => JSON.parse(String(line)) as Record<string, unknown>);
+
+afterEach(() => {
+	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
+});
 
 describe("GET /api/contributions", () => {
 	it("400 when user is missing", async () => {
@@ -46,7 +52,7 @@ describe("GET /api/contributions", () => {
 	it("names the kind of every failure GitHub's answer causes, beside the message it already carried", async () => {
 		const answers: [Response, Record<string, string>][] = [
 			[new Response("", { status: 404 }), { error: "User not found", kind: "NotFound" }],
-			[new Response("", { status: 503 }), { error: "GitHub returned 503", kind: "Network" }],
+			[new Response("", { status: 503 }), { error: "GitHub returned 503", kind: "Upstream" }],
 			[new Response("<p>no calendar</p>", { status: 200 }), { error: "Could not parse contributions", kind: "Parse" }],
 			[new Response("", { status: 429 }), { error: "GitHub is rate-limiting this Worker", kind: "RateLimited" }],
 		];
@@ -59,6 +65,46 @@ describe("GET /api/contributions", () => {
 
 			expect(await (await call("?user=torvalds")).json()).toEqual(body);
 		}
+	});
+
+	it("keeps the platform's own wording out of the body and in the log line when the request itself fails", async () => {
+		const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => {
+				throw new TypeError("fetch failed: socket hang up");
+			}),
+		);
+
+		const res = await call("?user=torvalds");
+
+		expect(res.status).toBe(502);
+		expect(await res.json()).toEqual({ error: "Could not reach GitHub", kind: "Network" });
+		expect(loggedLines(errors)).toEqual([
+			expect.objectContaining({
+				level: "error",
+				message: "GitHub contributions fetch failed",
+				kind: "Network",
+				reason: "fetch failed: socket hang up",
+				status: 502,
+				endpoint: "api",
+				username: "torvalds",
+			}),
+		]);
+	});
+
+	it("logs an answer GitHub refused under its own kind, with the status in the reason", async () => {
+		const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("", { status: 503 })),
+		);
+
+		await call("?user=torvalds");
+
+		expect(loggedLines(errors)).toEqual([
+			expect.objectContaining({ kind: "Upstream", reason: "GitHub returned 503", status: 502, endpoint: "api" }),
+		]);
 	});
 
 	it("400 on an invalid username", async () => {

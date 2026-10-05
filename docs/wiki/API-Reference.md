@@ -103,7 +103,7 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
 
 Errors return `{ "error": "<message>", "kind": "<kind>" }` with an appropriate status, because this endpoint is
 consumed by code and "something was wrong" is not enough to act on. `kind` names the failure, one of `InvalidInput`,
-`NotFound`, `RateLimited`, `Network` and `Parse`, so a client can word it without parsing `error`. A **400** carries
+`NotFound`, `RateLimited`, `Network`, `Upstream` and `Parse`, so a client can word it without parsing `error`. A **400** carries
 one extra key, `field`, naming the parameter that was rejected (`username` or `year`). Two answers carry no `kind`,
 because no failure of the lookup produced them: this endpoint's own per-IP `429` and the `500` an unexpected error
 gets.
@@ -113,7 +113,7 @@ gets.
 | `400` | `InvalidInput` | Missing `user`, or invalid username/year |
 | `404` | `NotFound` | GitHub has no such user (`"User not found"`) |
 | `429` | `RateLimited`, or none | **Two different things, and `kind` is what tells them apart.** No `kind` (`"Too many requests"`) is this endpoint's own per-IP limit, refused by the middleware before the route runs. `RateLimited` (`"GitHub is rate-limiting this Worker"`) is upstream. Both carry `Retry-After` when a wait is known (a fixed `60` for ours, GitHub's own figure for theirs), and neither carries one when it is not |
-| `502` | `Network` or `Parse` | `Network`: GitHub unreachable or answering a non-OK status. `Parse`: GitHub answered, and the page held no Contribution Day |
+| `502` | `Network`, `Upstream` or `Parse` | `Network`: GitHub unreachable or too slow (`"Could not reach GitHub"`). `Upstream`: GitHub answered with a status other than 200, 404 and 429 (`"GitHub returned 503"`). `Parse`: GitHub answered, and the page held no Contribution Day |
 
 ---
 

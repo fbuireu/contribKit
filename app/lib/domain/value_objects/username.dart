@@ -17,7 +17,7 @@ final class Username {
       throw ArgumentError.value(
         raw,
         'username',
-        'may only contain alphanumeric characters or single hyphens, '
+        'may only contain letters, digits and hyphens, '
             'and cannot begin or end with a hyphen',
       );
     }

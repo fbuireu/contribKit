@@ -9,16 +9,16 @@ interface ContributionDayValues {
 	readonly count: number | null;
 }
 
-const byDate = (days: readonly ContributionDay[]): Map<IsoDate, ContributionDayValues> =>
+const byDate = (days: readonly ContributionDay[]): ReadonlyMap<IsoDate, ContributionDayValues> =>
 	new Map(days.map((day) => [day.date, { level: day.level, count: day.count }]));
 
 interface WalkFromParams {
 	readonly start: IsoDate;
-	readonly map: Map<IsoDate, ContributionDayValues>;
+	readonly map: ReadonlyMap<IsoDate, ContributionDayValues>;
 	readonly length: number;
 }
 
-const walkFrom = ({ start, map, length }: WalkFromParams): ContributionDay[] => {
+const walkFrom = ({ start, map, length }: WalkFromParams): readonly ContributionDay[] => {
 	const days: ContributionDay[] = [];
 	for (let dayOffset = 0; dayOffset < length; dayOffset++) {
 		const date = addDays({ iso: start, days: dayOffset });
@@ -33,7 +33,7 @@ export interface BuildGridFromApiParams {
 	year: number;
 }
 
-export const buildGridFromApi = ({ days, year }: BuildGridFromApiParams): ContributionDay[] => {
+export const buildGridFromApi = ({ days, year }: BuildGridFromApiParams): readonly ContributionDay[] => {
 	const yearStart = `${year}-01-01` as IsoDate;
 	return walkFrom({
 		start: addDays({ iso: yearStart, days: -leadingDaysFor(year) }),
@@ -42,7 +42,7 @@ export const buildGridFromApi = ({ days, year }: BuildGridFromApiParams): Contri
 	});
 };
 
-export const buildRollingGrid = (days: readonly ContributionDay[]): ContributionDay[] => {
+export const buildRollingGrid = (days: readonly ContributionDay[]): readonly ContributionDay[] => {
 	if (days.length === 0) return [];
 
 	const latest = days.reduce((last, day) => (day.date > last ? day.date : last), days[0].date);

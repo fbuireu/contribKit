@@ -5,6 +5,7 @@ import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/contact_message_repository.dart';
 import 'package:contribkit/domain/value_objects/contact_message.dart';
 import 'package:contribkit/domain/value_objects/embed.dart';
+import 'package:contribkit/infrastructure/http/request_timeout.dart';
 import 'package:contribkit/infrastructure/http/retry_after.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,8 +22,6 @@ final class HttpContactMessageRepository implements ContactMessageRepository {
   final http.Client _httpClient;
   final bool _ownsClient;
   final DateTime Function() _now;
-
-  static const _timeout = Duration(seconds: 20);
 
   void close() {
     if (_ownsClient) _httpClient.close();
@@ -43,12 +42,7 @@ final class HttpContactMessageRepository implements ContactMessageRepository {
               'message': message.body,
             }),
           )
-          .timeout(
-            _timeout,
-            onTimeout: () => throw NetworkFailure(
-              message: 'Request timed out after ${_timeout.inSeconds}s',
-            ),
-          );
+          .timeout(RequestTimeout.duration, onTimeout: RequestTimeout.expired);
     } on IOException catch (e) {
       throw NetworkFailure(message: e.toString());
     } on http.ClientException catch (e) {

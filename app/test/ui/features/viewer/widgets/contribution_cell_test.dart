@@ -152,7 +152,7 @@ void main() {
     ) async {
       await _pumpCell(tester, day: _day(count: null));
 
-      expect(_tooltipOf(tester), '2024-06-15: $unknownTotalPhrase');
+      expect(_tooltipOf(tester), '2024-06-15: $unknownCountPhrase');
       expect(_tooltipOf(tester), isNot(contains('0 contribution')));
     });
   });

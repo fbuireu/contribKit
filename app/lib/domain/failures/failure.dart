@@ -12,6 +12,14 @@ final class NetworkFailure extends Failure {
   String toString() => 'NetworkFailure: $message';
 }
 
+final class UpstreamFailure extends Failure {
+  const UpstreamFailure({required this.message});
+  final String message;
+
+  @override
+  String toString() => 'UpstreamFailure: $message';
+}
+
 final class NotFoundFailure extends Failure {
   const NotFoundFailure({required this.username});
   final Username username;

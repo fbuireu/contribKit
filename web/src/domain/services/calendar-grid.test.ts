@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { type ContributionDayParams, contributionDay } from "../entities/contribution-day";
 import type { ContributionDay } from "../entities/types";
 import { isFailure } from "../failures/failure";
@@ -18,6 +18,13 @@ const iso = (raw: string): IsoDate => {
 	if (isFailure(parsed)) throw new Error(`fixture is not a calendar date: ${raw}`);
 	return parsed;
 };
+
+describe("what the grid builders hand back", () => {
+	it("is readonly data, so a caller cannot change what the domain built", () => {
+		expectTypeOf(buildGridFromApi({ days: [], year: 2024 })).toEqualTypeOf<readonly ContributionDay[]>();
+		expectTypeOf(buildRollingGrid([])).toEqualTypeOf<readonly ContributionDay[]>();
+	});
+});
 
 describe("buildGridFromApi", () => {
 	it("builds 53 weeks of 7 days for a Year that needs 53", () => {

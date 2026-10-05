@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/infrastructure/export/platform_export_delivery.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -120,5 +121,45 @@ void main() {
         expect(delivered, isTrue);
       },
     );
+
+    test('turns a share channel that fails into an ExportFailure, not a '
+        'PlatformException', () async {
+      messenger.setMockMethodCallHandler(_shareChannel, (call) async {
+        throw PlatformException(code: 'share_failed', message: 'no activity');
+      });
+
+      await expectLater(
+        const PlatformExportDelivery().shareFile(
+          bytes: const [1],
+          fileName: 'octocat_2024.png',
+          mimeType: 'image/png',
+        ),
+        throwsA(isA<ExportFailure>()),
+      );
+    });
+
+    test('turns a missing share plugin into an ExportFailure too', () async {
+      messenger.setMockMethodCallHandler(_shareChannel, null);
+
+      await expectLater(
+        const PlatformExportDelivery().shareFile(
+          bytes: const [1],
+          fileName: 'octocat_2024.png',
+          mimeType: 'image/png',
+        ),
+        throwsA(isA<ExportFailure>()),
+      );
+    });
+
+    test('turns a clipboard that fails into an ExportFailure', () async {
+      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        throw PlatformException(code: 'clipboard_error', message: 'denied');
+      });
+
+      await expectLater(
+        const PlatformExportDelivery().copyText('![](https://embed)'),
+        throwsA(isA<ExportFailure>()),
+      );
+    });
   });
 }

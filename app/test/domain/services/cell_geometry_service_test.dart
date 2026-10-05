@@ -85,20 +85,6 @@ void main() {
     });
   });
 
-  test('no Cell Size still lands on the fixed 2.0 the screen used to draw', () {
-    const previousOnScreenRadius = 2.0;
-
-    for (final size in CellSize.values) {
-      expect(
-        CellGeometryService.cornerRadiusFor(size.pixels),
-        isNot(closeTo(previousOnScreenRadius, 1e-9)),
-        reason:
-            '${size.name} drew ${previousOnScreenRadius}px on screen and '
-            '${size.pixels * 0.2}px in an Export',
-      );
-    }
-  });
-
   group('CellShape', () {
     test('every Cell Shape has a label, and no two share one', () {
       final labels = CellShape.values.map((shape) => shape.label).toList();

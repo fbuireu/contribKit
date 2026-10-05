@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { isFailure } from "../failures/failure";
 import { type IsoDate, parseIsoDate } from "../value-objects/iso-date";
-import { addDays, chunkWeeks, DAYS_PER_WEEK, getWeekday, toIsoDate, WEEKS_PER_YEAR, weeksFor } from "./dates";
+import { addDays, chunkWeeks, DAYS_PER_WEEK, getWeekday, ROLLING_WINDOW_WEEKS, toIsoDate, weeksFor } from "./dates";
 
 const iso = (raw: string): IsoDate => {
 	const parsed = parseIsoDate(raw);
@@ -48,12 +48,16 @@ describe("getWeekday", () => {
 });
 
 describe("chunkWeeks", () => {
-	it("splits a full grid into WEEKS_PER_YEAR weeks of DAYS_PER_WEEK", () => {
-		const days = Array.from({ length: WEEKS_PER_YEAR * DAYS_PER_WEEK }, (_, index) => index);
+	it("splits a full grid into ROLLING_WINDOW_WEEKS weeks of DAYS_PER_WEEK", () => {
+		const days = Array.from({ length: ROLLING_WINDOW_WEEKS * DAYS_PER_WEEK }, (_, index) => index);
 		const weeks = chunkWeeks(days);
-		expect(weeks).toHaveLength(WEEKS_PER_YEAR);
+		expect(weeks).toHaveLength(ROLLING_WINDOW_WEEKS);
 		expect(weeks[0]).toEqual([0, 1, 2, 3, 4, 5, 6]);
-		expect(weeks.at(-1)?.at(-1)).toBe(WEEKS_PER_YEAR * DAYS_PER_WEEK - 1);
+		expect(weeks.at(-1)?.at(-1)).toBe(ROLLING_WINDOW_WEEKS * DAYS_PER_WEEK - 1);
+	});
+
+	it("hands back readonly weeks of readonly days", () => {
+		expectTypeOf(chunkWeeks([1, 2, 3])).toEqualTypeOf<readonly (readonly number[])[]>();
 	});
 
 	it("chunks whatever it is given, because the grid decides how many weeks a Year takes", () => {

@@ -13,6 +13,8 @@ abstract final class FailureMessage {
       'GitHub changed its contributions page. Please update the app.',
     AssetFailure() => 'ContribKit could not read its own design tokens. Reinstalling should fix it.',
     NetworkFailure() => 'Could not reach the server. Please try again.',
+    UpstreamFailure() =>
+      'GitHub could not serve the calendar. Please try again.',
     CacheFailure() => 'Could not read saved data. Please try again.',
     DeliveryFailure() => 'Could not send your message. Please try again.',
     ExportFailure() => 'Export failed. Please try again.',

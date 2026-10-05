@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:contribkit/domain/failures/failure.dart';
@@ -185,6 +186,56 @@ void main() {
 
       expect(find.text('Copied!'), findsNothing);
       expect(find.text('Copy MD'), findsOneWidget);
+    });
+
+    testWidgets('stops saying Copied the moment another Export begins', (
+      tester,
+    ) async {
+      final held = Completer<void>();
+      final png = FakeExportRepository(gate: held.future);
+
+      await _openSheet(tester, delivery: FakeExportDelivery(), png: png);
+      await tester.tap(find.text(ExportFormat.markdown.label));
+      await tester.pumpAndSettle();
+      await _tapAction(tester);
+      expect(find.text('Copied!'), findsOneWidget);
+
+      await tester.tap(find.text(ExportFormat.png.label));
+      await tester.pumpAndSettle();
+      await _tapAction(tester);
+
+      expect(png.calls, 1);
+      expect(find.text('Copied!'), findsNothing);
+      expect(find.text('Share PNG'), findsOneWidget);
+      expect(
+        tester.widget<AppButton>(find.byType(AppButton)).onPressed,
+        isNull,
+        reason: 'an Export is in flight',
+      );
+
+      held.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('Copied!'), findsNothing);
+      expect(
+        tester.widget<AppButton>(find.byType(AppButton)).onPressed,
+        isNotNull,
+      );
+    });
+
+    testWidgets('refuses a second Export while one is in flight', (
+      tester,
+    ) async {
+      final held = Completer<void>();
+      final png = FakeExportRepository(gate: held.future);
+
+      await _openSheet(tester, delivery: FakeExportDelivery(), png: png);
+      await _tapAction(tester);
+      await _tapAction(tester);
+
+      expect(png.calls, 1);
+
+      held.complete();
+      await tester.pumpAndSettle();
     });
 
     testWidgets('says why an Export failed, in the sheet, and stays open', (

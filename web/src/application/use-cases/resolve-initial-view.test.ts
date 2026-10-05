@@ -3,7 +3,12 @@ import type { ContributionDay } from "@domain/entities/types";
 import { isFailure } from "@domain/failures/failure";
 import { buildGridFromApi } from "@domain/services/calendar-grid";
 import { type IsoDate, parseIsoDate } from "@domain/value-objects/iso-date";
-import { DEFAULT_USERNAME, isUsername, MAX_USERNAME_LENGTH, parseUsername } from "@domain/value-objects/username";
+import {
+	FIRST_SUGGESTED_USERNAME,
+	isUsername,
+	MAX_USERNAME_LENGTH,
+	parseUsername,
+} from "@domain/value-objects/username";
 import { describe, expect, it } from "vitest";
 import {
 	cacheControlFor,
@@ -25,13 +30,13 @@ describe("resolveViewerIdentity", () => {
 	});
 
 	it("falls back to the default when neither is given", () => {
-		expect(resolveViewerIdentity({}).username).toBe(DEFAULT_USERNAME);
+		expect(resolveViewerIdentity({}).username).toBe(FIRST_SUGGESTED_USERNAME);
 	});
 
 	it("ignores a saved username the domain rejects, rather than trusting the cookie", () => {
 		const identity = resolveViewerIdentity({ savedUsername: "-not-a-handle-" });
 
-		expect(identity.username).toBe(DEFAULT_USERNAME);
+		expect(identity.username).toBe(FIRST_SUGGESTED_USERNAME);
 		expect(identity.isExplicit).toBe(false);
 	});
 
@@ -46,7 +51,7 @@ describe("resolveViewerIdentity", () => {
 		for (const requestedUsername of ["not a handle", "-leading-dash", "a".repeat(40)]) {
 			const identity = resolveViewerIdentity({ requestedUsername, savedUsername: "gaearon" });
 
-			expect(identity.username).not.toBe(DEFAULT_USERNAME);
+			expect(identity.username).not.toBe(FIRST_SUGGESTED_USERNAME);
 			expect(identity.username).not.toBe("gaearon");
 		}
 	});
@@ -147,7 +152,9 @@ describe("initialStatsFor", () => {
 	it("clears every figure when an asked-for calendar did not load, because zero is a number", () => {
 		const empty = buildGridFromApi({ days: [], year: 2026 });
 
-		expect(initialStatsFor({ source: DaySource.Empty, days: empty, year: 2026, today, scrapedTotal: null })).toEqual({
+		expect(
+			initialStatsFor({ source: DaySource.Empty, days: empty, year: 2026, today, scrapedTotalContributions: null }),
+		).toEqual({
 			totalContributions: null,
 			currentStreak: null,
 			longestStreak: null,
@@ -155,7 +162,9 @@ describe("initialStatsFor", () => {
 	});
 
 	it("computes the figures of a loaded calendar, the scraped total winning", () => {
-		expect(initialStatsFor({ source: DaySource.Loaded, days: loaded, year: 2026, today, scrapedTotal: 42 })).toEqual({
+		expect(
+			initialStatsFor({ source: DaySource.Loaded, days: loaded, year: 2026, today, scrapedTotalContributions: 42 }),
+		).toEqual({
 			totalContributions: 42,
 			currentStreak: 2,
 			longestStreak: 2,
@@ -164,7 +173,13 @@ describe("initialStatsFor", () => {
 
 	it("computes the placeholder's figures, the one place a Count is invented", () => {
 		expect(
-			initialStatsFor({ source: DaySource.Placeholder, days: loaded, year: 2026, today, scrapedTotal: null }),
+			initialStatsFor({
+				source: DaySource.Placeholder,
+				days: loaded,
+				year: 2026,
+				today,
+				scrapedTotalContributions: null,
+			}),
 		).toEqual({
 			totalContributions: 8,
 			currentStreak: 2,

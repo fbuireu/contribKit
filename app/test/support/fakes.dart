@@ -10,6 +10,7 @@ import 'package:contribkit/domain/repositories/settings_repository.dart';
 import 'package:contribkit/domain/repositories/suggested_username_repository.dart';
 import 'package:contribkit/domain/repositories/tip_repository.dart';
 import 'package:contribkit/domain/repositories/usage_event_repository.dart';
+import 'package:contribkit/domain/value_objects/background_preset.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/contact_message.dart';
@@ -73,9 +74,9 @@ final class FakeSettingsRepository implements SettingsRepository {
   }
 
   @override
-  Future<void> saveBackgroundPreset(String presetName) async {
+  Future<void> saveBackgroundPreset(BackgroundPreset preset) async {
     if (writeFailure case final error?) throw error;
-    writes['backgroundPreset'] = presetName;
+    writes['backgroundPreset'] = preset;
   }
 
   @override
@@ -192,10 +193,11 @@ final class FakeContactMessageRepository implements ContactMessageRepository {
 }
 
 final class FakeExportRepository implements ExportRepository {
-  FakeExportRepository({this.bytes = const [1, 2, 3], this.failure});
+  FakeExportRepository({this.bytes = const [1, 2, 3], this.failure, this.gate});
 
   final List<int> bytes;
   final Object? failure;
+  final Future<void>? gate;
 
   int calls = 0;
   RenderOptions? lastOptions;
@@ -209,6 +211,7 @@ final class FakeExportRepository implements ExportRepository {
     calls++;
     lastCalendar = calendar;
     lastOptions = options;
+    if (gate case final wait?) await wait;
     if (failure case final error?) throw error;
     return bytes;
   }

@@ -173,9 +173,11 @@ const styles = {
 	},
 };
 
+const mailtoFor = (email: string): string => `mailto:${email.split("@").map(encodeURIComponent).join("@")}`;
+
 const replyHref = (message: ContactMessage): string => {
 	const subject = encodeURIComponent(`Re: your message to ContribKit`);
-	return `mailto:${message.email}?subject=${subject}`;
+	return `${mailtoFor(message.email)}?subject=${subject}`;
 };
 
 export const ContactMessageEmail = ({ message, sentAt, site }: ContactMessageEmailProps) => {
@@ -219,7 +221,7 @@ export const ContactMessageEmail = ({ message, sentAt, site }: ContactMessageEma
 							Email
 						</Text>
 						<Text style={styles.value} className="email-value">
-							<Link href={`mailto:${message.email}`} style={styles.link} className="email-link">
+							<Link href={mailtoFor(message.email)} style={styles.link} className="email-link">
 								{message.email}
 							</Link>
 						</Text>

@@ -1,5 +1,5 @@
 import { CACHEABLE_ANSWER, NOT_CACHEABLE } from "@application/http/cache-control";
-import { messageFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
+import { messageFor, reasonFor, retryAfterHeader, statusFor } from "@application/http/failure-http";
 import {
 	ContributionsEndpoint,
 	logContributionsFailure,
@@ -43,7 +43,7 @@ const handle: APIRoute = async ({ params, url }) => {
 			logger,
 			username: username.value,
 			kind: calendar.kind,
-			reason: messageFor(calendar),
+			reason: reasonFor(calendar),
 			status,
 			endpoint: ContributionsEndpoint.Svg,
 		});

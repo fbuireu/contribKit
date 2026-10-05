@@ -114,7 +114,7 @@ final class _FakeSettingsRepository implements SettingsRepository {
   }
 
   @override
-  Future<void> saveBackgroundPreset(String presetName) async {
+  Future<void> saveBackgroundPreset(BackgroundPreset preset) async {
     if (writeFails) throw const CacheFailure(message: 'box is gone');
   }
 
@@ -184,6 +184,7 @@ void main() {
           settings: const AppSettings(
             cellShape: CellShape.hex,
             cellSize: CellSize.large,
+            backgroundPreset: BackgroundPreset.navy,
             paletteKey: 'nord',
           ),
         ),
@@ -195,6 +196,7 @@ void main() {
 
       expect(state.cellShape, CellShape.hex);
       expect(state.cellSize, CellSize.large);
+      expect(state.backgroundPreset, BackgroundPreset.navy);
       expect(state.palette, testPalette);
       expect(state.isLoadingSettings, isFalse);
     });

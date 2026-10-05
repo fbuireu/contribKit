@@ -157,7 +157,7 @@ version in the same commit, or do not change the order.''',
         today: DateTime(2026, 8, 14),
       );
 
-      expect(payload.totalContributionsText, unknownTotalPhrase);
+      expect(payload.totalContributionsText, unknownCountPhrase);
     });
 
     test('sends a measured Total as a finished sentence', () {

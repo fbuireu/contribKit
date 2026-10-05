@@ -12,21 +12,22 @@ import 'package:contribkit/domain/value_objects/tip_product.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 
 final class UsageEvent {
-  const UsageEvent._({required this.name, this.properties = const {}});
+  UsageEvent._({required this.name, Map<String, Object> properties = const {}})
+    : properties = Map.unmodifiable(properties);
 
   final String name;
 
   final Map<String, Object> properties;
 
-  static const customizerOpened = UsageEvent._(name: 'customizerOpened');
+  static final customizerOpened = UsageEvent._(name: 'customizerOpened');
 
-  static const exportOpened = UsageEvent._(name: 'exportOpened');
+  static final exportOpened = UsageEvent._(name: 'exportOpened');
 
-  static const tipJarOpened = UsageEvent._(name: 'tipJarOpened');
+  static final tipJarOpened = UsageEvent._(name: 'tipJarOpened');
 
-  static const contactOpened = UsageEvent._(name: 'contactOpened');
+  static final contactOpened = UsageEvent._(name: 'contactOpened');
 
-  static const privacyOpened = UsageEvent._(name: 'privacyOpened');
+  static final privacyOpened = UsageEvent._(name: 'privacyOpened');
 
   static UsageEvent calendarViewed({
     required Year year,

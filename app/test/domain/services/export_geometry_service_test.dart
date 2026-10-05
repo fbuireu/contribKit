@@ -1,4 +1,3 @@
-import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/services/export_geometry_service.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,41 +12,40 @@ void main() {
           weeks: 2,
         );
 
-        expect(
-          size.width,
-          (CellSize.normal.pixels + CellSize.normal.gap) * 2 -
-              CellSize.normal.gap,
-        );
+        expect(size.width, 24.0);
       },
     );
 
     test('is seven Cells tall, whatever the Cell Size', () {
-      for (final cellSize in CellSize.values) {
+      const heights = {
+        CellSize.compact: 75.0,
+        CellSize.normal: 89.0,
+        CellSize.large: 116.0,
+      };
+
+      expect(heights.keys, CellSize.values);
+      for (final MapEntry(key: cellSize, value: height) in heights.entries) {
         final size = ExportGeometryService.logicalSizeFor(
           cellSize: cellSize,
-          weeks: ContributionGridService.weeksFor(2024),
+          weeks: 53,
         );
-        final step = cellSize.pixels + cellSize.gap;
 
-        expect(
-          size.height,
-          ContributionGridService.daysPerWeek * step - cellSize.gap,
-          reason: cellSize.name,
-        );
+        expect(size.height, height, reason: cellSize.name);
       }
     });
 
     test('grows with the week count, so a 54-week Year is wider', () {
       final short = ExportGeometryService.logicalSizeFor(
         cellSize: CellSize.normal,
-        weeks: ContributionGridService.weeksFor(2024),
+        weeks: 53,
       );
       final long = ExportGeometryService.logicalSizeFor(
         cellSize: CellSize.normal,
-        weeks: ContributionGridService.weeksFor(2028),
+        weeks: 54,
       );
 
-      expect(long.width, greaterThan(short.width));
+      expect(short.width, 687.0);
+      expect(long.width, 700.0);
       expect(long.height, short.height);
     });
 

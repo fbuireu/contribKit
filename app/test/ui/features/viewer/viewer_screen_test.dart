@@ -143,7 +143,7 @@ void main() {
 
       expect(find.byType(ContributionGrid), findsNothing);
       expect(
-        find.textContaining('may only contain alphanumeric characters'),
+        find.textContaining('may only contain letters, digits and hyphens'),
         findsOneWidget,
       );
       expect(

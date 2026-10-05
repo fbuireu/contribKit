@@ -9,7 +9,7 @@ enum CalendarFailureKind {
   unexpected;
 
   static CalendarFailureKind of(Failure failure) => switch (failure) {
-    NetworkFailure() => CalendarFailureKind.network,
+    NetworkFailure() || UpstreamFailure() => CalendarFailureKind.network,
     NotFoundFailure() => CalendarFailureKind.notFound,
     RateLimitedFailure() => CalendarFailureKind.rateLimited,
     ParseFailure() => CalendarFailureKind.parse,

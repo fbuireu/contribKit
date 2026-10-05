@@ -78,6 +78,32 @@ test.describe("homepage", () => {
 		await expect(page.locator(Selector.ExportCopyButton)).toBeVisible();
 	});
 
+	test("the PNG tab says the size of the calendar it previews", async ({ page }) => {
+		const [, width, height] =
+			/^0 0 (\d+) (\d+)$/.exec(
+				(await page.locator(`${Selector.ExportPngPreview} svg`).getAttribute("viewBox")) ?? "",
+			) ?? [];
+
+		expect(width).toBeDefined();
+		await expect(
+			page.locator(`${byId(ElementId.ExportTabs)} [data-key="${ExportFormatKey.Png}"] ${Selector.ExportTabDetail}`),
+		).toHaveText(`${width}×${height} · transparent`);
+	});
+
+	test("the SVG tab previews the start of the markup it copies, and counts the Cells it leaves out", async ({
+		page,
+	}) => {
+		const png = page.locator(Selector.ExportPngPreview);
+		const viewBox = await png.locator("svg").getAttribute("viewBox");
+		const cells = await png.locator("[data-date]").count();
+
+		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="${ExportFormatKey.Svg}"]`).click();
+
+		const code = page.locator(Selector.ExportCodePreview);
+		await expect(code).toContainText(`viewBox="${viewBox}"`);
+		await expect(code).toContainText(`${cells - 3} more cells`);
+	});
+
 	test("clicking a suggestion fills the username input", async ({ page }) => {
 		await page.locator(`.${ClassName.SuggestionButton}[data-username="gaearon"]`).click();
 		await expect(page.locator(byId(ElementId.HeroUsername))).toHaveValue("gaearon");

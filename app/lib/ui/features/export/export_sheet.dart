@@ -12,6 +12,7 @@ import 'package:contribkit/domain/value_objects/palette.dart';
 import 'package:contribkit/domain/value_objects/usage_event.dart';
 import 'package:contribkit/ui/di/providers.dart';
 import 'package:contribkit/ui/failure_message.dart';
+import 'package:contribkit/ui/features/export/export_sheet_state.dart';
 import 'package:contribkit/ui/features/viewer/widgets/contribution_grid.dart';
 import 'package:contribkit/ui/theme/app_colors.dart';
 import 'package:contribkit/ui/theme/app_text_styles.dart';
@@ -58,9 +59,7 @@ class ExportSheet extends ConsumerStatefulWidget {
 
 class _ExportSheetState extends ConsumerState<ExportSheet> {
   ExportFormat _selected = ExportFormat.fallback;
-  bool _exporting = false;
-  bool _copied = false;
-  String? _exportError;
+  ExportSheetState _state = const ExportIdle();
   Timer? _copiedTimer;
 
   @override
@@ -69,21 +68,24 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
     super.dispose();
   }
 
+  void _to(ExportSheetState next) {
+    if (mounted) setState(() => _state = next);
+  }
+
   void _showCopied() {
-    _copiedTimer?.cancel();
-    setState(() => _copied = true);
+    _to(const ExportCopied());
     _copiedTimer = Timer(Tokens.durationCopiedFeedback, () {
-      if (mounted) setState(() => _copied = false);
+      if (_state.isCopied) _to(const ExportIdle());
     });
   }
 
-  IconData get _actionIcon => _copied
+  IconData get _actionIcon => _state.isCopied
       ? LucideIcons.check
       : _selected.isCopiedAsText
       ? LucideIcons.copy
       : LucideIcons.share;
 
-  String get _actionLabel => _copied
+  String get _actionLabel => _state.isCopied
       ? 'Copied!'
       : _selected.isCopiedAsText
       ? 'Copy ${_selected.label}'
@@ -96,24 +98,22 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
   );
 
   Future<void> _export() async {
-    if (_exporting) return;
+    final started = _state.beginning();
+    if (started == null) return;
     final format = _selected;
     final usageEvents = ref.read(usageEventRepositoryProvider);
-    setState(() {
-      _exporting = true;
-      _exportError = null;
-    });
+    final delivery = ref.read(exportDeliveryProvider);
+    _copiedTimer?.cancel();
+    _to(started);
     try {
       final bytes = await ref.read(exportCalendarProvider(format))(
         calendar: widget.calendar,
         options: _options,
       );
 
-      final delivery = ref.read(exportDeliveryProvider);
       var delivered = true;
       if (format.isCopiedAsText) {
         await delivery.copyText(utf8.decode(bytes));
-        if (mounted) _showCopied();
       } else {
         delivered = await delivery.shareFile(
           bytes: bytes,
@@ -136,13 +136,14 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
           ),
         );
       }
+      if (format.isCopiedAsText && mounted) {
+        _showCopied();
+      } else {
+        _to(const ExportIdle());
+      }
     } catch (error) {
       unawaited(usageEvents.record(UsageEvent.exportFailed(format: format)));
-      if (mounted) {
-        setState(() => _exportError = FailureMessage.ofAny(error));
-      }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
+      _to(ExportFailed(message: FailureMessage.ofAny(error)));
     }
   }
 
@@ -177,7 +178,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
                 onTap: () => setState(() => _selected = fmt),
               ),
             ),
-          if (_exportError case final error?) ...[
+          if (_state.failureMessage case final error?) ...[
             const SizedBox(height: Tokens.space2),
             Text(
               error,
@@ -193,7 +194,7 @@ class _ExportSheetState extends ConsumerState<ExportSheet> {
             children: [
               Expanded(
                 child: AppButton(
-                  onPressed: _exporting ? null : _export,
+                  onPressed: _state.isExporting ? null : _export,
                   semanticLabel: _actionLabel,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

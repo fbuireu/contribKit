@@ -10,6 +10,7 @@ import {
 	notFound,
 	parse,
 	rateLimited,
+	upstream,
 } from "./failure";
 
 const username = (raw: string): Username => {
@@ -53,12 +54,12 @@ describe("failure constructors", () => {
 		});
 	});
 
-	it("network with a status", () => {
-		expect(network({ message: "down", status: 502 })).toEqual({ kind: "Network", status: 502, message: "down" });
+	it("network", () => {
+		expect(network("down")).toEqual({ kind: "Network", message: "down" });
 	});
 
-	it("network without a status", () => {
-		expect(network({ message: "down" })).toEqual({ kind: "Network", status: undefined, message: "down" });
+	it("upstream, an answer GitHub gave that is not the page", () => {
+		expect(upstream("GitHub returned 503")).toEqual({ kind: "Upstream", message: "GitHub returned 503" });
 	});
 
 	it("parse", () => {

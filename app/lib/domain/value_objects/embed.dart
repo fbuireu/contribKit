@@ -1,4 +1,5 @@
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
+import 'package:contribkit/domain/value_objects/username.dart';
 
 abstract final class Embed {
   static const origin = 'https://contribkit.app';
@@ -9,7 +10,7 @@ abstract final class Embed {
   static const defaultShape = CellShape.rounded;
 
   static String urlFor({
-    required String username,
+    required Username username,
     String? paletteKey,
     CellShape? shape,
   }) {
@@ -19,7 +20,8 @@ abstract final class Embed {
       if (shape != null && shape != defaultShape) 'shape=${shape.name}',
     ].join('&');
 
-    final url = '$origin/$segment/${Uri.encodeComponent(username)}$extension';
+    final url =
+        '$origin/$segment/${Uri.encodeComponent(username.value)}$extension';
     return query.isEmpty ? url : '$url?$query';
   }
 }

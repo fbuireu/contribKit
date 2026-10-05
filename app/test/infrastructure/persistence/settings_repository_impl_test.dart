@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:contribkit/domain/failures/failure.dart';
 import 'package:contribkit/domain/repositories/settings_repository.dart';
+import 'package:contribkit/domain/value_objects/background_preset.dart';
 import 'package:contribkit/domain/value_objects/cell_shape.dart';
 import 'package:contribkit/domain/value_objects/cell_size.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
@@ -86,7 +87,10 @@ void main() {
       () async {
         await (await settingsBox()).put('cardBackground', 'navy');
 
-        expect((await repository.load()).backgroundPresetName, 'navy');
+        expect(
+          (await repository.load()).backgroundPreset,
+          BackgroundPreset.navy,
+        );
       },
     );
 
@@ -95,22 +99,53 @@ void main() {
       await box.put('cardBackground', 'navy');
       await box.put('backgroundPreset', 'charcoal');
 
-      expect((await repository.load()).backgroundPresetName, 'charcoal');
+      expect(
+        (await repository.load()).backgroundPreset,
+        BackgroundPreset.charcoal,
+      );
     });
 
     test('drops the legacy value once a preset is saved', () async {
       final box = await settingsBox();
       await box.put('cardBackground', 'navy');
 
-      await repository.saveBackgroundPreset('black');
+      await repository.saveBackgroundPreset(BackgroundPreset.black);
 
       expect(box.get('cardBackground'), isNull);
-      expect((await repository.load()).backgroundPresetName, 'black');
+      expect(box.get('backgroundPreset'), 'black');
+      expect(
+        (await repository.load()).backgroundPreset,
+        BackgroundPreset.black,
+      );
     });
 
-    test('returns null when nothing was ever stored', () async {
-      expect((await repository.load()).backgroundPresetName, isNull);
+    test('defaults to the fallback when nothing was ever stored', () async {
+      expect(
+        (await repository.load()).backgroundPreset,
+        BackgroundPreset.fallback,
+      );
     });
+
+    test('defaults to the fallback for a name no preset has', () async {
+      await (await settingsBox()).put('backgroundPreset', 'midnight');
+
+      expect(
+        (await repository.load()).backgroundPreset,
+        BackgroundPreset.fallback,
+      );
+    });
+
+    test(
+      'defaults to the fallback when the value has the wrong type',
+      () async {
+        await (await settingsBox()).put('backgroundPreset', 7);
+
+        expect(
+          (await repository.load()).backgroundPreset,
+          BackgroundPreset.fallback,
+        );
+      },
+    );
   });
 
   group('reading a value stored in the wrong shape', () {

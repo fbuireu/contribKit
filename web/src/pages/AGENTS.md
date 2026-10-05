@@ -156,11 +156,11 @@ for `/user/<name>.svg` and nothing else, so the calendar embeds outside GitHub
   included**, with an `endpoint` tag (`ContributionsEndpoint.Api` / `.Svg` / `.Page`) that is the only thing
   distinguishing the three in Better Stack. A route logs through the `logger` it imports from
   `@infrastructure/logging/logger`, handed to the `failure-log` helpers.
-- **An unexpected *throw* is covered by a boundary on three routes.** `/api/contributions`, the SVG route and
-  `/api/contact` each export a thin handler that wraps the real one in `try`/`catch`, logs through `logServerError`
-  and answers `SERVER_ERROR_MESSAGE` with `no-store`, in that route's own body shape: JSON for the two API routes,
-  `text/plain` for the SVG. Without it Astro answers the throw by rendering `500.astro`: an HTML page, to a caller
-  that reads JSON or an `<img>`. `/api/health` has no boundary.
+- **An unexpected *throw* is covered by a boundary on every `.ts` route.** `/api/contributions`, the SVG route,
+  `/api/contact` and `/api/health` each export a thin handler that wraps the real one in `try`/`catch`, logs through
+  `logServerError` and answers `SERVER_ERROR_MESSAGE` with `no-store`, in that route's own body shape: JSON for the
+  API routes, `text/plain` for the SVG. Without it Astro answers the throw by rendering `500.astro`: an HTML page, to
+  a caller that reads JSON or an `<img>`. The docs test fails on a route without the three.
 - **`500.astro` logs as a side effect of rendering, and `/500` is a public URL.** `logServerError` runs in the
   frontmatter, so anything that renders the 500 page twice reports twice. It reads the throwable from
   `Astro.props.error`, which Astro populates only when it invokes the page as an error handler, and the helper
@@ -172,7 +172,7 @@ for `/user/<name>.svg` and nothing else, so the calendar embeds outside GitHub
   [`_contact.ts`](./_contact.ts), which is the composition root and therefore the one place that hands the
   mailbox to the infrastructure factory; the route tests mock that module the way they mock `cloudflare:workers`.
 - **The landing page distinguishes an asked-for user from the default, and `resolveViewerIdentity` decides it.**
-  `?user=` wins, then the `USERNAME_COOKIE`, then `DEFAULT_USERNAME`; `isExplicit` is true only for the first two,
+  `?user=` wins, then the `USERNAME_COOKIE`, then `FIRST_SUGGESTED_USERNAME`; `isExplicit` is true only for the first two,
   and it decides what a failure looks like: `daySourceFor` turns it into `Loaded`, `Empty` or `Placeholder`. An
   explicit user gets an empty grid for the Year it chose plus an error message; a first-time visitor gets a
   generated placeholder grid and no error at all. The frontmatter hands what it read to `resolve-initial-view.ts`
@@ -182,7 +182,7 @@ for `/user/<name>.svg` and nothing else, so the calendar embeds outside GitHub
   is stale state and is ignored. A `?user=` is **a person asking**, so it reaches `loadInitialContributions` raw,
   and its `parseUsername` returns `InvalidInput` → 400 → the empty grid and "invalid username", which is what
   `/api/contributions` and the client-side render path answer for the same input. Falling back to the cookie or
-  `DEFAULT_USERNAME` instead would render someone else's real Contribution Calendar with no error. It is bounded to
+  `FIRST_SUGGESTED_USERNAME` instead would render someone else's real Contribution Calendar with no error. It is bounded to
   `MAX_USERNAME_LENGTH + 1` characters first, because that string is rendered into the page and a slice that short
   can never become valid.
 - **The terminal block on the error pages is decoration.** `404.astro` and `500.astro` render the **same**

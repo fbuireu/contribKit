@@ -12,6 +12,9 @@ const SITE = process.env.SITE_URL ?? "https://contribkit.app";
 const APP_VERSION =
 	readFileSync(new URL("../app/pubspec.yaml", import.meta.url), "utf8").match(/^version:\s*([\d.]+)/m)?.[1] ?? "0.0.0";
 
+const WEB_VERSION =
+	readFileSync(new URL("./package.json", import.meta.url), "utf8").match(/"version":\s*"([\d.]+)/)?.[1] ?? "0.0.0";
+
 export default defineConfig({
 	output: "server",
 	adapter: cloudflare(),
@@ -58,6 +61,7 @@ export default defineConfig({
 	vite: {
 		define: {
 			__APP_VERSION__: JSON.stringify(APP_VERSION),
+			__WEB_VERSION__: JSON.stringify(WEB_VERSION),
 		},
 		build: {
 			target: "esnext",

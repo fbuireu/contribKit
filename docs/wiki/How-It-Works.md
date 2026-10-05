@@ -48,13 +48,14 @@ The `/api/contributions` and `/user/:username.svg` routes instantiate the reposi
 
 ## Errors never throw
 
-Every function that can fail returns `T | Failure` and never throws. A `Failure` is a typed discriminated union created by small constructors (`notFound`, `invalidInput`, `network`, `parse`, `rateLimited`, `delivery`) and narrowed with the `isFailure` guard:
+Every function that can fail returns `T | Failure` and never throws. A `Failure` is a typed discriminated union created by small constructors (`notFound`, `invalidInput`, `network`, `upstream`, `parse`, `rateLimited`, `delivery`) and narrowed with the `isFailure` guard:
 
 ```ts
 type Failure =
   | { kind: "NotFound"; username: string }
   | { kind: "InvalidInput"; field: "username" | "year" | "name" | "email" | "message"; message: string }
-  | { kind: "Network"; status?: number; message: string }
+  | { kind: "Network"; message: string }
+  | { kind: "Upstream"; message: string }
   | { kind: "Parse"; message: string }
   | { kind: "RateLimited"; message: string; retryAfterSeconds: number | null }
   | { kind: "Delivery"; message: string };
@@ -66,7 +67,8 @@ At the HTTP boundary, `statusFor` and `messageFor` (in [`application/http/failur
 |---------|---------------|-------------|--------------|
 | `InvalidInput` | malformed username or year | `400` | the failure's `message` |
 | `NotFound` | GitHub returned 404 for the user | `404` | `"User not found"` |
-| `Network` | GitHub unreachable or non-OK status | `502` | the failure's `message` |
+| `Network` | GitHub unreachable or too slow | `502` | `"Could not reach GitHub"` |
+| `Upstream` | GitHub answered with a status other than 200, 404 and 429 | `502` | the failure's `message` |
 | `Parse` | HTML structure changed, no Contribution Days found | `502` | the failure's `message` |
 | `RateLimited` | GitHub answered `429` | `429` | the failure's `message` |
 | `Delivery` | Email Routing refused a Contact Message | `502` | `"Could not send your message"` |

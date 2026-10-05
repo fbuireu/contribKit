@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_USERNAME, isUsername, parseUsername } from "./username";
+import { FIRST_SUGGESTED_USERNAME, isUsername, parseUsername } from "./username";
 
 describe("parseUsername", () => {
 	it("accepts a valid username", () => {
@@ -46,8 +46,8 @@ describe("parseUsername", () => {
 	});
 });
 
-describe("DEFAULT_USERNAME", () => {
+describe("FIRST_SUGGESTED_USERNAME", () => {
 	it("is itself a valid username", () => {
-		expect(isUsername(parseUsername(DEFAULT_USERNAME))).toBe(true);
+		expect(isUsername(parseUsername(FIRST_SUGGESTED_USERNAME))).toBe(true);
 	});
 });

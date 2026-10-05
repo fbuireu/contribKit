@@ -360,6 +360,62 @@ void main() {
       );
     });
 
+    test('derives the level of a cached day stored without one, as a fresh read of the same Counts does', () async {
+      final html =
+          _day(id: 'a', date: '2023-03-06') +
+          _day(id: 'b', date: '2023-03-07') +
+          _day(id: 'c', date: '2023-03-08') +
+          _tooltip(id: 'a', count: 1) +
+          _tooltip(id: 'b', count: 100) +
+          _tooltip(id: 'c', count: 50);
+      final fresh = await GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      ).fetchCalendar(username: username, year: year);
+
+      final box = await Hive.openBox<dynamic>('contribution_cache_v3');
+      await box.put('other:${year.value}', {
+        'cachedAt': DateTime(2024, 2).toIso8601String(),
+        'json': jsonEncode({
+          'totalContributions': 151,
+          'weeks': [
+            {
+              'contributionDays': [
+                {'date': '2023-03-06', 'contributionCount': 1},
+                {'date': '2023-03-07', 'contributionCount': 100},
+                {'date': '2023-03-08', 'contributionCount': 50},
+              ],
+            },
+          ],
+        }),
+      });
+      final cached = await GitHubContributionRepository(
+        httpClient: MockClient(
+          (_) async => throw StateError('cache should have been used'),
+        ),
+      ).fetchCalendar(username: Username('other'), year: year);
+
+      expect(cached.fromCache, isTrue);
+      for (final date in ['2023-03-06', '2023-03-07', '2023-03-08']) {
+        expect(
+          _dayOn(cached.calendar, date: date).level,
+          _dayOn(fresh.calendar, date: date).level,
+          reason: date,
+        );
+      }
+      expect(
+        [
+          '2023-03-06',
+          '2023-03-07',
+          '2023-03-08',
+        ].map((date) => _dayOn(cached.calendar, date: date).level),
+        [
+          ContributionLevel.low,
+          ContributionLevel.veryHigh,
+          ContributionLevel.medium,
+        ],
+      );
+    });
+
     test('writes every field the read side declares, and no other', () async {
       final html =
           _day(id: 'a', date: '2023-03-06', level: '3') +
@@ -496,16 +552,28 @@ void main() {
       );
     });
 
-    test('reports other non-200 responses as NetworkFailure', () async {
-      final repository = GitHubContributionRepository(
-        httpClient: _clientReturning('', status: 500),
-      );
+    test(
+      'reports other non-200 responses as UpstreamFailure, not NetworkFailure',
+      () async {
+        for (final status in [403, 500, 503]) {
+          final repository = GitHubContributionRepository(
+            httpClient: _clientReturning('', status: status),
+          );
 
-      expect(
-        () => repository.fetchCalendar(username: username, year: year),
-        throwsA(isA<NetworkFailure>()),
-      );
-    });
+          await expectLater(
+            repository.fetchCalendar(username: username, year: year),
+            throwsA(
+              isA<UpstreamFailure>().having(
+                (failure) => failure.message,
+                'message',
+                'HTTP $status',
+              ),
+            ),
+            reason: 'status $status',
+          );
+        }
+      },
+    );
   });
 
   group('a Count GitHub did not spell out', () {

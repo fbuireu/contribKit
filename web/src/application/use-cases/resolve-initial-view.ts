@@ -1,11 +1,16 @@
 import type { ContributionDay } from "@domain/entities/types";
 import {
 	type ContributionStats,
-	statsWithScrapedTotal,
+	statsWithScrapedTotalContributions,
 	UNKNOWN_CONTRIBUTION_STATS,
 } from "@domain/services/contribution-stats";
 import type { IsoDate } from "@domain/value-objects/iso-date";
-import { DEFAULT_USERNAME, isUsername, MAX_USERNAME_LENGTH, parseUsername } from "@domain/value-objects/username";
+import {
+	FIRST_SUGGESTED_USERNAME,
+	isUsername,
+	MAX_USERNAME_LENGTH,
+	parseUsername,
+} from "@domain/value-objects/username";
 import { PRIVATE_CACHEABLE_ANSWER, PRIVATE_NOT_CACHEABLE } from "../http/cache-control";
 
 export const DaySource = {
@@ -48,7 +53,7 @@ export const resolveViewerIdentity = ({
 	const chosen = asRequested(requestedUsername) ?? asSaved(savedUsername);
 
 	return {
-		username: chosen ?? DEFAULT_USERNAME,
+		username: chosen ?? FIRST_SUGGESTED_USERNAME,
 		isExplicit: chosen !== undefined,
 	};
 };
@@ -76,7 +81,7 @@ export interface InitialStatsForParams {
 	days: readonly ContributionDay[];
 	year: number;
 	today: IsoDate;
-	scrapedTotal: number | null;
+	scrapedTotalContributions: number | null;
 }
 
 export const initialStatsFor = ({
@@ -84,6 +89,8 @@ export const initialStatsFor = ({
 	days,
 	year,
 	today,
-	scrapedTotal,
+	scrapedTotalContributions,
 }: InitialStatsForParams): ContributionStats =>
-	source === DaySource.Empty ? UNKNOWN_CONTRIBUTION_STATS : statsWithScrapedTotal({ days, year, today, scrapedTotal });
+	source === DaySource.Empty
+		? UNKNOWN_CONTRIBUTION_STATS
+		: statsWithScrapedTotalContributions({ days, year, today, scrapedTotalContributions });

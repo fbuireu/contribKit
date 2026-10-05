@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 test.describe("user svg endpoint", () => {
 	test("honors the shape query param", async ({ request }) => {
@@ -56,5 +56,33 @@ test.describe("user svg endpoint", () => {
 
 		expect(embed.headers()["cross-origin-resource-policy"]).toBe("cross-origin");
 		expect(page.headers()["cross-origin-resource-policy"]).toBe("same-origin");
+	});
+});
+
+test.describe("the labels of the SVG endpoint", () => {
+	const labelFill = async (page: Page): Promise<string> =>
+		page
+			.locator("text.month")
+			.first()
+			.evaluate((node) => getComputedStyle(node).fill);
+
+	test.describe("under a light scheme", () => {
+		test.use({ colorScheme: "light" });
+
+		test("darken, which an <img> evaluates against its viewer", async ({ page }) => {
+			await page.goto("/user/torvalds.svg");
+
+			expect(await labelFill(page)).toBe("rgba(0, 0, 0, 0.55)");
+		});
+	});
+
+	test.describe("under a dark scheme", () => {
+		test.use({ colorScheme: "dark" });
+
+		test("stay light", async ({ page }) => {
+			await page.goto("/user/torvalds.svg");
+
+			expect(await labelFill(page)).toBe("rgba(255, 255, 255, 0.45)");
+		});
 	});
 });

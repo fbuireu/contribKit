@@ -14,7 +14,7 @@ same with `deliver`: the arrow keeps the reference attached to its object, and a
 
 | Function | Returns | Notes |
 | --- | --- | --- |
-| `loadInitialContributions(load)({ username, year?, thisYear })` | `LoadContributionsResult` | Validates, chooses the Year, loads and builds the grid covering it. `thisYear` is the year the page read off the clock. |
+| `loadInitialContributions(load)({ username, year?, thisYear })` | `LoadContributionsResult` | Validates, chooses the Year, loads and builds the grid covering it. `thisYear` is the UTC year the page read off the clock. |
 | `sendContactMessage(deliver)({ name?, email, body })` | `ContactMessage \| Failure` | Parses, then delivers. **An `InvalidInput` short-circuits before `deliver` is called**, asserted in the test. It echoes the message back on success, the way `fetchCalendar` returns the calendar. |
 
 [`resolve-initial-view.ts`](./use-cases/resolve-initial-view.ts) sits alongside them and is not a use case in the curried sense: it takes no
@@ -31,7 +31,7 @@ markup, so it stays clear of `ui/` and stays testable, which frontmatter is not:
    `/api/contributions` treats the same input.
 2. `username` goes through `parseUsername`. **An invalid username short-circuits before the repository is
    called**: asserted in the test, and the reason a junk value costs no outbound request. The landing page passes
-   the username `resolveViewerIdentity` chose, which has already fallen back to `DEFAULT_USERNAME` (`torvalds`).
+   the username `resolveViewerIdentity` chose, which has already fallen back to `FIRST_SUGGESTED_USERNAME` (`torvalds`).
 3. On success it returns the **built grid** under `days`, not the raw response: `buildGridFromApi` pads to whole
    weeks covering the Year, so the caller never sees a short year.
 
@@ -68,23 +68,24 @@ which a failure is worth logging), `SERVER_ERROR_MESSAGE` (the body every endpoi
 
 The single mapping from a domain `Failure` to HTTP: `statusFor`, `messageFor`, `fieldFor` (the `InvalidInput`
 field name), `errorBodyFor` (the JSON error body: `error` from `messageFor`, `kind` naming the `Failure`, and the
-`field` of an `InvalidInput`), `retryAfterHeader`, and `reasonFor` (the log's wording, which for a `Delivery` is the
-platform's own).
+`field` of an `InvalidInput`), `retryAfterHeader`, and `reasonFor` (the log's wording, which for a `Network` or a
+`Delivery` is the platform's own).
 
 | Kind | Status | Message |
 | --- | --- | --- |
 | `NotFound` | 404 | the literal `"User not found"` |
 | `InvalidInput` | 400 | `failure.message` |
-| `Network` | 502 | `failure.message` |
+| `Network` | 502 | the literal `"Could not reach GitHub"` |
+| `Upstream` | 502 | `failure.message` |
 | `Parse` | 502 | `failure.message` |
 | `RateLimited` | 429 | `failure.message` |
 | `Delivery` | 502 | the literal `"Could not send your message"` |
 
 - **`STATUS_BY_KIND` is typed `Record<Failure["kind"], number>`**, so adding a kind to the union is a compile error
   here until it is mapped ([ADR 0031](../../../docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md)).
-- **`Network` and `Parse` both map to 502**: to a caller, "GitHub was unreachable" and "GitHub's HTML no longer
-  parses" are the same class of problem, and both are logged with their `kind`, so the distinction survives where
-  it matters.
+- **`Network`, `Upstream` and `Parse` all map to 502**: to a caller, "GitHub was unreachable", "GitHub refused" and
+  "GitHub's HTML no longer parses" are the same class of problem, and all are logged with their `kind`, so the
+  distinction survives where it matters, and `errorBodyFor` publishes it as `kind` for a client that words them apart.
 - **`retryAfterHeader` turns a `RateLimited` failure's `retryAfterSeconds` back into a `Retry-After`**, which both
   data routes spread into their error response, and answers `{}` for every other kind and for a 429 that named no
   wait. `retryAfterFrom`, the scraper's parser in `infrastructure/github/`, clamps an HTTP-date already in the past
@@ -107,10 +108,11 @@ from a `Failure`, and several sites that need `NOT_CACHEABLE` (`/api/health`, a 
 - **A 502 is a claim about upstream, not about this Worker**: GitHub, or Email Routing for a `Delivery`. Every
   route logs a mapped failure at or above `SERVER_ERROR_STATUS`, so a GitHub outage shows up as a ContribKit
   incident unless you read the `kind` field in the log context.
-- **`messageFor` forwards upstream text verbatim** for every kind except `NotFound` and `Delivery`. A `Network`
-  failure's message is whatever the scraper put there (`"GitHub returned 503"`, or the raw `error.message` of a
-  failed `fetch`), and it is the body of the SVG route's `text/plain` answer and the `error` field of
-  `/api/contributions`. The landing page prints `contributionError`'s sentence for the `kind` instead.
+- **`messageFor` answers a fixed sentence for `NotFound`, `Network` and `Delivery`, and forwards `failure.message` for
+  the rest.** A `Network` failure's message is the raw `error.message` of a rejected `fetch` or `response.text()`,
+  the platform's wording, so it goes to the log through `reasonFor` and never into the SVG route's `text/plain`
+  answer or the `error` field of `/api/contributions`; an `Upstream` failure's is `"GitHub returned 503"`, text we
+  wrote. The landing page prints `contributionError`'s sentence for the `kind` instead.
 - **`InitialContributions.days` is the grid; `/api/contributions`'s `days` is the scrape.** Same word, two shapes:
   this one is already padded to whole weeks by `buildGridFromApi`, so its first date is the Sunday on or before January
   1st and its length is `weeksFor(year)` × 7. The endpoint returns the scraper's own days and leaves the padding to the

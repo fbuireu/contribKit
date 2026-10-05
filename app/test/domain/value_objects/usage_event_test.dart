@@ -181,6 +181,27 @@ void main() {
       expect(UsageEvent.customizerOpened, isNot(UsageEvent.exportOpened));
     });
 
+    test(
+      'holds its properties unmodifiable, so an event cannot change after it '
+      'was compared',
+      () {
+        for (final expected in _catalogue) {
+          final properties = expected.event.properties;
+
+          expect(
+            () => properties['probe'] = 1,
+            throwsUnsupportedError,
+            reason: '${expected.name} accepts a new property',
+          );
+          expect(
+            properties.clear,
+            throwsUnsupportedError,
+            reason: '${expected.name} accepts a clear',
+          );
+        }
+      },
+    );
+
     test('a differing value, or a different event, reads as unequal', () {
       final shared = UsageEvent.exportShared(
         format: ExportFormat.svg,
@@ -215,6 +236,10 @@ void main() {
     test('names the kinds a calendar request can fail as', () {
       expect(
         CalendarFailureKind.of(const NetworkFailure(message: 'offline')),
+        CalendarFailureKind.network,
+      );
+      expect(
+        CalendarFailureKind.of(const UpstreamFailure(message: 'HTTP 503')),
         CalendarFailureKind.network,
       );
       expect(

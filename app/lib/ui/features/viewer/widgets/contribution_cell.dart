@@ -37,7 +37,7 @@ class ContributionCell extends StatelessWidget {
     final count = day.count;
     final tooltip =
         '${day.date.toIso8601String().substring(0, 10)}: '
-        '${count == null ? unknownTotalPhrase : '$count contribution${count == 1 ? '' : 's'}'}';
+        '${count == null ? unknownCountPhrase : '$count contribution${count == 1 ? '' : 's'}'}';
 
     return AppTooltip(
       message: Text(tooltip, style: const TextStyle(fontSize: Tokens.textXs)),

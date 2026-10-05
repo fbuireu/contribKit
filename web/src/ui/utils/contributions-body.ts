@@ -26,5 +26,5 @@ export const contributionCalendarErrorSchema = z.object({
 
 export const contributionGridSchema = z.array(contributionDaySchema).min(1);
 
-export const toContributionDays = (days: readonly WireDay[]): ContributionDay[] =>
+export const toContributionDays = (days: readonly WireDay[]): readonly ContributionDay[] =>
 	days.map((day) => contributionDay(day)).filter((day): day is ContributionDay => !isFailure(day));

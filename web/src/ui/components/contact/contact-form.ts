@@ -5,6 +5,7 @@ import {
 	validateContactEmail,
 	validateContactName,
 } from "@domain/value-objects/contact-message";
+import { REQUEST_TIMEOUT_MS } from "@domain/value-objects/request-timeout";
 import { z } from "astro/zod";
 import { ElementId } from "../../utils/dom-contract";
 import { ContactMessageOutcome, recordUsageEvent, UsageEventName } from "../core/telemetry/usage-event";
@@ -178,6 +179,7 @@ export function initContactForm(): void {
 		try {
 			const response = await fetch(CONTACT_ROUTE, {
 				method: "POST",
+				signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					name: String(values.get(ElementId.ContactName) ?? ""),

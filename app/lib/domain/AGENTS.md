@@ -26,14 +26,15 @@ half of a domain implemented twice: the TypeScript mirror is
   through `clockProvider` ([`ui/di/`](../ui/di/AGENTS.md)). `ContributionGridService` takes an `int` year, which is
   how its tests reach 2028 and later.
 - **`AppSettings` is everything the app remembers.** `SettingsRepository.load()` returns one with the Cell Shape, the
-  Cell Size, the theme and the Telemetry Consent already defaulted, and `year(today:)` is
-  `lastYear ?? Year.current(today: today)`. `backgroundPresetName` is the stored name, which the Viewer parses through
-  `BackgroundPreset.byName` and defaults itself. It has no `==`, because nothing compares one.
+  Cell Size, the Background Preset, the theme and the Telemetry Consent already defaulted, and `year(today:)` is
+  `lastYear ?? Year.current(today: today)`. `saveBackgroundPreset` takes the `BackgroundPreset`, as every other save
+  takes its value object. It has no `==`, because nothing compares one.
 - **`UsageEvent`'s names and property keys continue PostHog's history**, so renaming one splits that history in two.
   That is why the Tip events carry their `tipProduct` under the key `product`, the exception
   [`CODING_STANDARDS.md`](../../../CODING_STANDARDS.md) states to the glossary rule.
   [`usage_event_test.dart`](../../test/domain/value_objects/usage_event_test.dart) pins every constructor's wire
-  name and properties, and that every property value is a `String`, an `int` or a `bool`.
+  name and properties, that every property value is a `String`, an `int` or a `bool`, and that `properties` is
+  unmodifiable, which is why the five events without any are `static final` and not `const`.
 - **`ExportFormat` has no web value object.** The web offers the same Export Formats from
   [`ui/components/export/export-formats.ts`](../../../web/src/ui/components/export/export-formats.ts), because there
   the choice never leaves the browser; here it crosses from a widget through a provider to a repository.
@@ -76,7 +77,8 @@ The defaults are checked too: `defaultPaletteKey` must be `github`, and `default
 [`shared/shapes.json`](../../../shared/shapes.json)**, which is what the web derives its own default from. Reordering
 that file therefore moves the web's default and not this one, and the test is the only thing that will say so.
 
-`Embed.urlFor` omits a Palette key or a Cell Shape equal to its default, and so does the web's `buildEmbedUrl`.
+`Embed.urlFor` takes the `Username` whole and omits a Palette key or a Cell Shape equal to its default, and so does
+the web's `buildEmbedUrl`.
 Neither builds a Background. The **SVG endpoint** reads a `background` query parameter,
 because an Embed URL a person writes by hand may carry one.
 
@@ -85,13 +87,18 @@ because an Embed URL a person writes by hand may carry one.
 - **`ContributionLevelService.levelFor({ count, yearMax })`** maps a Count to a Contribution Level by ratio. **GitHub
   does not publish how it assigns levels; this matches observed behaviour and is a guess.** It is only ever a
   fallback: the parser reads `data-level` and this runs solely when that attribute is missing. The web has no
-  equivalent, because it drops such a day and lets the grid backfill it.
+  equivalent, because it drops such a day and lets the grid backfill it. `levelOf({ storedIndex, count, yearMax })`
+  is the one place that choice is made, for a scraped day and a cached one alike: the stored index clamped into the
+  enum, else `levelFor` (the web's `clampLevel`), and `highestCount` is the one reading of a Year's highest Count.
 - **`ContributionGridService.buildFor`** turns a flat list of Contribution Days into a lattice of whole
   Sunday-aligned weeks covering the requested Year, padding every date it was not given as a day with no Count, and
   `weeksFor` answers how many weeks that takes
   ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). `daysPerWeek` is declared
   here and is 7. [ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md) is the superseded decision that
-  fixed the lattice at 53, and is worth reading for why the lattice exists at all.
+  fixed the lattice at 53, and is worth reading for why the lattice exists at all. A date is built with the
+  `DateTime(year, month, day + n)` constructor and never stepped by a `Duration`, and UTC has no 23- or 25-hour day to
+  show a step that is wrong, so CI runs the two test files that hold a daylight-saving case a second time under
+  `TZ=Europe/Madrid`; the docs test fails when one of them is left out of that step.
 - **`CellSize.step`** is `pixels + gap`, the pitch a renderer advances by, written once: `ExportGeometryService` and
   the PNG and SVG Export repositories read it.
 - **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
@@ -104,8 +111,8 @@ because an Embed URL a person writes by hand may carry one.
   missing setting, and is what `ViewerState.paletteFailure` exists to report. `ViewerNotifier` and
   `HomeScreenWidgetRefresh` both call it.
 - **`DiagnosticReportService.warrants(failure)`** answers whether a `Failure` is a defect worth a Diagnostic Report
-  or the world's doing: `NetworkFailure`, `RateLimitedFailure`, `NotFoundFailure` and `DeliveryFailure` are the
-  world's. It exists for the background isolate, which has no person to show a `FailureMessage` to; the foreground
+  or the world's doing: `NetworkFailure`, `UpstreamFailure`, `RateLimitedFailure`, `NotFoundFailure` and
+  `DeliveryFailure` are the world's. It exists for the background isolate, which has no person to show a `FailureMessage` to; the foreground
   reports none of them, because a `Failure` the Viewer renders is handled.
 - **`StreakService.currentFor`** anchors on the last day belonging to the calendar's Year, capped at today, and skips
   the anchor day when it is today and still inactive, so a Streak does not break at midnight over a day that has not
@@ -141,5 +148,11 @@ draws the same Cell for the Embed and the browser preview from `CORNER_RADIUS_RA
   the others, and every one of the five is derived from Counts. A UI that force-unwraps any of them will crash on a
   brand-new account.
 - **`bestMonth` is a month number, 1–12**, straight out of `DateTime.month`.
+- **`RateLimitedFailure` carries `resetAt`, an instant, where the web's `RateLimited` carries `retryAfterSeconds`, a
+  duration, on purpose.** The Viewer prints the time the limit ends, and a duration read at render time would move
+  with every rebuild; the Worker forwards the wait as `Retry-After` in the request that learnt it, and an instant
+  converted back would drift by the seconds in between
+  ([`web/src/domain/AGENTS.md`](../../../web/src/domain/AGENTS.md)). `null` is no wait named, and `RetryAfter` reads
+  both forms of the header into the instant.
 - **`NotFoundFailure` cannot be built `const`**, because it carries a `Username` and `Username`'s factory validates;
   failures are built at runtime, so that is the price of the type surviving the boundary.

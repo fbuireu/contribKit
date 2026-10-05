@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 
 const unknownTotalContributionsText = 'unknown';
 
-const unknownTotalPhrase = 'contributions unknown';
+const unknownCountPhrase = 'contributions unknown';
 
 String formatTotalContributions({
   required NumberFormat format,

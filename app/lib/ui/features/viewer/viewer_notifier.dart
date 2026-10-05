@@ -44,7 +44,6 @@ class ViewerNotifier extends _$ViewerNotifier {
 
       final settings = await repo.load();
       if (!ref.mounted) return;
-      final backgroundName = settings.backgroundPresetName;
 
       final resolvedPalette =
           PaletteService.resolve(
@@ -59,11 +58,7 @@ class ViewerNotifier extends _$ViewerNotifier {
         palette: resolvedPalette,
         cellShape: settings.cellShape,
         cellSize: settings.cellSize,
-        backgroundPreset:
-            (backgroundName == null
-                ? null
-                : BackgroundPreset.byName(backgroundName)) ??
-            BackgroundPreset.fallback,
+        backgroundPreset: settings.backgroundPreset,
       );
 
       final username = settings.lastUsername;
@@ -213,7 +208,7 @@ class ViewerNotifier extends _$ViewerNotifier {
 
   void setBackgroundPreset(BackgroundPreset bg) {
     state = state.copyWith(backgroundPreset: bg);
-    _persist((repository) => repository.saveBackgroundPreset(bg.name));
+    _persist((repository) => repository.saveBackgroundPreset(bg));
     _record(UsageEvent.backgroundChosen(preset: bg));
   }
 

@@ -4,9 +4,14 @@ import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-o
 import { DEFAULT_PALETTE_KEY, type Palette, paletteByKey } from "@domain/value-objects/palette";
 import { ExportCopyOutcome, recordUsageEvent, UsageEventName } from "../components/core/telemetry/usage-event";
 import { buildCodeBlock, buildMarkdownLines, buildSvgLines, markdownSnippet } from "../components/export/code-preview";
-import { DEFAULT_EXPORT_FORMAT, ExportFormatKey, isExportFormatKey } from "../components/export/export-formats";
-import { formatStreak, formatTotalContributions } from "../components/grid/contribution";
-import { CUSTOMIZE_GRID_GEOMETRY, EXPORT_GRID_GEOMETRY, HERO_GRID_GEOMETRY } from "../components/grid/grid-geometry";
+import {
+	DEFAULT_EXPORT_FORMAT,
+	ExportFormatKey,
+	exportTabDetail,
+	isExportFormatKey,
+} from "../components/export/export-formats";
+import { formatHomeScreenWidgetTotal, formatStreak, formatTotalContributions } from "../components/grid/contribution";
+import { CUSTOMIZER_GRID_GEOMETRY, EXPORT_GRID_GEOMETRY, HERO_GRID_GEOMETRY } from "../components/grid/grid-geometry";
 import { generateMiniGrid } from "../components/grid/mini-grid";
 import { renderCalendarString } from "../components/grid/render-svg";
 import { formatHeroError } from "./contribution-errors";
@@ -59,18 +64,18 @@ export const getActiveExportTab = (): ExportFormatKey | null => {
 	return isExportFormatKey(key) ? key : null;
 };
 
-export function renderWidget(): void {
+export function renderHomeScreenWidget(): void {
 	const palette = getActivePalette().colors;
 	const phoneScreen = document.getElementById(ElementId.PhoneScreen);
 	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4].hex);
-	const widgetGrid = document.getElementById(ElementId.WidgetMiniGrid);
-	if (widgetGrid) widgetGrid.innerHTML = generateMiniGrid({ palette, liveDays: getDays() });
-	const widgetUsername = document.getElementById(ElementId.WidgetUsername);
+	const homeScreenWidgetGrid = document.getElementById(ElementId.HomeScreenWidgetMiniGrid);
+	if (homeScreenWidgetGrid) homeScreenWidgetGrid.innerHTML = generateMiniGrid({ palette, liveDays: getDays() });
+	const homeScreenWidgetUsername = document.getElementById(ElementId.HomeScreenWidgetUsername);
 	const username = getUsername();
-	if (widgetUsername && username) widgetUsername.textContent = username;
+	if (homeScreenWidgetUsername && username) homeScreenWidgetUsername.textContent = username.value;
 }
 
-export function renderCustomize(): void {
+export function renderCustomizer(): void {
 	const palette = getActivePalette().colors;
 	const shape = getActiveShape();
 	const days = getDays();
@@ -80,7 +85,7 @@ export function renderCustomize(): void {
 			days,
 			palette,
 			shape,
-			...CUSTOMIZE_GRID_GEOMETRY,
+			...CUSTOMIZER_GRID_GEOMETRY,
 			showLabels: false,
 		});
 	const heroGrid = document.getElementById(ElementId.HeroGrid);
@@ -94,20 +99,29 @@ export function renderCustomize(): void {
 	const shapeLabelEl = document.getElementById(ElementId.CustomShapeLabel);
 	if (shapeLabelEl) shapeLabelEl.textContent = shape;
 	renderExportPreview();
-	renderWidget();
+	renderHomeScreenWidget();
 }
 
+const renderExportTabDetails = (days: readonly ContributionDay[]): void => {
+	document.querySelectorAll<HTMLElement>(Selector.ExportTabKeys).forEach((tab) => {
+		const key = tab.dataset.key;
+		const detail = tab.querySelector(Selector.ExportTabDetail);
+		if (detail && key !== undefined && isExportFormatKey(key)) detail.textContent = exportTabDetail({ key, days });
+	});
+};
+
 export function renderExportPreview(): void {
+	const days = getDays();
+	renderExportTabDetails(days);
 	const preview = document.getElementById(ElementId.ExportPreview);
-	if (!preview) return;
+	const username = getUsername();
+	if (!preview || username === null) return;
 	preview.innerHTML = "";
 	const card = document.createElement("div");
 	card.className = ClassName.PreviewCard;
 	const palette = getActivePalette().colors;
 	const shape = getActiveShape();
 	const exportTab = getActiveExportTab() ?? DEFAULT_EXPORT_FORMAT;
-	const days = getDays();
-	const username = getUsername();
 
 	if (exportTab === ExportFormatKey.Png) {
 		card.classList.add(ClassName.PngPreview);
@@ -121,20 +135,20 @@ export function renderExportPreview(): void {
 		card.appendChild(content);
 		const tag = document.createElement("div");
 		tag.className = `${ClassName.PreviewTag} mono`;
-		tag.textContent = `${username}.png`;
+		tag.textContent = `${username.value}.png`;
 		card.appendChild(tag);
 	} else {
 		card.classList.add(ClassName.CodePreview);
 		const isSvgTab = exportTab === ExportFormatKey.Svg;
 		const paletteKey = getActivePalette().key;
-		card.appendChild(
-			buildCodeBlock(
-				isSvgTab ? buildSvgLines({ palette, shape }) : buildMarkdownLines({ username, palette: paletteKey, shape }),
-			),
-		);
 		const plainText = isSvgTab
 			? renderCalendarString({ days, palette, shape, ...EXPORT_GRID_GEOMETRY, showLabels: false })
 			: markdownSnippet({ username, palette: paletteKey, shape });
+		card.appendChild(
+			buildCodeBlock(
+				isSvgTab ? buildSvgLines(plainText) : buildMarkdownLines({ username, palette: paletteKey, shape }),
+			),
+		);
 		const copyButton = document.createElement("button");
 		copyButton.className = `${ClassName.CopyButton} mono`;
 		copyButton.textContent = COPY_LABEL;
@@ -151,13 +165,13 @@ export function renderExportPreview(): void {
 		card.appendChild(copyButton);
 		const tag = document.createElement("div");
 		tag.className = `${ClassName.PreviewTag} mono`;
-		tag.textContent = isSvgTab ? `${username}.svg` : "README.md";
+		tag.textContent = isSvgTab ? `${username.value}.svg` : "README.md";
 		card.appendChild(tag);
 	}
 	preview.appendChild(card);
 }
 
-export function updateYearRange(days: ContributionDay[]): void {
+export function updateYearRange(days: readonly ContributionDay[]): void {
 	const el = document.getElementById(ElementId.HeroYearRange);
 	if (!el || days.length < 8) return;
 	el.textContent = days[7].date.slice(0, 4);
@@ -170,6 +184,14 @@ export function updateHeroStats(stats: ContributionStats): void {
 	const legend = document.querySelector(Selector.LegendStats);
 	if (legend)
 		legend.innerHTML = `<span><b class="mono">${formatStreak(stats.currentStreak)}</b> day streak</span><span class="${ClassName.Separator}" aria-hidden="true">·</span><span><b class="mono">${formatStreak(stats.longestStreak)}</b> longest</span>`;
+}
+
+export function updateHomeScreenWidgetStats(stats: ContributionStats): void {
+	document.querySelectorAll(Selector.HomeScreenWidgetStreaks).forEach((streak) => {
+		streak.textContent = formatStreak(stats.currentStreak);
+	});
+	const total = document.getElementById(ElementId.HomeScreenWidgetTotal);
+	if (total) total.textContent = formatHomeScreenWidgetTotal(stats.totalContributions);
 }
 
 export function setHeroError(message: string | null): void {

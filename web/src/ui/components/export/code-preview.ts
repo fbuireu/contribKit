@@ -1,14 +1,6 @@
-import { DAYS_PER_WEEK, GRID_CELL_COUNT, WEEKS_PER_YEAR } from "@domain/services/dates";
-import {
-	cornerRadiusFor,
-	dotRadius,
-	hexPoints,
-	SVG_DEFAULT_CELL_GAP,
-	SVG_DEFAULT_CELL_SIZE,
-} from "@domain/services/svg-geometry";
-import { CellShape } from "@domain/value-objects/cell-shape";
+import type { CellShape } from "@domain/value-objects/cell-shape";
 import { buildEmbedUrl } from "@domain/value-objects/embed";
-import type { PaletteColors } from "@domain/value-objects/palette";
+import type { Username } from "@domain/value-objects/username";
 
 const TokenClass = {
 	Plain: "",
@@ -22,16 +14,14 @@ type TokenClass = (typeof TokenClass)[keyof typeof TokenClass];
 type Token = [TokenClass, string];
 type CodeLine = Token[];
 
-const CELL_STEP = SVG_DEFAULT_CELL_SIZE + SVG_DEFAULT_CELL_GAP;
-const VIEWBOX_WIDTH = WEEKS_PER_YEAR * CELL_STEP;
-const VIEWBOX_HEIGHT = DAYS_PER_WEEK * CELL_STEP;
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-const SAMPLE_LEVELS = [1, 3, 4] as const;
-const REMAINING_CELLS = GRID_CELL_COUNT - SAMPLE_LEVELS.length;
 const IMAGE_ALT = "contributions";
+const SAMPLE_CELL_COUNT = 3;
+const CELL_MARKER = "data-date=";
+const ELEMENT_OR_TEXT = /<(?:[^>"]|"[^"]*")*>|[^<]+/g;
+const ATTRIBUTE = /([^\s="/<>]+)="([^"]*)"/g;
 
 export interface MarkdownSnippetParams {
-	username: string;
+	username: Username;
 	palette?: string;
 	shape?: CellShape;
 }
@@ -50,103 +40,36 @@ const attributeTokens = ({ name, value }: AttributeTokensParams): Token[] => [
 const joinWithSpaces = (groups: Token[][]): Token[] =>
 	groups.flatMap((tokens, index) => (index === 0 ? tokens : [[TokenClass.Plain, " "] as Token, ...tokens]));
 
-interface CellLineParams {
-	weekIndex: number;
-	level: number;
-	palette: PaletteColors;
-	shape: CellShape;
-}
+const isCell = (element: string): boolean => element.startsWith("<") && element.includes(CELL_MARKER);
 
-type CellLineRenderer = (params: CellLineParams) => CodeLine;
-
-const circleLine = ({ weekIndex, level, palette, shape }: CellLineParams): CodeLine => {
-	const x = weekIndex * CELL_STEP;
-	const centre = SVG_DEFAULT_CELL_SIZE / 2;
+const tagTokens = (tag: string): Token[] => {
+	const attributes = [...tag.matchAll(ATTRIBUTE)].map(([, name, value]) => attributeTokens({ name, value }));
+	if (attributes.length === 0) return [[TokenClass.Tag, tag]];
 
 	return [
-		[TokenClass.Plain, " "],
-		[TokenClass.Tag, "<circle "],
-		...joinWithSpaces([
-			attributeTokens({ name: "cx", value: x + centre }),
-			attributeTokens({ name: "cy", value: centre }),
-			attributeTokens({
-				name: "r",
-				value: shape === CellShape.Dot ? dotRadius({ level, size: SVG_DEFAULT_CELL_SIZE }) : centre,
-			}),
-			attributeTokens({ name: "fill", value: palette[level].hex }),
-		]),
-		[TokenClass.Tag, "/>"],
+		[TokenClass.Tag, `${tag.split(/\s/, 1)[0]} `],
+		...joinWithSpaces(attributes),
+		[TokenClass.Tag, tag.endsWith("/>") ? "/>" : ">"],
 	];
 };
 
-const hexLine = ({ weekIndex, level, palette }: CellLineParams): CodeLine => {
-	const x = weekIndex * CELL_STEP;
-	const centre = SVG_DEFAULT_CELL_SIZE / 2;
+const elementLine = (element: string): CodeLine =>
+	element.startsWith("<") ? tagTokens(element) : [[TokenClass.Plain, element]];
+
+const elisionLine = (omitted: number): CodeLine => [[TokenClass.Comment, `<!-- … ${omitted} more cells … -->`]];
+
+export const buildSvgLines = (svg: string): CodeLine[] => {
+	const elements = svg.match(ELEMENT_OR_TEXT) ?? [];
+	const cellsEnd = elements.findLastIndex(isCell) + 1;
+	const shownEnd = Math.min(cellsEnd, elements.findIndex(isCell) + SAMPLE_CELL_COUNT);
+	const omitted = cellsEnd - shownEnd;
 
 	return [
-		[TokenClass.Plain, " "],
-		[TokenClass.Tag, "<polygon "],
-		...joinWithSpaces([
-			attributeTokens({ name: "points", value: hexPoints({ cx: x + centre, cy: centre, radius: centre }) }),
-			attributeTokens({ name: "fill", value: palette[level].hex }),
-		]),
-		[TokenClass.Tag, "/>"],
+		...elements.slice(0, shownEnd).map(elementLine),
+		...(omitted > 0 ? [elisionLine(omitted)] : []),
+		...elements.slice(cellsEnd).map(elementLine),
 	];
 };
-
-const rectLine =
-	(radius: number): CellLineRenderer =>
-	({ weekIndex, level, palette }: CellLineParams): CodeLine => [
-		[TokenClass.Plain, " "],
-		[TokenClass.Tag, "<rect "],
-		...joinWithSpaces([
-			attributeTokens({ name: "x", value: weekIndex * CELL_STEP }),
-			attributeTokens({ name: "y", value: 0 }),
-			attributeTokens({ name: "width", value: SVG_DEFAULT_CELL_SIZE }),
-			attributeTokens({ name: "height", value: SVG_DEFAULT_CELL_SIZE }),
-			attributeTokens({ name: "rx", value: radius }),
-			attributeTokens({ name: "fill", value: palette[level].hex }),
-		]),
-		[TokenClass.Tag, "/>"],
-	];
-
-const CELL_LINE_RENDERERS: Record<CellShape, CellLineRenderer> = {
-	[CellShape.Square]: rectLine(0),
-	[CellShape.Rounded]: rectLine(cornerRadiusFor(SVG_DEFAULT_CELL_SIZE)),
-	[CellShape.Circle]: circleLine,
-	[CellShape.Dot]: circleLine,
-	[CellShape.Hex]: hexLine,
-};
-
-const cellLine = (params: CellLineParams): CodeLine => CELL_LINE_RENDERERS[params.shape](params);
-
-export interface BuildSvgLinesParams {
-	palette: PaletteColors;
-	shape: CellShape;
-}
-
-export const buildSvgLines = ({ palette, shape }: BuildSvgLinesParams): CodeLine[] => [
-	[
-		[
-			TokenClass.Comment,
-			`<!-- ${WEEKS_PER_YEAR} × ${DAYS_PER_WEEK} grid · cell=${SVG_DEFAULT_CELL_SIZE} · gap=${SVG_DEFAULT_CELL_GAP} -->`,
-		],
-	],
-	[
-		[TokenClass.Tag, "<svg "],
-		...joinWithSpaces([
-			attributeTokens({ name: "viewBox", value: `0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}` }),
-			attributeTokens({ name: "xmlns", value: SVG_NAMESPACE }),
-		]),
-		[TokenClass.Tag, ">"],
-	],
-	...SAMPLE_LEVELS.map((level, weekIndex) => cellLine({ weekIndex, level, palette, shape })),
-	[
-		[TokenClass.Plain, " "],
-		[TokenClass.Comment, `<!-- … ${REMAINING_CELLS} more cells … -->`],
-	],
-	[[TokenClass.Tag, "</svg>"]],
-];
 
 const imageLine = (url: string): CodeLine => {
 	const [base, query] = url.split("?");

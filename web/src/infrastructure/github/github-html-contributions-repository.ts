@@ -1,8 +1,9 @@
 import { contributionDay, isCount } from "@domain/entities/contribution-day";
 import type { ContributionCalendar, ContributionDay } from "@domain/entities/types";
-import { type Failure, isFailure, network, notFound, parse, rateLimited } from "@domain/failures/failure";
+import { type Failure, isFailure, network, notFound, parse, rateLimited, upstream } from "@domain/failures/failure";
 import type { ContributionRepository, FetchCalendarParams } from "@domain/repositories/types";
 import { totalContributionsFor } from "@domain/services/contribution-stats";
+import { REQUEST_TIMEOUT_MS } from "@domain/value-objects/request-timeout";
 import type { Year } from "@domain/value-objects/year";
 import { z } from "astro/zod";
 import { errorMessageOf } from "../errors/error-message";
@@ -10,7 +11,6 @@ import { errorMessageOf } from "../errors/error-message";
 const USER_AGENT =
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const ORIGIN_CACHE_SECONDS = 3600;
-const FETCH_TIMEOUT_MS = 20_000;
 const TOO_MANY_REQUESTS = 429;
 const TD_REGEX = /<td\b([^>]*ContributionCalendar-day[^>]*)>/g;
 const DATE_REGEX = /data-date="(\d{4}-\d{2}-\d{2})"/;
@@ -41,7 +41,7 @@ interface RawDay {
 	id: string | null;
 }
 interface ParseHtmlReturnType {
-	days: ContributionDay[];
+	days: readonly ContributionDay[];
 	totalContributions: number | null;
 }
 
@@ -93,7 +93,7 @@ export const githubHtmlContributionRepository: ContributionRepository = {
 		try {
 			response = await fetch(url, {
 				redirect: "follow",
-				signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+				signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
 				cf: { cacheTtl: ORIGIN_CACHE_SECONDS, cacheEverything: true },
 				headers: {
 					"User-Agent": USER_AGENT,
@@ -104,7 +104,7 @@ export const githubHtmlContributionRepository: ContributionRepository = {
 				},
 			});
 		} catch (error) {
-			return network({ message: errorMessageOf(error) });
+			return network(errorMessageOf(error));
 		}
 
 		if (response.status === 404) return notFound(username);
@@ -113,13 +113,13 @@ export const githubHtmlContributionRepository: ContributionRepository = {
 				message: "GitHub is rate-limiting this Worker",
 				retryAfterSeconds: retryAfterFrom(response.headers.get("retry-after")),
 			});
-		if (!response.ok) return network({ message: `GitHub returned ${response.status}`, status: response.status });
+		if (!response.ok) return upstream(`GitHub returned ${response.status}`);
 
 		let html: string;
 		try {
 			html = await response.text();
 		} catch (error) {
-			return network({ message: errorMessageOf(error) });
+			return network(errorMessageOf(error));
 		}
 
 		const { days, totalContributions } = parseHtml(html);

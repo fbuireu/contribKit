@@ -68,7 +68,10 @@ beforeEach(() => {
 	initContactForm();
 });
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+	vi.unstubAllGlobals();
+	vi.restoreAllMocks();
+});
 
 describe("initContactForm", () => {
 	it("does nothing at all on a page that carries no form", () => {
@@ -98,6 +101,33 @@ describe("initContactForm", () => {
 			message: "a message long enough to send",
 			website: "",
 		});
+	});
+
+	it("gives up on a request that never answers after twenty seconds, and lets the form be sent again", async () => {
+		fill();
+		const expiry = new AbortController();
+		const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(expiry.signal);
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(
+				(_url: string, init: RequestInit) =>
+					new Promise<Response>((_resolve, reject) => {
+						init.signal?.addEventListener("abort", () => reject(new DOMException("timed out", "TimeoutError")));
+					}),
+			),
+		);
+
+		byId<HTMLFormElement>(ElementId.ContactForm).dispatchEvent(new Event("submit", { cancelable: true }));
+		await vi.waitFor(() => expect(byId(ElementId.ContactSubmit).textContent).toBe("sending…"));
+		expect(byId<HTMLButtonElement>(ElementId.ContactSubmit).disabled).toBe(true);
+
+		expiry.abort();
+		await vi.waitFor(() => expect(byId(ElementId.ContactSubmit).textContent).toBe("send"));
+
+		expect(timeout).toHaveBeenCalledWith(20_000);
+		expect(byId<HTMLButtonElement>(ElementId.ContactSubmit).disabled).toBe(false);
+		expect(byId(ElementId.ContactStatus).dataset.tone).toBe("failed");
+		expect(byId(ElementId.ContactStatus).textContent).toContain("could not send your message");
 	});
 
 	it("clears the form and says so when the message was accepted", async () => {

@@ -8,10 +8,10 @@ import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/services/contribution_level_service.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
-import 'package:contribkit/domain/value_objects/contribution_level.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/github/dtos/contribution_calendar_dto.dart';
+import 'package:contribkit/infrastructure/http/request_timeout.dart';
 import 'package:contribkit/infrastructure/http/retry_after.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -87,8 +87,6 @@ final class GitHubContributionRepository implements ContributionRepository {
     }
   }
 
-  static const _timeout = Duration(seconds: 20);
-
   Future<ContributionCalendar> _fetch({
     required Username username,
     required Year year,
@@ -107,12 +105,7 @@ final class GitHubContributionRepository implements ContributionRepository {
               'Accept': 'text/html',
             },
           )
-          .timeout(
-            _timeout,
-            onTimeout: () => throw NetworkFailure(
-              message: 'Request timed out after ${_timeout.inSeconds}s',
-            ),
-          );
+          .timeout(RequestTimeout.duration, onTimeout: RequestTimeout.expired);
     } on IOException catch (e) {
       throw NetworkFailure(message: e.toString());
     } on http.ClientException catch (e) {
@@ -127,7 +120,7 @@ final class GitHubContributionRepository implements ContributionRepository {
       );
     }
     if (response.statusCode != 200) {
-      throw NetworkFailure(message: 'HTTP ${response.statusCode}');
+      throw UpstreamFailure(message: 'HTTP ${response.statusCode}');
     }
 
     return _parseHtml(html: response.body, username: username, year: year);
@@ -182,9 +175,8 @@ final class GitHubContributionRepository implements ContributionRepository {
             .toList()
           ..sort((a, b) => a.date.compareTo(b.date));
 
-    final yearMax = rawDays.fold(
-      0,
-      (max, d) => (d.count ?? 0) > max ? d.count! : max,
+    final yearMax = ContributionLevelService.highestCount(
+      rawDays.map((d) => d.count),
     );
 
     final days = rawDays
@@ -192,12 +184,11 @@ final class GitHubContributionRepository implements ContributionRepository {
           (d) => ContributionDay(
             date: d.date,
             count: d.count,
-            level:
-                _levelFromIndex(d.level) ??
-                ContributionLevelService.levelFor(
-                  count: d.count ?? 0,
-                  yearMax: yearMax,
-                ),
+            level: ContributionLevelService.levelOf(
+              storedIndex: d.level,
+              count: d.count,
+              yearMax: yearMax,
+            ),
           ),
         )
         .toList();
@@ -209,13 +200,6 @@ final class GitHubContributionRepository implements ContributionRepository {
       totalContributions: ContributionStatsService.totalFor(days),
     );
   }
-
-  static ContributionLevel? _levelFromIndex(int? index) => index == null
-      ? null
-      : ContributionLevel.values[index.clamp(
-          0,
-          ContributionLevel.values.length - 1,
-        )];
 
   Future<ContributionCalendar?> _readCache({
     required String key,
@@ -263,30 +247,26 @@ final class GitHubContributionRepository implements ContributionRepository {
     required Username username,
     required Year year,
   }) {
-    int? yearMax;
-    int derivedYearMax() {
-      return yearMax ??= dto.weeks
-          .expand((week) => week.contributionDays)
-          .map((day) => day.contributionCount)
-          .whereType<int>()
-          .fold<int>(0, (highest, count) => count > highest ? count : highest);
-    }
+    final dtoDays = dto.weeks
+        .expand((weekDto) => weekDto.contributionDays)
+        .toList();
+    final yearMax = ContributionLevelService.highestCount(
+      dtoDays.map((dayDto) => dayDto.contributionCount),
+    );
 
-    final days = dto.weeks.expand((weekDto) => weekDto.contributionDays).map((
-      dayDto,
-    ) {
-      final count = dayDto.contributionCount;
-      return ContributionDay(
-        date: DateTime.parse(dayDto.date),
-        count: count,
-        level:
-            _levelFromIndex(dayDto.level) ??
-            ContributionLevelService.levelFor(
-              count: count ?? 0,
-              yearMax: derivedYearMax(),
+    final days = dtoDays
+        .map(
+          (dayDto) => ContributionDay(
+            date: DateTime.parse(dayDto.date),
+            count: dayDto.contributionCount,
+            level: ContributionLevelService.levelOf(
+              storedIndex: dayDto.level,
+              count: dayDto.contributionCount,
+              yearMax: yearMax,
             ),
-      );
-    }).toList();
+          ),
+        )
+        .toList();
     final weeks = ContributionGridService.buildFor(
       days: days,
       year: year.value,

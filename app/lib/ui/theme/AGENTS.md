@@ -32,7 +32,7 @@ exhaustive `switch (this)`, so a sixth case is a compile error in both; this fol
 - **`color` is `null` for `system` on purpose**: that is what makes "system" follow the light/dark toggle instead
   of pinning a shade, and `colorOr(fallback)` is where the `?? colors.card` fallback is decided.
 - **`BackgroundPreset.byName` returns `null` for an unknown name**, so a rejected stored value is visible where
-  `ViewerNotifier` pairs it with `BackgroundPreset.fallback`.
+  `HiveSettingsRepository.load()` pairs it with `BackgroundPreset.fallback`.
 - **Persisted by `name`, under the `backgroundPreset` key, with a legacy fallback to `cardBackground`.** Renaming a
   case is therefore a migration: add the fallback and a test, or every person silently loses their Background.
 

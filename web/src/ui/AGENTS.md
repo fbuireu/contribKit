@@ -82,11 +82,14 @@ and `Telemetry.astro` cannot import at all.
   Count without a date (`5 contributions`), never `Invalid Date`, and reads `data-count` as a run of digits passed
   through the domain's `isCount`, so an empty, signed, fractional or non-numeric value is an unknown Count
   (`Contributions unknown`), never `NaN` or a truncated guess.
-- **State is module-level, in [`state.ts`](./utils/state.ts)**: two variables, `days` and `username`, behind getters and setters.
-  There is no store and no framework. Anything needing the current grid calls `getDays()`; anything changing it
-  calls `setDays()` and then a `render*` function. Nothing subscribes, so **a mutation without a matching render
-  is simply invisible**, which is the failure mode to watch for. `renderCustomize`, `renderExportPreview` and
-  `renderWidget` re-read state; `updateHeroStats`, `updateYearRange` and `setHeroError` write what they are handed.
+- **State is module-level, in [`state.ts`](./utils/state.ts)**: two variables, `days` and `username`, behind getters and
+  setters. `days` is readonly in both directions, and `username` is the `Username` value object, or `null` until the
+  page holds a valid one: an SSR input that names none (`?user=foo_bar`) leaves it `null`, and the renderers that need
+  one (`renderExportPreview`, the Home Screen Widget's name) skip. There is no store and no framework. Anything needing
+  the current grid calls `getDays()`; anything changing it calls `setDays()` and then a `render*` function. Nothing
+  subscribes, so **a mutation without a matching render is simply invisible**, which is the failure mode to watch for.
+  `renderCustomizer`, `renderExportPreview` and `renderHomeScreenWidget` re-read state; `updateHeroStats`,
+  `updateHomeScreenWidgetStats`, `updateYearRange` and `setHeroError` write what they are handed.
 - **`flash` always restores the label `copy`,** so it belongs to the export copy button and nothing else; a second
   caller needs the label parameterised first. It cancels its own pending timer through a module-level `WeakMap`,
   so a second click inside `COPIED_FEEDBACK_MS` can neither restore `copied!` as the label nor leave a refused copy
@@ -96,12 +99,12 @@ and `Telemetry.astro` cannot import at all.
   (`contributionGridSchema`), and dropping a day whose date is not on the calendar; the page is never blank.
   [`page-init.test.ts`](./utils/page-init.test.ts) doubles [`cookie.ts`](./utils/cookie.ts) and asserts
   `writeUsernameCookie` is reached on the success branch and on neither failure branch.
-- **`renderFromGitHub` takes its `request`,** defaulting to `fetch`, the seam the whole refresh is tested through,
-  **and a `source`**, a `CalendarRequestSource` defaulting to `form`, because the DOM does not say what asked for the
+- **`renderFromGitHub` takes a `Username` whole, its `request`,** defaulting to `fetch` with
+  `AbortSignal.timeout(REQUEST_TIMEOUT_MS)`, the seam the whole refresh is tested through, **and a `source`**, a `CalendarRequestSource` defaulting to `form`, because the DOM does not say what asked for the
   render: the form and the render button pass `form`, a suggestion button `suggestion`, the year select `year` and
   `popstate` `history`. The event is `calendar_rendered` with that source and the Year on success,
-  `calendar_render_failed` with a reason `contributionFailureReason` derives from the status, or `unreachable` from
-  the catch; the username is never on it.
+  `calendar_render_failed` with a reason `contributionFailureReason` derives from the error body, or `unreachable`
+  from the catch; the username is never on it.
 - **A body of the wrong shape is an error state, never a calendar.** A 200 whose body fails
   `contributionCalendarSchema` (no `days`, a Count or total that is not a non-negative integer or `null`, or no JSON
   at all) takes the branch a refused status takes: `showErrorState` with `something went wrong`,
@@ -111,7 +114,7 @@ and `Telemetry.astro` cannot import at all.
   body's `kind` and `field` choose the sentence, and its `error` reaches it only where neither the kind nor the status
   names one, all three only when `contributionCalendarErrorSchema` accepts the body.
 - **The controllers record their Usage Events after the render.** `initRadioList` takes an `onChosen` beside its
-  selector and calls it after `renderCustomize`, so the palette and shape events read `getActivePalette().key` and
+  selector and calls it after `renderCustomizer`, so the palette and shape events read `getActivePalette().key` and
   `getActiveShape()`; `initExportTabs` records the tab only when `getActiveExportTab` names an Export Format. The
   copy button in [`render.ts`](./utils/render.ts) records `export_copied` after the clipboard settles. The names, the
   property shapes and the consent gate are in the [components guide](./components/AGENTS.md), under
@@ -122,12 +125,16 @@ and `Telemetry.astro` cannot import at all.
   `initUsageEventLinks` installs, which the `<script>` in `Telemetry.astro` calls. Only `store_link_opened` and
   `section_navigated` can be declared that way, and both sides check the values against the closed sets.
 - **The client and the server build the same grid.** `page-init` calls `buildGridFromApi` and
-  `statsWithScrapedTotal` from the domain layer, exactly as [`index.astro`](../pages/index.astro) does.
+  `statsWithScrapedTotalContributions` from the domain layer, exactly as [`index.astro`](../pages/index.astro) does.
 - **The year is decided once, before the request, and reused for the grid.** `renderFromGitHub` reads the select
   through the domain's `resolveYear`, which `readYearFromUrl` applies to `?year=` and the landing page's server
   render applies too, so a value that names no Year (`2022.5`, `-1`, `1999`, next year) opens on the current one; it
   sends that as `&year=`, publishes it in the URL and builds the grid for the same number. The `year` query is
-  therefore always sent, so the endpoint is never asked for the Rolling Window.
+  therefore always sent, so the endpoint is never asked for the Rolling Window. **The current year is the UTC year,**
+  `CURRENT_YEAR = new Date().getUTCFullYear()`, because the Worker's clock is UTC and its upper bound is the year it
+  reads there: a visitor east of UTC in the first hours of 1 January, whose own calendar is a year ahead, must not ask
+  for a year the Worker has not reached. [`page-init-year.test.ts`](./utils/page-init-year.test.ts) sets the zone to
+  prove it, east and west.
 - **Every path to the request refuses a malformed Username before it leaves.** The select's `change` event goes
   through the same `submitRender` the button and the form use: an empty field gets its own sentence, a malformed one
   `parseUsername`'s, with focus back on the input. `popstate` runs the `?user=` it restores through `parseUsername`
@@ -159,19 +166,22 @@ returned.
 | `NotFound` | `username not found, check it and try again` |
 | `InvalidInput` | `invalid username`, or `invalid year` when its `field` is `year` |
 | `Network` | `could not reach github, try again in a moment` |
+| `Upstream` | `github could not serve the calendar, try again in a moment` |
 | `Parse` | `github answered, but the contribution calendar could not be read` |
 | `RateLimited` | `too many requests, try again in a moment` |
 | `Delivery`, and anything else | `something went wrong` |
 
-**Only a `Network` failure says it could not reach GitHub.** A `Parse` failure answers 502 as well, and there GitHub
-did answer, and a 502 that names no kind (an HTML page the zone answered) gets the fallback, because nothing says
+**Only a `Network` failure says it could not reach GitHub.** An `Upstream` or a `Parse` failure answers 502 as well,
+and there GitHub did answer, and a 502 that names no kind (an HTML page the zone answered) gets the fallback, because nothing says
 GitHub is why. **The 429 wording stays neutral**: a 429 with no kind is this site's own per-IP limit (the
 middleware, with `Retry-After: 60`), and one with `RateLimited` is GitHub rate-limiting the Worker.
 
-`CONTRIBUTION_ERRORS` is a `Record<Failure["kind"], string>`, so a new kind fails to compile until it has a
-sentence. **The Usage Event's reason is keyed on status, not kind**, in `CONTRIBUTION_FAILURE_REASONS`, so a
-rejected Year records `invalid_username`; a kind that maps to a new status needs a row there too, or the event says
-`unknown`, and nothing fails to compile when you forget.
+`CONTRIBUTION_ERRORS` and `CONTRIBUTION_FAILURE_REASONS` are each a `Record<Failure["kind"], …>`, so a new kind
+fails to compile until it has a sentence and a reason. **The Usage Event's reason is read the way the sentence is**:
+`contributionFailureReason({ status, kind, field })` takes the body's `kind` when `isFailureKind` accepts it and the
+kind its status names otherwise. A rejected Year records `invalid_year` and a rejected Username `invalid_username`;
+`Network`, `Upstream` and `Parse` record `upstream`, as an answer that names no kind does at 502; any other status
+that names none records `unknown`, so no status code leaks as a free value.
 
 ## `roving.ts`
 
@@ -184,6 +194,10 @@ group is a single tab stop rather than one per swatch or tab.
 
 ## Gotchas
 
+- **The versions the page prints are build-time constants.** `astro.config.ts` defines `__WEB_VERSION__`, read from
+  `web/package.json`, and `__APP_VERSION__`, read from `app/pubspec.yaml`, in `vite.define`, and
+  [`env.d.ts`](../env.d.ts) declares both: the footer prints the first and the hero the second. A component that
+  imported a manifest would climb out of `web/src`, which the docs test rejects.
 - **`mulberry32` is a seeded PRNG, and the seeding is the point.** The placeholder grid has to come out identical on
   the server and on the client, or the page visibly reshuffles once the script runs.
 - **`updateYearRange` reads `days[7]`, and that index is not arbitrary.** The grid starts on the Sunday on or before

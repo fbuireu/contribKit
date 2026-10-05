@@ -9,6 +9,7 @@ const CONTRIBUTION_ERRORS: Record<Failure["kind"], string> = {
 	[FailureKind.NotFound]: "username not found, check it and try again",
 	[FailureKind.InvalidInput]: "invalid username",
 	[FailureKind.Network]: "could not reach github, try again in a moment",
+	[FailureKind.Upstream]: "github could not serve the calendar, try again in a moment",
 	[FailureKind.Parse]: "github answered, but the contribution calendar could not be read",
 	[FailureKind.RateLimited]: "too many requests, try again in a moment",
 	[FailureKind.Delivery]: FALLBACK_CONTRIBUTION_ERROR,
@@ -20,12 +21,20 @@ const KIND_BY_STATUS: Partial<Record<number, Failure["kind"]>> = {
 	429: FailureKind.RateLimited,
 };
 
-const CONTRIBUTION_FAILURE_REASONS: Record<number, CalendarFailureReason> = {
-	400: CalendarFailureReason.InvalidUsername,
-	404: CalendarFailureReason.NotFound,
-	429: CalendarFailureReason.RateLimited,
-	502: CalendarFailureReason.Upstream,
+const CONTRIBUTION_FAILURE_REASONS: Record<Failure["kind"], CalendarFailureReason> = {
+	[FailureKind.NotFound]: CalendarFailureReason.NotFound,
+	[FailureKind.InvalidInput]: CalendarFailureReason.InvalidUsername,
+	[FailureKind.Network]: CalendarFailureReason.Upstream,
+	[FailureKind.Upstream]: CalendarFailureReason.Upstream,
+	[FailureKind.Parse]: CalendarFailureReason.Upstream,
+	[FailureKind.RateLimited]: CalendarFailureReason.RateLimited,
+	[FailureKind.Delivery]: CalendarFailureReason.Unknown,
 };
+
+const BAD_GATEWAY_STATUS = 502;
+
+const reasonOfUnnamedFailure = (status: number): CalendarFailureReason =>
+	status === BAD_GATEWAY_STATUS ? CalendarFailureReason.Upstream : CalendarFailureReason.Unknown;
 
 export interface ContributionErrorParams {
 	status: number;
@@ -43,5 +52,19 @@ export const contributionError = ({ status, kind, field, serverMessage }: Contri
 
 export const formatHeroError = (message: string): string => `↳ ${message}`;
 
-export const contributionFailureReason = (status: number): CalendarFailureReason =>
-	CONTRIBUTION_FAILURE_REASONS[status] ?? CalendarFailureReason.Unknown;
+export interface ContributionFailureReasonParams {
+	status: number;
+	kind?: string | null;
+	field?: string | null;
+}
+
+export const contributionFailureReason = ({
+	status,
+	kind,
+	field,
+}: ContributionFailureReasonParams): CalendarFailureReason => {
+	const named = isFailureKind(kind) ? kind : KIND_BY_STATUS[status];
+	if (named === undefined) return reasonOfUnnamedFailure(status);
+	if (named === FailureKind.InvalidInput && field === FailureField.Year) return CalendarFailureReason.InvalidYear;
+	return CONTRIBUTION_FAILURE_REASONS[named];
+};

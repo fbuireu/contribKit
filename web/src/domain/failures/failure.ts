@@ -3,6 +3,7 @@ export const FailureKind = {
 	NotFound: "NotFound",
 	InvalidInput: "InvalidInput",
 	Network: "Network",
+	Upstream: "Upstream",
 	Parse: "Parse",
 	RateLimited: "RateLimited",
 	Delivery: "Delivery",
@@ -27,7 +28,8 @@ export type FailureField = (typeof FailureField)[keyof typeof FailureField];
 export type Failure =
 	| { readonly kind: typeof FailureKind.NotFound; readonly username: Username }
 	| { readonly kind: typeof FailureKind.InvalidInput; readonly field: FailureField; readonly message: string }
-	| { readonly kind: typeof FailureKind.Network; readonly status?: number; readonly message: string }
+	| { readonly kind: typeof FailureKind.Network; readonly message: string }
+	| { readonly kind: typeof FailureKind.Upstream; readonly message: string }
 	| { readonly kind: typeof FailureKind.Parse; readonly message: string }
 	| {
 			readonly kind: typeof FailureKind.RateLimited;
@@ -55,16 +57,8 @@ export const invalidInput = ({ field, message }: InvalidInputParams): InvalidInp
 	field,
 	message,
 });
-export interface NetworkParams {
-	message: string;
-	status?: number;
-}
-
-export const network = ({ message, status }: NetworkParams): Failure => ({
-	kind: FailureKind.Network,
-	status,
-	message,
-});
+export const network = (message: string): Failure => ({ kind: FailureKind.Network, message });
+export const upstream = (message: string): Failure => ({ kind: FailureKind.Upstream, message });
 export const parse = (message: string): Failure => ({ kind: FailureKind.Parse, message });
 
 export const delivery = (message: string): Failure => ({ kind: FailureKind.Delivery, message });

@@ -41,7 +41,7 @@ final class ViewerNotifierProvider
   }
 }
 
-String _$viewerNotifierHash() => r'1d753b9a9e53ed794413ee32e428fd23a7410229';
+String _$viewerNotifierHash() => r'1e99ff9391e33d0036f9e10ca4c06508348afe80';
 
 abstract class _$ViewerNotifier extends $Notifier<ViewerState> {
   ViewerState build();

@@ -14,7 +14,7 @@ flowchart LR
     walk --> grid["whole weeks<br/>covering the year"]
 ```
 
-`weeksFor(year)` answers how many whole weeks the Year takes, and `buildGridFromApi` walks `weeksFor(year) × DAYS_PER_WEEK` days. `GRID_CELL_COUNT = WEEKS_PER_YEAR (53) × DAYS_PER_WEEK (7)` is the rolling window's own size; every one of them is declared in [`web/src/domain/services/dates.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/services/dates.ts) ([ADR 0023](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
+`weeksFor(year)` answers how many whole weeks the Year takes, and `buildGridFromApi` walks `weeksFor(year) × DAYS_PER_WEEK` days. `GRID_CELL_COUNT = ROLLING_WINDOW_WEEKS (53) × DAYS_PER_WEEK (7)` is the rolling window's own size; every one of them is declared in [`web/src/domain/services/dates.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/services/dates.ts) ([ADR 0023](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)).
 
 ---
 

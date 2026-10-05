@@ -15,7 +15,7 @@ final class MarkdownExportRepository implements ExportRepository {
   }) async {
     try {
       final url = Embed.urlFor(
-        username: calendar.username.value,
+        username: calendar.username,
         paletteKey: options.palette.key,
         shape: options.shape,
       );

@@ -63,7 +63,7 @@ final class HomeScreenWidgetPayload {
 
   static String encodeTotalContributions(int? totalContributions) =>
       totalContributions == null
-      ? unknownTotalPhrase
+      ? unknownCountPhrase
       : '${formatTotalContributions(format: NumberFormat.decimalPattern(), totalContributions: totalContributions)} contributions this year';
 
   static String encodeColors(Palette palette) => [

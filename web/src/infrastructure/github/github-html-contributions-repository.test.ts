@@ -1,10 +1,22 @@
-import { FailureKind } from "@domain/failures/failure";
-import type { Username } from "@domain/value-objects/username";
-import type { Year } from "@domain/value-objects/year";
+import { FailureKind, isFailure } from "@domain/failures/failure";
+import { parseUsername, type Username } from "@domain/value-objects/username";
+import { isYear, parseYear, type Year } from "@domain/value-objects/year";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { githubHtmlContributionRepository } from "./github-html-contributions-repository";
 
-const username = { _tag: "Username", value: "torvalds" } as Username;
+const usernameOf = (raw: string): Username => {
+	const parsed = parseUsername(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not a Username: ${raw}`);
+	return parsed;
+};
+
+const username = usernameOf("torvalds");
+
+const yearOf = (value: number): Year => {
+	const parsed = parseYear({ requested: value, thisYear: value });
+	if (!isYear(parsed)) throw new Error(`fixture is not a Year: ${value}`);
+	return parsed;
+};
 
 const HTML = `
 <td class="ContributionCalendar-day" data-date="2024-01-01" data-level="2" id="cell-1"></td>
@@ -81,12 +93,14 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 		expect(result).toEqual({ kind: "NotFound", username });
 	});
 
-	it("returns Network on a non-ok response", async () => {
-		stubFetch(async () => new Response("", { status: 503 }));
+	it("returns Upstream, not Network, when GitHub answers with anything but the page", async () => {
+		for (const status of [403, 500, 503]) {
+			stubFetch(async () => new Response("", { status }));
 
-		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
+			const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
-		expect(result).toEqual({ kind: "Network", status: 503, message: "GitHub returned 503" });
+			expect(result, String(status)).toEqual({ kind: "Upstream", message: `GitHub returned ${status}` });
+		}
 	});
 
 	it("tells a 429 apart from an outage, so the reader is not told GitHub is unreachable", async () => {
@@ -188,7 +202,7 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 
 		const result = await githubHtmlContributionRepository.fetchCalendar({ username, year: null });
 
-		expect(result).toEqual({ kind: "Network", status: undefined, message: "boom" });
+		expect(result).toEqual({ kind: "Network", message: "boom" });
 	});
 
 	it("returns Parse when no contribution days are found", async () => {
@@ -301,7 +315,7 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 		freezeClock();
 		const fetchMock = vi.fn<typeof fetch>(async () => new Response(HTML, { status: 200 }));
 		vi.stubGlobal("fetch", fetchMock);
-		const year = { _tag: "Year", value: NOW.getFullYear() } as Year;
+		const year = yearOf(NOW.getFullYear());
 
 		await githubHtmlContributionRepository.fetchCalendar({ username, year });
 
@@ -313,7 +327,7 @@ describe("githubHtmlContributionRepository.fetchCalendar", () => {
 	it("adds from/to query params for a past year", async () => {
 		const fetchMock = vi.fn<typeof fetch>(async () => new Response(HTML, { status: 200 }));
 		vi.stubGlobal("fetch", fetchMock);
-		const year = { _tag: "Year", value: 2020 } as Year;
+		const year = yearOf(2020);
 
 		await githubHtmlContributionRepository.fetchCalendar({ username, year });
 

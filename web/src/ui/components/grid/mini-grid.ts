@@ -18,7 +18,7 @@ const LEVEL_THRESHOLDS = [
 
 export interface GenerateMiniGridParams {
 	palette: PaletteColors;
-	liveDays?: ContributionDay[];
+	liveDays?: readonly ContributionDay[];
 }
 
 export function generateMiniGrid({ palette, liveDays }: GenerateMiniGridParams): string {

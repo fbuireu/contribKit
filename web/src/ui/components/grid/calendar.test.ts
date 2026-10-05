@@ -1,5 +1,6 @@
+import type { ContributionDay } from "@domain/entities/types";
 import { getWeekday } from "@domain/services/dates";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { generateData } from "./calendar";
 
 describe("generateData", () => {
@@ -10,6 +11,10 @@ describe("generateData", () => {
 
 	afterEach(() => {
 		vi.useRealTimers();
+	});
+
+	it("hands back readonly days", () => {
+		expectTypeOf(generateData()).toEqualTypeOf<readonly ContributionDay[]>();
 	});
 
 	it("is deterministic and produces a full grid", () => {

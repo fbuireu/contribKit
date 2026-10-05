@@ -7,7 +7,7 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 | Directory | Role |
 |---|---|
 | `core/` | App shell and head plumbing on every page: `layouts/` (`BaseLayout`), `header/`, `footer/`, `seo/`, `telemetry/`, `cookie-consent/`. `BaseLayout` composes `header` and `footer`, `seo` and `telemetry` in the head, and `cookie-consent` at the end of the body. |
-| `hero/` · `customize/` · `export/` · `how-it-works/` · `widget/` | Home-page feature sections: one folder each (`.astro` + `.css` + any local logic). |
+| `hero/` · `customizer/` · `export/` · `how-it-works/` · `home-screen-widget/` | Home-page feature sections: one folder each (`.astro` + `.css` + any local logic). |
 | `grid/` | The Contribution Calendar: `CellTooltip` plus its rendering utilities (`calendar`, `render-svg`, `mini-grid`, `contribution`, `grid-geometry`). |
 | `contact/` | The `/contact` page's section: `Contact.astro`, its colocated `contact.css`, and `contact-form.ts`, the client controller that posts to `/api/contact`. It is the only component group that submits anything ([ADR 0030](../../../../docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md)). |
 | `error/` | The 404/500 UI: `ErrorView` + `ContributionCode` + `glyph-utils`, generic over code and tone. |
@@ -17,6 +17,13 @@ Every Astro component, grouped by role. CSS, component-local logic and tests are
 - **The figures in the hero go through `formatTotalContributions` and `formatStreak`**, in
   [`grid/contribution.ts`](./grid/contribution.ts), the functions `Hero.astro` and the client's `updateHeroStats`
   both call, so a figure that is `null` reads `unknown` on either side.
+- **A mock-up that names the visitor prints the visitor's figures.** `HomeScreenWidget.astro` takes the page's `stats`
+  and the Username, and writes the streak and the year's total through `formatStreak` and
+  `formatHomeScreenWidgetTotal`; `updateHomeScreenWidgetStats` writes the same nodes (`HomeScreenWidgetStreak`,
+  `HomeScreenWidgetTotal`) with the figures `updateHeroStats` prints, after every fetch and after a failed one, so a
+  Username never sits beside a number that is not theirs. The How It Works mock-up of the same widget says "your
+  username" where a Username would stand, and its streak is an illustration drawn from
+  `HOME_SCREEN_WIDGET_DEMO_LEVELS`.
 - **The contact form's limits are interpolated out of
   [`@domain/value-objects/contact-message`](../../domain/value-objects/contact-message.ts).** The markup carries
   `required`, `type="email"`, `minlength` and `maxlength` and no `novalidate`; the controller sets `noValidate`
@@ -56,30 +63,35 @@ That table is the complete list. Nothing detects a new divergence; adding a row 
 colours a compile error to break, and each day's level is already a `ContributionLevel`, because `contributionDay`
 clamps it at construction. `RenderCalendarStringParams` lives beside it in [`render-svg.ts`](./grid/render-svg.ts):
 anything a renderer's caller must know goes beside the renderer, never in [`calendar.ts`](./grid/calendar.ts), the
-placeholder generator. `shapePreviewSVG` takes a `CellShape` too, because [`Customize.astro`](./customize/Customize.astro) maps over `CELL_SHAPES`
+placeholder generator. `shapePreviewSVG` takes a `CellShape` too, because [`Customizer.astro`](./customizer/Customizer.astro) maps over `CELL_SHAPES`
 and the value flows *into* the markup rather than out of it.
 
 **An unknown Count leaves no `data-count`.** [`ui/utils/cell-tooltip.ts`](../utils/cell-tooltip.ts) reads that absence as `null`, and a
 value that is not a whole number of contributions the same way, and `formatContribLabel` says "Contributions unknown
 on …".
 
-The three fixed geometries in [`grid-geometry.ts`](./grid/grid-geometry.ts) (`HERO_GRID_GEOMETRY` (13/3), `CUSTOMIZE_GRID_GEOMETRY` (12/3) and
+The three fixed geometries in [`grid-geometry.ts`](./grid/grid-geometry.ts) (`HERO_GRID_GEOMETRY` (13/3), `CUSTOMIZER_GRID_GEOMETRY` (12/3) and
 `EXPORT_GRID_GEOMETRY`) are the only ones `renderCalendarString` is called with; the Home Screen Widget preview in
 `mini-grid.ts` keeps its own size (see Gotchas). They are pixel geometry, not the glossary's Cell Size
 ([ADR 0016](../../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
 `EXPORT_GRID_GEOMETRY` is pinned to the domain defaults, so the export preview matches what the SVG endpoint emits;
 a test asserts exactly that.
 
-**The export tabs' figures are computed on the server and nothing on the client rewrites them.**
-[`Export.astro`](./export/Export.astro) receives the rendered preview and not the days behind it, so the PNG tab asks `calendarLayout`
-about an empty day list and prints `24×108` beside a `660×108` preview, and the SVG tab prints
-`WEEKS_PER_YEAR×DAYS_PER_WEEK`. No tab carries a byte size, because the web emits no file: `renderExportPreview`
-gives SVG and Markdown a copy button and the PNG tab a preview with no download. `buildSvgLines` takes the visitor's
-Palette and Cell Shape and its radius from `cornerRadiusFor`, so the SVG preview's sample Cells look like the ones
-the copy button copies; [`code-preview.test.ts`](./export/code-preview.test.ts) pins that. The Markdown tab shows
-exactly the one line its button copies: `buildMarkdownLines` and `markdownSnippet` both read the snippet's tokens
-from one function, so the preview cannot drift from the copy. The SVG preview's view box is its own
-`WEEKS_PER_YEAR` step count, without `calendarLayout`'s padding.
+**The export tabs' figures come from the days on screen, on the server and in the browser.**
+[`Export.astro`](./export/Export.astro) takes the days behind the rendered preview, and `exportTabDetail` in
+[`export-formats.ts`](./export/export-formats.ts) writes each tab's line from them: the PNG tab says the size
+`calendarLayout` gives (`660×108` for 53 weeks, `672×108` for 54), the SVG tab says the weeks it draws, and the Markdown
+tab keeps its one line. `renderExportPreview` writes the same lines again, through `ExportTabDetail`, each time it
+runs, so a fetch that brings a year of another length rewrites them with the preview. No tab carries a byte size,
+because the web emits no file: `renderExportPreview` gives SVG and Markdown a copy button and the PNG tab a preview
+with no download.
+
+**Each code preview is cut from the text its copy button copies.** `renderExportPreview` builds that text once, and the
+button copies it and the preview shows it. `buildSvgLines` reads the calendar's markup, one element to a line: its
+opening tags, its first three Cells (the elements that carry `data-date`), a comment counting the Cells it leaves out,
+and its closing tags, so the view box, the Palette, the Cell Shape and the number of weeks are the ones the clipboard
+gets, with no request. `buildMarkdownLines` and `markdownSnippet` read the snippet's tokens from one function. Both are
+pinned by [`code-preview.test.ts`](./export/code-preview.test.ts) and `render.test.ts`.
 
 `calendar.ts` holds `generateData()`, the placeholder grid, driven by `mulberry32` and the `LEVEL_THRESHOLDS` /
 `COUNT_SPREAD_PER_LEVEL` tables. It is the one grid the landing page draws that is **not** a Year: it ends on the
