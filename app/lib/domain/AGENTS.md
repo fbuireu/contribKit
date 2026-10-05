@@ -27,8 +27,8 @@ half of a domain implemented twice: the TypeScript mirror is
   how its tests reach 2028 and later.
 - **A calendar day is a UTC date, and `CalendarDate` is the one way to make one**
   ([ADR 0032](../../../docs/adr/0032-a-calendar-day-is-a-utc-date-in-the-app.md)). `parse` and `tryParse` read a bare
-  `YYYY-MM-DD` into `DateTime.utc` and refuse any other shape, and a date that does not exist overflows to the day
-  it falls on as `DateTime.parse` reads it (`2024-02-30` is 1 March). `of(instant)` is the date an instant falls on,
+  `YYYY-MM-DD` into `DateTime.utc` and refuse any other shape and any date the calendar does not have (`2024-02-30`),
+  as the web's `IsoDate` does, rather than overflowing to the day after. `of(instant)` is the date an instant falls on,
   read from the instant's own year, month and day and converted to no zone, so `today` from the clock, which is
   local, is the person's day. A local `DateTime` is an instant: `today`, `cachedAt`, `resetAt`. A local and a UTC
   `DateTime` with the same fields are never `==`, even under `TZ=UTC`, so a day built the other way misses every

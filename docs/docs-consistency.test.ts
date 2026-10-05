@@ -1714,7 +1714,7 @@ describe("the app's code keeps the shapes the standards hold it to", () => {
 		expect(linesMatching({ files, pattern: /\bDuration\(\s*days\s*:|\bMaterialApp\b/ })).toEqual([]);
 	});
 
-	it("builds no calendar day with a local DateTime in domain/ or infrastructure/, and parses none into one", () => {
+	it("builds no calendar day with a local DateTime anywhere in app/lib, and parses none into one", () => {
 		const LOCAL_DAY = /\bDateTime\s*\(|\bDateTime\.(?:parse|tryParse)\s*\(/;
 		const INSTANT_READS = [
 			"DateTime.parse(raw[''] as String)",
@@ -1731,7 +1731,7 @@ describe("the app's code keeps the shapes the standards hold it to", () => {
 				.filter(({ rest }) => LOCAL_DAY.test(rest))
 				.map(({ index }) => index + 1);
 
-		const files = ["domain", "infrastructure"].flatMap(dartIn);
+		const files = ["domain", "infrastructure", "application", "ui"].flatMap(dartIn);
 		const sources = files.map((path) => ({ path, code: withoutStringLiterals(read(path)) }));
 		const offenders = sources.flatMap(({ path, code }) =>
 			localDayLines(code).map((line) => `${relative(path)}:${line}`),
@@ -1762,7 +1762,12 @@ describe("the app's code keeps the shapes the standards hold it to", () => {
 		expect(localDayLines("final stamp = DateTime.parse(raw[''] as String);")).toEqual([]);
 		expect(localDayLines("cachedAt.isAfter(DateTime(year.value + 1));")).toEqual([]);
 		expect(localDayLines("return DateTime.tryParse(trimmed);")).toEqual([]);
-		expect(emptyRoots({ paths: files.map(relative), roots: ["app/lib/domain", "app/lib/infrastructure"] })).toEqual([]);
+		expect(
+			emptyRoots({
+				paths: files.map(relative),
+				roots: ["app/lib/domain", "app/lib/infrastructure", "app/lib/application", "app/lib/ui"],
+			}),
+		).toEqual([]);
 		expect([...offenders, ...strayInstantReads]).toEqual([]);
 	});
 

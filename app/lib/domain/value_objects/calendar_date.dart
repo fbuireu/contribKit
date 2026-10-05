@@ -7,11 +7,10 @@ abstract final class CalendarDate {
   static DateTime? tryParse(String iso) {
     final match = _isoDay.firstMatch(iso);
     if (match == null) return null;
-    return DateTime.utc(
-      int.parse(match[1]!),
-      int.parse(match[2]!),
-      int.parse(match[3]!),
-    );
+    final month = int.parse(match[2]!);
+    final day = int.parse(match[3]!);
+    final date = DateTime.utc(int.parse(match[1]!), month, day);
+    return date.month == month && date.day == day ? date : null;
   }
 
   static DateTime of(DateTime instant) =>

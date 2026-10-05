@@ -26,20 +26,25 @@ void main() {
       }
     });
 
-    test('reads a date that does not exist as the day it overflows to', () {
-      for (final (iso, expected) in [
-        ('2024-02-30', DateTime.utc(2024, 3, 1)),
-        ('2023-02-29', DateTime.utc(2023, 3, 1)),
-        ('2024-01-32', DateTime.utc(2024, 2, 1)),
-        ('2024-13-01', DateTime.utc(2025, 1, 1)),
-        ('2024-00-10', DateTime.utc(2023, 12, 10)),
+    test('refuses a date the calendar does not have, as the web does', () {
+      for (final iso in [
+        '2024-02-30',
+        '2023-02-29',
+        '2024-01-32',
+        '2024-13-01',
+        '2024-00-10',
+        '2024-04-31',
       ]) {
         expect(
-          CalendarDate.parse(iso),
-          expected,
-          reason: '$iso, as DateTime.parse reads it',
+          () => CalendarDate.parse(iso),
+          throwsFormatException,
+          reason: 'parse "$iso"',
         );
       }
+    });
+
+    test('reads the leap day of a leap Year', () {
+      expect(CalendarDate.parse('2024-02-29'), DateTime.utc(2024, 2, 29));
     });
 
     test('refuses anything but a bare YYYY-MM-DD', () {
@@ -67,7 +72,7 @@ void main() {
   group('CalendarDate.tryParse', () {
     test('answers the date parse answers', () {
       expect(CalendarDate.tryParse('2024-03-31'), DateTime.utc(2024, 3, 31));
-      expect(CalendarDate.tryParse('2024-02-30'), DateTime.utc(2024, 3, 1));
+      expect(CalendarDate.tryParse('2024-02-29'), DateTime.utc(2024, 2, 29));
     });
 
     test('answers null where parse refuses', () {
@@ -78,6 +83,8 @@ void main() {
         '2024-03-31T00:00:00Z',
         ' 2024-03-31',
         'tomorrow',
+        '2024-02-30',
+        '2023-02-29',
       ]) {
         expect(CalendarDate.tryParse(iso), isNull, reason: 'tryParse "$iso"');
       }

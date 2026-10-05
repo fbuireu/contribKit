@@ -530,6 +530,24 @@ void main() {
       );
     });
 
+    test('stamps a snapshot with a UTC instant, so a change of zone cannot move its age', () async {
+      final stampedAt = DateTime(2024, 3, 31, 1, 30);
+      await GitHubContributionRepository(
+        httpClient: _clientReturning(
+          _day(id: 'a', date: '2023-03-06', level: '1') +
+              _tooltip(id: 'a', count: 10),
+        ),
+        now: () => stampedAt,
+      ).fetchCalendar(username: username, year: year);
+
+      final box = await Hive.openBox<dynamic>('contribution_cache_v3');
+      final entry = box.get('octocat:${year.value}') as Map<dynamic, dynamic>;
+      final stamp = entry['cachedAt'] as String;
+
+      expect(stamp, endsWith('Z'));
+      expect(DateTime.parse(stamp).isAtSameMomentAs(stampedAt), isTrue);
+    });
+
     test('reads a stored YYYY-MM-DD as the UTC date it names', () async {
       final box = await Hive.openBox<dynamic>('contribution_cache_v3');
       await box.put('other:${year.value}', {

@@ -237,7 +237,7 @@ final class GitHubContributionRepository implements ContributionRepository {
       final box = await _openBox();
       final dto = _toDto(calendar);
       await box.put(key, {
-        'cachedAt': _now().toIso8601String(),
+        'cachedAt': _now().toUtc().toIso8601String(),
         'json': jsonEncode(dto),
       });
     } catch (_) {}

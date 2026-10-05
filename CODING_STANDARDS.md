@@ -50,7 +50,7 @@ No rule below restates these, and a diff that breaks one fails CI:
     and catching nothing, no `switch` over a `Failure` with a `_` or `default` arm
     ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)), `dynamic` only in
     `infrastructure/`, no `firstWhere` without an `orElse`, no date stepped by a `Duration` of days, no calendar day
-    built with a local `DateTime(` or parsed into one in `domain/` or `infrastructure/` bar the cache stamp, the Year
+    built with a local `DateTime(` or parsed into one anywhere in `app/lib` bar the cache stamp, the Year
     boundary and a reset time, no `MaterialApp`, no clock read (`DateTime.now`) in `domain/`, and in `app/lib/ui`
     outside `ui/theme/` no colour or `Duration` literal and no read of a `colorScheme`;
   - on the web: no class, no `Math.random`, no `toISOString().slice(0, 10)`, no clock read (`new Date()`, `Date.now()`)
