@@ -14,10 +14,11 @@ import '../../../../support/fixtures.dart';
 import '../../../../support/harness.dart';
 
 ContributionDay _day({
+  DateTime? date,
   int? count = 3,
   ContributionLevel level = ContributionLevel.low,
 }) => ContributionDay(
-  date: DateTime.utc(2024, 6, 15),
+  date: date ?? DateTime.utc(2024, 6, 15),
   count: count,
   level: level,
 );
@@ -145,6 +146,20 @@ void main() {
         day: _day(count: 0, level: ContributionLevel.none),
       );
       expect(_tooltipOf(tester), '2024-06-15: 0 contributions');
+    });
+
+    testWidgets('says the calendar date of a day on every daylight-saving '
+        'switch', (tester) async {
+      for (final (date, expected) in [
+        (DateTime.utc(2024, 3, 31), '2024-03-31: 5 contributions'),
+        (DateTime.utc(2024, 10, 27), '2024-10-27: 5 contributions'),
+        (DateTime.utc(2024, 3, 10), '2024-03-10: 5 contributions'),
+        (DateTime.utc(2024, 11, 3), '2024-11-03: 5 contributions'),
+      ]) {
+        await _pumpCell(tester, day: _day(date: date, count: 5));
+
+        expect(_tooltipOf(tester), expected, reason: '$date');
+      }
     });
 
     testWidgets('an unknown Count is said in words, never rendered as zero', (

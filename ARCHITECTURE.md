@@ -150,8 +150,8 @@ through GitHub's shared image proxy, so a per-IP limit would throttle every read
 | 1 | [`providers.dart`](./app/lib/ui/di/providers.dart) constructs repositories and use cases | ui/di | The only file allowed to import `infrastructure/` and `application/` at once |
 | 2 | `FetchContributions.call(...)` | application | One class, one public `call` |
 | 3 | `GitHubContributionRepository.fetchCalendar(...)` | infrastructure | Hive cache first: an entry written while its Year was under way expires after an hour, and one written after the Year ended never does ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)) |
-| 4 | DTO → entity at the boundary | infrastructure/github/dtos | A DTO never leaves the layer |
-| 5 | Grid padded to cover the year | domain | `ContributionGridService.buildFor` pads dates outside the requested year with an unknown Count, over the 53 or 54 whole weeks the year needs ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). Both the fresh fetch and the cache read go through it, and the web builds its grid in its own domain layer |
+| 4 | DTO → entity at the boundary | infrastructure/github/dtos | A DTO never leaves the layer. A day is a `YYYY-MM-DD` in the DTO and a UTC date on the entity, through `CalendarDate` ([ADR 0032](./docs/adr/0032-a-calendar-day-is-a-utc-date-in-the-app.md)) |
+| 5 | Grid padded to cover the year | domain | `ContributionGridService.buildFor` pads dates outside the requested year with an unknown Count, over the 53 or 54 whole weeks the year needs ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). Both the fresh fetch and the cache read go through it, and the web builds its grid in its own domain layer. Every day it holds is a UTC date, so no step depends on the device's zone |
 | 6 | `ContributionStats` derived | domain/services | Streaks, best day, best month, weekly average, active days |
 
 Separately, `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart) runs every 24 hours under WorkManager to refresh the
@@ -337,6 +337,7 @@ agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
 | [0029](./docs/adr/0029-diagnostic-reports-carry-a-masked-session-replay.md) | Diagnostic Reports carry a masked Session Replay |
 | [0030](./docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) | Contact Messages leave through Cloudflare's send_email binding |
 | [0031](./docs/adr/0031-the-web-keeps-its-hand-written-failure-union-instead-of-effect.md) | The web keeps its hand-written Failure union instead of Effect |
+| [0032](./docs/adr/0032-a-calendar-day-is-a-utc-date-in-the-app.md) | A calendar day is a UTC date in the app |
 
 Every one of them follows [0000, the template](./docs/adr/0000-adr-template.md): `# N. Title`, a date, a status,
 then *Context*, *Decision*, *Consequences*. A new ADR starts by copying that file, not by writing one from scratch,

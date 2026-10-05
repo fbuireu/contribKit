@@ -1714,6 +1714,58 @@ describe("the app's code keeps the shapes the standards hold it to", () => {
 		expect(linesMatching({ files, pattern: /\bDuration\(\s*days\s*:|\bMaterialApp\b/ })).toEqual([]);
 	});
 
+	it("builds no calendar day with a local DateTime in domain/ or infrastructure/, and parses none into one", () => {
+		const LOCAL_DAY = /\bDateTime\s*\(|\bDateTime\.(?:parse|tryParse)\s*\(/;
+		const INSTANT_READS = [
+			"DateTime.parse(raw[''] as String)",
+			"DateTime(year.value + 1)",
+			"DateTime.tryParse(trimmed)",
+		];
+		const localDayLines = (source: string): number[] =>
+			source
+				.split("\n")
+				.map((line, index) => ({
+					index,
+					rest: INSTANT_READS.reduce((left, instant) => left.replace(instant, ""), line),
+				}))
+				.filter(({ rest }) => LOCAL_DAY.test(rest))
+				.map(({ index }) => index + 1);
+
+		const files = ["domain", "infrastructure"].flatMap(dartIn);
+		const sources = files.map((path) => ({ path, code: withoutStringLiterals(read(path)) }));
+		const offenders = sources.flatMap(({ path, code }) =>
+			localDayLines(code).map((line) => `${relative(path)}:${line}`),
+		);
+		const occurrences = (instant: string): number =>
+			sources.reduce((total, { code }) => total + code.split(instant).length - 1, 0);
+		const strayInstantReads = INSTANT_READS.filter((instant) => occurrences(instant) !== 1).map(
+			(instant) => `${instant} is one of the three instants this rule lets through, and is not found exactly once`,
+		);
+
+		expect(localDayLines("final day = DateTime(2024, 3, 31);")).toEqual([1]);
+		expect(localDayLines("final start = DateTime(year, 1, 1 - leadingDaysFor(year));")).toEqual([1]);
+		expect(localDayLines("final first = DateTime(year);")).toEqual([1]);
+		expect(localDayLines("date: DateTime.parse(dayDto.date),")).toEqual([1]);
+		expect(localDayLines("final date = DateTime.tryParse(match);")).toEqual([1]);
+		expect(
+			localDayLines("final stamp = DateTime.parse(raw[''] as String);\nfinal day = DateTime(2024, 1, 1);"),
+		).toEqual([2]);
+		expect(localDayLines("cachedAt.isAfter(DateTime(year.value + 1)) || DateTime(2024, 1, 1) == cachedAt")).toEqual([
+			1,
+		]);
+		expect(localDayLines("final day = DateTime.utc(2024, 3, 31);")).toEqual([]);
+		expect(localDayLines("static DateTime of(DateTime instant) =>")).toEqual([]);
+		expect(localDayLines("final DateTime Function() _now;\nrequired DateTime today,")).toEqual([]);
+		expect(localDayLines("date: CalendarDate.parse(dayDto.date),\nfinal date = CalendarDate.tryParse(text);")).toEqual(
+			[],
+		);
+		expect(localDayLines("final stamp = DateTime.parse(raw[''] as String);")).toEqual([]);
+		expect(localDayLines("cachedAt.isAfter(DateTime(year.value + 1));")).toEqual([]);
+		expect(localDayLines("return DateTime.tryParse(trimmed);")).toEqual([]);
+		expect(emptyRoots({ paths: files.map(relative), roots: ["app/lib/domain", "app/lib/infrastructure"] })).toEqual([]);
+		expect([...offenders, ...strayInstantReads]).toEqual([]);
+	});
+
 	it("takes no colour or Duration literal and reads no colorScheme in ui/ outside theme/", () => {
 		const files = dartIn("ui").filter((path) => !relative(path).startsWith("app/lib/ui/theme/"));
 		const LITERAL_OR_SCHEME =
@@ -2287,21 +2339,6 @@ describe("the workflows", () => {
 
 		expect(deploying).toBeGreaterThan(0);
 		expect(wrapped).toEqual([]);
-	});
-
-	it("runs the daylight-saving tests again under a zone that has daylight saving, which UTC cannot show", () => {
-		const DST_TEST = /^\s*test\(\s*['"][^'"\n]*daylight saving/m;
-		const appCi = read(join(WORKFLOWS, "_ci-app.yml"));
-		const rerun = [...appCi.matchAll(/^\s*run: TZ=Europe\/Madrid flutter test (.+)$/gm)].flatMap(([, files]) =>
-			files.trim().split(/\s+/),
-		);
-		const holding = walk({ dir: join(REPO, "app/test"), match: (path) => path.endsWith("_test.dart") })
-			.filter((path) => DST_TEST.test(read(path)))
-			.map((path) => relative(path).replace(/^app\//, ""))
-			.sort();
-
-		expect(holding.length).toBeGreaterThan(0);
-		expect([...rerun].sort()).toEqual(holding);
 	});
 
 	it("filters ci.yml by no path, and gates the docs contract on nothing", () => {

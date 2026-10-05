@@ -8,6 +8,7 @@ import 'package:contribkit/domain/repositories/contribution_repository.dart';
 import 'package:contribkit/domain/services/contribution_grid_service.dart';
 import 'package:contribkit/domain/services/contribution_level_service.dart';
 import 'package:contribkit/domain/services/contribution_stats_service.dart';
+import 'package:contribkit/domain/value_objects/calendar_date.dart';
 import 'package:contribkit/domain/value_objects/username.dart';
 import 'package:contribkit/domain/value_objects/year.dart';
 import 'package:contribkit/infrastructure/github/dtos/contribution_calendar_dto.dart';
@@ -137,7 +138,7 @@ final class GitHubContributionRepository implements ContributionRepository {
       final dateMatch = _dateAttr.firstMatch(td);
       if (dateMatch == null) continue;
 
-      final date = DateTime.tryParse(dateMatch.group(1)!);
+      final date = CalendarDate.tryParse(dateMatch.group(1)!);
       if (date == null || date.year != year.value) continue;
 
       final levelMatch = _levelAttr.firstMatch(td);
@@ -257,7 +258,7 @@ final class GitHubContributionRepository implements ContributionRepository {
     final days = dtoDays
         .map(
           (dayDto) => ContributionDay(
-            date: DateTime.parse(dayDto.date),
+            date: CalendarDate.parse(dayDto.date),
             count: dayDto.contributionCount,
             level: ContributionLevelService.levelOf(
               storedIndex: dayDto.level,

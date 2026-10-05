@@ -39,15 +39,11 @@ List<ContributionDay> _allDays(ContributionCalendar calendar) =>
     calendar.weeks.expand((week) => week.days).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
 
-ContributionDay _dayOn(ContributionCalendar calendar, {required String date}) {
-  final wanted = DateTime.parse(date);
-  return _allDays(calendar).firstWhere(
-    (day) =>
-        day.date.year == wanted.year &&
-        day.date.month == wanted.month &&
-        day.date.day == wanted.day,
-  );
-}
+String _isoOf(ContributionDay day) =>
+    day.date.toIso8601String().substring(0, 10);
+
+ContributionDay _dayOn(ContributionCalendar calendar, {required String date}) =>
+    _allDays(calendar).firstWhere((day) => _isoOf(day) == date);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -294,7 +290,7 @@ void main() {
 
         final days = _allDays(result.calendar);
         final padded = days
-            .where((day) => day.date != DateTime(2023, 3, 6))
+            .where((day) => day.date != DateTime.utc(2023, 3, 6))
             .toList();
 
         expect(padded, isNotEmpty);
@@ -312,7 +308,8 @@ void main() {
       },
     );
 
-    test('places a day that falls inside daylight saving time', () async {
+    test('places a day inside daylight-saving time where its calendar date '
+        'says', () async {
       final html =
           _day(id: 'a', date: '2023-07-15', level: '3') +
           _tooltip(id: 'a', count: 9);
@@ -323,10 +320,76 @@ void main() {
 
       expect(_dayOn(result.calendar, date: '2023-07-15').count, 9);
       expect(
-        _allDays(result.calendar)
-            .every((day) => day.date.hour == 0 && day.date.minute == 0),
-        isTrue,
+        _dayOn(result.calendar, date: '2023-07-15').date,
+        DateTime.utc(2023, 7, 15),
       );
+    });
+
+    test(
+      'returns every day of a fresh read as a UTC date at midnight',
+      () async {
+        final html =
+            _day(id: 'a', date: '2023-03-06', level: '2') +
+            _tooltip(id: 'a', count: 4);
+
+        final result = await GitHubContributionRepository(
+          httpClient: _clientReturning(html),
+        ).fetchCalendar(username: username, year: year);
+
+        final days = _allDays(result.calendar);
+        expect(days, isNotEmpty);
+        for (final day in days) {
+          expect(day.date.isUtc, isTrue, reason: '${day.date}');
+          expect(
+            day.date,
+            DateTime.utc(day.date.year, day.date.month, day.date.day),
+          );
+        }
+      },
+    );
+
+    test('runs in unbroken calendar-day order across the daylight-saving '
+        'switches of Europe and of the United States', () async {
+      final leapYear = Year(2024, today: testToday);
+      final html = [
+        for (final (index, date) in [
+          '2024-03-09',
+          '2024-03-10',
+          '2024-03-11',
+          '2024-03-30',
+          '2024-03-31',
+          '2024-04-01',
+          '2024-10-26',
+          '2024-10-27',
+          '2024-10-28',
+          '2024-11-02',
+          '2024-11-03',
+          '2024-11-04',
+        ].indexed)
+          _day(id: 'd$index', date: date, level: '2') +
+              _tooltip(id: 'd$index', count: index + 1),
+      ].join();
+
+      final result = await GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      ).fetchCalendar(username: username, year: leapYear);
+
+      final days = result.calendar.weeks.expand((week) => week.days).toList();
+      for (var i = 1; i < days.length; i++) {
+        expect(
+          days[i].date.difference(days[i - 1].date),
+          const Duration(hours: 24),
+          reason: '${days[i - 1].date} to ${days[i].date}',
+        );
+      }
+      for (final date in [
+        '2024-03-10',
+        '2024-03-31',
+        '2024-10-27',
+        '2024-11-03',
+      ]) {
+        expect(_dayOn(result.calendar, date: date).count, isNotNull);
+      }
     });
   });
 
@@ -440,6 +503,93 @@ void main() {
             'added to one and not the other is a codegen change rather than '
             'a silent drift',
       );
+    });
+
+    test('reads every day back from the cache as a UTC date', () async {
+      final html =
+          _day(id: 'a', date: '2023-03-06', level: '1') +
+          _tooltip(id: 'a', count: 10);
+
+      final fresh = await GitHubContributionRepository(
+        httpClient: _clientReturning(html),
+      ).fetchCalendar(username: username, year: year);
+      final cached = await GitHubContributionRepository(
+        httpClient: MockClient(
+          (_) async => throw StateError('cache should have been used'),
+        ),
+      ).fetchCalendar(username: username, year: year);
+
+      final days = _allDays(cached.calendar);
+      expect(cached.fromCache, isTrue);
+      expect(days, isNotEmpty);
+      expect(days.every((day) => day.date.isUtc), isTrue);
+      expect(
+        cached.calendar,
+        fresh.calendar,
+        reason: 'a cache hit holds the same days as the read that wrote it',
+      );
+    });
+
+    test('reads a stored YYYY-MM-DD as the UTC date it names', () async {
+      final box = await Hive.openBox<dynamic>('contribution_cache_v3');
+      await box.put('other:${year.value}', {
+        'cachedAt': DateTime(2024, 2).toIso8601String(),
+        'json': jsonEncode({
+          'totalContributions': 5,
+          'weeks': [
+            {
+              'contributionDays': [
+                {'date': '2023-03-26', 'contributionCount': 5, 'level': 2},
+              ],
+            },
+          ],
+        }),
+      });
+
+      final cached = await GitHubContributionRepository(
+        httpClient: MockClient(
+          (_) async => throw StateError('cache should have been used'),
+        ),
+      ).fetchCalendar(username: Username('other'), year: year);
+
+      final stored = _dayOn(cached.calendar, date: '2023-03-26');
+      expect(cached.fromCache, isTrue);
+      expect(stored.date, DateTime.utc(2023, 3, 26));
+      expect(stored.count, 5);
+      expect(stored.level, ContributionLevel.medium);
+    });
+
+    test('stores each day as its YYYY-MM-DD, one calendar day after the '
+        'other', () async {
+      final html =
+          _day(id: 'a', date: '2023-03-26', level: '3') +
+          _tooltip(id: 'a', count: 7);
+
+      await GitHubContributionRepository(httpClient: _clientReturning(html))
+          .fetchCalendar(username: username, year: year);
+
+      final box = await Hive.openBox<dynamic>('contribution_cache_v3');
+      final entry = box.get('${username.value}:${year.value}') as Map;
+      final stored =
+          jsonDecode(entry['json'] as String) as Map<String, dynamic>;
+      final dates = [
+        for (final week in stored['weeks'] as List)
+          for (final day in (week as Map)['contributionDays'] as List)
+            (day as Map)['date'] as String,
+      ];
+
+      expect(dates, hasLength(371));
+      expect(dates.first, '2023-01-01');
+      expect(dates.last, '2024-01-06');
+      expect(dates, contains('2023-03-26'));
+      for (var i = 1; i < dates.length; i++) {
+        expect(
+          DateTime.parse('${dates[i]}T00:00:00Z')
+              .difference(DateTime.parse('${dates[i - 1]}T00:00:00Z')),
+          const Duration(hours: 24),
+          reason: '${dates[i - 1]} to ${dates[i]}',
+        );
+      }
     });
   });
 

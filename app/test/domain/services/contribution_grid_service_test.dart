@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 ContributionDay day(String iso, {int? count, ContributionLevel? level}) =>
     ContributionDay(
-      date: DateTime.parse(iso),
+      date: DateTime.parse('${iso}T00:00:00Z'),
       count: count,
       level: level ?? ContributionLevel.high,
     );
@@ -41,8 +41,8 @@ void main() {
         ).first.days.first.date;
 
         expect(first.weekday, DateTime.sunday, reason: 'year $year');
-        expect(first.isAfter(DateTime(year, 1, 1)), isFalse);
-        expect(DateTime(year, 1, 1).difference(first).inDays, lessThan(7));
+        expect(first.isAfter(DateTime.utc(year, 1, 1)), isFalse);
+        expect(DateTime.utc(year, 1, 1).difference(first).inDays, lessThan(7));
       }
     });
 
@@ -55,7 +55,7 @@ void main() {
       expect(wide, [2028, 2056]);
       for (final year in wide) {
         expect(ContributionGridService.weeksFor(year), 54, reason: '$year');
-        expect(DateTime(year, 1, 1).weekday, DateTime.saturday);
+        expect(DateTime.utc(year, 1, 1).weekday, DateTime.saturday);
       }
     });
 
@@ -67,15 +67,30 @@ void main() {
         ).expand((week) => week.days).toList();
 
         expect(
-          days.first.date.isAfter(DateTime(year, 1, 1)),
+          days.first.date.isAfter(DateTime.utc(year, 1, 1)),
           isFalse,
           reason: 'year $year drops 1 January',
         );
         expect(
-          days.last.date.isBefore(DateTime(year, 12, 31)),
+          days.last.date.isBefore(DateTime.utc(year, 12, 31)),
           isFalse,
           reason: 'year $year drops 31 December',
         );
+      }
+    });
+
+    test('builds every day as a UTC date at midnight, in any zone', () {
+      for (final year in [2019, 2024, 2028]) {
+        final days = ContributionGridService.buildFor(
+          days: [day('$year-06-15', count: 1)],
+          year: year,
+        ).expand((week) => week.days).toList();
+
+        expect(days, isNotEmpty);
+        for (final d in days) {
+          expect(d.date.isUtc, isTrue, reason: '${d.date} in $year');
+          expect(d.date, DateTime.utc(d.date.year, d.date.month, d.date.day));
+        }
       }
     });
 
@@ -88,7 +103,7 @@ void main() {
           .expand((week) => week.days)
           .firstWhere((d) => d.count == 9);
 
-      expect(placed.date, DateTime(2024, 6, 15));
+      expect(placed.date, DateTime.utc(2024, 6, 15));
     });
 
     test('pads a day it was never given with an unknown Count, not a zero', () {
@@ -98,7 +113,7 @@ void main() {
       );
       final padded = weeks
           .expand((week) => week.days)
-          .firstWhere((d) => d.date != DateTime(2024, 6, 15));
+          .firstWhere((d) => d.date != DateTime.utc(2024, 6, 15));
 
       expect(padded.count, isNull);
       expect(padded.level, ContributionLevel.none);
@@ -114,23 +129,70 @@ void main() {
         final previous = days[i - 1].date;
         expect(
           days[i].date,
-          DateTime(previous.year, previous.month, previous.day + 1),
-          reason:
-              'a Duration of 24 hours is 23 or 25 across a daylight-saving '
-              'boundary, which is why the lattice steps by calendar day',
+          DateTime.utc(previous.year, previous.month, previous.day + 1),
+          reason: 'the lattice steps by calendar day',
+        );
+        expect(
+          days[i].date.difference(previous),
+          const Duration(hours: 24),
+          reason: 'a UTC date has no 23- or 25-hour day',
         );
       }
     });
 
-    test('places a day that falls inside daylight saving time', () {
+    test('runs in unbroken calendar-day order across the daylight-saving '
+        'switches of Europe and of the United States', () {
+      final days = ContributionGridService.buildFor(
+        days: const [],
+        year: 2024,
+      ).expand((week) => week.days).toList();
+
+      for (final (month, dayOfMonth) in [(3, 31), (10, 27), (3, 10), (11, 3)]) {
+        final switchDay = DateTime.utc(2024, month, dayOfMonth);
+        final at = days.indexWhere((d) => d.date == switchDay);
+
+        expect(at, greaterThan(0), reason: '$switchDay is on the grid');
+        expect(
+          days[at - 1].date,
+          DateTime.utc(2024, month, dayOfMonth - 1),
+          reason: 'the day before $switchDay',
+        );
+        expect(
+          days[at + 1].date,
+          DateTime.utc(2024, month, dayOfMonth + 1),
+          reason: 'the day after $switchDay',
+        );
+        expect(
+          switchDay.difference(days[at - 1].date),
+          const Duration(hours: 24),
+          reason: '$switchDay is as long as the day before it',
+        );
+        expect(
+          days[at + 1].date.difference(switchDay),
+          const Duration(hours: 24),
+          reason: '$switchDay is as long as the day after it',
+        );
+      }
+    });
+
+    test('places a day of a daylight-saving switch where its calendar date '
+        'says', () {
       final weeks = ContributionGridService.buildFor(
         days: [day('2024-03-31', count: 4)],
         year: 2024,
       );
+      final placed = weeks
+          .expand((week) => week.days)
+          .where((d) => d.count == 4);
 
+      expect(placed, hasLength(1));
+      expect(placed.single.date, DateTime.utc(2024, 3, 31));
       expect(
-        weeks.expand((week) => week.days).where((d) => d.count == 4),
-        hasLength(1),
+        weeks[13].days[0].count,
+        4,
+        reason:
+            '31 March is the 91st day after the Sunday that opens the lattice '
+            'on 31 December: 13 whole weeks, and a Sunday',
       );
     });
 

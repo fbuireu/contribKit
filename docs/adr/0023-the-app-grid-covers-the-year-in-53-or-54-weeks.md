@@ -4,7 +4,7 @@ Date: 2026-08-28
 
 ## Status
 
-Accepted. Supersedes [13](0013-the-app-grid-is-always-53-by-7.md), which fixed the lattice at 53 weeks. Everything else 13 decided still holds: the grid is whole Sunday-aligned Contribution Weeks, and a date the request never asked about is padded with no Count, as [19](0019-an-unknown-count-is-null-in-both-clients.md) specified.
+Accepted. Supersedes [13](0013-the-app-grid-is-always-53-by-7.md), which fixed the lattice at 53 weeks. Everything else 13 decided still holds: the grid is whole Sunday-aligned Contribution Weeks, and a date the request never asked about is padded with no Count, as [19](0019-an-unknown-count-is-null-in-both-clients.md) specified. Amended 2026-10-05: a calendar day is a UTC date now ([32](0032-a-calendar-day-is-a-utc-date-in-the-app.md)), which retires the reason the *Notes* give.
 
 ## Context
 
@@ -39,4 +39,4 @@ The lattice covers the Year. `ContributionGridService.weeksFor(year)` answers ho
 
 ## Notes
 
-`weeksFor` computes the leap Year from the calendar rule rather than from a `DateTime` difference, because a difference in days crosses daylight saving and truncates.
+`weeksFor` computes the leap Year from the calendar rule rather than from a `DateTime` difference. It did so because a difference in days between local dates crosses daylight saving and truncates. A calendar day is a UTC date now ([32](0032-a-calendar-day-is-a-utc-date-in-the-app.md)), so that reason is gone, and the rule stays because it needs no `DateTime` at all.

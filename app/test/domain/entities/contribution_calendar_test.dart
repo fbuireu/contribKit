@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/fixtures.dart';
 
 ContributionDay _day(int day) => ContributionDay(
-  date: DateTime(2024, 1, day),
+  date: DateTime.utc(2024, 1, day),
   count: day,
   level: ContributionLevel.low,
 );

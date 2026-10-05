@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/entities/contribution_day.dart';
 import 'package:contribkit/domain/entities/contribution_week.dart';
+import 'package:contribkit/domain/value_objects/calendar_date.dart';
 import 'package:contribkit/domain/value_objects/contribution_level.dart';
 
 abstract final class ContributionGridService {
@@ -9,7 +10,7 @@ abstract final class ContributionGridService {
       (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
 
   static int leadingDaysFor(int year) =>
-      DateTime(year, 1, 1).weekday % daysPerWeek;
+      DateTime.utc(year, 1, 1).weekday % daysPerWeek;
 
   static int weeksFor(int year) {
     final cells = leadingDaysFor(year) + (_isLeap(year) ? 366 : 365);
@@ -20,16 +21,16 @@ abstract final class ContributionGridService {
     required List<ContributionDay> days,
     required int year,
   }) {
-    final byDate = {for (final day in days) _dateOnly(day.date): day};
+    final byDate = {for (final day in days) CalendarDate.of(day.date): day};
 
-    final start = DateTime(year, 1, 1 - leadingDaysFor(year));
+    final start = DateTime.utc(year, 1, 1 - leadingDaysFor(year));
     final weekCount = weeksFor(year);
 
     final weeks = <ContributionWeek>[];
     for (var week = 0; week < weekCount; week++) {
       final weekDays = <ContributionDay>[];
       for (var day = 0; day < daysPerWeek; day++) {
-        final date = DateTime(
+        final date = DateTime.utc(
           start.year,
           start.month,
           start.day + week * daysPerWeek + day,
@@ -47,7 +48,4 @@ abstract final class ContributionGridService {
     }
     return weeks;
   }
-
-  static DateTime _dateOnly(DateTime date) =>
-      DateTime(date.year, date.month, date.day);
 }

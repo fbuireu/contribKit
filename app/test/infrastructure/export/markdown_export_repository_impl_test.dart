@@ -44,7 +44,7 @@ ContributionCalendar _calendar() => ContributionCalendar(
     ContributionWeek(
       days: [
         ContributionDay(
-          date: DateTime(2023, 6, 1),
+          date: DateTime.utc(2023, 6, 1),
           count: 3,
           level: ContributionLevel.medium,
         ),

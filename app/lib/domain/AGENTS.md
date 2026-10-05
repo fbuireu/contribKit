@@ -10,7 +10,7 @@ half of a domain implemented twice: the TypeScript mirror is
 | Folder | Holds |
 | --- | --- |
 | `entities/` | `ContributionCalendar`, `ContributionWeek`, `ContributionDay` |
-| `value_objects/` | every value object and closed set, `Embed` and `AppSettings` included |
+| `value_objects/` | every value object and closed set, `Embed`, `AppSettings` and `CalendarDate` included |
 | `failures/` | the sealed `Failure` set |
 | `repositories/` | the ports `infrastructure/` implements, the two Telemetry ports among them |
 | `services/` | eight `abstract final class`es of static functions |
@@ -25,6 +25,14 @@ half of a domain implemented twice: the TypeScript mirror is
   `Year.current(today:)` is the Year that day falls in, so a test says which year it is; the edges read the clock
   through `clockProvider` ([`ui/di/`](../ui/di/AGENTS.md)). `ContributionGridService` takes an `int` year, which is
   how its tests reach 2028 and later.
+- **A calendar day is a UTC date, and `CalendarDate` is the one way to make one**
+  ([ADR 0032](../../../docs/adr/0032-a-calendar-day-is-a-utc-date-in-the-app.md)). `parse` and `tryParse` read a bare
+  `YYYY-MM-DD` into `DateTime.utc` and refuse any other shape, and a date that does not exist overflows to the day
+  it falls on as `DateTime.parse` reads it (`2024-02-30` is 1 March). `of(instant)` is the date an instant falls on,
+  read from the instant's own year, month and day and converted to no zone, so `today` from the clock, which is
+  local, is the person's day. A local `DateTime` is an instant: `today`, `cachedAt`, `resetAt`. A local and a UTC
+  `DateTime` with the same fields are never `==`, even under `TZ=UTC`, so a day built the other way misses every
+  `byDate` lookup and equals no other day.
 - **`AppSettings` is everything the app remembers.** `SettingsRepository.load()` returns one with the Cell Shape, the
   Cell Size, the Background Preset, the theme and the Telemetry Consent already defaulted, and `year(today:)` is
   `lastYear ?? Year.current(today: today)`. `saveBackgroundPreset` takes the `BackgroundPreset`, as every other save
@@ -95,10 +103,9 @@ because an Embed URL a person writes by hand may carry one.
   `weeksFor` answers how many weeks that takes
   ([ADR 0023](../../../docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). `daysPerWeek` is declared
   here and is 7. [ADR 0013](../../../docs/adr/0013-the-app-grid-is-always-53-by-7.md) is the superseded decision that
-  fixed the lattice at 53, and is worth reading for why the lattice exists at all. A date is built with the
-  `DateTime(year, month, day + n)` constructor and never stepped by a `Duration`, and UTC has no 23- or 25-hour day to
-  show a step that is wrong, so CI runs the two test files that hold a daylight-saving case a second time under
-  `TZ=Europe/Madrid`; the docs test fails when one of them is left out of that step.
+  fixed the lattice at 53, and is worth reading for why the lattice exists at all. A date is built with
+  `DateTime.utc(year, month, day + n)` and never stepped by a `Duration`, and a UTC date has no 23- or 25-hour day, so
+  the lattice is the same in every zone.
 - **`CellSize.step`** is `pixels + gap`, the pitch a renderer advances by, written once: `ExportGeometryService` and
   the PNG and SVG Export repositories read it.
 - **`ExportGeometryService`** answers how large an Export is: `logicalSizeFor` (the SVG's own units) and
@@ -116,8 +123,9 @@ because an Embed URL a person writes by hand may carry one.
   reports none of them, because a `Failure` the Viewer renders is handled.
 - **`StreakService.currentFor`** anchors on the last day belonging to the calendar's Year, capped at today, and skips
   the anchor day when it is today and still inactive, so a Streak does not break at midnight over a day that has not
-  happened yet. `ContributionStatsService` and `HomeScreenWidgetPayload` both call it, so the Viewer and the Home
-  Screen Widget cannot drift apart.
+  happened yet. It reads `today` through `CalendarDate.of` and compares it with days that are UTC dates, so the
+  device's zone moves nothing. `ContributionStatsService` and `HomeScreenWidgetPayload` both call it, so the Viewer
+  and the Home Screen Widget cannot drift apart.
 
 ## `CellGeometryService`: one Cell, five renderers
 
@@ -156,3 +164,7 @@ draws the same Cell for the Embed and the browser preview from `CORNER_RADIUS_RA
   both forms of the header into the instant.
 - **`NotFoundFailure` cannot be built `const`**, because it carries a `Username` and `Username`'s factory validates;
   failures are built at runtime, so that is the price of the type surviving the boundary.
+- **CI's UTC cannot tell `CalendarDate.of(instant)` from `instant.toUtc()`.** The two agree at offset zero and differ
+  for a local instant late in the evening west of UTC or early in the morning east of it. Before touching
+  `CalendarDate`, `StreakService` or anything that reads `today`, run `flutter test` from `app/` under
+  `TZ=Europe/Madrid`, `TZ=America/Los_Angeles` and `TZ=Pacific/Kiritimati`: the result must not move.

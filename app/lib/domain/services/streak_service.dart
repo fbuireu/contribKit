@@ -1,5 +1,6 @@
 import 'package:contribkit/domain/entities/contribution_calendar.dart';
 import 'package:contribkit/domain/entities/contribution_day.dart';
+import 'package:contribkit/domain/value_objects/calendar_date.dart';
 
 abstract final class StreakService {
   static int currentFor({
@@ -9,11 +10,11 @@ abstract final class StreakService {
     final days = _daysInYear(calendar);
     if (days.isEmpty) return 0;
 
-    final anchor = _anchorFor(days: days, today: _dateOnly(today));
+    final anchor = _anchorFor(days: days, today: CalendarDate.of(today));
     if (anchor == null) return 0;
 
     var index = anchor;
-    if (_dateOnly(days[index].date) == _dateOnly(today) &&
+    if (CalendarDate.of(days[index].date) == CalendarDate.of(today) &&
         !days[index].isActive) {
       index--;
     }
@@ -38,12 +39,9 @@ abstract final class StreakService {
     required DateTime today,
   }) {
     var index = days.length - 1;
-    while (index >= 0 && _dateOnly(days[index].date).isAfter(today)) {
+    while (index >= 0 && CalendarDate.of(days[index].date).isAfter(today)) {
       index--;
     }
     return index < 0 ? null : index;
   }
-
-  static DateTime _dateOnly(DateTime date) =>
-      DateTime(date.year, date.month, date.day);
 }

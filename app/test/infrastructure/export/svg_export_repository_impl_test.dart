@@ -156,6 +156,30 @@ void main() {
       expect(svg, contains('2024-06-15: 7'));
     });
 
+    test('titles the Cell of each daylight-saving switch with its calendar '
+        'date, at the place that date has on the grid', () async {
+      final svg = await _render(
+        calendar: _calendar(level: ContributionLevel.high, count: 7),
+      );
+
+      for (final (date, x) in [
+        ('2024-03-10', '130.0'),
+        ('2024-03-31', '169.0'),
+        ('2024-10-27', '559.0'),
+        ('2024-11-03', '572.0'),
+      ]) {
+        expect(
+          RegExp(
+            '<rect x="${RegExp.escape(x)}" y="0\\.0"[^>]*>'
+            '<title>$date: 7</title>',
+          ).hasMatch(svg),
+          isTrue,
+          reason:
+              '$date is a Sunday: the first row, in week ${double.parse(x) ~/ 13}',
+        );
+      }
+    });
+
     test(
       'paints with the dark Palette, so noneLight never reaches an Export',
       () async {

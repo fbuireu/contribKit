@@ -69,6 +69,13 @@ The test file pins the transport scope: a socket error, a lost connection, and a
 - `invalidateCache(username)` deletes every key with that Username's prefix, so it clears all years at once.
 - **A cache hit builds the same lattice as a fresh fetch.** `_toDomain` flattens the stored weeks back to days and
   hands them to `ContributionGridService`, rather than trusting the shape it read.
+- **A calendar day is a UTC date here too**
+  ([ADR 0032](../../../docs/adr/0032-a-calendar-day-is-a-utc-date-in-the-app.md)). The scrape reads `data-date` with
+  `CalendarDate.tryParse` and the cache reads `date` with `CalendarDate.parse`, which takes only a `YYYY-MM-DD`, so a
+  fresh read and a cache hit hold the same days and an entry carrying another shape is a miss. `_toDto` writes
+  `toIso8601String().substring(0, 10)`, which on a UTC date is the same ten characters, so the box keeps its name. An
+  instant stays local: the docs test lets through exactly three lines, `cachedAt`, the `DateTime(year.value + 1)`
+  boundary the cache compares it with, and `RetryAfter`'s fallback parse of a header.
 
 ## `contact/`: the first call to our own server
 

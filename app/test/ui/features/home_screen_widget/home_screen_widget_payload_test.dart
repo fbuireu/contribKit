@@ -213,6 +213,64 @@ version in the same commit, or do not change the order.''',
       },
     );
   });
+  group('a day sits in widget_levels where its calendar date says', () {
+    final switches = [
+      (DateTime.utc(2024, 3, 10), ContributionLevel.medium, 70),
+      (DateTime.utc(2024, 3, 31), ContributionLevel.veryHigh, 91),
+      (DateTime.utc(2024, 10, 27), ContributionLevel.low, 301),
+      (DateTime.utc(2024, 11, 3), ContributionLevel.high, 308),
+    ];
+
+    ContributionCalendar calendarOfSwitches() => ContributionCalendar(
+      username: Username('octocat'),
+      year: Year(2024, today: testToday),
+      weeks: ContributionGridService.buildFor(
+        days: [
+          for (final (date, level, _) in switches)
+            ContributionDay(date: date, count: 1, level: level),
+        ],
+        year: 2024,
+      ),
+      totalContributions: 4,
+    );
+
+    test('puts the four daylight-saving switches at their own positions', () {
+      final levels = HomeScreenWidgetPayload.encodeLevels(calendarOfSwitches());
+
+      for (final (date, level, position) in switches) {
+        expect(
+          levels[position],
+          level.index.toString(),
+          reason:
+              '$date is $position days after the Sunday that opens the grid '
+              'on 31 December 2023',
+        );
+      }
+      expect(
+        levels.split('').where((digit) => digit != '0'),
+        hasLength(switches.length),
+        reason: 'every other day is empty',
+      );
+    });
+
+    test('sends the streak as an integer read off the local date', () {
+      final calendar = calendarOfSwitches();
+
+      for (final today in [
+        DateTime(2024, 11, 3, 0, 30),
+        DateTime(2024, 11, 3, 23, 30),
+      ]) {
+        final payload = HomeScreenWidgetPayload.from(
+          calendar: calendar,
+          palette: _palette,
+          cellShape: CellShape.rounded,
+          today: today,
+        );
+
+        expect(payload.streak, 1, reason: '$today');
+      }
+    });
+  });
   group('levels and weeks agree inside one payload, which is what bounds a torn write', () {
     test("sends the calendar's own week count, whatever it holds", () {
       for (final gridYear in [2019, 2020, 2023, 2024, 2028]) {

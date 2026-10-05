@@ -77,9 +77,6 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
-      - name: Run the daylight-saving tests under a zone that has it
-        run: TZ=Europe/Madrid flutter test test/domain/services/contribution_grid_service_test.dart test/infrastructure/github/contribution_repository_impl_test.dart
-
       - name: Enforce the coverage floor
         run: dart run tool/check_coverage.dart
 

@@ -49,9 +49,10 @@ No rule below restates these, and a diff that breaks one fails CI:
     repository an `abstract interface class`, every use case taking its repository as `{required this._repository}`
     and catching nothing, no `switch` over a `Failure` with a `_` or `default` arm
     ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)), `dynamic` only in
-    `infrastructure/`, no `firstWhere` without an `orElse`, no date stepped by a `Duration` of days, no `MaterialApp`,
-    no clock read (`DateTime.now`) in `domain/`, and in `app/lib/ui` outside `ui/theme/` no colour or `Duration`
-    literal and no read of a `colorScheme`;
+    `infrastructure/`, no `firstWhere` without an `orElse`, no date stepped by a `Duration` of days, no calendar day
+    built with a local `DateTime(` or parsed into one in `domain/` or `infrastructure/` bar the cache stamp, the Year
+    boundary and a reset time, no `MaterialApp`, no clock read (`DateTime.now`) in `domain/`, and in `app/lib/ui`
+    outside `ui/theme/` no colour or `Duration` literal and no read of a `colorScheme`;
   - on the web: no class, no `Math.random`, no `toISOString().slice(0, 10)`, no clock read (`new Date()`, `Date.now()`)
     in `domain/`, no `default` arm in a `switch`, every robots directive written through `RobotsDirective`, every
     `fetch` given the shared timeout, no custom property registered with `@property` in the CSS or an `.astro` file,
@@ -247,6 +248,11 @@ No rule below restates these, and a diff that breaks one fails CI:
 - **hard**: Store a collection inside an entity or value object unmodifiable (`List.unmodifiable`,
   `Map.unmodifiable`) and compare it element by element, because collection `==` is identity and a collection
   mutated in place keeps its owner equal to itself.
+- **hard**: Make a calendar day a UTC date (`DateTime.utc`) and keep a local `DateTime` for an instant only (now, a
+  cache stamp, a reset time): build and parse a day through `CalendarDate`, and read `today` as a day with
+  `CalendarDate.of`. UTC has no daylight saving, so no arithmetic on days depends on the device's zone and a test proves
+  it in any zone, and a local and a UTC `DateTime` with the same fields are never `==`, so a day made the other way
+  misses every lookup ([ADR 0032](./docs/adr/0032-a-calendar-day-is-a-utc-date-in-the-app.md)).
 - **judgement**: Give an enum's display label as an exhaustive `switch (this)` getter, so a new case is a compile
   error rather than a `!` on a map.
 - **hard**: Draw a Cell from `CellGeometryService.figureFor`: renderers match on the `CellFigure` cases and hold no

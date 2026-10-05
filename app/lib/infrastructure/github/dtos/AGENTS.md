@@ -45,6 +45,6 @@ entity. Those two conversions are the boundary this folder exists to hold.
   deserialises fine and the value is simply ignored. A broken read is survivable either way (it is swallowed and
   becomes a refetch), but a past-year entry never expires on its own, so the box name is the only real migration
   tool.
-- `date` is written with `toIso8601String().substring(0, 10)`, so it is date-only and timezone-free by construction.
-  Anything that starts writing a full timestamp breaks the `DateTime.parse` round-trip's equality with the grid's
-  date-only keys.
+- `date` is written with `toIso8601String().substring(0, 10)` and read with `CalendarDate.parse`, so it is date-only
+  and timezone-free by construction, and the entity's date is a UTC date. Anything that starts writing a full
+  timestamp stops reading back, because `parse` refuses it and every cached calendar becomes a refetch.

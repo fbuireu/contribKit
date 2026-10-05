@@ -42,17 +42,17 @@ ContributionCalendar _calendar(List<(DateTime, int)> dayData) {
 }
 
 DateTime _d({required int month, required int day}) =>
-    DateTime(2024, month, day);
+    DateTime.utc(2024, month, day);
 
 ContributionCalendar _calendarWithUnknownCount() {
   final days = [
     ContributionDay(
-      date: DateTime(2024, 6, 3),
+      date: DateTime.utc(2024, 6, 3),
       count: 5,
       level: ContributionLevel.high,
     ),
     ContributionDay(
-      date: DateTime(2024, 6, 4),
+      date: DateTime.utc(2024, 6, 4),
       count: null,
       level: ContributionLevel.high,
     ),
@@ -198,7 +198,7 @@ void main() {
         expect(
           ContributionStatsService.totalFor([
             ContributionDay(
-              date: DateTime(2024, 1, 1),
+              date: DateTime.utc(2024, 1, 1),
               count: 5,
               level: ContributionLevel.medium,
             ),
@@ -208,7 +208,7 @@ void main() {
         expect(
           ContributionStatsService.totalFor([
             ContributionDay(
-              date: DateTime(2024, 1, 1),
+              date: DateTime.utc(2024, 1, 1),
               count: null,
               level: ContributionLevel.veryHigh,
             ),
@@ -219,12 +219,12 @@ void main() {
         expect(
           ContributionStatsService.totalFor([
             ContributionDay(
-              date: DateTime(2024, 1, 1),
+              date: DateTime.utc(2024, 1, 1),
               count: null,
               level: ContributionLevel.none,
             ),
             ContributionDay(
-              date: DateTime(2024, 1, 2),
+              date: DateTime.utc(2024, 1, 2),
               count: 5,
               level: ContributionLevel.medium,
             ),

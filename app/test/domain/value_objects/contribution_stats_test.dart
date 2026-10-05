@@ -23,7 +23,7 @@ void main() {
     () {
       test('refuses a date with no Count beside it', () {
         expect(
-          () => _stats(bestDayDate: DateTime(2024, 6, 15)),
+          () => _stats(bestDayDate: DateTime.utc(2024, 6, 15)),
           throwsA(isA<AssertionError>()),
           reason:
               'the stats once said the best day was 15 June and that we '
@@ -37,7 +37,8 @@ void main() {
 
       test('accepts both, or neither', () {
         expect(
-          () => _stats(bestDayCount: 40, bestDayDate: DateTime(2024, 6, 15)),
+          () =>
+              _stats(bestDayCount: 40, bestDayDate: DateTime.utc(2024, 6, 15)),
           returnsNormally,
         );
         expect(_stats, returnsNormally);

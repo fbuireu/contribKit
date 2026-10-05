@@ -250,6 +250,10 @@ paints the overflow as level 0 for one frame and the next broadcast repairs it.
 The other interleaving is cosmetic and self-heals the same way: new levels painted with the previous Palette's
 colours for one frame. Do not add an eighth key without asking how it behaves against a stale neighbour.
 
+**No key carries a date or an instant.** `widget_streak` is the integer `StreakService` computes in Dart from `today`,
+and the Kotlin side reads digits, integers and strings, so it does no calendar or zone arithmetic: a key that carried
+a day would have to say which zone it is in.
+
 **Never send a `null` across this seam.** `home_widget` deletes the key when the value is null, and the Kotlin side
 cannot tell a deleted key from one that was never written, so an unknown Total Contributions would arrive as no
 value at all, indistinguishable from a Total never sent, which defeats
