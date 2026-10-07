@@ -391,9 +391,9 @@ describe("architecture decision records", () => {
 describe("the glossary is ubiquitous language, not decoration", () => {
 	it("uses every term it defines somewhere outside itself", () => {
 		const flatten = (text: string): string => text.replace(NON_LETTER, "").toLowerCase();
-		const terms = [...read(join(REPO, "CONTEXT.md")).matchAll(GLOSSARY_TERM)].map(([, term]) => term);
+		const terms = [...read(join(REPO, "GLOSSARY.md")).matchAll(GLOSSARY_TERM)].map(([, term]) => term);
 		const corpus = markdownFiles()
-			.filter((file) => relative(file) !== "CONTEXT.md")
+			.filter((file) => relative(file) !== "GLOSSARY.md")
 			.map(read)
 			.join("\n");
 		const flattened = flatten(corpus);
@@ -492,11 +492,11 @@ describe("layer documentation", () => {
 		expect(guides.filter((path) => !index.includes(path))).toEqual([]);
 	});
 
-	it("no stray CONTEXT.md survives outside the repo root", () => {
-		const glossaries = walk({ dir: REPO, match: (path) => path.endsWith("CONTEXT.md") }).map(relative);
+	it("no stray GLOSSARY.md survives outside the repo root", () => {
+		const glossaries = walk({ dir: REPO, match: (path) => path.endsWith("GLOSSARY.md") }).map(relative);
 
-		expect(glossaries).toContain("CONTEXT.md");
-		expect(glossaries.filter((path) => path !== "CONTEXT.md")).toEqual([]);
+		expect(glossaries).toContain("GLOSSARY.md");
+		expect(glossaries.filter((path) => path !== "GLOSSARY.md")).toEqual([]);
 	});
 });
 
@@ -1050,7 +1050,7 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 	const forbiddenIdentifiers = (): string[] => [
 		...new Set(
-			[...read(join(REPO, "CONTEXT.md")).matchAll(GLOSSARY_AVOID_LINE)]
+			[...read(join(REPO, "GLOSSARY.md")).matchAll(GLOSSARY_AVOID_LINE)]
 				.flatMap(([, list]) => list.split(",").map((term) => term.trim()))
 				.filter(codeShaped),
 		),
@@ -1104,7 +1104,7 @@ describe("the glossary's forbidden names stay out of the code", () => {
 
 	const avoidedTerms = (): Set<string> =>
 		new Set(
-			[...read(join(REPO, "CONTEXT.md")).matchAll(GLOSSARY_AVOID_LINE)].flatMap(([, list]) =>
+			[...read(join(REPO, "GLOSSARY.md")).matchAll(GLOSSARY_AVOID_LINE)].flatMap(([, list]) =>
 				list.split(",").map((term) => term.trim().toLowerCase()),
 			),
 		);

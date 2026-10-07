@@ -8,7 +8,7 @@ Accepted. Closes the departure recorded as a consequence of [8](0008-the-mobile-
 
 ## Context
 
-[`CONTEXT.md`](../../CONTEXT.md) has always defined a Count as "the exact number of contributions on a Contribution Day. Unknown for some days, which is distinct from a known zero", and the root [`AGENTS.md`](../../AGENTS.md) has always said an unknown Count "must not be estimated, summed, or displayed as exact". The web obeyed both: `ContributionDay.count` is `number | null`.
+[`GLOSSARY.md`](../../GLOSSARY.md) has always defined a Count as "the exact number of contributions on a Contribution Day. Unknown for some days, which is distinct from a known zero", and the root [`AGENTS.md`](../../AGENTS.md) has always said an unknown Count "must not be estimated, summed, or displayed as exact". The web obeyed both: `ContributionDay.count` is `number | null`.
 
 The app could not. `count` was a non-nullable `int`, so three different situations collapsed into `0`: a tool-tip whose text carried no leading number, a day the scrape never mentioned at all, and a Contribution Grid padding day outside the requested Year. None of those is a day on which someone did nothing, and the app could not tell you which it was looking at.
 

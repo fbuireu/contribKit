@@ -8,7 +8,7 @@ Accepted.
 
 ## Context
 
-[`CONTEXT.md`](../../CONTEXT.md) defines **Calendar Labels** as "the month strip along the top of the Contribution Grid and the weekday strip down its side, which can be shown or hidden". It is a first-class term in the ubiquitous language.
+[`GLOSSARY.md`](../../GLOSSARY.md) defines **Calendar Labels** as "the month strip along the top of the Contribution Grid and the weekday strip down its side, which can be shown or hidden". It is a first-class term in the ubiquitous language.
 
 The web implements all of it: `MONTH_LABELS` and `WEEKDAY_LABELS` in `web/src/domain/value-objects/calendar-labels.ts`, `CalendarLabelPlacement` and `monthLabelsFor` in `svg-geometry.ts`, and a `showLabels` flag threaded through `SvgRenderOptions` down to `svgStringRenderer`. The landing page passes `true` for the hero and `false` for the widget mock, so the show-or-hide half is real and used.
 

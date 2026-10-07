@@ -1,6 +1,6 @@
 # Coding standards
 
-What a review checks a diff against. The words are the ones [CONTEXT.md](./CONTEXT.md) defines, the reasons are in
+What a review checks a diff against. The words are the ones [GLOSSARY.md](./GLOSSARY.md) defines, the reasons are in
 [docs/adr/](./docs/adr/), and what an implementer needs while working is in the `AGENTS.md` guides.
 
 **hard** marks a rule whose breach is a defect: report it with the rule. **judgement** marks a call the reviewer
@@ -541,7 +541,7 @@ No rule below restates these, and a diff that breaks one fails CI:
 
 ## Docs and commits
 
-- **hard**: Keep `CONTEXT.md` to vocabulary: the term, one or two sentences on what it is, and the words it displaces,
+- **hard**: Keep `GLOSSARY.md` to vocabulary: the term, one or two sentences on what it is, and the words it displaces,
   never how it is built, because mechanism belongs to the folder guide or an ADR.
 - **hard**: State a rule once: a rule about how code is written here, a coupling or a gotcha in the guide of the
   folder it bites, a decision in an ADR; a wiki page says where the rule lives, because `docs/wiki/` is published and

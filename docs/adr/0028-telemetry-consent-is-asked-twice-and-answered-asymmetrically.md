@@ -30,7 +30,7 @@ The alternatives were:
 
 The asymmetry is the decision, and it is expressed as two different comparisons on purpose rather than as two booleans with different defaults, so that "nobody has answered yet" stays distinguishable from "somebody said yes". `isAnswered` exists for that distinction and is what a future first-run prompt would read.
 
-There is **no blocking prompt**. The Privacy sheet is reachable from the Viewer header, beside the Tip Jar, and it states in one sentence what never leaves the device. It is not part of the Customizer: [`CONTEXT.md`](../../CONTEXT.md) defines the Customizer as Palette, Cell Shape, Cell Size and Background, and privacy is not an appearance setting.
+There is **no blocking prompt**. The Privacy sheet is reachable from the Viewer header, beside the Tip Jar, and it states in one sentence what never leaves the device. It is not part of the Customizer: [`GLOSSARY.md`](../../GLOSSARY.md) defines the Customizer as Palette, Cell Shape, Cell Size and Background, and privacy is not an appearance setting.
 
 Both choices are persisted through `SettingsRepository` under `telemetryDiagnosticReports` and `telemetryUsageEvents`, as the enum's `name`. Withdrawing consent is not merely a flag: `applyConsent(granted: false)` shuts Sentry down and opts PostHog out, and Sentry's `beforeSend` returns null once stopped, so an event already queued natively is dropped rather than sent.
 

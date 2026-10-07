@@ -16,7 +16,7 @@ Applied uniformly, the textbook answer would have added a nested value object fo
 
 ## Decision
 
-The strategic half is not negotiable, and [3](0003-layered-domain-architecture-in-both-clients.md) already fixed it: the ubiquitous language of [`CONTEXT.md`](../../CONTEXT.md), the layer boundaries, the dependency direction, the pure domain, repositories as ports, and the sealed `Failure` set of [4](0004-typed-failures-instead-of-thrown-exceptions.md).
+The strategic half is not negotiable, and [3](0003-layered-domain-architecture-in-both-clients.md) already fixed it: the ubiquitous language of [`GLOSSARY.md`](../../GLOSSARY.md), the layer boundaries, the dependency direction, the pure domain, repositories as ports, and the sealed `Failure` set of [4](0004-typed-failures-instead-of-thrown-exceptions.md).
 
 The tactical half is applied where it pays, and the test is **a short list of questions asked in order**:
 

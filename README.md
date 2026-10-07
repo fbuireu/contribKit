@@ -93,7 +93,7 @@ Monorepo with three components sharing design tokens:
 
 Both apps follow the same DDD-ish layered architecture (`domain` → `application` → `infrastructure` / `ui`): the domain is pure, validated value objects guard every boundary, errors are a sealed set of typed `Failure`s matched exhaustively at the boundary (returned as values on the web, thrown and caught in the app). The rules a change is reviewed against are written once, in **[CODING_STANDARDS.md](CODING_STANDARDS.md)**, and each layer has a colocated `AGENTS.md` for whoever works in it.
 
-Both apps also share one vocabulary: **[CONTEXT.md](CONTEXT.md)** is the domain glossary, and **[docs/adr/](docs/adr)** records the decisions behind the architecture.
+Both apps also share one vocabulary: **[GLOSSARY.md](GLOSSARY.md)** is the domain glossary, and **[docs/adr/](docs/adr)** records the decisions behind the architecture.
 
 ---
 
@@ -129,7 +129,7 @@ Component-specific setup, commands, and deploy flows live in **[web/README.md](w
 | **[Architecture](ARCHITECTURE.md)**                 | The layer map both clients share, a request end to end, build and release |
 | **[Contributing](.github/CONTRIBUTING.md)**         | Setup, the checks, commit rules, and how a change gets released |
 | **[Coding standards](CODING_STANDARDS.md)**         | The rules a change is reviewed against, and which of them the tooling enforces |
-| **[Domain glossary](CONTEXT.md)**                   | The canonical name for every domain concept, and the ones to avoid |
+| **[Domain glossary](GLOSSARY.md)**                   | The canonical name for every domain concept, and the ones to avoid |
 | **[Web](web/README.md)**                            | API reference, embedding guide, architecture, deploys        |
 | **[App](app/README.md)**                            | Flutter setup, widgets, the Tip Jar, releases                |
 | **[Shared tokens](shared/README.md)**              | Palettes, shapes, and usernames consumed by both apps        |

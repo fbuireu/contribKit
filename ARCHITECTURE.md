@@ -4,7 +4,7 @@ How ContribKit is built, for contributors. What it does and how to use it is the
 user guides in [docs/wiki/](./docs/wiki/), in particular [How It Works](../../wiki/How-It-Works) and
 [Project Structure](../../wiki/Project-Structure); this document does not restate them. The commands and the
 maintenance contract are [AGENTS.md](./AGENTS.md), the rules a change is reviewed against are
-[CODING_STANDARDS.md](./CODING_STANDARDS.md), the domain vocabulary is [CONTEXT.md](./CONTEXT.md), and how to work on
+[CODING_STANDARDS.md](./CODING_STANDARDS.md), the domain vocabulary is [GLOSSARY.md](./GLOSSARY.md), and how to work on
 the repo is [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 The thing to understand before anything else: **the same domain is implemented twice**, in TypeScript and in Dart,
@@ -299,7 +299,7 @@ secrets; the full mapping is in the [README](./README.md#monorepo-development).
 
 ## 7. Where things live
 
-Four kinds of document. [CONTEXT.md](./CONTEXT.md) is the domain glossary: what the words **mean**.
+Four kinds of document. [GLOSSARY.md](./GLOSSARY.md) is the domain glossary: what the words **mean**.
 [CODING_STANDARDS.md](./CODING_STANDARDS.md) is the **rules** a change is reviewed against. The `AGENTS.md` files
 (one at the root, one per layer) are the **map**: commands, couplings and gotchas, and they load automatically when an
 agent opens a file in that folder. [docs/adr/](./docs/adr/) is **why**:
@@ -347,7 +347,7 @@ and it needs a link from somewhere other than this index: an ADR only the index 
 | --- | --- |
 | [AGENTS.md](./AGENTS.md) | Commands, structure, the maintenance contract and the gotchas; loaded into every agent session |
 | [CODING_STANDARDS.md](./CODING_STANDARDS.md) | The rules a change is reviewed against, each hard or judgement, and which of them the tooling enforces |
-| [CONTEXT.md](./CONTEXT.md) | The domain glossary both clients obey, and the words to avoid |
+| [GLOSSARY.md](./GLOSSARY.md) | The domain glossary both clients obey, and the words to avoid |
 | [CONTRIBUTING.md](./.github/CONTRIBUTING.md) | Setup, the checks, commit rules, how a change gets released |
 | [web/src/domain/AGENTS.md](./web/src/domain/AGENTS.md) | Value objects, failures, services |
 | [web/src/application/AGENTS.md](./web/src/application/AGENTS.md) | Curried use cases, `Failure` → HTTP mapping |
@@ -376,7 +376,7 @@ opens a file in that exact folder, so a deeper split costs reach.
 | **Add a web query parameter** | `embedQuerySchema` in the SVG route, with a `.catch(default)`; the render options in [`web/src/domain/services/types.ts`](./web/src/domain/services/types.ts); then `web/README.md` and [`docs/wiki/API-Reference.md`](./docs/wiki/API-Reference.md). |
 | **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, read through `_tolerating`; renaming a key adds **a legacy-key fallback and a migration test**. The background isolate reads through the same repository, so it follows automatically. |
 | **Change what a cached calendar means** | Bump `_cacheBoxName` in the app's contribution repository. Past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)). |
-| **Introduce or redefine a domain word** | [CONTEXT.md](./CONTEXT.md) first, then the identifiers, which the *Words* rules in [CODING_STANDARDS.md](./CODING_STANDARDS.md) hold to it. |
+| **Introduce or redefine a domain word** | [GLOSSARY.md](./GLOSSARY.md) first, then the identifiers, which the *Words* rules in [CODING_STANDARDS.md](./CODING_STANDARDS.md) hold to it. |
 
 ## 9. Known inconsistencies
 

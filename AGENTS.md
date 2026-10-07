@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [CONTEXT.md](./CONTEXT.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
+Agent-facing guide for **ContribKit**: a GitHub contribution calendar you can view, customize, export, embed, or pin to a phone's home screen. See [GLOSSARY.md](./GLOSSARY.md) for the domain glossary (Contribution Day, Cell, Palette, Tip, and the names to avoid); do not duplicate it here. [ARCHITECTURE.md](./ARCHITECTURE.md) is the big picture: the layer map for both clients, a request end to end, the failure sets, build and release, and the ADR index. Human-facing setup and commit rules are [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 
 Reviewing a diff: [CODING_STANDARDS.md](./CODING_STANDARDS.md).
 
@@ -58,7 +58,7 @@ A `package.json` script runs under `cmd` on Windows, which passes `$(...)` throu
 ## Structure
 
 ```
-CONTEXT.md          domain glossary: the single vocabulary both clients obey
+GLOSSARY.md          domain glossary: the single vocabulary both clients obey
 CODING_STANDARDS.md the rules a reviewer holds a diff to
 ARCHITECTURE.md     the big picture, and the only ADR index
 .github/            CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md, the templates and the workflows
@@ -104,7 +104,7 @@ These documents are not generated. When you change code, update the docs **in th
 
 | If you change | Update |
 | --- | --- |
-| What a domain word means, or introduce a new one | [`CONTEXT.md`](./CONTEXT.md): the glossary, vocabulary only |
+| What a domain word means, or introduce a new one | [`GLOSSARY.md`](./GLOSSARY.md): the glossary, vocabulary only |
 | A rule about how code is written | [`CODING_STANDARDS.md`](./CODING_STANDARDS.md) |
 | An identifier that a glossary `_Avoid_` list forbids | the code, not the glossary |
 | A folder's layout, or a coupling or gotcha its guide states | that folder's `AGENTS.md` (table above) |
