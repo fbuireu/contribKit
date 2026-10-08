@@ -13,10 +13,6 @@ on:
           - production
         default: internal
 
-concurrency:
-  group: release
-  cancel-in-progress: false
-
 permissions: {}
 
 jobs:
@@ -29,6 +25,9 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+    concurrency:
+      group: release
+      cancel-in-progress: false
     outputs:
       published: ${{ steps.release.outputs.published }}
       version: ${{ steps.release.outputs.version }}
@@ -39,6 +38,15 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
           persist-credentials: false
+
+      - name: Release from the head of main
+        run: |
+          git fetch --quiet origin main
+          if git merge-base --is-ancestor HEAD origin/main; then
+            git merge --ff-only --quiet origin/main
+          else
+            echo "::warning::main no longer contains this run's sha, so the release stays on it and semantic-release will stand down. Dispatch the release again from main's new head."
+          fi
 
       - uses: $/.github/actions/prepare-env
 
