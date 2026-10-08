@@ -80,8 +80,8 @@ No rule below restates these, and a diff that breaks one fails CI:
     directive and the line Renovate writes above an entry it adds to `minimumReleaseAgeExclude`;
   - the ADR shape and index; the links, paths and pins of every document, `.github` included; every Mermaid diagram
     held to the `layout: dagre` it was drawn with, so a renderer that defaults to ELK cannot redraw it; the release
-    configs; package scripts with no shell substitution; and the workflows, `ci.yml` with no path filter and the docs
-    contract ungated.
+    configs; package scripts with no shell substitution; and the workflows, `ci.yml` with no path filter, the docs
+    contract ungated and a `--message` on every deploy.
 
 ## Every change
 

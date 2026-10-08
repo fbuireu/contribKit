@@ -2346,6 +2346,18 @@ describe("the workflows", () => {
 		expect(wrapped).toEqual([]);
 	});
 
+	it("names every deploy with a --message of its own, the sha and the event, so a deployment reads as the commit it shipped", () => {
+		const deploys = steps.flatMap(({ file, step }) =>
+			step
+				.split("\n")
+				.filter((line) => DEPLOY_COMMAND.test(line))
+				.map((line) => ({ file, line })),
+		);
+
+		expect(deploys.length).toBeGreaterThan(0);
+		expect(deploys.filter(({ line }) => !line.includes("--message")).map(({ file }) => relative(file))).toEqual([]);
+	});
+
 	it("filters ci.yml by no path, and gates the docs contract on nothing", () => {
 		const ci = read(join(WORKFLOWS, "ci.yml"));
 		const trigger = ci.match(/^on:\n([\s\S]*?)^\S/m)?.[1] ?? "";
