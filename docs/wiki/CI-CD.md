@@ -162,7 +162,7 @@ semantic-release runs per component and tags `web-vX.Y.Z` / `app-vX.Y.Z`, driven
 - **Pinned actions:** every `uses:` of another repository names a full commit SHA, with its version in a trailing comment, never a floating tag. The rule lives in [`CODING_STANDARDS.md`](https://github.com/fbuireu/contribKit/blob/main/CODING_STANDARDS.md), and the docs test holds it.
 - **Least privilege:** workflows declare minimal `permissions`; `release-app.yml` starts from `permissions: {}` and grants per-job.
 - **zizmor:** static security analysis of the workflows themselves.
-- **Secrets never touch disk in the repo:** keystore and service-account JSON are base64/secret-decoded into `$RUNNER_TEMP` at runtime.
+- **Credentials on disk last one job:** the keystore and the Play service-account JSON are decoded into `$RUNNER_TEMP`, the signing config and `dart-defines.json` are written into the checkout because Gradle and Flutter read them there, and an `if: always()` step removes all four when `deliver` ends, whatever happened before it.
 - **Dependency autopilot:** Renovate merges its own pull requests once `Check` is green and Dependabot's security updates are merged by a workflow; no approval is required, so nothing has to approve them first. pnpm enforces a `minimumReleaseAge` cooldown before pulling new versions.
 - **Concurrency is declared three times, for three different races.** `ci.yml` cancels a superseded pull-request
   run and never cancels one on `main`; `_deploy.yml` groups on the Environment and the Worker name with

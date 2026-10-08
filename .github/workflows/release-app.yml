@@ -228,3 +228,7 @@ jobs:
           command: |
             cd app/android
             bundle exec fastlane deploy track:"${{ inputs.track }}"
+
+      - name: Remove the signing and Play credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload-keystore.jks" "$RUNNER_TEMP/play-service-account.json" android/key.properties dart-defines.json
