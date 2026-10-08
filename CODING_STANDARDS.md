@@ -21,7 +21,7 @@ No rule below restates these, and a diff that breaks one fails CI:
   exhaustive, and the coverage floors in `web/vitest.config.ts` and `app/tool/check_coverage.dart`.
 - vitest itself: a test that reaches `cloudflare:workers`, `cloudflare:email` or `astro:env/server` without a
   `vi.mock` does not resolve.
-- commitlint ([`commitlint.config.cjs`](./commitlint.config.cjs)), on `commit-msg` and on the pull request title:
+- commitlint ([`commitlint.config.ts`](./commitlint.config.ts)), on `commit-msg` and on the pull request title:
   Conventional Commits and package scopes.
 - The tests that pin behaviour: the semantics and text-scaling sweeps, the Dart and Kotlin seam, the Usage Event
   property types, `AppSheet`'s shape, the `Selector` walk in the e2e suite and in `dom-contract.test.ts`,

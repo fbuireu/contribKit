@@ -1279,6 +1279,7 @@ describe("the guides and the standards name real files", () => {
 				...walk({ dir: join(REPO, "app/test"), match: () => true }),
 				...walk({ dir: join(REPO, "app/tool"), match: () => true }),
 				...readdirSync(join(REPO, "web")).filter((name) => statSync(join(REPO, "web", name)).isFile()),
+				...readdirSync(REPO).filter((name) => statSync(join(REPO, name)).isFile()),
 			].map((path) => path.split(PATH_SEPARATOR).at(-1) ?? path),
 		);
 

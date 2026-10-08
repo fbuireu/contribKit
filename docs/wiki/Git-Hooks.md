@@ -97,17 +97,21 @@ The check lives in CI now, on the pull request's combined diff, where the squash
 
 ### commitlint
 
-Configured in [`commitlint.config.cjs`](https://github.com/fbuireu/contribKit/blob/main/commitlint.config.cjs):
+Configured in [`commitlint.config.ts`](https://github.com/fbuireu/contribKit/blob/main/commitlint.config.ts):
 
-```js
-module.exports = {
-  extends: ['@commitlint/config-conventional', '@commitlint/config-pnpm-scopes'],
-  formatter: '@commitlint/format',
-  rules: {
-    'scope-case': [2, 'always', ['lower-case', 'pascal-case', 'camel-case']],
-    'header-max-length': [2, 'always', 130],
-  },
+```ts
+import type { UserConfig } from "@commitlint/types";
+
+const configuration: UserConfig = {
+	extends: ["@commitlint/config-conventional", "@commitlint/config-pnpm-scopes"],
+	formatter: "@commitlint/format",
+	rules: {
+		"scope-case": [2, "always", ["lower-case", "pascal-case", "camel-case"]],
+		"header-max-length": [2, "always", 130],
+	},
 };
+
+export default configuration;
 ```
 
 - **[Conventional Commits](https://www.conventionalcommits.org):** `type(scope): subject` (e.g. `feat(contribkit-web): add hex shape`).
