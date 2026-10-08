@@ -7,6 +7,10 @@ pre-commit:
     sync-shared-assets:
       glob: "shared/*.json"
       run: node scripts/sync-shared-assets.mjs --stage
+    repo-format:
+      glob: "{docs,scripts,.github}/*.{ts,mjs,json}"
+      run: web/node_modules/.bin/biome check --write --no-errors-on-unmatched --config-path=web/biome.json {staged_files}
+      stage_fixed: true
 
 commit-msg:
   parallel: false

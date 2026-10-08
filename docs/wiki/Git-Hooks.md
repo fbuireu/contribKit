@@ -30,6 +30,10 @@ pre-commit:
     sync-shared-assets:
       glob: "shared/*.json"
       run: node scripts/sync-shared-assets.mjs --stage
+    repo-format:
+      glob: "{docs,scripts,.github}/*.{ts,mjs,json}"
+      run: web/node_modules/.bin/biome check --write --no-errors-on-unmatched --config-path=web/biome.json {staged_files}
+      stage_fixed: true
 
 commit-msg:
   parallel: false
@@ -53,9 +57,10 @@ flowchart TD
     commit(["git commit"]) --> pc["pre-commit"]
     pc --> sync["sync-shared-assets (shared/*.json)"]
     pc --> webfmt["web-format: biome check --write"]
+    pc --> repofmt["repo-format: biome check --write"]
     pc --> dartfmt["flutter-format: dart format"]
     pc --> analyze["dart-analyze: dart analyze --fatal-infos"]
-    sync & webfmt & dartfmt & analyze --> cm["commit-msg"]
+    sync & webfmt & repofmt & dartfmt & analyze --> cm["commit-msg"]
     cm --> lint["commitlint --edit"]
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
@@ -74,10 +79,11 @@ Runs on staged files only, before the commit is created.
 |---------|--------------|------|-------|
 | `sync-shared-assets` | `shared/*.json` | `node scripts/sync-shared-assets.mjs --stage` | Regenerates `app/assets/*.json` from `shared/` and re-stages them |
 | `web-format` | `web/**/*.{ts,astro,css,json}` | `biome check --write` on staged files | `stage_fixed: true`, so fixes are auto-restaged |
+| `repo-format` | `{docs,scripts,.github}/*.{ts,mjs,json}` | `biome check --write` on staged files, with `web/biome.json` | the rest of what `format:check` reads; lefthook's `*` crosses directories, so the glob reaches nested files; `stage_fixed: true` |
 | `flutter-format` | `app/**/*.dart` | `dart format` on staged files | runs in parallel; `stage_fixed: true` |
 | `dart-analyze` | `app/**/*.dart` | `dart analyze --fatal-infos` | runs in parallel; fails on any info/warning |
 
-Because `web-format` and `flutter-format` use `stage_fixed: true`, autofixes are folded back into the same commit, so you don't need to re-`git add` them.
+Because `web-format`, `repo-format` and `flutter-format` use `stage_fixed: true`, autofixes are folded back into the same commit, so you don't need to re-`git add` them.
 
 ---
 
