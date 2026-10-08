@@ -90,7 +90,8 @@ jobs:
     needs: [changes]
     if: ${{ needs.changes.outputs.app == 'true' }}
     uses: $/.github/workflows/_ci-app.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   verify-web:
     name: Verify (web)
