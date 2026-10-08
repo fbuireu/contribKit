@@ -57,7 +57,7 @@
 		"test:e2e:ui": "pnpm test:e2e --ui",
 		"verify:static": "pnpm format:check && pnpm typecheck && pnpm check",
 		"verify": "pnpm verify:static && pnpm test:ut:coverage",
-		"verify:changed": "pnpm verify:static && pnpm test:ut:changed",
+		"verify:changed": "pnpm verify:static && pnpm test:ut:changed && pnpm test:docs",
 		"check": "pnpm types && astro check"
 	},
 	"dependencies": {

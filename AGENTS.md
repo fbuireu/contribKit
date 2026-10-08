@@ -31,7 +31,7 @@ pnpm typecheck           # wrangler types + astro sync (the astro:env types) + t
 pnpm check               # astro check: the only thing that typechecks .astro files
 pnpm verify:static       # format:check + typecheck + check: everything verify does but the suite
 pnpm verify              # verify:static + coverage: what CI runs
-pnpm verify:changed      # verify:static + test:ut:changed: what pre-push runs
+pnpm verify:changed      # verify:static + test:ut:changed + test:docs: what pre-push runs
 
 pnpm lint:all                    # biome lint over web, docs, .github and scripts
 pnpm format:all                  # biome check --write, the same four

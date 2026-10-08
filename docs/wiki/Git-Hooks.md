@@ -125,7 +125,7 @@ Runs heavier checks before pushing, so a broken branch never reaches the remote.
 
 | Command | Runs on | Runs |
 |---------|---------|------|
-| `web-verify` | every push | `pnpm verify:changed` (format check, typecheck, `astro check`, and the unit tests touched since `origin/main`; no coverage floor, which CI enforces) |
+| `web-verify` | every push | `pnpm verify:changed` (format check, typecheck, `astro check`, the unit tests touched since `origin/main`, and the whole docs test, which the import graph never selects; no coverage floor, which CI enforces) |
 | `dart-analyze` | a pushed `*.dart`, [`pubspec.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/pubspec.yaml) or [`analysis_options.yaml`](https://github.com/fbuireu/contribKit/blob/main/app/analysis_options.yaml) | `dart analyze --fatal-infos` |
 | `flutter-test` | the same three | `flutter test --coverage`, then `dart run tool/check_coverage.dart` |
 
