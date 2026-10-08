@@ -81,7 +81,7 @@ No rule below restates these, and a diff that breaks one fails CI:
   - the ADR shape and index; the links, paths and pins of every document, `.github` included; every Mermaid diagram
     held to the `layout: dagre` it was drawn with, so a renderer that defaults to ELK cannot redraw it; the release
     configs; package scripts with no shell substitution; and the workflows, `ci.yml` with no path filter, the docs
-    contract ungated and a `--message` on every deploy.
+    contract ungated and every deploy's `--message` the one token `<sha>-<event>` the deploying repositories share.
 
 ## Every change
 
