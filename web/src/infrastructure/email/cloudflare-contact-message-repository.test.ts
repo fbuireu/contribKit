@@ -7,8 +7,8 @@ const { env, sent, template } = vi.hoisted(() => ({
 }));
 
 vi.mock("cloudflare:workers", () => ({ env }));
-vi.mock("@react-email/render", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("@react-email/render")>();
+vi.mock("react-email", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("react-email")>();
 	return {
 		...actual,
 		render: (...params: Parameters<typeof actual.render>) => {

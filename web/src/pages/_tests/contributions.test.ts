@@ -136,10 +136,22 @@ describe("GET /api/contributions", () => {
 
 		expect(res.status).toBe(200);
 		expect(res.headers.get("Cache-Control")).toContain("max-age=3600");
-		const body = (await res.json()) as { username: string; days: unknown[]; cells: unknown[] };
+		const body = (await res.json()) as { username: string; days: unknown[] };
 		expect(body.username).toBe("torvalds");
 		expect(body.days).toEqual([{ date: "2024-01-01", level: 2, count: 5 }]);
-		expect(body.cells).toEqual(body.days);
+	});
+
+	it("answers with exactly username, days and total, and no second name for the days", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(HTML, { status: 200 })),
+		);
+
+		const res = await call("?user=torvalds");
+		const body = (await res.json()) as Record<string, unknown>;
+
+		expect(res.status).toBe(200);
+		expect(Object.keys(body).sort()).toEqual(["days", "total", "username"]);
 	});
 
 	it("404 when the user is not found", async () => {

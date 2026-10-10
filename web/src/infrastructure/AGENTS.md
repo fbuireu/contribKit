@@ -114,15 +114,16 @@ there is no runtime secret to hold or rotate
 [`wrangler.toml`](../../wrangler.toml) names no `destination_address`, because the address is in no file. The
 visitor's address goes in `Reply-To`, because putting it in `From` is what DMARC rejects.
 
-**`ContactMessageEmail.tsx` is the email, and it is React Email, the way the sibling sites' are.** It and its test
-are the only `.tsx` files in the project, which is why the web `tsconfig` carries `jsx` and the Astro config
-carries the React integration. The template takes the `ContactMessage`, the sent date and the site, and draws its
-header strip and its button from `PALETTES.github`, the domain's own colours; the neutral greys are the email's own
-literals, because an email client reads no CSS variable. `cloudflareContactMessageRepository` renders it twice
-through `@react-email/render`, once as HTML and once with `plainText`, and hands both to `mime.ts`. Everything the
-visitor typed goes through React's escaping, and a colocated test pins that a message cannot add markup. The two
-`mailto:` links percent-encode the address on each side of its `@`, because the address rule admits `?`, `&`, `%` and
-`,`, and a link built from the raw text lets an address add a `bcc` or a second recipient to the maintainer's reply.
+**`ContactMessageEmail.tsx` is the email, and it is React Email, the way the sibling sites' are**: its components and
+`render` both come from the one `react-email` package, the one biancafiore pins. It and its test are the only `.tsx`
+files in the project, which is why the web `tsconfig` carries `jsx` and the Astro config carries the React
+integration. The template takes the `ContactMessage`, the sent date and the site, and draws its header strip and its
+button from `PALETTES.github`, the domain's own colours; the neutral greys are the email's own literals, because an
+email client reads no CSS variable. `cloudflareContactMessageRepository` renders it twice through that `render`, once
+as HTML and once with `plainText`, and hands both to `mime.ts`. Everything the visitor typed goes through React's
+escaping, and a colocated test pins that a message cannot add markup. The two `mailto:` links percent-encode the
+address on each side of its `@`, because the address rule admits `?`, `&`, `%` and `,`, and a link built from the raw
+text lets an address add a `bcc` or a second recipient to the maintainer's reply.
 
 **`mime.ts` builds the envelope by hand**: no `mimetext`, because a short header block and a
 `multipart/alternative` body of two base64 parts do not justify a dependency, the same trade

@@ -194,6 +194,6 @@ the calendar renders blank. Workers run in UTC and never show it. Before touchin
   written. TypeScript cannot see a template literal in an `.astro` expression stringifying an object, which is why
   the home e2e asserts each palette swatch's style is a hex colour.
 - **The aggregate's field is `totalContributions`, and the endpoint's JSON key is still `total`**, a published
-  contract like the `cells` alias; the two are decoupled at the one line in `pages/api/contributions.ts` that
-  serialises the field. The glossary guard does not police `total`: it would fire on that published key and on the
-  code that carries it (`data.total` in `ui/utils/page-init.ts`, `scrapedTotalContributions` here).
+  contract; the two are decoupled at the one line in `pages/api/contributions.ts` that serialises the field. The
+  glossary guard does not police `total`: it would fire on that published key and on the code that carries it
+  (`data.total` in `ui/utils/page-init.ts`, `scrapedTotalContributions` here).

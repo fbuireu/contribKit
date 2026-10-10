@@ -62,7 +62,7 @@ Unknown values silently fall back to the default, so the image never breaks.
 | Endpoint                             | Returns            | Description                                                              |
 | ------------------------------------ | ------------------ | ------------------------------------------------------------------------ |
 | `GET /user/:username.svg`            | `image/svg+xml`    | Rendered calendar; accepts `palette`, `shape`, `background` query params |
-| `GET /api/contributions?user=&year=` | `application/json` | Contribution Days as `days` (`date`, `level`, `count`) plus yearly total; `cells` is a deprecated alias for the same array |
+| `GET /api/contributions?user=&year=` | `application/json` | Contribution Days as `days` (`date`, `level`, `count`) plus yearly total |
 | `POST /api/contact`                  | `application/json` | Sends a Contact Message as email through Cloudflare Email Routing; body `{ name?, email, message, website? }` |
 | `GET /api/health`                    | `application/json` | Deployment health: env vars/bindings presence (never values)             |
 
@@ -139,7 +139,7 @@ pnpm install
 | `pnpm wrangler:dev`      | Build + run under the Workers runtime       |
 | `pnpm build`             | Production build                            |
 | `pnpm test:ut`           | Vitest unit tests                           |
-| `pnpm test:e2e`          | Playwright e2e tests                        |
+| `pnpm test:e2e`          | Playwright e2e tests, in Chromium and WebKit |
 | `pnpm lint:all`          | Biome lint                                  |
 | `pnpm check`             | `astro check` (Astro diagnostics)           |
 | `pnpm typecheck`         | wrangler types + astro sync + `tsc --noEmit` |

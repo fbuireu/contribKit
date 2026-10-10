@@ -208,10 +208,10 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 
 - **Web.** `pnpm build` is `wrangler types && astro build`. It is server-rendered rather than prerendered because
   the SVG endpoint renders per request ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). Biome
-  is linter and formatter; Vitest covers unit and docs tests; Playwright runs end-to-end against the deployed
-  preview. The build reaches the network: Astro's font provider downloads Inter and JetBrains Mono from Google at
-  build time, and Google intermittently serves a `fonts.gstatic.com` URL that then 404s, failing the build with
-  `CannotFetchFontFile`. The one `astro build` CI runs, in [`_deploy.yml`](./.github/workflows/_deploy.yml), is a plain `run:` step with no retry
+  is linter and formatter; Vitest covers unit and docs tests; Playwright runs end-to-end, in Chromium and in
+  WebKit, against the deployed preview. The build reaches the network: Astro's font provider downloads Inter and
+  JetBrains Mono from Google at build time, and Google intermittently serves a `fonts.gstatic.com` URL that then
+  404s, failing the build with `CannotFetchFontFile`. The one `astro build` CI runs, in [`_deploy.yml`](./.github/workflows/_deploy.yml), is a plain `run:` step with no retry
   wrapper, the same as in the sibling repositories: a wrapper cannot tell a bad flag from a bad network, and a
   type error inside one burned three attempts before it reported. Astro caches the resolved font URLs in
   `node_modules/.astro/fonts`, and a runner starts with none, so a rerun of the job is a real second attempt
@@ -377,26 +377,3 @@ opens a file in that exact folder, so a deeper split costs reach.
 | **Add a stored setting in the app** | `SettingsRepository` and its Hive implementation, read through `_tolerating`; renaming a key adds **a legacy-key fallback and a migration test**. The background isolate reads through the same repository, so it follows automatically. |
 | **Change what a cached calendar means** | Bump `_cacheBoxName` in the app's contribution repository. Past-year entries never expire on their own ([ADR 0014](./docs/adr/0014-cached-calendars-are-versioned.md)). |
 | **Introduce or redefine a domain word** | [GLOSSARY.md](./GLOSSARY.md) first, then the identifiers, which the *Words* rules in [CODING_STANDARDS.md](./CODING_STANDARDS.md) hold to it. |
-
-## 9. Known inconsistencies
-
-A divergence that is deliberate is an ADR rather than an entry here: `shapes.json` bundled but unread
-([0002](./docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)), `noneLight` app-only
-([0012](./docs/adr/0012-light-theme-palette-variant-is-app-only.md)), and Cell Size named in one client and numeric
-in the other ([0016](./docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)). An
-unknown Count is `null` in both clients ([0019](./docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)).
-
-These are outstanding. Each names the symbol that proves it and the change that resolves it.
-
-### Both clients
-
-- **The JSON endpoint answers with `cells` as well as `days`.** [`web/src/pages/api/contributions.ts`](./web/src/pages/api/contributions.ts) returns
-  `{ username, days: [...], cells: [...], total }`, the two pointing at the same array. `cells` is on the
-  glossary's `_Avoid_` list for Contribution Day (a Cell is the square, a Contribution Day is the data behind
-  it), and every identifier inside both clients says `days`. The field survives only because it is a **published
-  contract**: dropping it breaks any consumer written against the shipped shape, so it stays until a release that
-  says out loud that it is going. `web/README.md` and `docs/wiki/API-Reference.md` document `days` as the field to
-  read and `cells` as deprecated. Do not add a third name, and do not remove this entry until the alias is gone.
-
-When another is found, record it here with the symbol that proves it and the change that resolves it, and delete the
-entry once the code changes: an entry that has quietly become false is worse than no list at all.

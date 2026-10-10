@@ -84,9 +84,9 @@ in [`_tests/contributions.test.ts`](./_tests/contributions.test.ts) and
 Window, and builds its grid with `buildRollingGrid`. An embed URL is pasted into a README once and never revisited,
 so a pinned year would quietly go stale forever.
 
-**`/api/contributions` answers with `days` and repeats it as `cells`**, the field it shipped with, kept as a
-deprecated alias pointing at the same array; `total` is Total Contributions under the name the endpoint shipped
-with, `null` when an active day's Count is unknown.
+**`/api/contributions` answers with exactly `username`, `days` and `total`**, and a test pins that key set;
+`total` is Total Contributions under the name the endpoint shipped with, `null` when an active day's Count is
+unknown.
 
 ## `POST /api/contact`
 

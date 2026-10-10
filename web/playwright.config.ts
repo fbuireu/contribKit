@@ -28,11 +28,8 @@ export default defineConfig({
 	webServer: process.env.BASE_URL
 		? undefined
 		: { command: "pnpm wrangler:dev", url: LOCAL_URL, reuseExistingServer: true, timeout: 180_000 },
-	projects: process.env.CI
-		? [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }]
-		: [
-				{ name: "chromium", use: { ...devices["Desktop Chrome"] } },
-				{ name: "firefox", use: { ...devices["Desktop Firefox"] } },
-				{ name: "webkit", use: { ...devices["Desktop Safari"] } },
-			],
+	projects: [
+		{ name: "chromium", use: { ...devices["Desktop Chrome"] } },
+		{ name: "webkit", use: { ...devices["Desktop Safari"] } },
+	],
 });

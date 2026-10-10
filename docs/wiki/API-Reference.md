@@ -82,16 +82,11 @@ curl -s "https://contribkit.app/api/contributions?user=torvalds&year=2023" | jq 
     { "date": "2024-01-01", "level": 0, "count": 0 },
     { "date": "2024-01-02", "level": 2, "count": 4 }
   ],
-  "cells": [
-    { "date": "2024-01-01", "level": 0, "count": 0 },
-    { "date": "2024-01-02", "level": 2, "count": 4 }
-  ],
   "total": 1234
 }
 ```
 
-- `days` is the field to read. **`cells` is a deprecated alias** for the same array, kept so consumers written
-  against the original shape keep working; it will be removed in a release that says so.
+- The body carries exactly these three keys. `days` holds one entry per Contribution Day.
 - `level` is `0`–`4`, the Contribution Level GitHub itself assigned the day.
 - `count` is the exact contribution count for that day, or `null` when GitHub doesn't expose a tooltip for the Cell.
 - `total` is the sum of every Count, or **`null` the moment any day at level 1 or above has no Count**. It is

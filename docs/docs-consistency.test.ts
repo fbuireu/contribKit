@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 vi.setConfig({ testTimeout: 60_000 });
@@ -497,6 +497,46 @@ describe("layer documentation", () => {
 
 		expect(glossaries).toContain("GLOSSARY.md");
 		expect(glossaries.filter((path) => path !== "GLOSSARY.md")).toEqual([]);
+	});
+});
+
+describe("the guides keep no list of known breaches", () => {
+	const BACKLOG_FILE = /^backlog\.md$/i;
+	const KNOWN_BREACHES_HEADING = /^#{1,6}[ \t]+(?:\d+\.[ \t]+)?Known (?:inconsistencies|defects|breaches)\b/im;
+
+	const everywhere = (match: (path: string) => boolean): string[] =>
+		[...walk({ dir: REPO, match }), ...walk({ dir: join(REPO, ".github"), match })].map(relative);
+
+	const isBacklogFile = (path: string): boolean => BACKLOG_FILE.test(basename(path));
+
+	const listsKnownBreaches = (body: string): boolean =>
+		KNOWN_BREACHES_HEADING.test(body.replace(FENCED_CODE_BLOCK, ""));
+
+	it("tells a list of known breaches from prose that names one, and a backlog file from a file that mentions one", () => {
+		const listing = ["## 9. Known inconsistencies\n\n- an entry\n", "intro\n### Known defects\n", "# Known breaches"];
+		const prose = [
+			"a breach is not a known inconsistencies list",
+			"- **hard**: no guide keeps a list of known inconsistencies",
+			"an entry under *Known inconsistencies*",
+			"```md\n## Known defects\n```",
+			"## Known issues",
+		];
+
+		expect(listing.filter((body) => !listsKnownBreaches(body))).toEqual([]);
+		expect(prose.filter(listsKnownBreaches)).toEqual([]);
+		expect(["BACKLOG.md", "docs/backlog.md", "web/Backlog.md"].filter((path) => !isBacklogFile(path))).toEqual([]);
+		expect(["BACKLOG.md.bak", "docs/backlog-notes.md", "backlog.txt"].filter(isBacklogFile)).toEqual([]);
+	});
+
+	it("fixes a breach in the change that finds it, so no document holds a claim that nothing keeps true", () => {
+		const documents = everywhere((path) => path.endsWith(".md"));
+		const listing = documents.filter((path) => listsKnownBreaches(read(join(REPO, path))));
+
+		expect(documents).toEqual(
+			expect.arrayContaining(["ARCHITECTURE.md", CODING_STANDARDS, CONTRIBUTOR_GUIDE, "docs/wiki/Home.md"]),
+		);
+		expect(everywhere(isBacklogFile)).toEqual([]);
+		expect(listing).toEqual([]);
 	});
 });
 
@@ -1869,7 +1909,7 @@ describe("the web's code keeps the shapes the standards hold it to", () => {
 		const reactFiles = webFiles().filter(
 			(path) =>
 				path.endsWith(".tsx") ||
-				importsOf(read(path)).some((specifier) => specifier === "react" || specifier.startsWith("@react-email/")),
+				importsOf(read(path)).some((specifier) => specifier === "react" || specifier === "react-email"),
 		);
 		const strayReact = reactFiles.map(relative).filter((path) => !path.startsWith("web/src/infrastructure/email/"));
 
@@ -2415,6 +2455,58 @@ describe("the workflows", () => {
 				"release",
 			]),
 		);
+	});
+
+	const PLAYWRIGHT_CONFIG = "web/playwright.config.ts";
+	const PLAYWRIGHT_PROJECT = /name:\s*"(\w+)",\s*use:\s*\{\s*\.\.\.devices\["([\w ]+)"\]/g;
+	const RUNS_PLAYWRIGHT = /\bplaywright test\b|\bpnpm test:e2e\b/;
+	const PLAYWRIGHT_INSTALL_LINE = /^.*\bplaywright install\b.*$/gm;
+	const JOB_START = /^ {2}(?=[\w-]+:[ \t]*$)/m;
+	const BOTH_BROWSERS = [
+		/^ {10}key: \$\{\{ runner\.os \}\}-playwright-chromium-webkit-\$\{\{ hashFiles\('pnpm-lock\.yaml'\) \}\}$/m,
+		/^ {8}run: pnpm exec playwright install --with-deps chromium webkit$/m,
+		/^ {8}run: pnpm exec playwright install-deps chromium webkit$/m,
+	];
+
+	const jobsIn = (file: string): { id: string; body: string }[] => {
+		const source = read(file);
+		return source
+			.slice(source.search(/^jobs:$/m))
+			.split(JOB_START)
+			.filter((body) => /^[\w-]+:/.test(body))
+			.map((body) => ({ id: `${relative(file)}: ${body.slice(0, body.indexOf(":"))}`, body }));
+	};
+
+	it("runs every end-to-end case in Chromium and in WebKit, in CI and on a laptop alike", () => {
+		const config = read(join(REPO, PLAYWRIGHT_CONFIG));
+		const projects = [...config.matchAll(PLAYWRIGHT_PROJECT)].map(([, name, device]) => `${name}: ${device}`);
+
+		expect(projects).toEqual(["chromium: Desktop Chrome", "webkit: Desktop Safari"]);
+		expect(config.match(/\bprojects:/g)).toHaveLength(1);
+		expect(config, "a project list chosen by process.env.CI runs a different suite in CI than on a laptop").toMatch(
+			/\bprojects: \[/,
+		);
+		expect(config).not.toMatch(/firefox/i);
+	});
+
+	it("installs both browsers in every job that runs Playwright, under a cache key that names them", () => {
+		const jobs = workflows.flatMap(jobsIn).filter(({ body }) => RUNS_PLAYWRIGHT.test(body));
+		const missing = jobs.flatMap(({ id, body }) =>
+			BOTH_BROWSERS.filter((line) => !line.test(body)).map((line) => `${id} lacks ${line.source}`),
+		);
+		const installs = workflows.flatMap((file) =>
+			[...read(file).matchAll(PLAYWRIGHT_INSTALL_LINE)].map(([line]) => ({ file, line: line.trim() })),
+		);
+		const singleBrowser = installs
+			.filter(({ line }) => !line.endsWith(" chromium webkit"))
+			.map(({ file, line }) => `${relative(file)}: ${line}`);
+
+		expect(jobs.map(({ id }) => id)).toEqual(
+			expect.arrayContaining([".github/workflows/ci.yml: smoke", ".github/workflows/ci.yml: e2e"]),
+		);
+		expect(installs.length).toBeGreaterThanOrEqual(2 * jobs.length);
+		expect(missing).toEqual([]);
+		expect(singleBrowser).toEqual([]);
 	});
 
 	it("lets semantic-release say whether it published, rather than grepping the commit it wrote", () => {

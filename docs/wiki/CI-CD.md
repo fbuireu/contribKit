@@ -94,6 +94,12 @@ runtime, which a plain Astro dev server is not: the rate-limiter bindings and th
 only there. The middleware's own headers, the SVG route's `Cross-Origin-Resource-Policy` exemption among them, run
 under `astro dev` as well.
 
+**Every case runs in Chromium and in WebKit**, the `chromium` and `webkit` projects of
+[`web/playwright.config.ts`](https://github.com/fbuireu/contribKit/blob/main/web/playwright.config.ts), in CI and on a
+laptop alike, and the smoke run against production is no exception. The `e2e` and `smoke` jobs install both browsers
+and key their cache on both, so a cache saved with one browser is never restored into a run that needs the other. On a
+laptop, `pnpm exec playwright install chromium webkit` once is enough.
+
 Both `dart analyze --fatal-infos` and `flutter test` also run on `pre-push`, so a green push is a green check on the app side too. The hook used to run the analysis alone, which left the app's thinnest-covered layers as the only ones no local gate exercised.
 
 Codecov is configured in [`.github/codecov.yml`](https://github.com/fbuireu/contribKit/blob/main/.github/codecov.yml): each flag's project status allows a 1% drop against the base, and every status, the patch one included, is `informational: true`, so Codecov never fails a build. The floors that do are `MIN_THRESHOLD` in `web/vitest.config.ts` and `minThreshold` in `app/tool/check_coverage.dart`.

@@ -2,7 +2,7 @@
 
 ContribKit renders a GitHub user's public contribution calendar as a customizable image that can be viewed, exported, embedded, or pinned to a phone's home screen.
 
-This is the language the web and the mobile app share, in their code and in their copy. Known departures that are deliberate rather than pending are recorded in [`docs/adr/`](./docs/adr).
+This is the language the web and the mobile app share, in their code and in their copy. A deliberate departure from it is recorded in [`docs/adr/`](./docs/adr), and any other is fixed.
 
 ## Contribution Data
 

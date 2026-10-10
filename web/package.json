@@ -64,11 +64,10 @@
 		"@astrojs/cloudflare": "14.3.1",
 		"@astrojs/react": "6.0.5",
 		"@astrojs/sitemap": "3.7.4",
-		"@react-email/components": "1.0.12",
-		"@react-email/render": "2.1.0",
 		"astro": "7.3.2",
 		"react": "19.2.8",
 		"react-dom": "19.2.8",
+		"react-email": "6.11.0",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {

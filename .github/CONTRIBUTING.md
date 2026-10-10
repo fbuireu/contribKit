@@ -119,7 +119,7 @@ pnpm typecheck            # wrangler types + astro sync + tsc --noEmit
 pnpm check                # astro check: the only thing that typechecks .astro files
 pnpm test:ut              # vitest, the docs contract included
 pnpm test:docs            # the docs contract alone
-pnpm test:e2e             # playwright
+pnpm test:e2e             # playwright, in Chromium and WebKit: pnpm exec playwright install chromium webkit, once
 pnpm verify               # format check, typecheck, astro check and coverage: what CI runs
 ```
 

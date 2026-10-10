@@ -6,10 +6,10 @@ test.describe("api/contributions", () => {
 		expect(response.status()).toBe(200);
 
 		const body = await response.json();
+		expect(Object.keys(body).sort()).toEqual(["days", "total", "username"]);
 		expect(body.username).toBe("torvalds");
 		expect(Array.isArray(body.days)).toBe(true);
 		expect(body.days.length).toBeGreaterThan(300);
-		expect(body.cells).toEqual(body.days);
 
 		for (const day of body.days) {
 			expect(day.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);

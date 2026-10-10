@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 import { delivery } from "@domain/failures/failure";
 import type { ContactMessageRepository } from "@domain/repositories/types";
 import type { ContactMessage } from "@domain/value-objects/contact-message";
-import { render } from "@react-email/render";
+import { render } from "react-email";
 import { errorMessageOf } from "../errors/error-message";
 import { ContactMessageEmail } from "./ContactMessageEmail";
 import { buildMimeMessage } from "./mime";

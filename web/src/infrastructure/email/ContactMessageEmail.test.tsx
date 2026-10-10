@@ -1,6 +1,6 @@
 import type { ContactMessage } from "@domain/value-objects/contact-message";
 import { PALETTES } from "@domain/value-objects/palette";
-import { render } from "@react-email/render";
+import { render } from "react-email";
 import { describe, expect, it } from "vitest";
 import { ContactMessageEmail } from "./ContactMessageEmail";
 

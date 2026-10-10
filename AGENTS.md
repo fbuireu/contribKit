@@ -38,7 +38,7 @@ pnpm format:all                  # biome check --write, the same four
 pnpm format:check                # biome check, read-only: what CI runs
 pnpm test:ut                        # vitest
 pnpm test:docs                   # the maintenance contract alone (also runs inside pnpm test:ut)
-pnpm test:e2e                    # playwright
+pnpm test:e2e                    # playwright, in Chromium and WebKit
 
 # app/: run from app/
 dart analyze                     # must be clean; CI runs --fatal-infos

@@ -13,6 +13,13 @@ as first written could never deliver. The recipient is now the `MAINTAINER_EMAIL
 inlined at build time the way `SITE_URL` is; the sender stays `contact@contribkit.app`. Everything below reads as
 amended.
 
+Amended on 2026-10-10: the template's components and `render` come from the unified `react-email` package, pinned at
+the version biancafiore pins, because npm marks `@react-email/components` as no longer supported. The plain-text
+part renders byte for byte as before. The HTML moves the card's and the panel's padding from the `<table>` to its
+cell, gains a `<title>` and the `<html>` element's `dir` and `lang` on the body, makes the divider's other borders
+transparent, pads the hidden preview text further and writes the button's Outlook spacing with its unit; rendered in
+Chromium, light and dark, at desktop and phone widths, every pixel is the same.
+
 ## Context
 
 Until now the only way to reach the maintainer was the `mailto:contact@contribkit.app` link on the legal
@@ -56,19 +63,19 @@ recipient is the maintainer's own mailbox, the one that address forwards to. `Re
 address, which is what makes answering a message a reply rather than a copy-paste. The alternative, putting the
 visitor in `From`, is what DMARC exists to reject.
 
-**The MIME envelope is built by hand**, in `buildMimeMessage`, rather than by adding `mimetext`. It is a short
-header block and a `multipart/alternative` body of two base64 parts, and the reason is the same one that keeps the
-scraper on regexes ([6](0006-parse-the-contributions-page-with-regexes.md)): a dependency whose whole job is string
+**The MIME envelope is built by hand**, in `buildMimeMessage`, rather than by adding `mimetext`. It is a short header
+block and a `multipart/alternative` body of two base64 parts, and the reason is the same one that keeps the scraper
+on regexes ([6](0006-parse-the-contributions-page-with-regexes.md)): a dependency whose whole job is string
 concatenation is a supply chain for a function that fits on a screen. **The document inside it is React Email**,
 which is not the same trade: `ContactMessageEmail.tsx` is the template biancafiore and forever-pto render for the
 same purpose, with the same card, the same label-and-value rows, the same *Reply* button and the same dark-mode
-block, and a laid-out email that matches the sibling sites was worth `react`, `react-dom`,
-`@react-email/components` and `@react-email/render` where a header block was not. The plain-text part is the same
-element rendered with `plainText`, so the two never disagree. Each part is base64 over UTF-8 bytes folded at 76
-characters, so a message may carry any line break it likes; every **header** value has its CR and LF replaced
-with a space before it is written, which is the second of two guards against header injection. The first is
-[`web/src/domain/value-objects/contact-message.ts`](../../web/src/domain/value-objects/contact-message.ts), whose email rule
-rejects whitespace, `<`, `>` and `"` outright and therefore doubles as that guard.
+block, and a laid-out email that matches the sibling sites was worth `react`, `react-dom` and `react-email` where a
+header block was not. The plain-text part is the same element rendered with `plainText`, so the two never disagree.
+Each part is base64 over UTF-8 bytes folded at 76 characters, so a message may carry any line break it likes; every
+**header** value has its CR and LF replaced with a space before it is written, which is the second of two guards
+against header injection. The first is
+[`web/src/domain/value-objects/contact-message.ts`](../../web/src/domain/value-objects/contact-message.ts), whose
+email rule rejects whitespace, `<`, `>` and `"` outright and therefore doubles as that guard.
 
 **Anti-abuse is a honeypot field plus a dedicated rate limiter, not Turnstile.** Turnstile needs a secret key at
 verification time, which is the thing this decision exists to avoid. `CONTACT_RATE_LIMITER` is its own binding at

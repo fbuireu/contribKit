@@ -14,7 +14,7 @@ import {
 	Row,
 	Section,
 	Text,
-} from "@react-email/components";
+} from "react-email";
 
 export interface ContactMessageEmailProps {
 	message: ContactMessage;

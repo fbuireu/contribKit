@@ -81,7 +81,11 @@ No rule below restates these, and a diff that breaks one fails CI:
   - the ADR shape and index; the links, paths and pins of every document, `.github` included; every Mermaid diagram
     held to the `layout: dagre` it was drawn with, so a renderer that defaults to ELK cannot redraw it; the release
     configs; package scripts with no shell substitution; and the workflows, `ci.yml` with no path filter, the docs
-    contract ungated and every deploy's `--message` the one token `<sha>-<event>` the deploying repositories share.
+    contract ungated and every deploy's `--message` the one token `<sha>-<event>` the deploying repositories share;
+  - the end-to-end runs: `web/playwright.config.ts` with exactly the `chromium` and `webkit` projects, in CI and
+    locally alike, and every job that runs Playwright installing both browsers under a cache key that names them;
+  - no `BACKLOG.md` anywhere in the tree, and no *Known inconsistencies*, *Known defects* or *Known breaches* heading
+    in any document.
 
 ## Every change
 
@@ -439,8 +443,8 @@ No rule below restates these, and a diff that breaks one fails CI:
   `resolve-initial-view.ts` is.
 - **hard**: Wrap each endpoint route's handler in a `try`/`catch` that logs through `logServerError` and answers
   `SERVER_ERROR_MESSAGE` in the route's own body shape, never the thrown message.
-- **hard**: Keep published payload keys (`total`, the `cells` alias, `user`, and an error body's `kind`, whose values
-  are the `Failure` kinds) until a release that says it removes them
+- **hard**: Keep published payload keys (`total`, `user`, and an error body's `kind`, whose values are the `Failure`
+  kinds) until a release that says it removes them
   ([ADR 0004](./docs/adr/0004-typed-failures-instead-of-thrown-exceptions.md)).
 - **hard**: Keep the SVG endpoint degrading to defaults for a bad `palette`, `shape` or `background` and ignoring
   `year`, while the JSON endpoint rejects, because an `<img>` cannot read a 400.
@@ -563,8 +567,9 @@ No rule below restates these, and a diff that breaks one fails CI:
 - **hard**: Prove a new docs-test assertion by breaking the code it guards and watching it fail, permuting a pair
   rather than only renaming a token, because an assertion that never failed advertises coverage it lacks
   ([ADR 0015](./docs/adr/0015-the-maintenance-contract-is-enforced-by-a-test.md)).
-- **hard**: Delete a gotcha, or an entry under *Known inconsistencies* in [ARCHITECTURE.md](./ARCHITECTURE.md), in the
-  change that resolves it, because a stale entry is a false claim about the tree.
+- **hard**: Delete a gotcha in the change that resolves it, because a stale entry is a false claim about the tree.
+- **hard**: Fix a breach in the change that finds it, or report it on the pull request with the rule it breaks; no
+  guide keeps a list of known inconsistencies, because an entry is a claim about the code that nothing keeps true.
 
 ## Deliberate overrides of the smell baseline
 
