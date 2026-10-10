@@ -1,3 +1,10 @@
+# [contribkit-web-v2.0.1](https://github.com/fbuireu/contribKit/compare/web-v2.0.0...web-v2.0.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* **contribkit-web:** renew security.txt for two years, name its canonical URL and policy, and watch ([3041f72](https://github.com/fbuireu/contribKit/commit/3041f7248fc73ca748443a287d955e8186e11a8c))
+
 # [contribkit-web-v2.0.0](https://github.com/fbuireu/contribKit/compare/web-v1.22.3...web-v2.0.0) (2026-10-10)
 
 
