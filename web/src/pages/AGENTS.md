@@ -124,10 +124,10 @@ Runs on every request the Worker receives and does three things.
    `next()` has immutable headers.
 
 **Static assets never reach this middleware, and are covered separately.** `wrangler.toml` declares `[assets]`
-without `run_worker_first`, so Workers Assets answers `/og.png`, `/robots.txt` and everything under `/_astro/`
-*before* the Worker runs. `public/_headers` is the only mechanism that reaches them; `@astrojs/cloudflare` merges
-its own immutable `Cache-Control` rule for `/_astro/*` into it at build time rather than overwriting it, so both
-survive. It sets the three headers that mean something on a non-document response and deliberately not the rest: a
+without `run_worker_first`, so Workers Assets answers `/og.png`, `/robots.txt`, `/.well-known/security.txt` and
+everything under `/_astro/` *before* the Worker runs. `public/_headers` is the only mechanism that reaches them;
+`@astrojs/cloudflare` merges its own immutable `Cache-Control` rule for `/_astro/*` into it at build time rather than
+overwriting it, so both survive. It sets the three headers that mean something on a non-document response and deliberately not the rest: a
 CSP does nothing for a PNG, and `Cross-Origin-Resource-Policy: same-origin` on [`og.png`](../../public/og.png) would
 break the social-card preview the file exists for.
 

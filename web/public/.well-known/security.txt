@@ -1,3 +1,5 @@
 Contact: mailto:contact@contribkit.app
-Expires: 2027-01-01T00:00:00.000Z
+Expires: 2028-10-01T00:00:00.000Z
 Preferred-Languages: en, es
+Canonical: https://contribkit.app/.well-known/security.txt
+Policy: https://github.com/fbuireu/contribKit/security/policy

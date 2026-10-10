@@ -87,7 +87,12 @@ No rule below restates these, and a diff that breaks one fails CI:
     every spec taking `test` and `expect` from `web/e2e/fixtures.ts`, which hands the preview's Cloudflare Access
     token to the preview's origin alone, and no Playwright config or spec setting `extraHTTPHeaders`;
   - no `BACKLOG.md` anywhere in the tree, and no *Known inconsistencies*, *Known defects* or *Known breaches* heading
-    in any document.
+    in any document;
+  - one `security.txt` on every site the repository serves, counted under every `public` or `assets` folder, with
+    `Contact`, `Expires`, `Preferred-Languages`, `Canonical` and `Policy` in that order, its `Canonical` the `site`
+    `web/astro.config.ts` falls back to plus `/.well-known/security.txt`, its `Policy` this repository's, and its
+    `Expires` an ISO 8601 instant 30 days to two years from the day the suite runs, which reads the real clock on
+    purpose so `main` turns red a month before the file lapses.
 
 ## Every change
 
@@ -528,9 +533,10 @@ No rule below restates these, and a diff that breaks one fails CI:
 - **judgement**: Cover each piece `main()` assembles and leave the bootstrap itself untested, because a test of it
   only asserts that mocks were called.
 - **hard**: Tag a case `@smoke` only for what proves the Worker answers on every deploy, never a result that depends
-  on the caller's address, and keep the three cases every repository that deploys runs (a titled homepage, an
-  unknown path answering 404, `robots.txt` served) word for word, because a failing smoke run rolls production back.
-  `/user/<name>.svg` is this repository's fourth, the one route that cannot be prerendered and so the one that tells a
+  on the caller's address, and keep the four cases every repository that deploys runs (a titled homepage, an unknown
+  path answering 404, `robots.txt` served, `security.txt` served in date with its `Canonical` the URL asked for when
+  `PRODUCTION_URL` names the target) word for word, because a failing smoke run rolls production back.
+  `/user/<name>.svg` is this repository's fifth, the one route that cannot be prerendered and so the one that tells a
   running Worker from a bucket of assets, asked for `/user/foo_bar.svg` and asserted word for word, because the
   Worker refuses that Username before any request leaves it and an outage at GitHub must not roll back a healthy
   deploy.
@@ -590,7 +596,7 @@ No rule below restates these, and a diff that breaks one fails CI:
 - **Duplicated Code**: the stated-version helpers (`VERSIONED_DEPENDENCIES` through `declaredIn`) and the
   release-config helpers (`BREAKING_PARSER_OPTS` through `parserOptsOf`) in `docs/docs-consistency.test.ts` are byte
   for byte the same in biancafiore, contribKit and github-star-tracker, so a change to one is made in all three.
-- **Duplicated Code**: the three smoke cases are word for word the same in every repository that deploys, so a
+- **Duplicated Code**: the four smoke cases are word for word the same in every repository that deploys, so a
   difference between them is drift, not a variant.
 - **Shotgun Surgery**: a change to fetching or parsing edits both clients, and a change to a cross-language constant
   edits every spelling, by design.

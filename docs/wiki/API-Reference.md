@@ -227,6 +227,8 @@ Every response (set by the middleware) includes:
 | `Cross-Origin-Resource-Policy` | `same-origin` |
 | `Cross-Origin-Embedder-Policy` | `unsafe-none` |
 
+**Static files never reach the middleware.** Workers Assets answers `/robots.txt`, `/og.png`, `/.well-known/security.txt` and the built assets before the Worker runs, so they carry only the `X-Content-Type-Options`, `Referrer-Policy` and `X-Frame-Options` that [`public/_headers`](https://github.com/fbuireu/contribKit/blob/main/web/public/_headers) sets, and `security.txt` is served as `text/plain`.
+
 **`/user/:username.svg` is the one exception:** it is served with `Cross-Origin-Resource-Policy: cross-origin`, so a browser will render it in an `<img>` on any site. Every other response (the pages and all of `/api/*`) stays `same-origin`. See [ADR 0017](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0017-the-svg-endpoint-opts-out-of-the-same-origin-resource-policy.md).
 
 ---
