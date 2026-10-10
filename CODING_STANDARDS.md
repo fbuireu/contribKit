@@ -534,8 +534,8 @@ No rule below restates these, and a diff that breaks one fails CI:
   only asserts that mocks were called.
 - **hard**: Tag a case `@smoke` only for what proves the Worker answers on every deploy, never a result that depends
   on the caller's address, and keep the four cases every repository that deploys runs (a titled homepage, an unknown
-  path answering 404, `robots.txt` served, `security.txt` served in date with its `Canonical` the URL asked for when
-  `PRODUCTION_URL` names the target) word for word, because a failing smoke run rolls production back.
+  path answering 404, `robots.txt` served, `security.txt` served in date and byte for byte the file
+  in `public/`) word for word, because a failing smoke run rolls production back.
   `/user/<name>.svg` is this repository's fifth, the one route that cannot be prerendered and so the one that tells a
   running Worker from a bucket of assets, asked for `/user/foo_bar.svg` and asserted word for word, because the
   Worker refuses that Username before any request leaves it and an outage at GitHub must not roll back a healthy
