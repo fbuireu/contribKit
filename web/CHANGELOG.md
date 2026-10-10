@@ -1,3 +1,15 @@
+# [contribkit-web-v2.0.0](https://github.com/fbuireu/contribKit/compare/web-v1.22.3...web-v2.0.0) (2026-10-10)
+
+
+### Code Refactoring
+
+* answer the JSON endpoint without cells, and run every end-to-end case in WebKit too ([16632a8](https://github.com/fbuireu/contribKit/commit/16632a8d6281ad873be884cc2f85fb646d2d2f0f))
+
+
+### BREAKING CHANGES
+
+* /api/contributions no longer returns cells; read days, the same array.
+
 # [contribkit-web-v1.22.3](https://github.com/fbuireu/contribKit/compare/web-v1.22.2...web-v1.22.3) (2026-10-05)
 
 
