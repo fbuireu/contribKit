@@ -2519,6 +2519,63 @@ describe("the workflows", () => {
 	});
 });
 
+describe("the preview's Access token", () => {
+	const ACCESS_FIXTURE = "web/e2e/fixtures.ts";
+	const PLAYWRIGHT_CONFIG_FILE = /^playwright\.config\.[cm]?[jt]s$/;
+	const PLAYWRIGHT_IMPORT = /^import\s+(type\s+)?([^;]*?)\s+from\s+"@playwright\/test";?$/gm;
+	const BARE_PLAYWRIGHT_IMPORT = /^import\s+"@playwright\/test"/m;
+	const NAMED_BINDINGS = /^\{([\s\S]*)\}$/;
+	const EXTRA_HEADERS = /\bextraHTTPHeaders\b|\.setExtraHTTPHeaders\(/;
+
+	const importsPlaywrightValues = (source: string): boolean =>
+		BARE_PLAYWRIGHT_IMPORT.test(source) ||
+		[...source.matchAll(PLAYWRIGHT_IMPORT)].some(([, typeOnly, clause = ""]) => {
+			if (typeOnly) return false;
+			const named = clause.trim().match(NAMED_BINDINGS);
+			return (
+				!named ||
+				(named[1] ?? "")
+					.split(",")
+					.map((binding) => binding.trim())
+					.some((binding) => binding !== "" && !binding.startsWith("type "))
+			);
+		});
+
+	const e2eSources = (): string[] =>
+		walk({ dir: join(REPO, "web/e2e"), match: (path) => path.endsWith(".ts") }).filter(
+			(path) => relative(path) !== ACCESS_FIXTURE,
+		);
+
+	it("reaches every spec through web/e2e/fixtures.ts, which sends it to the preview's origin alone, so no spec takes a value from @playwright/test", () => {
+		const sources = e2eSources();
+
+		expect(importsPlaywrightValues('import { expect, test } from "@playwright/test";')).toBe(true);
+		expect(importsPlaywrightValues('import { expect, type Page, test } from "@playwright/test";')).toBe(true);
+		expect(importsPlaywrightValues('import * as playwright from "@playwright/test";')).toBe(true);
+		expect(importsPlaywrightValues('import type { Page } from "@playwright/test";')).toBe(false);
+		expect(importsPlaywrightValues('import { type Page } from "@playwright/test";')).toBe(false);
+		expect(importsPlaywrightValues('import { expect, test } from "./fixtures";')).toBe(false);
+		expect(existsSync(join(REPO, ACCESS_FIXTURE))).toBe(true);
+		expect(sources.filter((path) => path.endsWith(".spec.ts")).length).toBeGreaterThan(0);
+		expect(sources.filter((path) => importsPlaywrightValues(read(path))).map(relative)).toEqual([]);
+	});
+
+	it("is set as extraHTTPHeaders by no Playwright config and no spec, because Playwright sends those on every request a page makes, to every third party included", () => {
+		const configs = ["", "web"].flatMap((dir) =>
+			readdirSync(join(REPO, dir))
+				.filter((name) => PLAYWRIGHT_CONFIG_FILE.test(name))
+				.map((name) => join(REPO, dir, name)),
+		);
+
+		expect(EXTRA_HEADERS.test("export default defineConfig({ use: { extraHTTPHeaders: headers } });")).toBe(true);
+		expect(EXTRA_HEADERS.test("test.use({ extraHTTPHeaders });")).toBe(true);
+		expect(EXTRA_HEADERS.test("await page.setExtraHTTPHeaders(headers);")).toBe(true);
+		expect(EXTRA_HEADERS.test('export default defineConfig({ use: { baseURL: "http://localhost" } });')).toBe(false);
+		expect(configs.length).toBeGreaterThan(0);
+		expect([...configs, ...e2eSources()].filter((path) => EXTRA_HEADERS.test(read(path))).map(relative)).toEqual([]);
+	});
+});
+
 describe("the YAML carries no comment but a pin's version, and every action is pinned to a commit", () => {
 	const YAML_FILE = /\.ya?ml$/;
 	const WRITTEN_BY_PNPM = "pnpm-lock.yaml";

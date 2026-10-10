@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const LEGAL_PAGES = ["/terms", "/legal-notice", "/privacy"] as const;
 

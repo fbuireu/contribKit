@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import { ClassName, ElementId } from "../src/ui/utils/dom-contract";
+import { expect, test } from "./fixtures";
 
 test.describe("404 page", () => {
 	test("keeps the 404 out of every cache", async ({ request }) => {

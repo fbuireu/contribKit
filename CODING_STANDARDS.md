@@ -84,6 +84,8 @@ No rule below restates these, and a diff that breaks one fails CI:
     contract ungated and every deploy's `--message` the one token `<sha>-<event>` the deploying repositories share;
   - the end-to-end runs: `web/playwright.config.ts` with exactly the `chromium` and `webkit` projects, in CI and
     locally alike, and every job that runs Playwright installing both browsers under a cache key that names them;
+    every spec taking `test` and `expect` from `web/e2e/fixtures.ts`, which hands the preview's Cloudflare Access
+    token to the preview's origin alone, and no Playwright config or spec setting `extraHTTPHeaders`;
   - no `BACKLOG.md` anywhere in the tree, and no *Known inconsistencies*, *Known defects* or *Known breaches* heading
     in any document.
 

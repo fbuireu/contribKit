@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import { ElementId } from "../src/ui/utils/dom-contract";
+import { expect, test } from "./fixtures";
 
 const byId = (id: ElementId): string => `#${id}`;
 

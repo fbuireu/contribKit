@@ -26,7 +26,7 @@ export default defineConfig({
 	test: {
 		reporters: process.env.GITHUB_ACTIONS ? ["default", summaryLabel, "github-actions"] : ["default"],
 		include: [...configDefaults.include, "../docs/**/*.test.ts"],
-		exclude: [...configDefaults.exclude, "e2e/**"],
+		exclude: [...configDefaults.exclude, "e2e/**/*.spec.ts"],
 		testTimeout: 20_000,
 		coverage: {
 			provider: "istanbul",

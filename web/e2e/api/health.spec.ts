@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures";
 
 const CHECKED_KEYS = [
 	"PUBLIC_GOOGLE_ANALYTICS_ID",

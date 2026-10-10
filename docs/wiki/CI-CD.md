@@ -94,6 +94,14 @@ runtime, which a plain Astro dev server is not: the rate-limiter bindings and th
 only there. The middleware's own headers, the SVG route's `Cross-Origin-Resource-Policy` exemption among them, run
 under `astro dev` as well.
 
+**The Access token reaches the preview alone.** The preview sits behind Cloudflare Access, so the `e2e` job carries
+a service token, `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`, and
+[`web/e2e/fixtures.ts`](https://github.com/fbuireu/contribKit/blob/main/web/e2e/fixtures.ts), where every spec takes
+its `test` from, adds it as `CF-Access-Client-Id` and `CF-Access-Client-Secret` to the requests whose origin is the
+preview's, and to the requests a spec makes itself. What a page asks of a third party carries no token, which
+`extraHTTPHeaders` in the config could not promise: Playwright sends those on every request. The docs test holds the
+imports and the config.
+
 **Every case runs in Chromium and in WebKit**, the `chromium` and `webkit` projects of
 [`web/playwright.config.ts`](https://github.com/fbuireu/contribKit/blob/main/web/playwright.config.ts), in CI and on a
 laptop alike, and the smoke run against production is no exception. The `e2e` and `smoke` jobs install both browsers

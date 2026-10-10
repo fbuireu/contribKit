@@ -1,6 +1,7 @@
-import { expect, type Page, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { ExportFormatKey } from "../src/ui/components/export/export-formats";
 import { ClassName, ElementId, Selector, ThemeClass } from "../src/ui/utils/dom-contract";
+import { expect, test } from "./fixtures";
 
 const RESOLVED_THEME_CLASS = new RegExp(`${ThemeClass.Light}|${ThemeClass.Dark}`);
 const ACTIVE_ROW_CLASS = new RegExp(ClassName.Active);

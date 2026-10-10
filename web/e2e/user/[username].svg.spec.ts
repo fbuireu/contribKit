@@ -1,4 +1,5 @@
-import { expect, type Page, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../fixtures";
 
 test.describe("user svg endpoint", () => {
 	test("honors the shape query param", async ({ request }) => {

@@ -209,7 +209,8 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 - **Web.** `pnpm build` is `wrangler types && astro build`. It is server-rendered rather than prerendered because
   the SVG endpoint renders per request ([ADR 0007](./docs/adr/0007-server-rendered-web-app-on-the-edge.md)). Biome
   is linter and formatter; Vitest covers unit and docs tests; Playwright runs end-to-end, in Chromium and in
-  WebKit, against the deployed preview. The build reaches the network: Astro's font provider downloads Inter and
+  WebKit, against the deployed preview, through a Cloudflare Access service token that
+  [`web/e2e/fixtures.ts`](./web/e2e/fixtures.ts) hands to the preview's origin alone. The build reaches the network: Astro's font provider downloads Inter and
   JetBrains Mono from Google at build time, and Google intermittently serves a `fonts.gstatic.com` URL that then
   404s, failing the build with `CannotFetchFontFile`. The one `astro build` CI runs, in [`_deploy.yml`](./.github/workflows/_deploy.yml), is a plain `run:` step with no retry
   wrapper, the same as in the sibling repositories: a wrapper cannot tell a bad flag from a bad network, and a

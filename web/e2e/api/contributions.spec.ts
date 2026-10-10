@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures";
 
 test.describe("api/contributions", () => {
 	test("returns a calendar for a valid user", async ({ request }) => {

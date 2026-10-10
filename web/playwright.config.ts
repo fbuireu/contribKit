@@ -5,6 +5,7 @@ const BASE_URL = process.env.BASE_URL ?? LOCAL_URL;
 
 export default defineConfig({
 	testDir: "./e2e",
+	testMatch: "**/*.spec.ts",
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
@@ -13,17 +14,6 @@ export default defineConfig({
 	use: {
 		baseURL: BASE_URL,
 		trace: "on-first-retry",
-		extraHTTPHeaders: ((): Record<string, string> => {
-			const id = process.env.CF_ACCESS_CLIENT_ID;
-			const secret = process.env.CF_ACCESS_CLIENT_SECRET;
-			if (!id && !secret) return {};
-			if (!id || !secret) {
-				throw new Error(
-					`CF Access misconfigured: ${!id ? "CF_ACCESS_CLIENT_ID" : "CF_ACCESS_CLIENT_SECRET"} is missing`,
-				);
-			}
-			return { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": secret };
-		})(),
 	},
 	webServer: process.env.BASE_URL
 		? undefined

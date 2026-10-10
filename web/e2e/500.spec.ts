@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import { ClassName, ElementId } from "../src/ui/utils/dom-contract";
+import { expect, test } from "./fixtures";
 
 test.describe("500 page", () => {
 	test("the /500 route renders the error page with a 500 status", async ({ request }) => {
