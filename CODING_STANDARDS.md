@@ -79,8 +79,8 @@ No rule below restates these, and a diff that breaks one fails CI:
     comment, and no comment in a YAML file (`pnpm-lock.yaml`, which pnpm writes, aside) but that one, a tool
     directive and the line Renovate writes above an entry it adds to `minimumReleaseAgeExclude`;
   - the ADR shape and index; the links, paths and pins of every document, `.github` included; every Mermaid diagram
-    held to the `layout: dagre` it was drawn with, so a renderer that defaults to ELK cannot redraw it; the release
-    configs; package scripts with no shell substitution; and the workflows, `ci.yml` with no path filter, the docs
+    held to the `layout: dagre` it was drawn with, so a renderer that defaults to ELK cannot redraw it; package
+    scripts with no shell substitution; and the workflows, `ci.yml` with no path filter, the docs
     contract ungated and every deploy's `--message` the one token `<sha>-<event>` the deploying repositories share;
   - the end-to-end runs: `web/playwright.config.ts` with exactly the `chromium` and `webkit` projects, in CI and
     locally alike, and every job that runs Playwright installing both browsers under a cache key that names them;
@@ -88,6 +88,11 @@ No rule below restates these, and a diff that breaks one fails CI:
     token to the preview's origin alone, and no Playwright config or spec setting `extraHTTPHeaders`;
   - no `BACKLOG.md` anywhere in the tree, and no *Known inconsistencies*, *Known defects* or *Known breaches* heading
     in any document;
+  - every `.releaserc.json` the release configuration the sibling repositories share, with no key or plugin beyond
+    what the repository's shape adds and laid out as Biome lays it out, its release commit
+    `chore(<scope>): release ${nextRelease.version} [skip ci]` scoped to the package it releases, and every plugin
+    it names, and `semantic-release`, declared at one version in the `package.json` that runs it, beside no other
+    release package, and the release commit let past commitlint by its `ignores`, whatever its notes say;
   - one `security.txt` on every site the repository serves, counted under every `public` or `assets` folder, with
     `Contact`, `Expires`, `Preferred-Languages`, `Canonical` and `Policy` in that order, its `Canonical` the `site`
     `web/astro.config.ts` falls back to plus `/.well-known/security.txt`, its `Policy` this repository's, and its
@@ -593,9 +598,13 @@ No rule below restates these, and a diff that breaks one fails CI:
 - **Duplicated Code**: `logger.ts` is byte for byte what the sibling repositories carry and `contract.ts` differs from
   theirs only in `LOG_SERVICE`, so a change to either is made in all three
   ([ADR 0026](./docs/adr/0026-observability-is-cloudflares-exported-to-better-stack.md)).
-- **Duplicated Code**: the stated-version helpers (`VERSIONED_DEPENDENCIES` through `declaredIn`) and the
-  release-config helpers (`BREAKING_PARSER_OPTS` through `parserOptsOf`) in `docs/docs-consistency.test.ts` are byte
-  for byte the same in biancafiore, contribKit and github-star-tracker, so a change to one is made in all three.
+- **Duplicated Code**: the stated-version helpers (`VERSIONED_DEPENDENCIES` through `declaredIn`) in
+  `docs/docs-consistency.test.ts` are byte for byte the same in biancafiore, contribKit and github-star-tracker, so a
+  change to one is made in all three.
+- **Duplicated Code**: the release-configuration rule (`BREAKING_PARSER_OPTS` through the `describe` that holds
+  every release configuration to the shared one) in `docs/docs-consistency.test.ts` is byte for byte the same in
+  biancafiore, contribKit, forever-pto and github-star-tracker, so a change to it is made in all four; only the
+  shapes declared above it, which name each repository's files, differ.
 - **Duplicated Code**: the four smoke cases are word for word the same in every repository that deploys, so a
   difference between them is drift, not a variant.
 - **Shotgun Surgery**: a change to fetching or parsing edits both clients, and a change to a cross-language constant

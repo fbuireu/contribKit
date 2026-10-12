@@ -1,8 +1,6 @@
 {
 	"extends": "semantic-release-monorepo",
-	"branches": [
-		"main"
-	],
+	"branches": ["main"],
 	"tagFormat": "app-v${version}",
 	"plugins": [
 		[
@@ -34,10 +32,7 @@
 		[
 			"@semantic-release/git",
 			{
-				"assets": [
-					"pubspec.yaml",
-					"CHANGELOG.md"
-				],
+				"assets": ["pubspec.yaml", "CHANGELOG.md"],
 				"message": "chore(contribkit-app): release ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 			}
 		],
