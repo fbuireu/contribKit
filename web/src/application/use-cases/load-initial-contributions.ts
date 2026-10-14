@@ -19,10 +19,12 @@ export interface InitialContributions {
 	totalContributions: number | null;
 }
 
-export type LoadContributionsResult = { year: number } & (
-	| { ok: true; data: InitialContributions }
-	| { ok: false; kind: Failure["kind"]; status: number; reason: string }
-);
+export interface ChosenYear {
+	year: number;
+}
+
+export type LoadContributionsResult = ChosenYear &
+	({ ok: true; data: InitialContributions } | { ok: false; kind: Failure["kind"]; status: number; reason: string });
 
 export const loadInitialContributions =
 	(loadContributions: LoadContributions) =>

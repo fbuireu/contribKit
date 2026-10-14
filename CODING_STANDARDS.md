@@ -17,8 +17,9 @@ body in the commit that lands its check. The process around a change (commit typ
 No rule below restates these, and a diff that breaks one fails CI:
 
 - Biome ([`web/biome.json`](./web/biome.json)) over `web`, `docs`, `.github` and `scripts`: formatting, import order,
-  the recommended rules, `console` outside the logger, writes to `document.cookie` outside `cookie.ts`, and
-  `!important` outside `reset.css`.
+  the recommended rules, `console` outside the logger, writes to `document.cookie` outside `cookie.ts`, `!important`
+  outside `reset.css`, and every object shape declared an `interface`, never a `type` alias of an object literal
+  (`useConsistentTypeDefinitions`).
 - `dart analyze` over [`app/analysis_options.yaml`](./app/analysis_options.yaml): `flutter_lints` (`==` with
   `hashCode` included), `riverpod_lint`, strict casts, inference and raw types, package imports, positional
   booleans, unawaited futures, directive and constructor ordering, and the `Container` rules.
@@ -99,6 +100,11 @@ No rule below restates these, and a diff that breaks one fails CI:
     in any document;
   - this file: every rule between this list and the smell overrides opening with its id and its **hard** or
     **judgement** label, no id carried by two rules, and every id in a section drawn from one letter;
+  - no object literal in a type alias but as a member of its union or beside the primitive it brands, nor one wrapped in
+    `Readonly`, `Partial` or `Required`, so a shape built on others is an `interface` that `extends` them: `extends`
+    reports a field the shapes disagree on where it is declared, where `&` folds it into `never` in silence, and the
+    compiler caches an interface's relations by name and names it in an error, where it recomputes an intersection and
+    spells it out;
   - every `.releaserc.json` the release configuration the sibling repositories share, with no key or plugin beyond
     what the repository's shape adds and laid out as Biome lays it out, its release commit
     `chore(<scope>): release ${nextRelease.version} [skip ci]` scoped to the package it releases, and every plugin
@@ -498,6 +504,17 @@ No rule below restates these, and a diff that breaks one fails CI:
 - `W45` **judgement**: Run no side effect at module scope in a browser module; `initPage` does the initialising.
 - `W46` **hard**: Show in a preview exactly what its copy button copies.
 
+### Types
+
+- `W47` **hard**: Compose object shapes declared elsewhere as `interface X extends A, B`, never `type X = A & B`, which
+  no check tells from an intersection with a union, because that takes the types. Keep `&` for a member an interface
+  cannot extend (a union, a type parameter, a conditional type), and `type` for what an interface cannot say: a union, a
+  mapped or conditional type, an alias of a primitive, a tuple or a function, and a computed type on its own (`z.infer`,
+  `Pick`, `(typeof X)[keyof typeof X]`).
+- `W48` **hard**: Give an interface a name no other interface in its scope carries, because two declarations of one name
+  merge in silence; merging is for a declaration file that augments a global or a vendor's module on purpose
+  (`ImportMetaEnv` and `Window` in `web/src/env.d.ts`).
+
 ## Tests
 
 - `T1` **judgement**: Put the why of a non-obvious Dart assertion in its `reason:`; a `reason:` may narrate the scenario
@@ -603,6 +620,9 @@ No rule below restates these, and a diff that breaks one fails CI:
 - **Duplicated Code**: the id rule (the `describe` that gives every rule of this file an id a finding can cite) in
   `docs/docs-consistency.test.ts` is the same in biancafiore, contribKit, forever-pto and github-star-tracker, so a
   change to it is made in all four; only the floor its census holds and the call that reads this file differ.
+- **Duplicated Code**: the shape rule (the `describe` that keeps every object shape an interface) in
+  `docs/docs-consistency.test.ts` is the same in biancafiore, contribKit, forever-pto and github-star-tracker, so a
+  change to it is made in all four; only the floor its census holds and the files it reads differ.
 - **Duplicated Code**: the four smoke cases are word for word the same in every repository that deploys, so a
   difference between them is drift, not a variant.
 - **Shotgun Surgery**: a change to fetching or parsing edits both clients, and a change to a cross-language constant

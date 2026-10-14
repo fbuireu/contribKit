@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-type Limiter = { limit: (args: { key: string }) => Promise<{ success: boolean }> };
+interface Limiter {
+	limit: (args: { key: string }) => Promise<{ success: boolean }>;
+}
 
 const { env } = vi.hoisted(() => ({
 	env: {} as { API_RATE_LIMITER?: Limiter; CONTACT_RATE_LIMITER?: Limiter },
