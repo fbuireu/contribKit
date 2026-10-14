@@ -108,9 +108,12 @@ Configured in [`commitlint.config.ts`](https://github.com/fbuireu/contribKit/blo
 ```ts
 import type { UserConfig } from "@commitlint/types";
 
+const RELEASE_COMMIT = /^chore\([a-z0-9-]+\): release \d+\.\d+\.\d+ \[skip ci\]/;
+
 const configuration: UserConfig = {
 	extends: ["@commitlint/config-conventional", "@commitlint/config-pnpm-scopes"],
 	formatter: "@commitlint/format",
+	ignores: [(commit) => RELEASE_COMMIT.test(commit)],
 	rules: {
 		"scope-case": [2, "always", ["lower-case", "pascal-case", "camel-case"]],
 		"header-max-length": [2, "always", 130],
@@ -124,6 +127,7 @@ export default configuration;
 - **pnpm scopes:** valid scopes are derived from the workspace package **names**, so they are `contribkit-web` and `contribkit-app` (not `web` and `app`, which commitlint rejects) plus `global`, for a change that belongs to neither client. The scope is optional.
 - **scope-case:** scopes may be `lower-case`, `PascalCase`, or `camelCase`.
 - **header-max-length:** the header may be up to **130** characters.
+- **ignores:** the release commit, `chore(<package>): release <version> [skip ci]`, is let through whatever its notes say: semantic-release writes the notes, and a `BREAKING CHANGES` line longer than `body-max-line-length` would otherwise fail the commit after the tag exists.
 
 Conventional Commit types drive semantic-release versioning; see **[CI/CD](CI-CD)**.
 

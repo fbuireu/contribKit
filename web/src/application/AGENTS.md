@@ -38,12 +38,13 @@ markup, so it stays clear of `ui/` and stays testable, which frontmatter is not:
 ## The two error shapes, and why there are two
 
 `ContributionRepository.fetchCalendar` returns a domain `Failure`. `loadInitialContributions` returns
-`{ ok: false, kind, status, message }`, already mapped through `statusFor` / `messageFor`, with the failure's own
-`kind` carried alongside, and the `year` it chose on both branches, so the page renders an error state for the
-same Year a success would have covered. The mapped pair exists because the caller is a page that renders HTML and
-needs a status and a sentence, not a discriminated union it would have to re-map itself. **`kind` is there for one
-reason: so the page can log what the two data routes log.** Drop it and a GitHub outage on `/` becomes invisible
-while the same outage on `/api/contributions` is recorded. A caller that needs the whole `Failure` calls
+`{ ok: false, kind, status, reason }`, already mapped through `statusFor` / `reasonFor`, with the failure's own
+`kind` carried alongside, and the `year` it chose on both branches (`ChosenYear`), so the page renders an error
+state for the same Year a success would have covered. The mapped fields exist because the caller is a page that
+renders HTML: it draws its error state from the status and the kind (`contributionError`) and logs the kind, the
+status and the reason, so it never re-maps a discriminated union itself. **`kind` is what lets the page log what
+the two data routes log.** Drop it and a GitHub outage on `/` becomes invisible while the same outage on
+`/api/contributions` is recorded. A caller that needs the whole `Failure` calls
 `loadContributions`, the repository method `_contributions.ts` binds, as the two data routes do.
 
 ## `http/failure-log.ts`: one file, the whole logging obligation
