@@ -483,6 +483,9 @@ No rule below restates these, and a diff that breaks one fails CI:
 - `W32` **hard**: Guard a DOM `dataset` value where it is read (`isCellShape`, `paletteByKey`, `isExportFormatKey`,
   `isIsoDate`, `isCount`) and hand renderers the typed value.
 - `W33` **hard**: Draw icons as inline SVG components, because the CSP refuses an icon font or a CDN.
+- `W50` **judgement**: Align an icon beside a label that can wrap with the label's first line, through `icon-first-line`
+  on the icon and a row aligned to the start, never with a hand-tuned margin, because a nudge holds for one font size
+  and one icon size and a centred row moves the icon to the middle of a wrapped label.
 - `W34` **judgement**: Colocate a component's CSS in its folder.
 - `W35` **judgement**: Give each global CSS layer in `ui/styles/` a folder whose `index.css` only imports, and size
   there in `rem`, with `px` only inside `@media`.

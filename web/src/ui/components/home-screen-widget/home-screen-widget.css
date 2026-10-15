@@ -193,7 +193,7 @@
 		border: 0.0625rem solid var(--border-strong);
 		border-radius: 0.5rem;
 		color: var(--accent);
-		margin-top: 0.0625rem;
+		font-size: var(--size-md);
 	}
 	.feat-title {
 		font-size: var(--size-md);

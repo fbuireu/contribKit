@@ -1,4 +1,8 @@
 @layer base {
+	.icon-first-line {
+		translate: 0 calc((1lh - 100%) / 2);
+	}
+
 	.sr-only {
 		position: absolute;
 		width: 0.0625rem;

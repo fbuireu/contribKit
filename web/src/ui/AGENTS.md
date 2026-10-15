@@ -194,6 +194,12 @@ group is a single tab stop rather than one per swatch or tab.
 
 ## Gotchas
 
+- **`icon-first-line` centres an icon on the first line of the label beside it.** The utility in
+  [`styles/base/base.css`](./styles/base/base.css) moves the icon by half the difference between one line and its own
+  height (`translate: 0 calc((1lh - 100%) / 2)`), in a row aligned to the start, so the icon stays on the first line
+  however the label wraps and whatever the icon or font size. `1lh` is the icon's own line height: a tile beside a label
+  set in another size takes that size, as `.feat-icon` takes the feature title's. It moves the icon with `translate`,
+  not `transform`, so an animation that sets `transform` keeps working.
 - **The versions the page prints are build-time constants.** `astro.config.ts` defines `__WEB_VERSION__`, read from
   `web/package.json`, and `__APP_VERSION__`, read from `app/pubspec.yaml`, in `vite.define`, and
   [`env.d.ts`](../env.d.ts) declares both: the footer prints the first and the hero the second. A component that
