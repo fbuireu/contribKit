@@ -33,7 +33,7 @@ dependencies:
 
   purchases_flutter: 10.8.0
 
-  sentry_flutter: 9.30.0
+  sentry_flutter: 9.30.1
   posthog_flutter: 5.40.1
 
   google_fonts: 8.2.1
