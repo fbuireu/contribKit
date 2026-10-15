@@ -73,7 +73,7 @@ interface PlaceParams {
 	top: number;
 }
 
-const place = ({ id = "cell", left, top }: PlaceParams) => {
+const place = ({ id = "cell", left, top }: PlaceParams): HTMLElement => {
 	const cell = document.getElementById(id) as HTMLElement;
 
 	cell.getBoundingClientRect = () =>
@@ -89,7 +89,7 @@ const place = ({ id = "cell", left, top }: PlaceParams) => {
 	return cell;
 };
 
-const hover = (element: Element) => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+const hover = (element: Element): boolean => element.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 
 describe("initCellTooltip", () => {
 	it("does nothing when there is no tooltip element", () => {

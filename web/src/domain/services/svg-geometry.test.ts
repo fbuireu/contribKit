@@ -3,7 +3,7 @@ import { type ContributionDayParams, contributionDay } from "../entities/contrib
 import type { ContributionDay } from "../entities/types";
 import { isFailure } from "../failures/failure";
 import { buildGridFromApi } from "./calendar-grid";
-import { calendarLayout, cornerRadiusFor, dotRadius, hexPoints } from "./svg-geometry";
+import { type CalendarLayout, calendarLayout, cornerRadiusFor, dotRadius, hexPoints } from "./svg-geometry";
 
 const day = (params: ContributionDayParams): ContributionDay => {
 	const built = contributionDay(params);
@@ -19,7 +19,7 @@ const CELL_WIDTH = SIZE + GAP;
 
 const year = (value: number): readonly ContributionDay[] => buildGridFromApi({ days: [], year: value });
 
-const layoutFor = (overrides: Partial<Parameters<typeof calendarLayout>[0]> = {}) =>
+const layoutFor = (overrides: Partial<Parameters<typeof calendarLayout>[0]> = {}): CalendarLayout =>
 	calendarLayout({ days: year(2024), shape: "rounded", size: SIZE, gap: GAP, ...overrides });
 
 describe("dotRadius", () => {

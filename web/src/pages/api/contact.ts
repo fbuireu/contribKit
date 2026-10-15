@@ -29,7 +29,7 @@ const uncacheable = { "Cache-Control": NOT_CACHEABLE };
 const accepted = (): Response =>
 	Response.json({ status: "accepted" }, { status: ACCEPTED_STATUS, headers: uncacheable });
 
-const handle: APIRoute = async ({ request }) => {
+const handle: APIRoute = async ({ request }): Promise<Response> => {
 	const payload: unknown = await request.json().catch(() => null);
 	if (!contactMessageSchema.validate(payload)) {
 		return Response.json({ error: "Invalid request body" }, { status: INVALID_BODY_STATUS, headers: uncacheable });
@@ -52,7 +52,7 @@ const handle: APIRoute = async ({ request }) => {
 	return accepted();
 };
 
-export const POST: APIRoute = async (context) => {
+export const POST: APIRoute = async (context): Promise<Response> => {
 	try {
 		return await handle(context);
 	} catch (error) {

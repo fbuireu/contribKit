@@ -44,7 +44,7 @@ const paintedLabelStyleFor = (background: string): string => {
 const labelStyleFor = (background: string): string =>
 	background === DEFAULT_BACKGROUND_COLOR ? LIGHT_SCHEME_LABEL_STYLE : paintedLabelStyleFor(background);
 
-export const svgStringRenderer: SvgRenderer = ({ days, options }) => {
+export const svgStringRenderer: SvgRenderer = ({ days, options }): string => {
 	const { palette, shape, background } = options;
 	const layout = calendarLayout({
 		days,

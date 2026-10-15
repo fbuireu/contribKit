@@ -8,7 +8,22 @@ const spies = {
 	error: vi.spyOn(console, "error").mockImplementation(() => {}),
 };
 
-const lineFrom = (level: LogLevel) => JSON.parse(spies[level].mock.calls[0]?.[0] as string);
+interface LoggedError {
+	[field: string]: unknown;
+	message: string;
+	name: string;
+	stack?: string;
+}
+
+interface LoggedLine {
+	[field: string]: unknown;
+	service: string;
+	level: LogLevel;
+	message: string;
+	error?: LoggedError;
+}
+
+const lineFrom = (level: LogLevel): LoggedLine => JSON.parse(spies[level].mock.calls[0]?.[0] as string);
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -80,18 +95,18 @@ describe("logger.logError", () => {
 		logger.logError({ message: "test event", error: new Error("boom") });
 
 		const { error } = lineFrom(LOG_LEVEL.ERROR);
-		expect(error.message).toBe("boom");
-		expect(error.name).toBe("Error");
-		expect(error.stack).toContain("Error: boom");
+		expect(error?.message).toBe("boom");
+		expect(error?.name).toBe("Error");
+		expect(error?.stack).toContain("Error: boom");
 	});
 
 	it("handles non-Error values", () => {
 		logger.logError({ message: "test", error: "string error" });
 
 		const { error } = lineFrom(LOG_LEVEL.ERROR);
-		expect(error.message).toBe("string error");
-		expect(error.name).toBe("UnknownError");
-		expect(error.stack).toBeUndefined();
+		expect(error?.message).toBe("string error");
+		expect(error?.name).toBe("UnknownError");
+		expect(error?.stack).toBeUndefined();
 	});
 
 	it("carries the own enumerable fields of an Error subclass beside the standard three", () => {
@@ -99,13 +114,13 @@ describe("logger.logError", () => {
 
 		logger.logError({ message: "test", error });
 
-		expect(lineFrom(LOG_LEVEL.ERROR).error.code).toBe("rate_limited");
+		expect(lineFrom(LOG_LEVEL.ERROR).error?.code).toBe("rate_limited");
 	});
 
 	it("describes a thrown plain object as its JSON rather than as [object Object]", () => {
 		logger.logError({ message: "test", error: { code: "E_THROWN", retry: false } });
 
-		expect(lineFrom(LOG_LEVEL.ERROR).error.message).toBe('{"code":"E_THROWN","retry":false}');
+		expect(lineFrom(LOG_LEVEL.ERROR).error?.message).toBe('{"code":"E_THROWN","retry":false}');
 	});
 
 	it("keeps the line when the thrown object cannot be serialised, falling back to String()", () => {
@@ -126,7 +141,7 @@ describe("logger.logError", () => {
 		bare.self = bare;
 
 		expect(() => logger.logError({ message: "test", error: bare })).not.toThrow();
-		expect(lineFrom(LOG_LEVEL.ERROR).error.message).toBe("[object Object]");
+		expect(lineFrom(LOG_LEVEL.ERROR).error?.message).toBe("[object Object]");
 	});
 
 	it("keeps the message, name and stack of an Error whose own field cannot be serialised", () => {
@@ -141,7 +156,7 @@ describe("logger.logError", () => {
 			code: "E_LOOP",
 			loop: "[unserializable]",
 		});
-		expect(lineFrom(LOG_LEVEL.ERROR).error.stack).toContain("Error: boom");
+		expect(lineFrom(LOG_LEVEL.ERROR).error?.stack).toContain("Error: boom");
 	});
 
 	it("merges caller context with error context", () => {
@@ -149,7 +164,7 @@ describe("logger.logError", () => {
 
 		const line = lineFrom(LOG_LEVEL.ERROR);
 		expect(line.requestId).toBe("req-1");
-		expect(line.error.message).toBe("x");
+		expect(line.error?.message).toBe("x");
 	});
 });
 

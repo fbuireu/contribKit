@@ -27,7 +27,9 @@ export type LoadContributionsResult = ChosenYear &
 	({ ok: true; data: InitialContributions } | { ok: false; kind: Failure["kind"]; status: number; reason: string });
 
 export const loadInitialContributions =
-	(loadContributions: LoadContributions) =>
+	(
+		loadContributions: LoadContributions,
+	): ((params: LoadInitialContributionsParams) => Promise<LoadContributionsResult>) =>
 	async ({
 		username,
 		year: requestedYear,

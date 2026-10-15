@@ -11,7 +11,7 @@ export interface SendContactMessageParams {
 }
 
 export const sendContactMessage =
-	(deliver: DeliverContactMessage) =>
+	(deliver: DeliverContactMessage): ((params: SendContactMessageParams) => Promise<ContactMessage | Failure>) =>
 	async ({ name, email, body }: SendContactMessageParams): Promise<ContactMessage | Failure> => {
 		const message = parseContactMessage({ name, email, body });
 		if (isFailure(message)) return message;

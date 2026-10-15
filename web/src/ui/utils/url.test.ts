@@ -6,7 +6,7 @@ interface StubLocationParams {
 	pushState?: ReturnType<typeof vi.fn>;
 }
 
-const stubLocation = ({ search, pushState = vi.fn() }: StubLocationParams) => {
+const stubLocation = ({ search, pushState = vi.fn() }: StubLocationParams): void => {
 	vi.stubGlobal("location", { search, href: "https://x.test/" });
 	vi.stubGlobal("history", { pushState });
 };

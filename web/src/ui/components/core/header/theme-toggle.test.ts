@@ -79,7 +79,11 @@ describe("initThemeToggle", () => {
 	});
 });
 
-const stubMediaQuery = (matches: boolean) => {
+interface MediaQueryStub {
+	switchTo: (nextMatches: boolean) => void;
+}
+
+const stubMediaQuery = (matches: boolean): MediaQueryStub => {
 	const listeners: (() => void)[] = [];
 	const query = {
 		matches,

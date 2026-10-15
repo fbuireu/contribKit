@@ -38,8 +38,8 @@ const makeEl = (id = ""): FakeEl => {
 	return el;
 };
 
-const asList = (els: FakeEl[]) => els as unknown as NodeListOf<HTMLElement>;
-const asEl = (el: FakeEl) => el as unknown as HTMLElement;
+const asList = (els: FakeEl[]): NodeListOf<HTMLElement> => els as unknown as NodeListOf<HTMLElement>;
+const asEl = (el: FakeEl): HTMLElement => el as unknown as HTMLElement;
 
 describe("activateRadio", () => {
 	it("activates the target and resets the others", () => {

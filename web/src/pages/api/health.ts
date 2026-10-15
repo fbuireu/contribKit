@@ -7,7 +7,7 @@ import type { APIRoute } from "astro";
 
 export const prerender = false;
 
-const handle: APIRoute = () => {
+const handle: APIRoute = (): Response => {
 	const presence = {
 		PUBLIC_GOOGLE_ANALYTICS_ID: Boolean(import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID),
 		PUBLIC_BETTER_STACK_TRACKING_TOKEN: Boolean(import.meta.env.PUBLIC_BETTER_STACK_TRACKING_TOKEN),
@@ -25,7 +25,7 @@ const handle: APIRoute = () => {
 	);
 };
 
-export const GET: APIRoute = (context) => {
+export const GET: APIRoute = (context): Response | Promise<Response> => {
 	try {
 		return handle(context);
 	} catch (error) {

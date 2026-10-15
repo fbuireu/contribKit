@@ -30,7 +30,7 @@ const run = ({ path, next, ip = "1.2.3.4" }: RunParams): Promise<Response> =>
 		next,
 	);
 
-const ok = () => Promise.resolve(new Response("ok"));
+const ok = (): Promise<Response> => Promise.resolve(new Response("ok"));
 
 beforeEach(() => {
 	env.API_RATE_LIMITER = undefined;

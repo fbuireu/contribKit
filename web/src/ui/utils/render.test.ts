@@ -35,8 +35,8 @@ const usernameOf = (raw: string): Username => {
 	return parsed;
 };
 
-const byId = (id: string) => document.getElementById(id) as HTMLElement;
-const $ = (selector: string) => document.querySelector(selector) as HTMLElement;
+const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
+const $ = (selector: string): HTMLElement => document.querySelector(selector) as HTMLElement;
 
 const day = (params: ContributionDayParams): ContributionDay => {
 	const built = contributionDay(params);

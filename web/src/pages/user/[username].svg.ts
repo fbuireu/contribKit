@@ -27,7 +27,7 @@ const embedQuerySchema = z.object({
 	[EmbedParam.Background]: z.string().regex(EMBED_BACKGROUND_PATTERN).catch(DEFAULT_EMBED_QUERY.background),
 });
 
-const handle: APIRoute = async ({ params, url }) => {
+const handle: APIRoute = async ({ params, url }): Promise<Response> => {
 	const username = parseUsername(params.username ?? "");
 	if (isFailure(username)) {
 		return new Response(messageFor(username), {
@@ -70,7 +70,7 @@ const handle: APIRoute = async ({ params, url }) => {
 	});
 };
 
-export const GET: APIRoute = async (context) => {
+export const GET: APIRoute = async (context): Promise<Response> => {
 	try {
 		return await handle(context);
 	} catch (error) {

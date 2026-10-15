@@ -1,14 +1,20 @@
 import { FailureKind } from "@domain/failures/failure";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, type Mock, vi } from "vitest";
 import {
 	ContributionsEndpoint,
+	type FailureLogger,
 	logContactFailure,
 	logContributionsFailure,
 	logServerError,
 	SERVER_ERROR_STATUS,
 } from "./failure-log";
 
-const loggerSpy = () => ({ error: vi.fn(), logError: vi.fn() });
+interface FailureLoggerSpy extends FailureLogger {
+	error: Mock;
+	logError: Mock;
+}
+
+const loggerSpy = (): FailureLoggerSpy => ({ error: vi.fn(), logError: vi.fn() });
 
 const params = {
 	username: "torvalds",

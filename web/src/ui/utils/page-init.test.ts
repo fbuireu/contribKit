@@ -36,8 +36,8 @@ const usernameOf = (raw: string): Username => {
 	return parsed;
 };
 
-const byId = (id: string) => document.getElementById(id) as HTMLElement;
-const selectById = (id: string) => document.getElementById(id) as HTMLSelectElement | null;
+const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
+const selectById = (id: string): HTMLSelectElement | null => document.getElementById(id) as HTMLSelectElement | null;
 
 const HERO = `
 	<input id="${ElementId.HeroUsername}" value="" />
@@ -65,13 +65,14 @@ const jsonResponse = ({ body, status = 200 }: JsonResponseParams): Response =>
 
 const okPayload = { days: [{ date: `${CURRENT_YEAR}-06-15`, level: 3, count: 9 }], total: 9 };
 
-const okFetch = () => Promise.resolve(jsonResponse({ body: okPayload }));
+const okFetch = (): Promise<Response> => Promise.resolve(jsonResponse({ body: okPayload }));
 
-const notFoundFetch = () => Promise.resolve(jsonResponse({ body: { error: "User not found" }, status: 404 }));
+const notFoundFetch = (): Promise<Response> =>
+	Promise.resolve(jsonResponse({ body: { error: "User not found" }, status: 404 }));
 
-const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
-const goTo = (search: string) => {
+const goTo = (search: string): void => {
 	globalThis.history.replaceState(null, "", `/${search}`);
 };
 

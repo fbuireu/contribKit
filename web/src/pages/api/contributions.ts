@@ -24,7 +24,7 @@ const contributionCalendarQuerySchema = z.object({
 
 const MISSING_USER = invalidInput({ field: FailureField.Username, message: "Missing required parameter: user" });
 
-const handle: APIRoute = async ({ url }) => {
+const handle: APIRoute = async ({ url }): Promise<Response> => {
 	const query: unknown = Object.fromEntries(url.searchParams);
 	if (!contributionCalendarQuerySchema.validate(query)) {
 		return Response.json(errorBodyFor(MISSING_USER), {
@@ -82,7 +82,7 @@ const handle: APIRoute = async ({ url }) => {
 	);
 };
 
-export const GET: APIRoute = async (context) => {
+export const GET: APIRoute = async (context): Promise<Response> => {
 	try {
 		return await handle(context);
 	} catch (error) {

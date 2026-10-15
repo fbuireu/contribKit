@@ -14,7 +14,7 @@ export interface CellShapeParams {
 
 type ShapeMarkupRenderer = (params: CellShapeParams) => string;
 
-const renderRectCell: ShapeMarkupRenderer = ({ x, y, size, radius, fill, attributes = "" }) =>
+const renderRectCell: ShapeMarkupRenderer = ({ x, y, size, radius, fill, attributes = "" }): string =>
 	`<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${radius}" fill="${fill}"${attributes}/>`;
 
 const SHAPE_MARKUP_RENDERERS: Record<CellShape, ShapeMarkupRenderer> = {

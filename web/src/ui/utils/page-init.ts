@@ -48,7 +48,8 @@ const initialDays = (): readonly ContributionDay[] => {
 
 export type ContributionsRequest = (url: string) => Promise<Response>;
 
-const sendRequest: ContributionsRequest = (url) => fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+const sendRequest: ContributionsRequest = (url): Promise<Response> =>
+	fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
 
 interface ShowErrorStateParams {
 	message: string;
@@ -75,7 +76,7 @@ export async function renderFromGitHub({
 	updateHistory = true,
 	request = sendRequest,
 	source = CalendarRequestSource.Form,
-}: RenderFromGitHubParams) {
+}: RenderFromGitHubParams): Promise<void> {
 	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
 	const renderLabel = document.getElementById(ElementId.HeroRenderLabel);
 	const gridContainer = document.getElementById(ElementId.HeroGrid);
@@ -150,7 +151,7 @@ interface InitRadioListParams {
 	onChosen: () => void;
 }
 
-function initRadioList({ selector, onChosen }: InitRadioListParams) {
+function initRadioList({ selector, onChosen }: InitRadioListParams): void {
 	const buttons = document.querySelectorAll<HTMLElement>(selector);
 	initRovingGroup({
 		elements: buttons,
@@ -173,7 +174,7 @@ const recordExportFormatChosen = (): void => {
 	if (format !== null) recordUsageEvent({ event: UsageEventName.ExportFormatChosen, properties: { format } });
 };
 
-function initExportTabs() {
+function initExportTabs(): void {
 	const tabs = document.querySelectorAll<HTMLElement>(Selector.ExportTabKeys);
 	initRovingGroup({
 		elements: tabs,
@@ -186,7 +187,7 @@ function initExportTabs() {
 	});
 }
 
-function syncSuggestionSelection(username: string) {
+function syncSuggestionSelection(username: string): void {
 	const normalized = username.trim().toLowerCase();
 	document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons).forEach((button) => {
 		const isMatch = !!normalized && button.dataset.username === normalized;
@@ -195,7 +196,7 @@ function syncSuggestionSelection(username: string) {
 	});
 }
 
-function initUsernameStrip() {
+function initUsernameStrip(): void {
 	const form = document.getElementById(ElementId.UsernameForm) as HTMLFormElement | null;
 	const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
 	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
@@ -253,7 +254,7 @@ function initUsernameStrip() {
 	});
 }
 
-function initHistoryNav() {
+function initHistoryNav(): void {
 	globalThis.addEventListener("popstate", () => {
 		const requested = readUsernameFromUrl(FIRST_SUGGESTED_USERNAME);
 		const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
@@ -271,7 +272,7 @@ function initHistoryNav() {
 	});
 }
 
-function initUsernameState() {
+function initUsernameState(): void {
 	const input = document.getElementById(ElementId.HeroUsername) as HTMLInputElement | null;
 	const ssrUsername = input?.value.trim() || FIRST_SUGGESTED_USERNAME;
 	const parsed = parseUsername(ssrUsername);
@@ -289,7 +290,7 @@ function initUsernameState() {
 	syncSuggestionSelection(ssrUsername);
 }
 
-export function initPage() {
+export function initPage(): void {
 	const days = initialDays();
 	setDays(days);
 
