@@ -93,9 +93,9 @@ describe("buildRollingGrid", () => {
 	});
 
 	it("ends on the Saturday of the last day's week, so the window rolls with the data", () => {
-		const grid = buildRollingGrid(weekdayMajor());
+		const last = buildRollingGrid(weekdayMajor()).at(-1);
 
-		expect(getWeekday(grid[grid.length - 1].date)).toBe(6);
+		expect(last && getWeekday(last.date)).toBe(6);
 	});
 
 	it("pads a day it was never given with an unknown Count, not a zero", () => {
@@ -115,7 +115,8 @@ describe("the Year-anchored grid covers the Year", () => {
 		const uncovered: number[] = [];
 		for (let year = MIN_YEAR; year <= 2100; year++) {
 			const days = buildGridFromApi({ days: [], year });
-			if (days[0].date > `${year}-01-01` || days[days.length - 1].date < `${year}-12-31`) uncovered.push(year);
+			if ((days.at(0)?.date ?? "") > `${year}-01-01` || (days.at(-1)?.date ?? "") < `${year}-12-31`)
+				uncovered.push(year);
 		}
 
 		expect(uncovered, "a leap Year opening on a Saturday needs 372 cells and 53 x 7 is 371").toEqual([]);

@@ -18,8 +18,8 @@ No rule below restates these, and a diff that breaks one fails CI:
 
 - Biome ([`web/biome.json`](./web/biome.json)) over `web`, `docs`, `.github` and `scripts`: formatting, import order,
   the recommended rules, `console` outside the logger, writes to `document.cookie` outside `cookie.ts`, `!important`
-  outside `reset.css`, and every object shape declared an `interface`, never a `type` alias of an object literal
-  (`useConsistentTypeDefinitions`).
+  outside `reset.css`, every object shape declared an `interface`, never a `type` alias of an object literal
+  (`useConsistentTypeDefinitions`), and every element read from an array's end through `.at()` (`useAtIndex`).
 - `dart analyze` over [`app/analysis_options.yaml`](./app/analysis_options.yaml): `flutter_lints` (`==` with
   `hashCode` included), `riverpod_lint`, strict casts, inference and raw types, package imports, positional
   booleans, unawaited futures, directive and constructor ordering, and the `Container` rules.
