@@ -1,3 +1,10 @@
+# [contribkit-web-v2.0.2](https://github.com/fbuireu/contribKit/compare/web-v2.0.1...web-v2.0.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **contribkit-web:** centre the feature icons on their title's line ([ce54fd4](https://github.com/fbuireu/contribKit/commit/ce54fd47cc26fe7b7ee80ce20ca20e841b7e7d2d))
+
 # [contribkit-web-v2.0.1](https://github.com/fbuireu/contribKit/compare/web-v2.0.0...web-v2.0.1) (2026-10-10)
 
 
