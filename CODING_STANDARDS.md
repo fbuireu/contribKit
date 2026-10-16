@@ -24,7 +24,8 @@ No rule below restates these, and a diff that breaks one fails CI:
   `hashCode` included), `riverpod_lint`, strict casts, inference and raw types, package imports, positional
   booleans, unawaited futures, directive and constructor ordering, and the `Container` rules.
 - `tsc` over `astro/tsconfigs/strict` and `astro check`, which make a `Record` or a `switch` over a closed union
-  exhaustive, and the coverage floors in `web/vitest.config.ts` and `app/tool/check_coverage.dart`.
+  exhaustive and, through `lib` in `web/tsconfig.json`, reject a built-in the Workers runtime or a stable Safari lacks,
+  `Temporal` among them, and the coverage floors in `web/vitest.config.ts` and `app/tool/check_coverage.dart`.
 - vitest itself: a test that reaches `cloudflare:workers`, `cloudflare:email` or `astro:env/server` without a
   `vi.mock` does not resolve.
 - commitlint ([`commitlint.config.ts`](./commitlint.config.ts)), on `commit-msg` and on the pull request title:

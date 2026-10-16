@@ -18,6 +18,8 @@ This section names where each runtime is pinned and never what the pin says: rea
 - Dart is a **range**, not a pin: `environment.sdk` is bounded to the minor, the Dart you run is whichever one the pinned Flutter ships, and Renovate is told not to manage the line. A human widens the bound when a Flutter bump crosses a Dart minor; the docs test rejects an exact version there
 - Ruby ([`app/android/.ruby-version`](./app/android/.ruby-version)), which `setup-ruby` in [`release-app.yml`](./.github/workflows/release-app.yml) reads before `bundle install` brings in fastlane
 
+The language's own built-ins are held by `lib` in [`web/tsconfig.json`](./web/tsconfig.json) to the edition both places the web code runs implement whole: the Cloudflare Workers runtime and every stable browser, Safari included. An `ESNext` lib would type `Temporal`, which neither has, so a call to it type-checks, passes `pnpm verify` and then throws on the deployed Worker or in Safari; `lib` moves only once both ship it.
+
 ## Commands
 
 ```bash

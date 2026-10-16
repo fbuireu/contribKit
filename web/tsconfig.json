@@ -3,6 +3,7 @@
 	"include": [".astro/types.d.ts", "**/*", "../docs/**/*.ts"],
 	"exclude": ["dist", "coverage", "test-results", "playwright-report"],
 	"compilerOptions": {
+		"lib": ["ES2025", "DOM"],
 		"types": [],
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",
