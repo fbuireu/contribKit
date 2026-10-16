@@ -136,8 +136,8 @@ lefthook runs Biome, `dart format`, `dart analyze --fatal-infos` and the shared-
 latter only when a Dart file, `pubspec.yaml` or `analysis_options.yaml` is in the push. The web hook runs the
 changed-only variant rather than `verify` because the coverage floor and a subset run cannot both hold:
 `web/vitest.config.ts` sets `coverage.include` over all of `web/src`, so a run over the changed tests reports every
-file they did not load as zero and fails the floor on a clean tree. CI runs the full `pnpm verify` on the pushed
-sha, so a push whose coverage dropped still fails its check.
+file they did not load as zero and fails the floor on a clean tree. CI runs every check of `pnpm verify` on the
+pushed sha, as parallel steps, so a push whose coverage dropped still fails its check.
 
 [`app/analysis_options.yaml`](../app/analysis_options.yaml) sits well above `flutter_lints`, and the rules it
 adds are the ones a reviewer would otherwise have to say out loud: `directives_ordering` and

@@ -150,7 +150,7 @@ pnpm install
 
 ## Environments & Deploys
 
-Both deploys run from [`ci.yml`](../.github/workflows/ci.yml), behind `Verify (web)`, which is `pnpm verify` in this package:
+Both deploys run from [`ci.yml`](../.github/workflows/ci.yml), behind `Verify (web)`, which runs the checks of `pnpm verify` in this package as parallel steps:
 
 - **Production**: every push to `main` that touched the web set builds with `CLOUDFLARE_ENV=production`, then `wrangler deploy --env production` → worker `contribkit` on `contribkit.app`. Decoupled from semantic-release (which only versions).
 - **Development**: every PR that touched it builds with `CLOUDFLARE_ENV=development` and deploys an ephemeral worker `pr-<n>-contribkit-development` (`wrangler deploy --env development --name …`) on `*.workers.dev`; the PR gets a comment with the URL, and the worker is deleted when the PR closes.

@@ -105,9 +105,16 @@ jobs:
         with:
           persist-credentials: false
       - uses: $/.github/actions/prepare-env
-      - name: Verify
-        working-directory: web
-        run: pnpm verify
+      - parallel:
+          - name: Format
+            working-directory: web
+            run: pnpm format:check
+          - name: Typecheck
+            working-directory: web
+            run: pnpm typecheck && pnpm check
+          - name: Unit tests
+            working-directory: web
+            run: pnpm test:ut:coverage
       - name: Upload coverage to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1

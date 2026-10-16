@@ -34,7 +34,7 @@ config:
   layout: dagre
 ---
 flowchart LR
-  check["verify-web (pnpm verify)"] --> prod["deploy-production"]
+  check["verify-web (the checks of pnpm verify, in parallel)"] --> prod["deploy-production"]
   check --> dev["deploy-development"]
   prod --> smoke["smoke (production)"]
   smoke -->|failed| back["rollback"]
