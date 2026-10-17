@@ -85,7 +85,7 @@ sequenceDiagram
 | Asked for someone? | GitHub answered? | State | Grid | Hero | `Cache-Control` |
 |--------------------|------------------|-------|------|------|-----------------|
 | yes | yes | `Loaded` | their days for the Year | their Contribution Stats | `private, max-age=3600, stale-while-revalidate=86400` |
-| yes | no, or the Username was invalid | `Empty` | an empty grid for the Year | unknown stats, and the reason under the search box (*user not found*, *invalid username*, *too many requests*…) | `private, no-store` |
+| yes | no, or the Username was invalid | `Empty` | an empty grid for the Year | unknown stats, and the reason under the search box (*username not found, check it and try again*, *invalid username*, *too many requests, try again in a moment*…) | `private, no-store` |
 | no | yes | `Loaded` | the Suggested Username's days | its Contribution Stats | `private, no-store` |
 | no | no | `Placeholder` | a seeded, invented grid from `generateData` | stats of that grid, no error | `private, no-store` |
 
@@ -98,7 +98,7 @@ sequenceDiagram
 The page's one module script calls `initPage()` in [`page-init.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/utils/page-init.ts). It does not fetch: the server already drew the hero and the export preview, and it handed the same days to the browser as `window.__INITIAL_DAYS__`, so the client takes those instead of asking again.
 
 1. **Validate the injected days.** `contributionGridSchema` checks `window.__INITIAL_DAYS__`; anything that does not match, a missing value included, is replaced by `generateData()`, the same seeded placeholder the server falls back to, so the controller never runs on a shape it cannot draw.
-2. **Settle the Username.** The search box's server-rendered value becomes the current Username. When the URL named nobody, `seedUsernameCookie` writes `ck_user` only if no cookie exists yet, so a first visit remembers the Suggested Username without overwriting a returning visitor's. When the URL's `?user=` differs from what the server rendered, `history.replaceState` rewrites it, so the address bar names the calendar on screen.
+2. **Settle the Username.** The search box's server-rendered value becomes the current Username. When the URL named nobody, `seedUsernameCookie` writes `ck_user` only if no cookie exists yet, so a first visit remembers the Suggested Username without overwriting a returning visitor's. When the URL's `?user=` is missing or differs from what the server rendered, `history.replaceState` writes the rendered one in, so the address bar always names the calendar on screen.
 3. **Wire the page.** The Customizer, the Home Screen Widget preview, the export preview, the Palette and Cell Shape radios, the export tabs, the search box, the history listener and the Cell Tooltips.
 
 ---

@@ -106,7 +106,7 @@ Every job below `changes` needs it, directly or through the job it follows, and 
 
 ### What `changes` counts
 
-`changes` diffs `base..head`: the pull request's base sha on a pull request, and `github.event.before` on a push. When there is no usable base, which is every dispatch, a branch's first push and a push that rewrote history, it sets `app` and `web` to `true` and runs everything.
+`changes` diffs `base..head`: the pull request's base sha on a pull request, and `github.event.before` on a push. When there is no usable base, which is every dispatch and any push whose `before` commit is not in the fetched history, as after a force push, it sets `app` and `web` to `true` and runs everything, App CI included.
 
 - **The app set** is `app/`, plus the three workflows that build or ship the app: `ci.yml`, which calls App CI, `_ci-app.yml` and `release-app.yml`. An edit to one of those workflows runs App CI on the pull request that makes it. Until 2026-10-17 the app set was `app/` alone, so such an edit counted as a web change only and the jobs it changed never ran before they reached `main`.
 - **The web set is wider than `web/**` on purpose.** `web/`, `shared/`, `scripts/`, `docs/`, any root `*.md`, the root [`package.json`](https://github.com/fbuireu/contribKit/blob/main/package.json), `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `lefthook.yml`, `.nvmrc` and the whole of `.github/` count as web changes, because the shared tokens and the contract both live outside `web/`. So **a documentation-only push to `main` redeploys the Worker**. That is accepted: the deploy is idempotent. An edit to an app workflow is in both sets and runs both halves.
