@@ -259,21 +259,58 @@ describe("markdown links", () => {
 	});
 });
 
-describe("every Mermaid diagram keeps the layout it was drawn for", () => {
-	const MERMAID_BLOCK = /```mermaid\n([\s\S]*?)```/g;
-	const DAGRE_FRONT_MATTER = /^---\nconfig:\n(?: {2}[^\n]*\n)*? {2}layout: dagre\n(?: {2}[^\n]*\n)*?---\n/;
+describe("the CI/CD guide names every workflow, action, secret and variable, and every diagram is hand-drawn on dagre", () => {
+	const CI_CD_GUIDES = ["docs/wiki/CI-CD.md"];
+	const MARKDOWN_DOCS = checkedDocuments()
+		.map(relative)
+		.filter((path) => !path.endsWith("CHANGELOG.md"));
+	const WORKFLOW_FILES = readdirSync(join(REPO, ".github/workflows")).filter((name) => /\.ya?ml$/.test(name));
+	const ACTION_NAMES = existsSync(join(REPO, ".github/actions")) ? readdirSync(join(REPO, ".github/actions")) : [];
+	const AUTOMATION_FILES = [
+		...WORKFLOW_FILES.map((name) => `.github/workflows/${name}`),
+		...ACTION_NAMES.map((name) => `.github/actions/${name}/action.yml`),
+	];
+	const SECRET_OR_VARIABLE = /\$\{\{[^}]*?\b(?:secrets|vars)\.([A-Za-z0-9_]+)/g;
+	const IMPLICIT_SECRETS = new Set(["GITHUB_TOKEN"]);
+	const MERMAID_FENCE = /^([ \t]*)```mermaid[^\n]*\n([\s\S]*?)^\1```/gm;
+	const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/;
+	const guide = (): string => CI_CD_GUIDES.map((path) => read(join(REPO, path))).join("\n");
 
-	it("pins each one to dagre in its front matter, so a renderer upgrade cannot re-lay it out", () => {
-		const diagrams = checkedDocuments().flatMap((path) =>
-			[...read(path).matchAll(MERMAID_BLOCK)].map((match) => ({
-				at: `${relative(path)}:${read(path).slice(0, match.index).split("\n").length}`,
-				body: match[1],
+	it("names every workflow file and composite action in the CI/CD guide", () => {
+		const text = guide();
+		expect(WORKFLOW_FILES.length).toBeGreaterThan(0);
+		expect([...WORKFLOW_FILES, ...ACTION_NAMES].filter((name) => !text.includes(name))).toEqual([]);
+	});
+
+	it("names every secret and variable a workflow or action reads in the CI/CD guide", () => {
+		const text = guide();
+		const used = new Set(
+			AUTOMATION_FILES.flatMap((path) =>
+				[...read(join(REPO, path)).matchAll(SECRET_OR_VARIABLE)].map(([, name]) => name),
+			),
+		);
+		expect(used.size).toBeGreaterThan(0);
+		expect([...used].filter((name) => !IMPLICIT_SECRETS.has(name) && !text.includes(`\`${name}\``))).toEqual([]);
+	});
+
+	it("describes the verify checks as the parallel steps ci.yml runs", () => {
+		expect(read(join(REPO, ".github/workflows/ci.yml"))).toMatch(/^\s*- parallel:/m);
+		expect(guide()).toMatch(/\bparallel\b/i);
+	});
+
+	it("draws every Mermaid diagram hand-drawn on the dagre layout", () => {
+		const diagrams = MARKDOWN_DOCS.flatMap((path) =>
+			[...read(join(REPO, path)).matchAll(MERMAID_FENCE)].map(([, indent, body]) => ({
+				path,
+				front: FRONTMATTER.exec(body.replaceAll(new RegExp(`^${indent}`, "gm"), ""))?.[1] ?? "",
 			})),
 		);
-		const unpinned = diagrams.filter(({ body }) => !DAGRE_FRONT_MATTER.test(body)).map(({ at }) => at);
-
 		expect(diagrams.length).toBeGreaterThan(0);
-		expect(unpinned).toEqual([]);
+		expect(
+			diagrams
+				.filter(({ front }) => !/^\s*look:\s*handDrawn\s*$/m.test(front) || !/^\s*layout:\s*dagre\s*$/m.test(front))
+				.map(({ path }) => path),
+		).toEqual([]);
 	});
 });
 

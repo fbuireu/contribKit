@@ -317,7 +317,7 @@ flowchart TD
 
 ## Secrets and variables
 
-Every secret and variable a workflow or the composite action reads, besides the `GITHUB_TOKEN` every run gets. GitHub's API does not show where each one is stored, so the scope column says where it **must** be readable from: a job that calls a reusable workflow, or declares no `environment:`, reads repository secrets and variables alone.
+Every secret and variable a workflow or the composite action reads, besides the `GITHUB_TOKEN` every run gets. The docs test fails when a workflow reads one this table does not name, and when a workflow file or the composite action is missing from this page. GitHub's API does not show where each one is stored, so the scope column says where it **must** be readable from: a job that calls a reusable workflow, or declares no `environment:`, reads repository secrets and variables alone.
 
 | Name | Kind | Scope | Read by | When it is missing |
 |------|------|-------|---------|--------------------|
