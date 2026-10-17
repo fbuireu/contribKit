@@ -34,7 +34,8 @@ the text comes further out, from `FailureMessage.of`. `InvalidateContributionCac
 Diagnostic Report and fetches anyway: a cache that cannot be cleared must not stop fresh data from arriving. The other four are called straight from `ConsumerState`
 sheets, and each catches and renders a message through `FailureMessage.ofAny`:
 [`tip_jar_sheet.dart`](../ui/features/tip/tip_jar_sheet.dart) for `FetchTipProducts` and `GiveTip`, `ExportSheet`
-for `ExportCalendar`, `ContactSheet` for `SendContactMessage`.
+for `ExportCalendar`, and `ContactSheet` for `SendContactMessage`, through `FailureMessage.ofContact`, which words a
+`RateLimitedFailure` as the contact limit and hands everything else to `ofAny`.
 
 ## Gotchas
 

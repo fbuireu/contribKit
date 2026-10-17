@@ -124,6 +124,8 @@ The message is posted to [`POST /api/contact`](API-Reference) on `contribkit.app
 
 `ContactMessage` validates before anything is sent, so a bad address or a message under ten characters is refused on the device rather than by the server. Its length limits are the same numbers the web's own value object declares, and the documentation-consistency test diffs the two.
 
+The endpoint has a limit of its own, five messages a minute per address, and a send over it is answered `429` with `Retry-After: 60`. The sheet words that as *Too many messages sent. Try again after 14:32.*, through `FailureMessage.ofContact`: the request never reached GitHub, so it does not say GitHub's rate limit was hit, which is what the Viewer says for a `429` from GitHub.
+
 Opening the sheet records `UsageEvent.contactOpened`, and sending records `contactMessageSent` with an outcome of `sent` or `failed`: a name from a fixed list and an outcome from another, so no part of the message is ever Telemetry. The Privacy sheet names this sheet as the one exception to "ContribKit never sends anything you type".
 
 ## Usage Events

@@ -27,5 +27,14 @@ abstract final class FailureMessage {
       : 'GitHub rate limit exceeded. Try again after '
             '${_resetTime.format(resetAt.toLocal())}.';
 
+  static String _contactLimited(DateTime? resetAt) => resetAt == null
+      ? 'Too many messages sent. Try again later.'
+      : 'Too many messages sent. Try again after '
+            '${_resetTime.format(resetAt.toLocal())}.';
+
   static String ofAny(Object error) => error is Failure ? of(error) : fallback;
+
+  static String ofContact(Object error) => error is RateLimitedFailure
+      ? _contactLimited(error.resetAt)
+      : ofAny(error);
 }

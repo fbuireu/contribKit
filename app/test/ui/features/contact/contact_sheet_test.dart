@@ -117,6 +117,26 @@ void main() {
       expect(find.textContaining('destination not verified'), findsNothing);
     });
 
+    testWidgets(
+      'says the contact limit was reached when the server answers 429',
+      (tester) async {
+        final repository = FakeContactMessageRepository(
+          failure: const RateLimitedFailure(),
+        );
+        await _openSheet(tester, repository: repository);
+
+        await _fillIn(tester);
+        await tester.tap(find.text('Send'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(FailureMessage.ofContact(const RateLimitedFailure())),
+          findsOneWidget,
+        );
+        expect(find.textContaining('GitHub'), findsNothing);
+      },
+    );
+
     testWidgets('records the outcome of a send, and nothing typed', (
       tester,
     ) async {

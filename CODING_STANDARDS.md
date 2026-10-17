@@ -332,8 +332,8 @@ No rule below restates these, and a diff that breaks one fails CI:
   before the first `await`, because the `ref` of an unmounted `ConsumerState` throws.
 - `A28` **hard**: Model a sheet's state as a sealed class (`TipJarState`, `ContactSheetState`, `ExportSheetState`), so
   illegal combinations cannot be written.
-- `A29` **hard**: Turn a `Failure` into text only through `FailureMessage.of` or `FailureMessage.ofAny`; a widget that
-  cares about one kind tests it with `is`.
+- `A29` **hard**: Turn a `Failure` into text only through `FailureMessage.of`, `FailureMessage.ofAny` or, in the
+  Contact sheet, `FailureMessage.ofContact`; a widget that cares about one kind tests it with `is`.
 - `A30` **hard**: Show `FailureMessage.ofAny` when an `AsyncValue` row fails, and hide the row only while it loads.
 - `A31` **hard**: Build a Customizer setting as a `SettingPicker<T>` given a label, options and an `optionBuilder`.
 - `A32` **hard**: Open every bottom sheet through `AppSheet`, which owns the scrim, the motion, the handle, the drag and

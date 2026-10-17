@@ -149,5 +149,35 @@ void main() {
         contains('Try again later'),
       );
     });
+
+    test(
+      'words a refused Contact Message as the contact limit, not GitHub',
+      () {
+        final message = FailureMessage.ofContact(const RateLimitedFailure());
+
+        expect(message, isNot(contains('GitHub')));
+        expect(message, isNot(FailureMessage.of(const RateLimitedFailure())));
+        expect(message, contains('Try again later'));
+      },
+    );
+
+    test('tells the reader when the contact limit lifts', () {
+      final resetAt = DateTime(2026, 8, 21, 14, 32);
+
+      expect(
+        FailureMessage.ofContact(RateLimitedFailure(resetAt: resetAt)),
+        contains('14:32'),
+      );
+    });
+
+    test('ofContact words every other failure as ofAny does', () {
+      const failure = DeliveryFailure(message: 'destination not verified');
+
+      expect(FailureMessage.ofContact(failure), FailureMessage.ofAny(failure));
+      expect(
+        FailureMessage.ofContact(StateError('No element')),
+        FailureMessage.fallback,
+      );
+    });
   });
 }

@@ -31,7 +31,11 @@ GitHub sent a `Retry-After`. Every other kind but `NotFoundFailure`, which names
 fixed sentence: the `message` a `NetworkFailure`, an `ExportFailure` or a `TipFailure` carries is the raw text of
 whatever was thrown, a request URL with the Username in it among them, so it stays in the `Failure` for its
 `toString()` and never reaches the screen. `FailureMessage.ofAny` is the arm for a `catch` that receives an `Object`.
-It is unit-tested in [`test/ui/failure_message_test.dart`](../../test/ui/failure_message_test.dart).
+`FailureMessage.ofContact` is the Contact sheet's: `POST /api/contact` never reaches GitHub, so a `RateLimitedFailure`
+there is ContribKit's own contact limit, and it says *Too many messages sent* with the same *Try again after 14:32*,
+where `of` would blame GitHub; every other kind goes to `ofAny`. It is a separate entry point rather than a field on
+the `Failure`, because the kind is the same and only the caller knows which service refused. All three are unit-tested
+in [`test/ui/failure_message_test.dart`](../../test/ui/failure_message_test.dart).
 
 ## `ViewerNotifier` owns the state
 
@@ -194,7 +198,8 @@ comes from the store and **nothing renders it**; the label above wins.
 sealed [`ContactSheetState`](./features/contact/contact_sheet_state.dart) (idle / sending / sent / failed);
 `isSending`, read from the state rather than from a flag of its own, is what refuses a second tap. The message
 under the fields is `ContactMessage`'s `ArgumentError.message`, rendered by `_inputError` the way the Viewer renders a
-bad `Username`; a failed *send* goes through `FailureMessage.ofAny`.
+bad `Username`; a failed *send* goes through `FailureMessage.ofContact`, so the 429 the contact endpoint answers
+reads as the contact limit and not as GitHub's.
 
 **The entry point is a ghost icon button in the Viewer header**, `LucideIcons.mail`, labelled `Contact`,
 recording `UsageEvent.contactOpened`, and `_send` records `UsageEvent.contactMessageSent` with a `ContactOutcome`

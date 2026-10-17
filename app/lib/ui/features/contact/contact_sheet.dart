@@ -90,7 +90,7 @@ class _ContactSheetState extends ConsumerState<ContactSheet> {
           UsageEvent.contactMessageSent(outcome: ContactOutcome.failed),
         ),
       );
-      _to(ContactFailed(message: FailureMessage.ofAny(e)));
+      _to(ContactFailed(message: FailureMessage.ofContact(e)));
     }
   }
 
