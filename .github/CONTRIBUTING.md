@@ -70,6 +70,7 @@ that bump.
 | Flutter | `environment.flutter` in [`app/pubspec.yaml`](../app/pubspec.yaml), which CI installs from |
 | Dart | not pinned: `environment.sdk` is a range bounded to the minor, and the Dart you get is the one your Flutter ships |
 | Ruby | [`app/android/.ruby-version`](../app/android/.ruby-version), which `setup-ruby` reads for the fastlane run |
+| Java | [`app/android/.java-version`](../app/android/.java-version), which `setup-java` reads for the Android build in App CI and in the release, through `java-version-file` |
 
 Do not "fix" a version mismatch by editing the pin.
 

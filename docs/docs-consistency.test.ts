@@ -69,9 +69,11 @@ const GLOSSARY_TERM = /^\*\*(.+?)\*\*:/gm;
 const EXACT_VERSION = /^\d+\.\d+\.\d+$/;
 const VERSIONS_SECTION = /^## Versions$([\s\S]*?)^## /m;
 const QUOTED_VERSION = /\d+\.\d+/;
-const REPINNED_RUNTIME = /^\s*(?:node-version|version|ruby-version|wranglerVersion):\s*["']?\d/m;
+const REPINNED_RUNTIME = /^\s*(?:node-version|version|ruby-version|java-version|wranglerVersion):\s*["']?\d/m;
 const PUBSPEC_FLUTTER_PIN = /^ {2}flutter: (\S+)$/m;
 const PUBSPEC_DART_CONSTRAINT = /^ {2}sdk: "?([^"\n]+)"?$/m;
+const JAVA_VERSION_FILE = "app/android/.java-version";
+const EXACT_JAVA_BUILD = /^\d+\.\d+\.\d+\+\d+$/;
 const DOCUMENTED_PNPM_SCRIPT = /\bpnpm ([a-z][a-z\d:._-]*)/g;
 const GLOSSARY_AVOID_LINE = /^_Avoid_: (.+)$/gm;
 const DART_CLOCK_READ = /\bDateTime\.(?:now|timestamp)\b/;
@@ -749,7 +751,7 @@ describe("the guides match the manifests", () => {
 		expect(pinning.map(([manifest]) => manifest)).toEqual(["package.json"]);
 	});
 
-	const RUNTIMES = ["pnpm", "Node", "Flutter", "Dart", "Ruby"];
+	const RUNTIMES = ["pnpm", "Node", "Flutter", "Dart", "Ruby", "Java"];
 
 	it("names every runtime it pins", () => {
 		const unnamed = RUNTIMES.flatMap((runtime) =>
@@ -788,6 +790,15 @@ describe("the guides match the manifests", () => {
 
 	it("pins every runtime to an exact version, never a range", () => {
 		expect(pinned().filter(({ expected }) => !EXACT_VERSION.test(expected))).toEqual([]);
+	});
+
+	it("pins Java once, to an exact build, in the version file both Android builds read", () => {
+		const reading = ["_ci-app.yml", "release-app.yml"].filter((workflow) =>
+			read(join(REPO, ".github/workflows", workflow)).includes(`java-version-file: ${JAVA_VERSION_FILE}`),
+		);
+
+		expect(read(join(REPO, JAVA_VERSION_FILE)).trim()).toMatch(EXACT_JAVA_BUILD);
+		expect(reading).toEqual(["_ci-app.yml", "release-app.yml"]);
 	});
 
 	it("lets no workflow or composite action pin a runtime the manifest already pins", () => {
@@ -3028,6 +3039,7 @@ const POLICED_NAMES = policedNames({
 		"pnpm",
 		...(existsSync(join(REPO, "app/pubspec.yaml")) ? ["Flutter", "Dart"] : []),
 		...(existsSync(join(REPO, "app/android/.ruby-version")) ? ["Ruby"] : []),
+		...(existsSync(join(REPO, JAVA_VERSION_FILE)) ? ["Java"] : []),
 	],
 });
 const STATED_VERSION = statedVersionPattern(POLICED_NAMES);
