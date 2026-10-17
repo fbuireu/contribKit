@@ -1427,10 +1427,20 @@ describe("the glossary's forbidden names stay out of the code", () => {
 		return stripped === template ? template : withoutExpressions(stripped);
 	};
 
+	const SCRIPT_OR_STYLE_BLOCK = /<(style|script)\b[\s\S]*?<\/\1[^>]*>/gi;
+
+	const withoutScriptsAndStyles = (template: string): string => {
+		let stripped = template;
+		let previous: string;
+		do {
+			previous = stripped;
+			stripped = stripped.replaceAll(SCRIPT_OR_STYLE_BLOCK, "");
+		} while (stripped !== previous);
+		return stripped;
+	};
+
 	const copyOfAstro = (source: string): string[] => {
-		const template = withoutExpressions(
-			source.replace(/^---\n[\s\S]*?\n---/, "").replaceAll(/<(style|script)\b[\s\S]*?<\/\1>/g, ""),
-		);
+		const template = withoutExpressions(withoutScriptsAndStyles(source.replace(/^---\n[\s\S]*?\n---/, "")));
 		const labels = [...template.matchAll(/\b(?:aria-label|title|alt|placeholder|content)="([^"]*)"/g)].map(
 			([, value]) => value,
 		);
@@ -2112,7 +2122,7 @@ describe("the web's code keeps the shapes the standards hold it to", () => {
 
 	it("never drives a module-level /g regex through exec or test", () => {
 		const MODULE_LEVEL_GLOBAL_REGEX =
-			/^(?:export\s+)?const\s+(\w+)(?:\s*:\s*RegExp)?\s*=\s*\/(?:\\.|[^/\n])+\/[a-z]*g[a-z]*\s*;?\s*$/gm;
+			/^(?:export\s+)?const\s+(\w+)(?:\s*:\s*RegExp)?\s*=\s*\/(?:\\.|[^/\n\\])+\/[a-z]*g[a-z]*\s*;?\s*$/gm;
 		const regexes = webFiles().flatMap((path) =>
 			[...read(path).matchAll(MODULE_LEVEL_GLOBAL_REGEX)].map(([, name]) => ({ path, name })),
 		);
@@ -2595,7 +2605,7 @@ describe("the workflows", () => {
 	const RETRY_WRAPPER = "nick-fields/retry";
 	const DEPLOY_COMMAND = /\bwrangler deploy\b/;
 	const SHARED_DEPLOY_MESSAGE = /^\$\{\{ github\.sha \}\}-\$\{\{ github\.event_name \}\}$/;
-	const DEPLOY_MESSAGE_ARGUMENT = /--message[ =]("?)((?:\$\{\{[^}]*\}\}|[^\s"])+)\1/;
+	const DEPLOY_MESSAGE_ARGUMENT = /--message[ =]("?)((?:\$\{\{[^}]*\}\}|\$(?!\{\{)|[^\s"$])+)\1/;
 	const SHELL_VARIABLE = /^\$\{?(\w+)\}?$/;
 	const BUILD_COMMAND = /\b(?:astro build|pnpm build)\b/;
 	const SECRET_COMMAND = /\bwrangler secret\b/;
@@ -2643,6 +2653,14 @@ describe("the workflows", () => {
 				.filter(({ message }) => !SHARED_DEPLOY_MESSAGE.test(message))
 				.map(({ file, message }) => `${relative(file)} (${message})`),
 		).toEqual([]);
+	});
+
+	it("reads a --message argument in linear time, so an unclosed quote around a run of expressions cannot stall the suite", () => {
+		expect(DEPLOY_MESSAGE_ARGUMENT.exec(`--message "${`\${{{{}}}}`.repeat(40)}`)).toBeNull();
+		expect(DEPLOY_MESSAGE_ARGUMENT.exec(`--message "\${{ github.sha }}-\${{ github.event_name }}"`)?.[2]).toBe(
+			`\${{ github.sha }}-\${{ github.event_name }}`,
+		);
+		expect(DEPLOY_MESSAGE_ARGUMENT.exec("--message $DEPLOY_MESSAGE")?.[2]).toBe("$DEPLOY_MESSAGE");
 	});
 
 	it("filters ci.yml by no path, and gates the docs contract on nothing", () => {
