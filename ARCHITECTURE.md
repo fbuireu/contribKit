@@ -302,6 +302,11 @@ The `changes` job still counts `docs/**`, `shared/**`, `scripts/**`, `*.md` and 
 changes, because the shared tokens and the contract both live outside `web/`. So a docs-only push to `main` still
 redeploys the Worker. That is accepted: the deploy is idempotent.
 
+The app set is `app/` plus the three workflows that build or ship it: `ci.yml`, which calls App CI, `_ci-app.yml`, and
+`release-app.yml`. They stay in the web set too, as all of `.github/` does, so an edit to one of them runs both
+halves. Until 2026-10-17 the app set was `app/` alone, so an edit to `_ci-app.yml` counted as a web change only and
+the jobs it changed never ran on the pull request that changed them.
+
 GitHub Environments are namespaced `<component>-<stage>` because they are repo-global and hold component-specific
 secrets; the full mapping is in the [README](./README.md#monorepo-development).
 

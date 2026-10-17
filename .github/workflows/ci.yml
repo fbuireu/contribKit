@@ -41,7 +41,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
-          APP_PATHS: '^app/'
+          APP_PATHS: '^(app/|[.]github/workflows/(ci|_ci-app|release-app)[.]yml$)'
           WEB_PATHS: '^(web/|shared/|scripts/|docs/|[^/]+[.]md$|package[.]json$|pnpm-workspace[.]yaml$|pnpm-lock[.]yaml$|lefthook[.]yml$|[.]nvmrc$|[.]github/)'
         run: |
           if [ -z "$BASE_SHA" ] || ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then

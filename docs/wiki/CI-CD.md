@@ -64,7 +64,7 @@ says the same, and the rule lives in the *Deploy* section of [`AGENTS.md`](https
 
 Concurrency cancels in-progress runs for pull requests only.
 
-> **The web set is wider than `web/**` on purpose.** `shared/`, `docs/`, `scripts/` and any root `*.md` count as web changes in the `changes` job, so **a documentation-only push to `main` redeploys the Worker**, since `deploy-production` reads the same output. That is accepted: the deploy is idempotent. What no longer depends on the width of that set is the contract itself, which runs in its own ungated `Docs Contract` job.
+> **The web set is wider than `web/**` on purpose.** `shared/`, `docs/`, `scripts/` and any root `*.md` count as web changes in the `changes` job, so **a documentation-only push to `main` redeploys the Worker**, since `deploy-production` reads the same output. That is accepted: the deploy is idempotent. What no longer depends on the width of that set is the contract itself, which runs in its own ungated `Docs Contract` job. The app set is `app/` plus `ci.yml`, `_ci-app.yml` and `release-app.yml`, so an edit to a workflow that builds or ships the app runs App CI as well.
 
 ---
 
