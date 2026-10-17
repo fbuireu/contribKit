@@ -3081,6 +3081,7 @@ const VERSIONED_DEPENDENCIES: Record<string, string[]> = {
 	astro: ["Astro"],
 	"@astrojs/starlight": ["Starlight"],
 	effect: ["Effect"],
+	emdash: ["EmDash"],
 	next: ["Next", "Next.js"],
 	react: ["React"],
 	tailwindcss: ["Tailwind", "Tailwind CSS"],
