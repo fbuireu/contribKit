@@ -2680,6 +2680,17 @@ describe("the workflows", () => {
 		);
 	});
 
+	it("draws every ci.yml job in a diagram on the CI/CD page", () => {
+		const ci = read(join(WORKFLOWS, "ci.yml"));
+		const jobIds = [...ci.slice(ci.search(/^jobs:$/m)).matchAll(/^ {2}([\w-]+):$/gm)].map(([, id]) => id);
+		const diagrams = [...read(join(REPO, "docs/wiki/CI-CD.md")).matchAll(/```mermaid\n([\s\S]*?)```/g)]
+			.map(([, body]) => body)
+			.join("\n");
+
+		expect(jobIds).toEqual(expect.arrayContaining(["changes", "verify-web", "check"]));
+		expect(jobIds.filter((id) => !new RegExp(`(?<![\\w-])${id}(?![\\w-])`, "i").test(diagrams))).toEqual([]);
+	});
+
 	const PLAYWRIGHT_CONFIG = "web/playwright.config.ts";
 	const PLAYWRIGHT_PROJECT = /name:\s*"(\w+)",\s*use:\s*\{\s*\.\.\.devices\["([\w ]+)"\]/g;
 	const RUNS_PLAYWRIGHT = /\bplaywright test\b|\bpnpm test:e2e\b/;
@@ -2739,6 +2750,33 @@ describe("the workflows", () => {
 		expect(workflow).not.toMatch(/chore\(/);
 		expect(workflow).not.toMatch(/git log -1/);
 		expect(releaserc).toMatch(/"successCmd": ".*GITHUB_OUTPUT/);
+	});
+});
+
+describe("the documented Cache-Control values are the ones the routes send", () => {
+	const CACHE_CONTROL_SOURCE = "web/src/application/http/cache-control.ts";
+	const CACHE_CONTROL_VALUE = /^export const \w+ = "([^"]+)";$/gm;
+	const QUOTED_CACHE_CONTROL = /\b(?:public|private), (?:max-age=\d+(?:, stale-while-revalidate=\d+)?|no-store)/g;
+	const QUOTING_DOCUMENTS = [
+		"docs/wiki/API-Reference.md",
+		"docs/wiki/How-It-Works.md",
+		"web/README.md",
+		"ARCHITECTURE.md",
+	];
+
+	it("quotes every value cache-control.ts sets in the API reference, and no value it does not set anywhere", () => {
+		const values = [...read(join(REPO, CACHE_CONTROL_SOURCE)).matchAll(CACHE_CONTROL_VALUE)].map(([, value]) => value);
+		const reference = read(join(REPO, "docs/wiki/API-Reference.md"));
+		const quoted = QUOTING_DOCUMENTS.flatMap((path) =>
+			[...read(join(REPO, path)).matchAll(QUOTED_CACHE_CONTROL)].map(([value]) => ({ path, value })),
+		);
+
+		expect(values.length).toBeGreaterThan(0);
+		expect(quoted.length).toBeGreaterThan(0);
+		expect(values.filter((value) => !reference.includes(value))).toEqual([]);
+		expect(quoted.filter(({ value }) => !values.includes(value)).map(({ path, value }) => `${path}: ${value}`)).toEqual(
+			[],
+		);
 	});
 });
 
