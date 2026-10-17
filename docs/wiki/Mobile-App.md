@@ -174,13 +174,31 @@ The app uses generated copies in `app/assets/*.json`. See **[shared/](https://gi
 
 ## Releases
 
-Built and **shipped to Google Play automatically** via `release-app.yml`. A manual dispatch picks a track (`internal` / `alpha` / `beta` / `production`); semantic-release then versions the app and, if there's something to publish, the pipeline signs and uploads a release App Bundle with `fastlane`, and even generates the Play Store release notes from `CHANGELOG.md`.
+Built and **shipped to Google Play** by `release-app.yml`, on a manual dispatch from `main` that picks a track (`internal` / `alpha` / `beta` / `production`). **Only Android is released**: the fastlane lane is `platform :android`, no workflow builds iOS, and the App Store listing is "coming soon".
 
-The `track` input picks the GitHub Environment, and the workflow writes that environment's `REVENUECAT_KEY` into `dart-defines.json` before building. Neither dart-defines file is read in CI, and neither is committed: [`app/.gitignore`](https://github.com/fbuireu/contribKit/blob/main/app/.gitignore) lists `dart-defines*.json` under its secrets heading, so they exist only as local, untracked files.
+The run is sequential, and nothing in it is left to a person once it starts:
+
+1. **Version.** semantic-release reads the commits since the last `app-v*` tag, bumps `pubspec.yaml`, writes `CHANGELOG.md`, commits, tags `app-vX.Y.Z` and publishes the GitHub release. With nothing to release it stops there, and so does the run.
+2. **Deliver from the tag.** A second job checks out that tag, never `main`, decodes the upload keystore and the Play service account from the GitHub Environment the track chose, and copies `shared/*.json` into `assets/`.
+3. **Build.** It writes `dart-defines.json` with the five keys listed below and builds the App Bundle with `--obfuscate --split-debug-info=build/symbols`; R8 shrinks the Java/Kotlin side.
+4. **Symbols.** It uploads the debug symbols to Sentry, and **fails when `SENTRY_AUTH_TOKEN` is empty**: an obfuscated build without its symbols would make every Diagnostic Report unreadable.
+5. **Notes and upload.** It turns the newest `CHANGELOG.md` section into the Play release notes, then `fastlane deploy` uploads the AAB to the track, with up to three attempts. Every track is uploaded with `release_status: "completed"`, so **a production release reaches 100% of devices at once**.
+6. **Clean up.** Whatever happened, the keystore, the signing config, the service account and `dart-defines.json` are deleted when the job ends.
+
+The `track` input picks the GitHub Environment, and its secrets fill the `dart-defines.json` CI writes before building. Neither of the two local files, `dart-defines.json` and `dart-defines.prod.json`, is committed: [`app/.gitignore`](https://github.com/fbuireu/contribKit/blob/main/app/.gitignore) lists `dart-defines*.json` under its secrets heading. CI never reads them either: the `deliver` job writes a `dart-defines.json` of its own, with these keys, and passes it to `--dart-define-from-file`:
+
+| Key | In CI | What reads it |
+|-----|-------|---------------|
+| `REVENUECAT_KEY` | the Environment's secret: production's key, or the RevenueCat sandbox's | the Tip Jar; empty, it renders as unavailable |
+| `SENTRY_DSN` | the Environment's secret | Diagnostic Reports; empty, none is sent |
+| `POSTHOG_PROJECT_TOKEN` | the Environment's secret | Usage Events; empty, none is sent |
+| `TELEMETRY_ENVIRONMENT` | `production` for the production track, `development` otherwise | the environment Sentry files a Diagnostic Report under; `development` when absent |
+| `APP_RELEASE` | `contribkit@<version>` | the release Sentry files a report under, which is how it finds the uploaded symbols |
+| `POSTHOG_HOST` | not written | the PostHog host; absent, the EU one |
 
 | `track` input | GitHub Environment | Target |
 |---------------|--------------------|--------|
 | `production` | `app-production` | Play production track |
 | anything else | `app-development` | Chosen Play track + RevenueCat sandbox |
 
-Versioned with semantic-release (`app-vX.Y.Z` tags). See **[CI/CD](CI-CD)** for the full delivery flow.
+**When `deliver` fails**, the tag and the GitHub release already exist and nothing reached Play, so a new dispatch finds nothing to release. Fix the cause and re-run the failed job on the same run. **[CI/CD](CI-CD)** has the full delivery flow, every secret it reads, and that recovery in detail.

@@ -121,7 +121,7 @@ pnpm check                # astro check: the only thing that typechecks .astro f
 pnpm test:ut              # vitest, the docs contract included
 pnpm test:docs            # the docs contract alone
 pnpm test:e2e             # playwright, in Chromium and WebKit: pnpm exec playwright install chromium webkit, once
-pnpm verify               # format check, typecheck, astro check and coverage: what CI runs
+pnpm verify               # format check, typecheck, astro check and coverage: the checks CI runs
 ```
 
 For the app, from `app/`:
@@ -200,7 +200,10 @@ and does not block the merge, because a change that genuinely spans both clients
 both is then the right outcome. It ignores [`app/assets/`](../app/assets), so the pre-commit sync's own
 mirrors cannot make a `shared/` edit look like a cross-package one.
 
-Changes to `shared/`, `docs/` or the root touch neither package, so they release nothing.
+A change to `shared/*.json` is filed under the app: the pre-commit hook stages the `app/assets/` mirrors in the same
+commit, so `semantic-release-monorepo` sees it touch the app package, and a `feat` or `fix` there cuts an app
+release. The web deploys the change with its next push but files it in no changelog, because `shared/` is outside
+`web/`. Changes to `docs/` or the root touch neither package, so they release nothing.
 
 Do **not** add a `Co-Authored-By` trailer for an AI assistant to a commit or a pull request.
 
@@ -210,7 +213,7 @@ This repo treats its documentation as part of the code: change one, update the o
 commit**. A follow-up commit is a promise, not a fix.
 [`docs/docs-consistency.test.ts`](../docs/docs-consistency.test.ts) runs with the unit tests and fails the
 build when the docs and the repo disagree. `ci.yml` runs it in a `Docs Contract` job that is **not** gated on
-which client changed, so it fires on every push and pull request. When it fails, fix whichever side is
+which client changed, so it fires on every push to `main` and every pull request into it. When it fails, fix whichever side is
 wrong, and **never delete an assertion to get green**. It cannot check prose or rationale, so a green run is
 not a correct document. [AGENTS.md](../AGENTS.md) has the full table of what to update for a given change,
 and [ARCHITECTURE.md](../ARCHITECTURE.md) holds the ADR index.
@@ -226,11 +229,16 @@ ADR only the index points at will not be read.
 2. Run the checks above; fill in the pull request template, GIF included. `pnpm test:docs` passes whichever
    client you touched.
 3. CI deploys a per-PR preview Worker for web changes and comments its URL on the pull request, so reviewers
-   can try the change live. The E2E suite runs against the preview and gates the merge.
+   can try the change live. The E2E suite runs against the preview and gates the merge. **A pull request from a
+   fork cannot do this**: GitHub gives its run no secrets, so the preview deploy fails for want of the Cloudflare
+   token and `Check` goes red whatever the change. That is expected, not your fault: the maintainer pushes your
+   commits to a branch in this repository and opens the pull request from there, which keeps your authorship.
+   Dependabot's pull requests are in the same position unless the secrets are also stored as Dependabot secrets
+   ([CI/CD](../docs/wiki/CI-CD.md#secrets-and-variables)).
 4. After merge to `main`, nothing needs doing by hand. The two components release independently
-   ([ADR 0001](../docs/adr/0001-monorepo-with-independently-released-components.md)): the web releases and
-   deploys through semantic-release (`web-vX.Y.Z`), cut only after the production deploy and its smoke run
-   pass; the app releases through a manual [`release-app.yml`](./workflows/release-app.yml) dispatch with a
+   ([ADR 0001](../docs/adr/0001-monorepo-with-independently-released-components.md)): the web deploys to
+   production on the push, and semantic-release then versions it (`web-vX.Y.Z`), cut only after the production
+   deploy and its smoke run pass; the app releases through a manual [`release-app.yml`](./workflows/release-app.yml) dispatch with a
    Google Play track, so an app change sits on `main` until the maintainer ships it. A docs-only push to
    `main` also redeploys the web Worker: `ci.yml`'s `changes` job counts `docs/**` and `*.md` as web changes,
    because the shared tokens and the docs contract both live outside `web/`, and the deploy is idempotent.

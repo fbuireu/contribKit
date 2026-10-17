@@ -12,8 +12,9 @@ cd web
 ```
 
 The command table lives in [`web/README.md`](https://github.com/fbuireu/ContribKit/blob/main/web/README.md#development)
-and is not repeated here: the copy that used to sit in this page had already lost `pnpm format:check`, which is
-the one command CI actually runs.
+and is not repeated here: the copy that used to sit in this page had already lost `pnpm format:check`. CI runs no
+single command: `verify-web` runs the checks of `pnpm verify` as three parallel steps, `pnpm format:check`,
+`pnpm typecheck && pnpm check` and `pnpm test:ut:coverage` (see [CI/CD](CI-CD)).
 
 ---
 

@@ -108,11 +108,14 @@ A simple **Tip Jar** ($1 / $5 / $10) built with the RevenueCat SDK and a custom 
 
 ## Releases
 
-Driven by [`release-app.yml`](../.github/workflows/release-app.yml):
+Driven by [`release-app.yml`](../.github/workflows/release-app.yml), dispatched by hand from `main` with a Google Play track. **Android only**: no workflow builds or ships iOS.
 
-- **Versioning:** semantic-release tags `app-vX.Y.Z`.
-- **Build:** release AAB signed with the upload keystore (decoded from secrets at build time), minified with R8 (code + resource shrinking).
-- **Publish:** fastlane uploads to the selected **Google Play track** (workflow input); `production` uses the `app-production` GitHub Environment, anything else uses `app-development` (internal track + RevenueCat sandbox).
-- **Changelogs:** release notes are written to `android/fastlane/metadata/android/en-US/changelogs`.
+- **Versioning:** semantic-release bumps `pubspec.yaml`, writes the changelog and tags `app-vX.Y.Z`. With nothing to release, nothing is delivered.
+- **Build:** from that tag, never from `main`. CI writes its own `dart-defines.json` with five of the keys above (all but `POSTHOG_HOST`) from the GitHub Environment's secrets, then builds a release AAB with `--obfuscate --split-debug-info`, signed with the upload keystore decoded from secrets at build time and minified with R8 (code + resource shrinking).
+- **Symbols:** the debug symbols go to Sentry, and the release **fails when `SENTRY_AUTH_TOKEN` is missing**, because an obfuscated build without them makes every Diagnostic Report unreadable.
+- **Changelogs:** release notes are written to `android/fastlane/metadata/android/en-US/changelogs`, from the newest `CHANGELOG.md` section, clamped to Play's 500 characters.
+- **Publish:** fastlane uploads to the selected **Google Play track**, with up to three attempts; `production` uses the `app-production` GitHub Environment, anything else uses `app-development` (internal track + RevenueCat sandbox). Every upload is `release_status: "completed"`, so **a production release rolls out to 100% at once**.
+- **Clean up:** the keystore, the signing config, the service account and `dart-defines.json` are deleted when the job ends, whatever happened.
+- **When delivery fails** after the tag exists, a new dispatch finds nothing to release: re-run the failed job on the same run. The [CI/CD wiki page](https://github.com/fbuireu/contribKit/wiki/CI-CD) has the full flow, its secrets and that recovery.
 
 See the **[root README](../README.md#monorepo-development)** for the environments naming convention shared with the web.

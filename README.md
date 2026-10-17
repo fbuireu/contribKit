@@ -105,7 +105,7 @@ Tooling that applies to the whole repo:
 - **Git hooks:** [lefthook](https://github.com/evilmartians/lefthook) ([`lefthook.yml`](lefthook.yml)), a root devDependency wired up by `pnpm install` through the root `prepare` script
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint
 - **Releases:** semantic-release per component (`web-vX.Y.Z` / `app-vX.Y.Z` tags)
-- **CI:** one [`ci.yml`](.github/workflows/ci.yml) on every push and pull request, with no path filter. A `changes` job decides which client was touched and every other job is gated on its output, so an app-only pull request skips the web jobs rather than never starting them. The documentation-consistency contract runs ungated, because it asserts things about both clients and the root
+- **CI:** one [`ci.yml`](.github/workflows/ci.yml) on every push to `main` and every pull request into it, with no path filter. A `changes` job decides which client was touched and every other job is gated on its output, so an app-only pull request skips the web jobs rather than never starting them. The documentation-consistency contract runs ungated, because it asserts things about both clients and the root
 
 GitHub Environments are namespaced by component (`<component>-<stage>`) because they are repo-global and hold component-specific secrets:
 
@@ -116,7 +116,7 @@ GitHub Environments are namespaced by component (`<component>-<stage>`) because 
 | `web-production`   | Astro web   | production  | [`ci.yml`](./.github/workflows/ci.yml) (deploy-production, push to `main`)      |
 | `web-development`  | Astro web   | development | `ci.yml` (deploy-development, per-PR preview)     |
 
-App `development` and web `development` map to different things: app `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker on `*.workers.dev`. The component-scoped configs do **not** repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter has no build flavors: locally the stage is whichever dart-defines file you pass (`dart-defines.prod.json` vs `dart-defines.json`), and in CI it is the `track` input to `release-app.yml`, which picks the GitHub Environment whose `REVENUECAT_KEY` is written into `dart-defines.json` at build time.
+App `development` and web `development` map to different things: app `development` is the internal Play track + RevenueCat sandbox; web `development` is a per-PR preview Worker on `*.workers.dev`. The component-scoped configs do **not** repeat the prefix: wrangler uses `[env.production]` / `[env.development]`; Flutter has no build flavors: locally the stage is whichever dart-defines file you pass (`dart-defines.prod.json` vs `dart-defines.json`), and in CI it is the `track` input to `release-app.yml`, which picks the GitHub Environment whose secrets fill the `dart-defines.json` the release writes at build time: five keys, listed in [app/README.md](app/README.md#development). Only Android is built and released; [CI/CD](../../wiki/CI-CD) has the whole pipeline, its secrets and what to do when a release fails halfway.
 
 Component-specific setup, commands, and deploy flows live in **[web/README.md](web/README.md)** and **[app/README.md](app/README.md)**.
 

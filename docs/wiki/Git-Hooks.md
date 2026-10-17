@@ -127,7 +127,7 @@ export default configuration;
 - **pnpm scopes:** valid scopes are derived from the workspace package **names**, so they are `contribkit-web` and `contribkit-app` (not `web` and `app`, which commitlint rejects) plus `global`, for a change that belongs to neither client. The scope is optional.
 - **scope-case:** scopes may be `lower-case`, `PascalCase`, or `camelCase`.
 - **header-max-length:** the header may be up to **130** characters.
-- **ignores:** the release commit, `chore(<package>): release <version> [skip ci]`, is let through whatever its notes say: semantic-release writes the notes, and a `BREAKING CHANGES` line longer than `body-max-line-length` would otherwise fail the commit after the tag exists.
+- **ignores:** the release commit, `chore(<package>): release <version> [skip ci]`, is let through whatever its notes say: semantic-release writes the notes, and a `BREAKING CHANGES` line longer than `body-max-line-length` would otherwise fail the release commit. That happens in semantic-release's `prepare` step, before it creates the tag or the GitHub release, so the release would fail with nothing published and wait for the next run.
 
 Conventional Commit types drive semantic-release versioning; see **[CI/CD](CI-CD)**.
 
