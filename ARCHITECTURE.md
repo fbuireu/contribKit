@@ -24,7 +24,7 @@ flowchart TD
     gh["github.com/users/:login/contributions<br/>public HTML, no token"]
 
     gh --> web["web/<br/>Astro SSR on Cloudflare Workers"]
-    gh --> app["app/<br/>Flutter, iOS + Android"]
+    gh --> app["app/<br/>Flutter, released for Android"]
 
     tokens["shared/<br/>palettes · shapes · usernames"] --> web
     tokens -->|"pnpm sync:assets"| assets["app/assets/*.json<br/>generated copy"]
@@ -35,7 +35,7 @@ flowchart TD
     web --> json["GET /api/contributions"]
     web --> contact["POST /api/contact"]
     app --> contact
-    app --> widget["Home Screen Widget"]
+    app --> widget["Home Screen Widget, Android only"]
     app --> export["PNG · SVG · Markdown"]
 
     classDef pure stroke:#dfb317,stroke-width:3px
@@ -47,8 +47,8 @@ flowchart TD
 | Component | What it is | Released as |
 | --- | --- | --- |
 | [`web/`](./web/README.md) | Astro (`output: "server"`) on `@astrojs/cloudflare`, serving the site plus the public SVG and JSON endpoints | `web-vX.Y.Z`, deployed to Cloudflare Workers |
-| [`app/`](./app/README.md) | Flutter iOS/Android client with Home Screen Widgets and a Tip Jar | `app-vX.Y.Z`, shipped to Google Play |
-| [`shared/`](./shared/README.md) | Plain JSON design tokens: `palettes.json`, [`shapes.json`](./shared/shapes.json), [`usernames.json`](./shared/usernames.json) | not released; consumed by both |
+| [`app/`](./app/README.md) | Flutter client with Android Home Screen Widgets and a Tip Jar; it builds for iOS too, but only Android is released | `app-vX.Y.Z`, shipped to Google Play |
+| [`shared/`](./shared/README.md) | Plain JSON design tokens: `palettes.json`, [`shapes.json`](./shared/shapes.json), [`usernames.json`](./shared/usernames.json) | not released; the web reads all three, the app all but `shapes.json` |
 
 Neither client needs a GitHub token. Both read the same public contributions page
 ([ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md)), and the app talks to GitHub directly
@@ -154,8 +154,9 @@ through GitHub's shared image proxy, so a per-IP limit would throttle every read
 | 5 | Grid padded to cover the year | domain | `ContributionGridService.buildFor` pads dates outside the requested year with an unknown Count, over the 53 or 54 whole weeks the year needs ([ADR 0023](./docs/adr/0023-the-app-grid-covers-the-year-in-53-or-54-weeks.md)). Both the fresh fetch and the cache read go through it, and the web builds its grid in its own domain layer. Every day it holds is a UTC date, so no step depends on the device's zone |
 | 6 | `ContributionStats` derived | domain/services | Streaks, best day, best month, weekly average, active days |
 
-Separately, `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart) runs every 24 hours under WorkManager to refresh the
-Home Screen Widget. It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
+Separately, `callbackDispatcher` in [`app/lib/main.dart`](./app/lib/main.dart) runs every 24 hours under WorkManager, with a network
+connection, to refresh the Home Screen Widget, on Android only: iOS has neither the widget nor the background-task
+setup ([Mobile App](../../wiki/Mobile-App#keeping-the-home-screen-widget-current) follows it end to end). It is a **background isolate**, so it has no `ProviderScope` and builds its repositories by
 hand, and it reads settings through `SettingsRepository` like everything else, so a renamed key breaks it at compile
 time ([AGENTS.md](./AGENTS.md#maintenance-contract)). The refresh itself is `HomeScreenWidgetRefresh`, which writes
 through `HomeScreenWidgetService.update`, the writer the Viewer calls in the foreground, so both hand the Home Screen

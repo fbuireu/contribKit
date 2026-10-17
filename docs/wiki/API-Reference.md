@@ -54,7 +54,10 @@ Errors return `text/plain` with the message:
 | `400` | invalid username |
 | `404` | GitHub has no such user (`User not found`) |
 | `429` | GitHub is rate-limiting ContribKit. **Not** this endpoint rate-limiting you: it is never rate-limited ([ADR 0010](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0010-rate-limit-only-the-json-api.md)) |
-| `502` | GitHub unreachable, or the page couldn't be parsed |
+| `502` | GitHub unreachable, GitHub answered another status, or the page couldn't be parsed |
+| `500` | anything thrown inside the route, logged; the body is `Something went wrong. Please try again.` |
+
+Every one of them is `no-store`.
 
 ---
 
@@ -146,6 +149,7 @@ Every field is trimmed before it is checked.
 | `400` | Either `{ "error": "Invalid request body" }` when the JSON does not have the shape above, or `{ "error": "<sentence>", "field": "name" \| "email" \| "message" }` when a value was rejected |
 | `429` | The per-IP limit for this endpoint, **5 requests a minute**, which is its own bucket and far tighter than the 100/min the rest of `/api/*` gets. Carries `Retry-After: 60` |
 | `502` | `{ "error": "Could not send your message" }`. Email Routing refused the send. The reason is deliberately not in the body; it is in the server log |
+| `500` | `{ "error": "Something went wrong. Please try again." }`. The deployment has no `CONTACT_EMAIL` binding, which the repository throws on rather than calling a refusal, or something else threw inside the route; either way it is logged, and `/api/health` says whether the binding is there |
 
 **Every answer is `Cache-Control: no-store`, the `202` included.**
 
@@ -207,6 +211,8 @@ Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 ```
 
 So a calendar is served from cache for an hour, then revalidated in the background for up to a day. README image embeds are additionally cached by GitHub's Camo proxy.
+
+**Behind both endpoints, the Worker's own request to GitHub is cached at the edge**, with `cf.cacheTtl` set to an hour: every request for the same Username and Year within that hour is served from one GitHub fetch, whatever query string it carried. That cache shows in no response header, and nothing here sets `cacheTtlByStatus`, so which of GitHub's error answers Cloudflare keeps for the hour is Cloudflare's rule rather than this code's. **The landing page is never `public`**: it is `private, max-age=3600, stale-while-revalidate=86400` when the visitor named someone and the calendar loaded, and `private, no-store` otherwise, because it can depend on the visitor's cookie. [How It Works](How-It-Works#caching-three-layers) draws the three layers.
 
 **Every answer that is not a calendar says `no-store`**: a 400, a 404, a 429 and a 500 on either endpoint, every answer `/api/contact` gives, and `/api/health` whichever answer it gives. Only the success path is cacheable, so a transient upstream failure cannot be stored by an intermediary and replayed at a reader who retries. That matters most on the SVG endpoint, whose responses reach a README through Camo: a cached failure would show a broken image that no refresh could clear.
 

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and how to resolve them. ContribKit maps every failure to a typed `Failure` and a clear HTTP status (see **[How It Works](How-It-Works)**), so the message usually points straight at the cause.
+Common issues and how to resolve them. ContribKit maps every failure to a typed `Failure` and a clear HTTP status, so the message usually points straight at the cause. **[How It Works](How-It-Works)** follows each web flow with its failures in place, and **[Mobile App](Mobile-App)** does the same for the app: offline, a refresh, the Home Screen Widget.
 
 ---
 
