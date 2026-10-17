@@ -9,7 +9,7 @@ There's nothing to install to use ContribKit; it works with any public GitHub us
 1. Open **[contribkit.app](https://contribkit.app)**.
 2. Type a GitHub username and hit **render**.
 3. Tweak the **palette**, **shape**, and **background** in the customizer.
-4. Pick a **year** (anything from 2005 to today) or keep the latest rolling year.
+4. Pick a **Year**, anything from 2005 to this one; the page opens on this Year. The Rolling Window, the last 53 weeks, is the [README Embed](#2-embed-it-in-your-readme)'s alone.
 5. Copy or export from the **export** section (PNG, SVG, or Markdown).
 
 No login and no token: ContribKit only reads **public** contribution data.
@@ -49,7 +49,7 @@ Unknown option values silently fall back to the default, so the image never brea
 2. Enter your username.
 3. On Android, add a **Home Screen Widget**: small (streak counter) or medium (grid, streak and total). iOS has none: the app carries no WidgetKit extension.
 
-Widgets refresh once a day in the background. See **[Mobile App](Mobile-App)** for details.
+Widgets are rewritten whenever the app fetches a calendar or you change the Palette or Cell Shape, and refreshed once a day in the background. See **[Mobile App](Mobile-App)** for details.
 
 ---
 

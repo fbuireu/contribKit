@@ -2,7 +2,7 @@
 
 **Visualize, customize, and export your GitHub contribution calendar with custom palettes, shapes, and backgrounds. No token required.**
 
-ContribKit turns any public GitHub profile into a fully customizable contribution calendar you can pin, embed, or carry on your home screen. It runs as a web app and public API on Cloudflare Workers, and as a native iOS & Android app with Android home-screen widgets, both sharing a single set of design tokens.
+ContribKit turns any public GitHub profile into a fully customizable contribution calendar you can pin, embed, or carry on your home screen. It runs as a web app and public API on Cloudflare Workers, and as an Android app with home-screen widgets, both sharing a single set of design tokens; the app's code builds for iOS too, but only Android is released.
 
 ---
 
@@ -22,19 +22,19 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 | Page | Description |
 |------|-------------|
 | **[Getting Started](Getting-Started)** | Render your first calendar, embed it, install the app |
-| **[How It Works](How-It-Works)** | Request lifecycle, data pipeline, rendering |
+| **[How It Works](How-It-Works)** | Every web flow: the landing page, a search, the SVG and JSON routes, contact, caching |
 | **[API Reference](API-Reference)** | Endpoints, query params, response formats |
 | **[Architecture](Architecture)** | DDD-ish layers, value objects, typed failures |
 | **[Project Structure](Project-Structure)** | Monorepo layout: web, app, shared tokens |
 | **[Web Application](Web-Application)** | Astro on Cloudflare Workers: dev, deploy, env |
-| **[Mobile App](Mobile-App)** | Flutter app, home-screen widgets, the Tip Jar |
+| **[Mobile App](Mobile-App)** | The app's start, fetch, cache, refresh and home-screen widgets; the Tip Jar; releases |
 | **[Fetching Contributions](Fetching-Contributions)** | The GitHub HTML scraping repository |
 | **[HTML Parsing](HTML-Parsing)** | Regex extraction of Contribution Days and tooltips |
 | **[Calendar Grid](Calendar-Grid)** | Building the deterministic Sunday-aligned grid |
 | **[SVG Rendering](SVG-Rendering)** | Geometry, shapes, and the string renderer |
 | **[Deterministic Randomness](Mulberry32)** | The Mulberry32 PRNG used for placeholder grids |
 | **[Git Hooks](Git-Hooks)** | lefthook, commitlint, asset sync |
-| **[CI/CD](CI-CD)** | One unfiltered CI workflow, environments, releases |
+| **[CI/CD](CI-CD)** | Every workflow and job, secrets, releases and their recovery |
 | **[Troubleshooting](Troubleshooting)** | Common issues and fixes |
 
 ---
@@ -51,7 +51,7 @@ ContribKit turns any public GitHub profile into a fully customizable contributio
 ### Platforms
 
 - **Web app + API:** Astro + TypeScript on Cloudflare Workers
-- **iOS & Android:** one Flutter codebase; the home-screen widgets are Android-only
+- **Android:** one Flutter codebase, released on Google Play; it builds for iOS, which is not released, and the home-screen widgets are Android-only
 - **README embed:** a one-line Markdown snippet that always shows your latest calendar
 
 ### Engineering highlights

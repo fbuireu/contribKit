@@ -6,7 +6,7 @@ Reviewing a diff: [CODING_STANDARDS.md](./CODING_STANDARDS.md).
 
 ## What this is
 
-A monorepo with two clients over one domain. **`web/`** is an Astro SSR site on Cloudflare Workers that also serves the public SVG and JSON endpoints. **`app/`** is a Flutter iOS/Android app with Home Screen Widgets. **`shared/`** holds the design tokens both consume. Neither client needs a GitHub token: both read the public contributions page ([ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md)).
+A monorepo with two clients over one domain. **`web/`** is an Astro SSR site on Cloudflare Workers that also serves the public SVG and JSON endpoints. **`app/`** is a Flutter app, released for Android only, with Android Home Screen Widgets: the same code builds for iOS, but no workflow builds or ships it, and an iOS build has no Home Screen Widget and no background refresh. **`shared/`** holds the design tokens both consume. Neither client needs a GitHub token: both read the public contributions page ([ADR 0005](./docs/adr/0005-scrape-githubs-public-contributions-html.md)).
 
 ## Versions
 
@@ -56,7 +56,7 @@ The hooks: `pre-commit` formats staged files, runs `dart analyze --fatal-infos` 
 
 A `package.json` script runs under `cmd` on Windows, which passes `$(...)` through as literal text, so a `:changed` variant names a literal base (`test:ut:changed` takes `origin/main`) and the docs test rejects a substitution. Biome's `--changed` diffs against `vcs.defaultBranch`, which is `main`, so on `main` `pnpm format:changed` selects nothing: reach for `format:all` there.
 
-**The app has no build flavors.** The stage is chosen by which `dart-defines` file is passed, and `--flavor` fails because there is nothing for it to name: the two files differ by one key ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)).
+**The app has no build flavors.** The stage is chosen by which `dart-defines` file is passed, and `--flavor` fails because there is nothing for it to name: the two files differ by `REVENUECAT_KEY`, sandbox or production, and `TELEMETRY_ENVIRONMENT` ([ADR 0022](./docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)).
 
 ## Structure
 

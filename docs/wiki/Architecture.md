@@ -1,6 +1,6 @@
 # Architecture
 
-Both the web and mobile apps follow the same DDD-ish layered architecture. The `-ish` is deliberate and defined: the layers, the vocabulary, the ports and the typed failures are non-negotiable, while the tactical patterns are applied only where they pay, so the code does not carry abstractions nothing reads. [ADR 0025](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0025-how-much-ddd-and-where-it-stops.md) states the test and the calls it produced. The dependency direction is strict: `domain` knows nothing about anything else; everything points inward toward it.
+Both the web and mobile apps follow the same DDD-ish layered architecture. The `-ish` is deliberate and defined: the layers, the vocabulary, the ports and the typed failures are non-negotiable, while the tactical patterns are applied only where they pay, so the code does not carry abstractions nothing reads. [ADR 0025](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0025-how-much-ddd-and-where-it-stops.md) states the test and the calls it produced. The dependency direction is strict: `domain` knows nothing about anything else; everything points inward toward it. The web's `ui` may import the domain alone, so a component that needs a use case's result gets it from the page; the app's `ui` also reaches `application`, and `infrastructure` only through the composition root in `ui/di/`. The web's `pages` is its composition root and may import every layer.
 
 ```mermaid
 ---
@@ -11,8 +11,13 @@ config:
 flowchart RL
     application --> domain
     infrastructure --> domain
-    ui["ui / pages"] --> application
     ui --> domain
+    ui -->|"app only"| application
+    ui -->|"app only, through ui/di"| infrastructure
+    pages["pages, web only"] --> ui
+    pages --> application
+    pages --> infrastructure
+    pages --> domain
 ```
 
 The rules the code is reviewed against are in [`CODING_STANDARDS.md`](https://github.com/fbuireu/contribKit/blob/main/CODING_STANDARDS.md); each layer's colocated `AGENTS.md` holds what an implementer working there needs.

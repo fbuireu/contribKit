@@ -4,7 +4,7 @@
 
 # ContribKit · App
 
-**The iOS & Android app: render your contribution calendar, customize it, and, on Android, pin it to your home screen as a widget.**
+**The Android app: render your contribution calendar, customize it, and pin it to your home screen as a widget. The same Flutter code builds for iOS, but only Android is released.**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci.yml?style=flat-square&logo=github&label=CI)](https://github.com/fbuireu/contribkit/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?style=flat-square&logo=codecov)](https://codecov.io/gh/fbuireu/contribkit)
@@ -29,10 +29,10 @@
 
 ## Features
 
-- 📱 **Native iOS & Android:** one Flutter codebase; home-screen widgets on Android only
+- 📱 **Android, on Google Play:** one Flutter codebase that also builds for iOS, which is not released yet; the Home Screen Widgets and their background refresh are Android only
 - 🎨 **Every palette and shape:** palettes are loaded from [`shared/`](../shared); the shapes are a hardcoded `CellShape` enum, because nothing in Dart reads `shapes.json` ([ADR 0002](../docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
 - 🧿 **Home-screen widgets (Android):** small (streak counter) and medium (grid, streak and total)
-- 🔋 **Daily background refresh:** fetches once a day, easy on the battery
+- 🔋 **Daily background refresh (Android):** WorkManager fetches once a day when there is a network, easy on the battery, and the app rewrites the widget after every fetch and every Palette or Cell Shape change
 - 📤 **Export & share:** PNG, SVG, or Markdown straight into the system share sheet
 - 🔓 **No login:** just a username, and only public contribution data
 
@@ -46,9 +46,12 @@
 | State management    | Riverpod (`riverpod_annotation` codegen)                            |
 | Models              | freezed + json_serializable                                         |
 | Persistence         | Hive (cache + settings)                                             |
-| Widgets & refresh   | `home_widget` + `workmanager`                                       |
-| UI primitives       | `shadcn_ui` (wrapped in `AppXxx` widgets) + `flutter_animate`       |
+| Widgets & refresh   | `home_widget` + `workmanager` (Android)                             |
+| Networking          | `http`, straight to GitHub's public page and to `contribkit.app/api/contact` |
+| UI primitives       | `shadcn_ui` (wrapped in `AppXxx` widgets) + `flutter_animate` + `google_fonts` |
 | Tips                | RevenueCat (`purchases_flutter`)                                    |
+| Diagnostic Reports  | Sentry (`sentry_flutter`), on unless turned off in the Privacy sheet |
+| Usage Events        | PostHog (`posthog_flutter`), off until turned on in the Privacy sheet |
 
 ---
 
@@ -74,14 +77,40 @@ Same DDD-ish layering as the web. The rules are in [`CODING_STANDARDS.md`](../CO
 flutter pub get
 ```
 
+Install the Flutter that `environment.flutter` pins in [`pubspec.yaml`](./pubspec.yaml): a different one blocks `pub get` and codegen.
+
+**`dart-defines.json` is gitignored, so create it before the first run.** The app reads six build-time keys, and every one may be empty: an empty value only turns its feature off.
+
+```bash
+cat > dart-defines.json <<'JSON'
+{
+  "REVENUECAT_KEY": "",
+  "SENTRY_DSN": "",
+  "POSTHOG_PROJECT_TOKEN": "",
+  "TELEMETRY_ENVIRONMENT": "development",
+  "APP_RELEASE": ""
+}
+JSON
+```
+
+| Key | What it turns on | Empty or absent |
+| --- | --- | --- |
+| `REVENUECAT_KEY` | the Tip Jar, through RevenueCat | the Tip Jar renders as unavailable |
+| `SENTRY_DSN` | Diagnostic Reports | none is sent |
+| `POSTHOG_PROJECT_TOKEN` | Usage Events | none is sent |
+| `POSTHOG_HOST` | where Usage Events go | the EU host |
+| `TELEMETRY_ENVIRONMENT` | the environment a Diagnostic Report is filed under | `development` |
+| `APP_RELEASE` | the release a Diagnostic Report is filed under | none |
+
+`dart-defines.prod.json` is the same file with production's RevenueCat key where `dart-defines.json` has the sandbox one, and `TELEMETRY_ENVIRONMENT` set to `production`; there are no build flavors, so the file you pass is the stage ([ADR 0022](../docs/adr/0022-the-app-has-no-build-flavors-and-the-stage-is-a-dart-defines-file.md)). CI writes its own `dart-defines.json` at release time and never reads yours.
+
 | Command                                                      | Action                              |
 | ------------------------------------------------------------ | ----------------------------------- |
 | `flutter run --dart-define-from-file=dart-defines.json`      | Run locally                         |
 | `dart run build_runner watch`                                | Watch codegen (riverpod, freezed)   |
 | `flutter test --coverage`                                    | Run tests                           |
-| `dart analyze`                                               | Static analysis                     |
-
-`REVENUECAT_KEY` is only needed to exercise the tip jar; the rest of the app runs without it.
+| `dart run tool/check_coverage.dart`                          | The coverage floor CI and `pre-push` enforce, over the last `--coverage` run |
+| `dart analyze --fatal-infos`                                 | Static analysis, as CI and the hooks run it: an info fails it |
 
 Git hooks are repo-wide. See **[Monorepo Development](../README.md#monorepo-development)**.
 
@@ -96,7 +125,7 @@ Git hooks are repo-wide. See **[Monorepo Development](../README.md#monorepo-deve
 | Small (80×40dp) | `ContribKitSmallWidgetProvider` | Streak counter                                            |
 | Medium (250×110dp) | `ContribKitWidgetProvider`   | Username, streak badge, the grid image and the year total |
 
-Widgets render with whatever palette you set in the app and refresh once a day in the background (`workmanager`), so the grid stays current without draining the battery.
+Widgets render with whatever palette you set in the app. The app rewrites them after every calendar it fetches and every Palette or Cell Shape change, and WorkManager refreshes them once a day in the background, when there is a network, so the grid stays current without draining the battery. A refresh that fails for the world's reasons (no network, a rate limit) is retried later; one that fails for a defect is reported to Sentry. The [Mobile App](https://github.com/fbuireu/contribKit/wiki/Mobile-App#keeping-the-home-screen-widget-current) wiki page follows both writers end to end, and says why iOS has neither.
 
 ---
 

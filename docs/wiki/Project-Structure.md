@@ -61,9 +61,9 @@ Every layer carries a colocated `AGENTS.md` with what an implementer there needs
 
 ```
 domain/          Entities, value objects, repository interfaces, services, failures
-application/     Use cases (fetch, export, tips)
-infrastructure/  GitHub repo, asset repos, export (png/svg/markdown), persistence, tip
-ui/              Features (viewer, customizer, export, tip), widgets, theme, DI
+application/     Use cases: fetch and invalidate contributions, export, tips, send a Contact Message
+infrastructure/  GitHub repo, asset repos, export (png/svg/markdown), persistence, tip, contact, telemetry, http
+ui/              Features (viewer, customizer, export, tip, contact, privacy, home_screen_widget), widgets, theme, DI
 ```
 
 See **[Mobile App](Mobile-App)**.

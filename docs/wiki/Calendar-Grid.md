@@ -60,7 +60,7 @@ flowchart LR
 For each position:
 
 - look up the date in the map,
-- if present, use its `level` (run through `clampLevel`) and `count`,
+- if present, use its `level` and `count`; the level is already within 0–4, because `clampLevel` ran when the Contribution Day was built at parse time,
 - if absent, emit `{ level: 0, count: null }`.
 
 This guarantees a complete, gap-free grid even when GitHub omits leading/trailing days outside the year. **An absent day is not a zero day**: it is a day with an unknown Count that happens to render like an empty one ([ADR 0019](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0019-an-unknown-count-is-null-in-both-clients.md)).

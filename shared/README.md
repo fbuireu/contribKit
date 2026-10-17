@@ -1,6 +1,6 @@
 # shared
 
-Single source of truth for data consumed by both `web` and `app`.
+Single source of truth for the design tokens and the Suggested Usernames. The web reads all three files; the app reads `palettes.json` and `usernames.json`, and bundles `shapes.json` without reading it, because its Cell Shapes are a Dart enum ([ADR 0002](../docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md)).
 
 **Edit the JSON files here, and never edit the copies under [`app/assets/`](../app/assets).**
 

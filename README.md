@@ -4,7 +4,7 @@
 
 # ContribKit
 
-**Visualize, customize, and export your GitHub contribution calendar: custom palettes, shapes, and backgrounds. No token required. Available on the web and as an iOS & Android app, with home-screen widgets on Android.**
+**Visualize, customize, and export your GitHub contribution calendar: custom palettes, shapes, and backgrounds. No token required. Available on the web and as an Android app with home-screen widgets; iOS is not released yet.**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fbuireu/contribkit/ci.yml?style=flat-square&logo=github&label=CI)](https://github.com/fbuireu/contribkit/actions/workflows/ci.yml)
 [![Coverage (app)](https://img.shields.io/codecov/c/gh/fbuireu/contribkit?flag=app&style=flat-square&logo=codecov&label=coverage%20app)](https://app.codecov.io/gh/fbuireu/contribkit/flags)
@@ -39,7 +39,7 @@ Type a GitHub username and get a fully customizable contribution calendar you ca
   <img src="https://contribkit.app/user/torvalds.svg" alt="torvalds' GitHub contributions rendered by ContribKit" width="800">
 
 - **[Web app](https://contribkit.app):** render any profile, tweak palette and shape, and export as PNG, SVG, or Markdown.
-- **[Mobile app](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit):** native iOS & Android app, with Android home-screen widgets that keep your streak one glance away.
+- **[Mobile app](https://play.google.com/store/apps/details?id=com.fbuireu.contribkit):** an Android app on Google Play, with home-screen widgets that keep your streak one glance away. The same Flutter code builds for iOS, but nothing ships it yet.
 - **README embed:** a one-line Markdown snippet that always shows your up-to-date calendar.
 
 ---
@@ -50,7 +50,9 @@ Type a GitHub username and get a fully customizable contribution calendar you ca
 - 🔷 **5 cell shapes:** rounded, square, circle, dot, hex
 - 📤 **Export formats:** PNG for the readme, SVG for the portfolio, Markdown for the bio
 - 🔓 **No token required:** only public contribution data; no OAuth, no PAT
-- 📱 **Home-screen widgets:** small (streak counter) and medium (grid, streak and total); Android only, refreshed daily
+- 📱 **Home-screen widgets:** small (streak counter) and medium (grid, streak and total); Android only, rewritten by the app after every fetch and refreshed daily in the background
+- ✉️ **Contact the maintainer** from the web's `/contact` page or from the app: the message leaves as an email and is stored nowhere
+- 🔒 **Telemetry behind consent:** on the web, Google Analytics and Better Stack load only after cookie consent; in the app, Diagnostic Reports go to Sentry unless you turn them off, and Usage Events go to PostHog only once you turn them on
 - 🗓️ **Year selector:** any year back to 2005
 - 🌗 **Dark/light theme:** follows your system scheme, with manual override
 - 🧩 **Shared design tokens:** palettes defined once in [`shared/`](shared) and read by both apps; shapes are shared with the web only (see [ADR 0002](docs/adr/0002-shared-design-tokens-mirrored-into-the-flutter-bundle.md))
@@ -88,7 +90,7 @@ Monorepo with three components sharing design tokens:
 | Directory                    | Component                                               | Stack                                     | Docs                            |
 | ---------------------------- | ------------------------------------------------------- | ----------------------------------------- | ------------------------------- |
 | [`web/`](web)                | [contribkit.app](https://contribkit.app) + SVG/JSON API | Astro · TypeScript · Cloudflare Workers | **[web/README.md](web/README.md)** |
-| [`app/`](app)                | iOS & Android app, Android home-screen widgets          | Flutter · Riverpod · RevenueCat           | **[app/README.md](app/README.md)** |
+| [`app/`](app)                | Android app with home-screen widgets; iOS not released  | Flutter · Riverpod · RevenueCat · Sentry · PostHog | **[app/README.md](app/README.md)** |
 | [`shared/`](shared)          | Single source of truth for palettes, shapes, usernames  | JSON consumed by both apps                | **[shared/README.md](shared/README.md)** |
 
 Both apps follow the same DDD-ish layered architecture (`domain` → `application` → `infrastructure` / `ui`): the domain is pure, validated value objects guard every boundary, errors are a sealed set of typed `Failure`s matched exhaustively at the boundary (returned as values on the web, thrown and caught in the app). The rules a change is reviewed against are written once, in **[CODING_STANDARDS.md](CODING_STANDARDS.md)**, and each layer has a colocated `AGENTS.md` for whoever works in it.
@@ -140,10 +142,10 @@ The user-facing guides are published as the repository wiki:
 | Page | Covers |
 | ------ | -------- |
 | **[Getting Started](../../wiki/Getting-Started)** | Viewing, embedding, installing the app, running it locally |
-| **[How It Works](../../wiki/How-It-Works)** | End-to-end flow, from a username to a rendered calendar |
+| **[How It Works](../../wiki/How-It-Works)** | Every web flow end to end: the landing page, a search, the SVG and JSON routes, contact, caching, and their failures |
 | **[API Reference](../../wiki/API-Reference)** | The SVG and JSON endpoints, parameters, caching, errors |
 | **[Web Application](../../wiki/Web-Application)** | Routes, headers, environments, the Cloudflare deploy |
-| **[Mobile App](../../wiki/Mobile-App)** | Build configuration, home-screen widgets, tips |
+| **[Mobile App](../../wiki/Mobile-App)** | How the app starts, fetches, caches and refreshes its home-screen widget; build configuration, releases, tips |
 | **[Architecture](../../wiki/Architecture)** | Layers, value objects, entities, failures |
 | **[Project Structure](../../wiki/Project-Structure)** | Where every directory lives and what owns it |
 | **[Fetching Contributions](../../wiki/Fetching-Contributions)** | How the public page is requested, and what can go wrong |
@@ -151,7 +153,7 @@ The user-facing guides are published as the repository wiki:
 | **[Calendar Grid](../../wiki/Calendar-Grid)** | Building the Sunday-aligned grid deterministically |
 | **[SVG Rendering](../../wiki/SVG-Rendering)** | Geometry, labels, shapes, and the emitted attributes |
 | **[Deterministic Randomness](../../wiki/Mulberry32)** | The seeded PRNG behind the placeholder grids |
-| **[CI/CD](../../wiki/CI-CD)** | Both pipelines, environments, and Play delivery |
+| **[CI/CD](../../wiki/CI-CD)** | Every workflow and job, the secrets they read, Play delivery, and recovering a release that failed halfway |
 | **[Git Hooks](../../wiki/Git-Hooks)** | What lefthook runs, and when |
 | **[Troubleshooting](../../wiki/Troubleshooting)** | Common failures and what they actually mean |
 
