@@ -13,6 +13,7 @@ Today both clients are independent all the way down:
 ```mermaid
 ---
 config:
+  look: handDrawn
   layout: dagre
 ---
 flowchart LR
@@ -25,6 +26,7 @@ The target moves the app behind the API, which makes the web deployment a hard d
 ```mermaid
 ---
 config:
+  look: handDrawn
   layout: dagre
 ---
 flowchart LR
