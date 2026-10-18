@@ -175,10 +175,18 @@ you choose is the version bump you get.
 | `feat` | minor | `feat(contribkit-web): add a hex cell shape` |
 | `fix` | patch | `fix(contribkit-app): keep the cached calendar after a palette rename` |
 | `perf` | patch | `perf(contribkit-web): reuse the parsed grid across renders` |
-| `revert` | patch | `revert: feat(contribkit-web): add a hex cell shape` |
+| `revert` | patch, only when the body carries git's `This reverts commit <sha>.` line; none without it | `revert: feat(contribkit-web): add a hex cell shape` |
 | `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `build` | none | `docs: correct the grid constant names` |
 
 Breaking changes take a `!` after the type or a `BREAKING CHANGE:` footer, and bump the major.
+
+**A revert releases on git's line, not on its type.** The commit analyzer counts a commit as a revert only when
+its message starts `Revert` or `revert:` and carries `This reverts commit <sha>.`, the line `git revert` writes
+into the body, so a `revert:` title on its own releases nothing. The repository's squash setting makes the pull
+request's description the commit body, so GitHub's Revert button, whose `Revert "…"` title commitlint skips
+rather than lints, releases only when that description carries the line. A revert that lands in the same release
+as the commit it reverts cancels it instead: the analyzer drops both. A `fix:` title always counts as a patch,
+so use one when the revert has to ship.
 
 **A scope, if you use one, must be a workspace package name.** `@commitlint/config-pnpm-scopes` derives the
 allowed set from [`pnpm-workspace.yaml`](../pnpm-workspace.yaml), so the scopes are `contribkit-web`,
