@@ -22,7 +22,9 @@ jobs:
     timeout-minutes: 15
     if: ${{ github.ref == 'refs/heads/main' }}
     permissions: {}
-    environment: ${{ inputs.track == 'production' && 'app-production' || 'app-development' }}
+    environment:
+      name: ${{ inputs.track == 'production' && 'app-production' || 'app-development' }}
+      deployment: false
     steps:
       - name: Require every secret and variable the delivery cannot do without
         shell: bash
