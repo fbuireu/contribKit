@@ -1,4 +1,5 @@
 ---
+import { STATIC_PAGE_ANSWER } from "@application/http/cache-control";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import { type Metadata, RobotsDirective } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
@@ -7,6 +8,8 @@ const TITLE = "Terms of Use: ContribKit";
 const EFFECTIVE_DATE = "2026-10-05";
 
 const metadata: Metadata = { title: TITLE, robots: RobotsDirective.NoIndexNoFollow };
+
+Astro.response.headers.set("Cache-Control", STATIC_PAGE_ANSWER);
 ---
 
 <BaseLayout metadata={metadata}>

@@ -14,6 +14,13 @@ for (const path of LEGAL_PAGES) {
 			await expect(page.locator("h1")).toBeVisible();
 		});
 
+		test("keeps a minute in the browser, so the click on a footer link uses the page its hover prefetched", async ({
+			page,
+		}) => {
+			const response = await page.goto(path);
+			expect(response?.headers()["cache-control"]).toBe("public, max-age=60");
+		});
+
 		test("stays out of the index", async ({ page }) => {
 			await page.goto(path);
 			await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");

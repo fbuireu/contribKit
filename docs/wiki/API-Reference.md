@@ -214,6 +214,8 @@ So a calendar is served from cache for an hour, then revalidated in the backgrou
 
 **Behind both endpoints, the Worker's own request to GitHub is cached at the edge**, with `cf.cacheTtl` set to an hour: every request for the same Username and Year within that hour is served from one GitHub fetch, whatever query string it carried. That cache shows in no response header, and nothing here sets `cacheTtlByStatus`, so which of GitHub's error answers Cloudflare keeps for the hour is Cloudflare's rule rather than this code's. **The landing page is never `public`**: it is `private, max-age=3600, stale-while-revalidate=86400` when the visitor named someone and the calendar loaded, and `private, no-store` otherwise, because it can depend on the visitor's cookie. [How It Works](How-It-Works#caching-three-layers) draws the three layers.
 
+**The contact and legal pages keep a minute in the browser**: `/contact`, `/legal-notice`, `/privacy` and `/terms` answer `public, max-age=60`, so a click on a footer link uses the page its hover prefetched.
+
 **Every answer that is not a calendar says `no-store`**: a 400, a 404, a 429 and a 500 on either endpoint, every answer `/api/contact` gives, and `/api/health` whichever answer it gives. Only the success path is cacheable, so a transient upstream failure cannot be stored by an intermediary and replayed at a reader who retries. That matters most on the SVG endpoint, whose responses reach a README through Camo: a cached failure would show a broken image that no refresh could clear.
 
 ---
