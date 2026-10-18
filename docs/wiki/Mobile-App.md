@@ -325,12 +325,13 @@ Built and **shipped to Google Play** by `release-app.yml`, on a manual dispatch 
 
 The run is sequential, and nothing in it is left to a person once it starts:
 
-1. **Version.** semantic-release reads the commits since the last `app-v*` tag, bumps `pubspec.yaml`, writes `CHANGELOG.md`, commits, tags `app-vX.Y.Z` and publishes the GitHub release. With nothing to release it stops there, and so does the run.
-2. **Deliver from the tag.** A second job checks out that tag, never `main`, decodes the upload keystore and the Play service account from the GitHub Environment the track chose, and copies `shared/*.json` into `assets/`.
-3. **Build.** It **fails when `REVENUECAT_KEY` is empty**, since the app would ship with its Tip Jar unavailable, then writes `dart-defines.json` with the five keys listed below and builds the App Bundle with `--obfuscate --split-debug-info=build/symbols`; R8 shrinks the Java/Kotlin side.
-4. **Symbols.** It uploads the debug symbols to Sentry, and **fails when `SENTRY_AUTH_TOKEN` is empty**: an obfuscated build without its symbols would make every Diagnostic Report unreadable.
-5. **Notes and upload.** It turns the newest `CHANGELOG.md` section into the Play release notes, then `fastlane deploy` uploads the AAB to the track, with up to three attempts. Every track is uploaded with `release_status: "completed"`, so **a production release reaches 100% of devices at once**.
-6. **Clean up.** Whatever happened, the keystore, the signing config, the service account and `dart-defines.json` are deleted when the job ends.
+1. **Secrets first.** A first job reads the GitHub Environment the track chose and, before anything is versioned, **fails when a secret or variable the delivery needs is empty**, naming every one: the four signing secrets and the Play service account; `REVENUECAT_KEY`, since the app would ship with its Tip Jar unavailable; and `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT`, since an obfuscated build without its symbols would make every Diagnostic Report unreadable. `SENTRY_DSN` and `POSTHOG_PROJECT_TOKEN` may be empty: that build only sends no telemetry.
+2. **Version.** semantic-release reads the commits since the last `app-v*` tag, bumps `pubspec.yaml`, writes `CHANGELOG.md`, commits, tags `app-vX.Y.Z` and publishes the GitHub release. With nothing to release it stops there, and so does the run.
+3. **Deliver from the tag.** A third job checks out that tag, never `main`, decodes the upload keystore and the Play service account from the GitHub Environment the track chose, and copies `shared/*.json` into `assets/`.
+4. **Build.** It writes `dart-defines.json` with the five keys listed below and builds the App Bundle with `--obfuscate --split-debug-info=build/symbols`; R8 shrinks the Java/Kotlin side.
+5. **Symbols.** It uploads the debug symbols to Sentry, which is what makes a Diagnostic Report from an obfuscated build readable.
+6. **Notes and upload.** It turns the newest `CHANGELOG.md` section into the Play release notes, then `fastlane deploy` uploads the AAB to the track, with up to three attempts. Every track is uploaded with `release_status: "completed"`, so **a production release reaches 100% of devices at once**.
+7. **Clean up.** Whatever happened, the keystore, the signing config, the service account and `dart-defines.json` are deleted when the job ends.
 
 The `track` input picks the GitHub Environment, and its secrets fill the `dart-defines.json` CI writes before building. Neither of the two local files, `dart-defines.json` and `dart-defines.prod.json`, is committed: [`app/.gitignore`](https://github.com/fbuireu/contribKit/blob/main/app/.gitignore) lists `dart-defines*.json` under its secrets heading. CI never reads them either: the `deliver` job writes a `dart-defines.json` of its own, with these keys, and passes it to `--dart-define-from-file`:
 
@@ -348,4 +349,4 @@ The `track` input picks the GitHub Environment, and its secrets fill the `dart-d
 | `production` | `app-production` | Play production track |
 | anything else | `app-development` | Chosen Play track + RevenueCat sandbox |
 
-**When `deliver` fails**, the tag and the GitHub release already exist and nothing reached Play, so a new dispatch finds nothing to release. Fix the cause and re-run the failed job on the same run. **[CI/CD](CI-CD)** has the full delivery flow, every secret it reads, and that recovery in detail.
+**When `deliver` fails**, on a secret that is set but wrong or on Play's side (an unset one stops the run at the first step, before the tag), the tag and the GitHub release already exist and nothing reached Play, so a new dispatch finds nothing to release. Fix the cause and re-run the failed job on the same run. **[CI/CD](CI-CD)** has the full delivery flow, every secret it reads, and that recovery in detail.

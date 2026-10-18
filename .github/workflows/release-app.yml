@@ -16,10 +16,42 @@ on:
 permissions: {}
 
 jobs:
+  preflight:
+    name: Check the release secrets and variables
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ github.ref == 'refs/heads/main' }}
+    permissions: {}
+    environment: ${{ inputs.track == 'production' && 'app-production' || 'app-development' }}
+    steps:
+      - name: Require every secret and variable the delivery cannot do without
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          REVENUECAT_KEY: ${{ secrets.REVENUECAT_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: |
+          missing=0
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD \
+            PLAY_SERVICE_ACCOUNT_JSON REVENUECAT_KEY SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is not set, so the delivery would fail or ship a broken app after the release is tagged. Nothing has been tagged, published or uploaded: set it, then dispatch the release again."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
   release:
     name: Semantic Release (app)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: [preflight]
     if: ${{ github.ref == 'refs/heads/main' }}
     permissions:
       contents: write
@@ -133,10 +165,6 @@ jobs:
           TELEMETRY_ENVIRONMENT: ${{ inputs.track == 'production' && 'production' || 'development' }}
           APP_RELEASE: contribkit@${{ needs.release.outputs.version }}
         run: |
-          if [ -z "$REVENUECAT_KEY" ]; then
-            echo '::error::REVENUECAT_KEY is not set. The app reads an empty key as no RevenueCat, so the release would ship with its Tip Jar unavailable and nothing failing.'
-            exit 1
-          fi
           node -e "
           const defines = {
             REVENUECAT_KEY: process.env.REVENUECAT_KEY ?? '',
@@ -158,12 +186,7 @@ jobs:
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           SENTRY_RELEASE: contribkit@${{ needs.release.outputs.version }}
-        run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo '::error::SENTRY_AUTH_TOKEN is not set. The build is obfuscated, so shipping it without symbols would make every crash report unreadable.'
-            exit 1
-          fi
-          dart run sentry_dart_plugin
+        run: dart run sentry_dart_plugin
 
       - name: Generate Play release notes from changelog
         env:
