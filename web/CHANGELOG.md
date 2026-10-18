@@ -1,3 +1,10 @@
+# [contribkit-web-v2.0.4](https://github.com/fbuireu/contribKit/compare/web-v2.0.3...web-v2.0.4) (2026-10-18)
+
+
+### Performance Improvements
+
+* **contribkit-web:** keep the contact and legal pages a minute in th… ([#173](https://github.com/fbuireu/contribKit/issues/173)) ([5a6ce51](https://github.com/fbuireu/contribKit/commit/5a6ce51b4a5ffd7b4b8aee95c2223a21bd32e023))
+
 # [contribkit-web-v2.0.3](https://github.com/fbuireu/contribKit/compare/web-v2.0.2...web-v2.0.3) (2026-10-15)
 
 
