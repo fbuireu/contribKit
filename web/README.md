@@ -178,7 +178,7 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined), and th
 | `API_RATE_LIMITER`                  | runtime binding | rate limiter for every `/api/` path but `/api/contact` | `wrangler.toml` per env         |
 | `CONTACT_RATE_LIMITER`              | runtime binding | rate limiter for `/api/contact`              | `wrangler.toml` per env         |
 | `CONTACT_EMAIL`                     | runtime binding | `send_email`, sending from `contact@contribkit.app` | `wrangler.toml`, top level and per env |
-| `MAINTAINER_EMAIL`               | build-time      | the verified mailbox a Contact Message is delivered to; required by the `astro:env` schema, so a build without it fails, though a GitHub variable left unset reaches the build as an empty string, which passes | GitHub **repository variable** |
+| `MAINTAINER_EMAIL`               | build-time      | the verified mailbox a Contact Message is delivered to; required by the `astro:env` schema, so a build without it fails, an unset GitHub variable included, since Astro reads its empty string as missing | GitHub **repository variable** |
 | `SITE_URL`                          | build-time      | the site's origin (`site` in `astro.config.ts`, and the smoke run's base URL); falls back to `https://contribkit.app` | GitHub **repository variable** |
 
 Hit [`/api/health`](https://contribkit.app/api/health) to verify which vars/bindings the deployed worker was built/configured with (presence only, never values).

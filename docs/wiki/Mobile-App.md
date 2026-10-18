@@ -327,7 +327,7 @@ The run is sequential, and nothing in it is left to a person once it starts:
 
 1. **Version.** semantic-release reads the commits since the last `app-v*` tag, bumps `pubspec.yaml`, writes `CHANGELOG.md`, commits, tags `app-vX.Y.Z` and publishes the GitHub release. With nothing to release it stops there, and so does the run.
 2. **Deliver from the tag.** A second job checks out that tag, never `main`, decodes the upload keystore and the Play service account from the GitHub Environment the track chose, and copies `shared/*.json` into `assets/`.
-3. **Build.** It writes `dart-defines.json` with the five keys listed below and builds the App Bundle with `--obfuscate --split-debug-info=build/symbols`; R8 shrinks the Java/Kotlin side.
+3. **Build.** It **fails when `REVENUECAT_KEY` is empty**, since the app would ship with its Tip Jar unavailable, then writes `dart-defines.json` with the five keys listed below and builds the App Bundle with `--obfuscate --split-debug-info=build/symbols`; R8 shrinks the Java/Kotlin side.
 4. **Symbols.** It uploads the debug symbols to Sentry, and **fails when `SENTRY_AUTH_TOKEN` is empty**: an obfuscated build without its symbols would make every Diagnostic Report unreadable.
 5. **Notes and upload.** It turns the newest `CHANGELOG.md` section into the Play release notes, then `fastlane deploy` uploads the AAB to the track, with up to three attempts. Every track is uploaded with `release_status: "completed"`, so **a production release reaches 100% of devices at once**.
 6. **Clean up.** Whatever happened, the keystore, the signing config, the service account and `dart-defines.json` are deleted when the job ends.

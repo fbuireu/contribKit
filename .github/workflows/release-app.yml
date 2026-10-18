@@ -133,6 +133,10 @@ jobs:
           TELEMETRY_ENVIRONMENT: ${{ inputs.track == 'production' && 'production' || 'development' }}
           APP_RELEASE: contribkit@${{ needs.release.outputs.version }}
         run: |
+          if [ -z "$REVENUECAT_KEY" ]; then
+            echo '::error::REVENUECAT_KEY is not set. The app reads an empty key as no RevenueCat, so the release would ship with its Tip Jar unavailable and nothing failing.'
+            exit 1
+          fi
           node -e "
           const defines = {
             REVENUECAT_KEY: process.env.REVENUECAT_KEY ?? '',
