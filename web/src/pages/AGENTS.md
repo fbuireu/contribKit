@@ -60,6 +60,13 @@ The landing page is `private` either way, because it reads the visitor's cookie.
 after the fetch: the one-hour window only when the visitor asked for a username (or carries the cookie) **and** the
 calendar loaded; `private, no-store` for the default view, a rejected username and a failed fetch.
 
+**The contact and legal pages keep a minute in the browser**, `public, max-age=60` (`STATIC_PAGE_ANSWER`), set
+through `Astro.response.headers` as the error pages set theirs. They read nothing from the visitor, so `public` is
+safe, and the minute is what lets a click on a footer link use the page `prefetchAll` downloaded on its hover: the
+browser reuses a prefetch only when the response has a lifetime. Cloudflare's Speed Brain, a zone setting on by
+default, answers a prefetch for a page outside Cloudflare's cache with a `503`, so the prefetch reaches the Worker
+only while Speed Brain is off for `contribkit.app`. Both e2e specs pin the header.
+
 **That header is pinned by an e2e**, in `web/e2e/user/[username].svg.spec.ts`, along with the `background=`
 pattern's reject arm and the `no-store` a rejected username gets. Every `no-store` a route writes is covered at the
 unit level too: in the route tests and the failure boundary, the middleware's in `middleware.test.ts`, and the

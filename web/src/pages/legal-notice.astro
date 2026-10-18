@@ -1,4 +1,5 @@
 ---
+import { STATIC_PAGE_ANSWER } from "@application/http/cache-control";
 import BaseLayout from "@ui/components/core/layouts/BaseLayout.astro";
 import { type Metadata, RobotsDirective } from "@ui/components/core/seo/types";
 import "@ui/components/legal/legal.css";
@@ -87,6 +88,8 @@ const OWNER_ADDRESS: ShuffledData[] = [
 	{ letter: "r", order: 34 },
 	{ letter: ",", order: 41 },
 ];
+
+Astro.response.headers.set("Cache-Control", STATIC_PAGE_ANSWER);
 ---
 
 <BaseLayout metadata={metadata}>

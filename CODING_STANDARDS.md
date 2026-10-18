@@ -437,8 +437,9 @@ No rule below restates these, and a diff that breaks one fails CI:
 - `W16` **judgement**: Declare a port in the layer that needs it and let infrastructure satisfy it structurally, as
   `FailureLogger` is.
 - `W17` **hard**: Take every `Cache-Control` value from `application/http/cache-control.ts` (`CACHEABLE_ANSWER`,
-  `NOT_CACHEABLE`, and the landing page's `PRIVATE_CACHEABLE_ANSWER` and `PRIVATE_NOT_CACHEABLE`), decided after the
-  answer is known: only an answer that carries data is cacheable, and every failure answer is `no-store`.
+  `NOT_CACHEABLE`, the landing page's `PRIVATE_CACHEABLE_ANSWER` and `PRIVATE_NOT_CACHEABLE`, and the contact and legal
+  pages' `STATIC_PAGE_ANSWER`), decided after the answer is known: only an answer that carries data is cacheable, and
+  every failure answer is `no-store`.
 
 ### Infrastructure
 

@@ -94,8 +94,8 @@ field name), `errorBodyFor` (the JSON error body: `error` from `messageFor`, `ki
 
 ## `http/cache-control.ts`
 
-Four constants, `CACHEABLE_ANSWER` and `NOT_CACHEABLE` and their `private` pair, `PRIVATE_CACHEABLE_ANSWER` and
-`PRIVATE_NOT_CACHEABLE`. Every endpoint route reads the first two rather than spelling a header value at the
+Five constants, `CACHEABLE_ANSWER` and `NOT_CACHEABLE` and their `private` pair, `PRIVATE_CACHEABLE_ANSWER` and
+`PRIVATE_NOT_CACHEABLE`, and `STATIC_PAGE_ANSWER`, the minute the contact and legal pages keep in the browser. Every endpoint route reads the first two rather than spelling a header value at the
 `Response`; the landing page answers with the `private` pair, which `cacheControlFor` picks between, because it reads
 the visitor's cookie and a shared cache must never serve one visitor's calendar to another. The
 [pages guide](../pages/AGENTS.md) has the policy route by route, and why the SVG endpoint is where it bites.

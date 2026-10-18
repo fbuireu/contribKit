@@ -21,6 +21,14 @@ test.describe("contact", () => {
 		await expect(page.locator(byId(ElementId.ContactSubmit))).toBeVisible();
 	});
 
+	test("keeps a minute in the browser, so the click on the footer link uses the page its hover prefetched", async ({
+		page,
+	}) => {
+		const response = await page.goto("/contact");
+
+		expect(response?.headers()["cache-control"]).toBe("public, max-age=60");
+	});
+
 	test("stays in the index, unlike the legal pages", async ({ page }) => {
 		await page.goto("/contact");
 
