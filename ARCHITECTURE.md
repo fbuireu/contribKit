@@ -81,6 +81,7 @@ flowchart TD
         wpages --> wapp["application/<br/>curried use cases"]
         wpages --> winfra["infrastructure/<br/>scraping · SVG · logging"]
         wui --> wdom["domain/<br/>pure TS"]
+        wpages --> wdom
         wapp --> wdom
         winfra --> wdom
     end
@@ -89,6 +90,7 @@ flowchart TD
         aui["ui/<br/>widgets · Riverpod"] --> aapp["application/<br/>one class per use case"]
         aui --> ainfra["infrastructure/<br/>GitHub · Hive · Exports · Tips"]
         aapp --> adom["domain/<br/>pure Dart"]
+        aui --> adom
         ainfra --> adom
     end
 

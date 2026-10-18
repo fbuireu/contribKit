@@ -65,8 +65,8 @@ flowchart TD
     lint --> done(["commit created"])
     done --> push(["git push"]) --> pp["pre-push"]
     pp --> webcheck["web-verify: pnpm verify:changed"]
-    pp --> dartcheck["dart-analyze --fatal-infos (only if Dart changed)"]
-    pp --> fluttertest["flutter-test + coverage floor (only if Dart changed)"]
+    pp --> dartcheck["dart-analyze --fatal-infos (only if a .dart file, pubspec.yaml or analysis_options.yaml is pushed)"]
+    pp --> fluttertest["flutter-test + coverage floor (only if a .dart file, pubspec.yaml or analysis_options.yaml is pushed)"]
 ```
 
 ---

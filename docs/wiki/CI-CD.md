@@ -77,6 +77,7 @@ flowchart TD
     changes -->|"pull request touching app and web"| notice["cross-package-notice: advisory comment"]
 
     docs --> check["Check: runs under always, fails on any failure or cancellation"]
+    changes --> check
     appci --> check
     verify --> check
     preview --> check
@@ -303,6 +304,7 @@ flowchart TD
     fix --> open
     gate -->|"yes"| merge["squash merge into main"]
     merge --> closed["pull request closed"]
+    open -. "or closed without merging" .-> closed
     closed --> cleanup["cleanup: queue behind the pull request's CI group, then wrangler delete the Worker"]
     merge --> push["push to main: deploy, smoke, release"]
     weekly(["every Monday, or a dispatch"]) --> sweep["sweep: delete the preview Worker of every closed pull request"]

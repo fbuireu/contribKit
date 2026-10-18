@@ -50,7 +50,7 @@ Unknown `palette`/`shape`/`background` values silently fall back to defaults via
 [`src/middleware.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/middleware.ts) runs on every request and does three things:
 
 1. **Blocking the agent guide:** `/AGENTS` gets a bare `404` before anything else runs. Astro compiles [`src/pages/AGENTS.md`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/AGENTS.md) into a public page, and this is what keeps it off the web ([ADR 0018](https://github.com/fbuireu/ContribKit/blob/main/docs/adr/0018-src-pages-is-a-public-namespace-not-a-folder.md)).
-2. **Rate limiting:** for `/api/*` paths, it picks a binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. `POST /api/contact` goes through `CONTACT_RATE_LIMITER` (5/min, protecting a mailbox) and everything else through `API_RATE_LIMITER` (100/min, protecting an upstream). Over the limit, it returns `429` with `Retry-After: 60` either way (still wrapped in the security headers). A path whose own binding is absent is simply not limited; the contact path never falls back to the other bucket.
+2. **Rate limiting:** for `/api/*` paths, it picks a binding and calls `limit({ key })` keyed on `CF-Connecting-IP`. The `/api/contact` path, whatever the method, goes through `CONTACT_RATE_LIMITER` (5/min, protecting a mailbox) and every other `/api/` path through `API_RATE_LIMITER` (100/min, protecting an upstream). Over the limit, it returns `429` with `Retry-After: 60` either way (still wrapped in the security headers). A path whose own binding is absent is simply not limited; the contact path never falls back to the other bucket.
 3. **Security headers:** every response is re-wrapped with a strict header set:
 
 ```
@@ -96,8 +96,8 @@ All BetterStack/GA vars are build-time (`import.meta.env`, Vite-inlined).
 |----------|------|---------|
 | `PUBLIC_GOOGLE_ANALYTICS_ID` | build-time | GA (browser) |
 | `PUBLIC_BETTER_STACK_TRACKING_TOKEN` | build-time | Better Stack browser tag (RUM), from the app's Frontend tab |
-| `API_RATE_LIMITER` | runtime binding | rate limiter for `/api/*` |
-| `CONTACT_RATE_LIMITER` | runtime binding | rate limiter for `POST /api/contact` |
+| `API_RATE_LIMITER` | runtime binding | rate limiter for every `/api/` path but `/api/contact` |
+| `CONTACT_RATE_LIMITER` | runtime binding | rate limiter for `/api/contact` |
 | `MAINTAINER_EMAIL` | build-time | the verified mailbox a Contact Message is delivered to, a GitHub repository variable |
 | `CONTACT_EMAIL` | runtime binding | `send_email`, sending from `contact@contribkit.app`; see [ADR 0030](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0030-contact-messages-leave-through-cloudflares-send-email-binding.md) |
 

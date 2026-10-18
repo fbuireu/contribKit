@@ -29,7 +29,7 @@ flowchart TD
     agents -->|"yes"| hidden["404, no-store: the guide is not a page"]
     agents -->|"no"| api{"path under /api/?"}
     api -->|"no"| route["the route renders"]
-    api -->|"yes"| which["POST /api/contact uses CONTACT_RATE_LIMITER, everything else API_RATE_LIMITER"]
+    api -->|"yes"| which["/api/contact, whatever the method, uses CONTACT_RATE_LIMITER, every other /api/ path API_RATE_LIMITER"]
     which --> bound{"binding present?"}
     bound -->|"no"| route
     bound -->|"yes"| limit{"under the limit for this CF-Connecting-IP?"}
@@ -180,8 +180,9 @@ config:
   layout: dagre
 ---
 flowchart TD
-    request(["GET /api/contributions with user and year"]) --> limit["middleware: 100 a minute per IP"]
-    limit --> user{"user present?"}
+    request(["GET /api/contributions with user and year"]) --> limit{"middleware: under 100 a minute for this IP?"}
+    limit -->|"no"| refused["429 Too many requests, Retry-After 60, no-store, no kind"]
+    limit -->|"yes, or no binding"| user{"user present?"}
     user -->|"no"| missing["400 InvalidInput, field username"]
     user -->|"yes"| username{"parseUsername"}
     username -->|"invalid"| badUser["400 InvalidInput, field username"]
@@ -192,6 +193,7 @@ flowchart TD
     fetch --> ok{"a calendar?"}
     ok -->|"no"| failed["status from statusFor, body error and kind, Retry-After on GitHub's 429, logged when 5xx"]
     ok -->|"yes"| answer["200: username, the raw days, total"]
+    user -. "anything thrown in the route" .-> boom["500, error and no kind, no-store, logged"]
 ```
 
 [`contributions.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/pages/api/contributions.ts) returns the Contribution Days **as parsed**, `date`, `level` and `count`, with no grid: the landing page's client builds its own with `buildGridFromApi`, and any other caller builds whatever it needs. Every error answer is `no-store` and carries the failure's `kind`, so a client can word it without reading `error`; the two answers with no `kind` are the middleware's own 429 and the 500 an unexpected throw gets. **[API Reference](API-Reference)** has every status.
@@ -267,10 +269,10 @@ config:
 flowchart LR
     reader(["browser, or GitHub's Camo"]) -->|"Cache-Control on the answer"| worker["the Worker's route"]
     worker -->|"fetch with cf.cacheTtl 3600 and cacheEverything"| edge["Cloudflare's cache for the subrequest"]
-    edge -->|"a miss, at most once an hour per URL"| github["github.com contributions page"]
+    edge -->|"a miss, at most once an hour per URL in each Cloudflare location"| github["github.com contributions page"]
 ```
 
-1. **The GitHub request, at the edge.** [`github-html-contributions-repository.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/infrastructure/github/github-html-contributions-repository.ts) fetches with `cf: { cacheTtl: 3600, cacheEverything: true }`, so Cloudflare keeps GitHub's answer for an hour, keyed on the GitHub URL: the Username and the Year's date range. Every route shares it, and whatever query string the inbound request carried, a Username and Year cost GitHub one request an hour. This is the SVG route's real throttle. It never shows in a response header. Which statuses it holds is Cloudflare's rule rather than this repository's: nothing here sets `cacheTtlByStatus`, so whether a 404 or a 429 GitHub sent is kept for the hour too is not something the code decides.
+1. **The GitHub request, at the edge.** [`github-html-contributions-repository.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/infrastructure/github/github-html-contributions-repository.ts) fetches with `cf: { cacheTtl: 3600, cacheEverything: true }`, so Cloudflare keeps GitHub's answer for an hour, keyed on the GitHub URL: the Username and the Year's date range. Every route shares it, and whatever query string the inbound request carried, a Username and Year cost GitHub at most one request an hour in each Cloudflare location that serves them. This is the SVG route's real throttle. It never shows in a response header. Which statuses it holds is Cloudflare's rule rather than this repository's: nothing here sets `cacheTtlByStatus`, so whether a 404 or a 429 GitHub sent is kept for the hour too is not something the code decides.
 2. **The answer, in the reader's caches.** A calendar from the SVG or the JSON route is `public, max-age=3600, stale-while-revalidate=86400`: an hour fresh, then served stale for up to a day while it revalidates. GitHub's Camo proxy caches README images on top of that. **Every failure is `no-store`**, as is every answer of the contact and health routes, so a transient error is never stored and replayed.
 3. **The landing page, in the visitor's browser alone.** `private`: an hour, revalidated for a day, when the visitor named someone and the calendar loaded, and `no-store` otherwise ([above](#loading-the-landing-page)).
 

@@ -182,7 +182,7 @@ Returns `200` when everything is present, `503` (`"status": "misconfigured"`) ot
 
 ## Rate limiting
 
-`/api/*` requests pass through a Cloudflare rate limiter, keyed on the caller's `CF-Connecting-IP`. There are two buckets: `POST /api/contact` uses `CONTACT_RATE_LIMITER` at **5 requests a minute**, and every other `/api/` path uses `API_RATE_LIMITER` at 100. The answer is the same either way:
+`/api/*` requests pass through a Cloudflare rate limiter, keyed on the caller's `CF-Connecting-IP`. There are two buckets, chosen by path alone: `/api/contact`, whatever the method, uses `CONTACT_RATE_LIMITER` at **5 requests a minute**, and every other `/api/` path uses `API_RATE_LIMITER` at 100. The answer is the same either way:
 
 ```http
 HTTP/1.1 429 Too Many Requests

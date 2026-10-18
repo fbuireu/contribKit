@@ -48,7 +48,7 @@ This usually means GitHub is unreachable or changed the structure of its contrib
 
 A 429 does not always mean the same thing, and the **body** is what tells the cases apart: the headers look the same either way.
 
-**`{"error":"Too many requests"}`** is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute** (**5** for `POST /api/contact`), refused by the middleware before the route runs, with a fixed `Retry-After: 60`. Back off and retry.
+**`{"error":"Too many requests"}`** is ContribKit's own limit: `/api/*` is rate-limited per IP at **100 requests/minute** (**5** on the `/api/contact` path), refused by the middleware before the route runs, with a fixed `Retry-After: 60`. Back off and retry.
 
 **`GitHub is rate-limiting this Worker`** is upstream, forwarded to you rather than disguised as an outage. It used to come back as a `502` saying GitHub was unreachable, about a service that had answered perfectly well and said *slow down*. When GitHub names a wait, that figure is passed straight through as `Retry-After`; when it names none, no header is sent, because a fabricated one is worse than none. Retrying sooner will not help either way; the whole Worker is throttled upstream, not just you.
 
