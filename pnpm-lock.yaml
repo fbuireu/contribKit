@@ -233,8 +233,8 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       react-email:
-        specifier: 6.11.4
-        version: 6.11.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)
+        specifier: 6.11.5
+        version: 6.11.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)
       vanilla-cookieconsent:
         specifier: 3.1.0
         version: 3.1.0
@@ -4062,8 +4062,8 @@ packages:
     peerDependencies:
       react: ^19.2.8
 
-  react-email@6.11.4:
-    resolution: {integrity: sha512-Od9+VFpt5nMyYA84Q1ZiEdiwrSSZbjwYplUrAr8fZS5rnpg7tn+mfvhmndXINEIow+FdKtP8tZOMHwDZisezSw==}
+  react-email@6.11.5:
+    resolution: {integrity: sha512-KkpsBCMbTwQCs6OlsBEPaqaXiGlnm4/wil2YI2+zo9SwN15Hz7QeoDE4arqqBskpG8WWyCc3Xu2zzhWoTgmKWA==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
@@ -8817,7 +8817,7 @@ snapshots:
       react: 19.2.8
       scheduler: 0.27.0
 
-  react-email@6.11.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2):
+  react-email@6.11.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2):
     dependencies:
       '@babel/parser': 7.29.2
       '@babel/traverse': 7.29.0(supports-color@10.2.2)
