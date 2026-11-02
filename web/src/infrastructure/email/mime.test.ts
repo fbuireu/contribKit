@@ -31,11 +31,7 @@ const partsOf = (raw: string): string[] =>
 const partHeadersOf = (part: string): string => part.split("\r\n\r\n")[0];
 
 const decodedPart = (part: string): string =>
-	new TextDecoder().decode(
-		Uint8Array.from(atob(part.split("\r\n\r\n").slice(1).join("").replaceAll("\r\n", "")), (character) =>
-			character.charCodeAt(0),
-		),
-	);
+	new TextDecoder().decode(Uint8Array.fromBase64(part.split("\r\n\r\n").slice(1).join("").replaceAll("\r\n", "")));
 
 describe("buildMimeMessage", () => {
 	it("writes the RFC 5322 headers in order, separated by CRLF", () => {
@@ -94,9 +90,16 @@ describe("buildMimeMessage", () => {
 		const encoded = /^Subject: =\?UTF-8\?B\?([A-Za-z0-9+/=]+)\?=$/m.exec(headersOf(raw));
 
 		expect(encoded).not.toBeNull();
-		expect(new TextDecoder().decode(Uint8Array.from(atob(encoded?.[1] ?? ""), (c) => c.charCodeAt(0)))).toBe(
-			"ContribKit contact: Ámbar",
-		);
+		expect(new TextDecoder().decode(Uint8Array.fromBase64(encoded?.[1] ?? ""))).toBe("ContribKit contact: Ámbar");
+	});
+
+	it("writes standard base64 with its padding, over the UTF-8 bytes of the text", () => {
+		const subjectOf = (subject: string): string => /^Subject: (.*)$/m.exec(headersOf(build({ subject })))?.[1] ?? "";
+
+		expect(subjectOf("a")).toBe("=?UTF-8?B?YQ==?=");
+		expect(subjectOf("é")).toBe("=?UTF-8?B?w6k=?=");
+		expect(subjectOf("☕")).toBe("=?UTF-8?B?4piV?=");
+		expect(subjectOf("?>~???")).toBe("=?UTF-8?B?Pz5+Pz8/?=");
 	});
 
 	it("round-trips each part through base64 over UTF-8 bytes", () => {

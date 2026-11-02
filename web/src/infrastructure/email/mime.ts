@@ -17,8 +17,7 @@ const BOUNDARY_UNSAFE = /[^A-Za-z0-9'()+_,\-./:=?]/g;
 
 const withoutHeaderBreaks = (value: string): string => value.replace(HEADER_BREAK, " ");
 
-const base64Of = (value: string): string =>
-	btoa(Array.from(new TextEncoder().encode(value), (byte) => String.fromCharCode(byte)).join(""));
+const base64Of = (value: string): string => new TextEncoder().encode(value).toBase64();
 
 const encodedWord = (value: string): string => `=?UTF-8?B?${base64Of(value)}?=`;
 

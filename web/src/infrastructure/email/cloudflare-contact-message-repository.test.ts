@@ -52,16 +52,14 @@ const decodedParts = (raw: string): string[] => {
 		.slice(1, -1)
 		.map((part) =>
 			new TextDecoder().decode(
-				Uint8Array.from(atob(part.trim().split("\r\n\r\n").slice(1).join("").replaceAll("\r\n", "")), (character) =>
-					character.charCodeAt(0),
-				),
+				Uint8Array.fromBase64(part.trim().split("\r\n\r\n").slice(1).join("").replaceAll("\r\n", "")),
 			),
 		);
 };
 
 const subjectOf = (raw: string): string => {
 	const encoded = /^Subject: =\?UTF-8\?B\?([A-Za-z0-9+/=]+)\?=$/m.exec(headersOf(raw))?.[1] ?? "";
-	return new TextDecoder().decode(Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0)));
+	return new TextDecoder().decode(Uint8Array.fromBase64(encoded));
 };
 
 describe("cloudflareContactMessageRepository", () => {
