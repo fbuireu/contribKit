@@ -4,7 +4,7 @@ import { NOT_CACHEABLE } from "@application/http/cache-control";
 import { CONTACT_ROUTE } from "@domain/value-objects/contact-message";
 import { EMBED_ROUTE } from "@domain/value-objects/embed";
 
-const SECURITY_HEADERS: Record<string, string> = {
+const SECURITY_HEADERS = {
 	"X-Frame-Options": "DENY",
 	"X-Content-Type-Options": "nosniff",
 	"Referrer-Policy": "strict-origin-when-cross-origin",
@@ -24,7 +24,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 		"base-uri 'self'",
 		"form-action 'self'",
 	].join("; "),
-};
+} satisfies Record<string, string>;
 
 const AGENT_GUIDE_ROUTE = "/AGENTS";
 const API_NAMESPACE = "/api/";
