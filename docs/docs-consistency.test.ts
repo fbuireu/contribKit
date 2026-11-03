@@ -1701,12 +1701,12 @@ describe("the web layers only import inwards", () => {
 		readonly specifier: string;
 	}
 
-	const FORBIDDEN_BY_LAYER: Record<string, readonly string[]> = {
+	const FORBIDDEN_BY_LAYER = {
 		domain: ["@application/", "@infrastructure/", "@ui/"],
 		application: ["@infrastructure/", "@ui/"],
 		infrastructure: ["@application/", "@ui/"],
 		ui: ["@infrastructure/", "@application/"],
-	};
+	} satisfies Record<string, readonly string[]>;
 
 	const LAYERS = ["domain", "application", "infrastructure", "ui", "pages"];
 
@@ -1764,12 +1764,12 @@ describe("the web layers only import inwards", () => {
 
 	it("writes an import that leaves its layer with the alias, one that stays inside it relative, and none out of web/src", () => {
 		const MOCKED_MODULE = /\bvi\.(?:mock|doMock|unmock|importActual|importMock)\(\s*["']([^"']+)["']/g;
-		const ALIASED_LAYERS: Record<string, string> = {
+		const ALIASED_LAYERS = {
 			"@domain/": "domain",
 			"@application/": "application",
 			"@infrastructure/": "infrastructure",
 			"@ui/": "ui",
-		};
+		} satisfies Record<string, string>;
 		const imports = LAYERS.flatMap((layer) =>
 			walk({ dir: join(REPO, "web/src", layer), match: (path) => WEB_SOURCE_FILE.test(path) }).flatMap((path) => {
 				const source = read(path);
@@ -1800,11 +1800,11 @@ describe("the web layers only import inwards", () => {
 });
 
 describe("the app layers only import inwards", () => {
-	const FORBIDDEN_BY_LAYER: Record<string, readonly string[]> = {
+	const FORBIDDEN_BY_LAYER = {
 		domain: ["application/", "infrastructure/", "ui/"],
 		application: ["infrastructure/", "ui/"],
 		infrastructure: ["application/", "ui/"],
-	};
+	} satisfies Record<string, readonly string[]>;
 
 	const DART_IMPORT = /(?:import|export)\s+'package:contribkit\/([^']+)'/g;
 
@@ -3095,7 +3095,7 @@ describe("the YAML carries no comment but a pin's version, and every action is p
 	});
 });
 
-const VERSIONED_DEPENDENCIES: Record<string, string[]> = {
+const VERSIONED_DEPENDENCIES = {
 	astro: ["Astro"],
 	"@astrojs/starlight": ["Starlight"],
 	effect: ["Effect"],
@@ -3106,7 +3106,7 @@ const VERSIONED_DEPENDENCIES: Record<string, string[]> = {
 	typescript: ["TypeScript"],
 	wrangler: ["wrangler", "Wrangler"],
 	zod: ["Zod", "zod"],
-};
+} satisfies Record<string, string[]>;
 const statedVersionPattern = (names: string[]): RegExp =>
 	new RegExp(`\\b(?:${names.map(RegExp.escape).join("|")})\\s+(?:v|@)?\\d+(?:\\.\\d+)*\\b`, "g");
 interface PolicedNamesParams {
