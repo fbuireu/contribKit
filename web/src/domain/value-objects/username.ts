@@ -19,4 +19,4 @@ export const parseUsername = (input: string): Username | InvalidInputFailure => 
 };
 
 export const isUsername = (value: unknown): value is Username =>
-	typeof value === "object" && value !== null && (value as { _tag?: unknown })._tag === "Username";
+	typeof value === "object" && value !== null && "_tag" in value && value._tag === "Username";

@@ -17,16 +17,16 @@ export function initThemeToggle(): void {
 	function effective(): ThemeChoice {
 		return pinned() ?? (darkModeMediaQuery.matches ? ThemeChoice.Dark : ThemeChoice.Light);
 	}
-	function apply(): void {
+	const apply = (): void => {
 		const pinnedScheme = pinned();
 		document.documentElement.classList.toggle(ThemeClass.Light, pinnedScheme === ThemeChoice.Light);
 		document.documentElement.classList.toggle(ThemeClass.Dark, pinnedScheme === ThemeChoice.Dark);
 		if (meta) meta.content = pinnedScheme ?? "light dark";
 		const isDark = effective() === ThemeChoice.Dark;
-		(button as HTMLElement).dataset.effective = effective();
-		(button as HTMLElement).setAttribute("aria-pressed", String(isDark));
-		(button as HTMLElement).setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
-	}
+		button.dataset.effective = effective();
+		button.setAttribute("aria-pressed", String(isDark));
+		button.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+	};
 
 	apply();
 

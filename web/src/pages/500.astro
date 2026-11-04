@@ -7,6 +7,10 @@ import { type Metadata, RobotsDirective } from "@ui/components/core/seo/types";
 import ErrorView from "@ui/components/error/ErrorView.astro";
 import { ErrorActionIcon, type TerminalLine, TerminalLineKind, Tone } from "@ui/components/error/types";
 
+interface Props {
+	error?: unknown;
+}
+
 const path = Astro.url.pathname || "/";
 
 const metadata: Metadata = {
@@ -15,7 +19,7 @@ const metadata: Metadata = {
 	robots: RobotsDirective.NoIndexNoFollow,
 };
 
-const error = (Astro.props as { error?: unknown }).error;
+const { error } = Astro.props;
 logServerError({ logger, error, path });
 
 const terminal: TerminalLine[] = [

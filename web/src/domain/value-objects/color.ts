@@ -8,7 +8,7 @@ export interface Color {
 }
 
 export const isColor = (value: unknown): value is Color =>
-	typeof value === "object" && value !== null && (value as { _tag?: unknown })._tag === "Color";
+	typeof value === "object" && value !== null && "_tag" in value && value._tag === "Color";
 
 export const parseColor = (raw: string): Color | Failure => {
 	const trimmed = raw.trim();

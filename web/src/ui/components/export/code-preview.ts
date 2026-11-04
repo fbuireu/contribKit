@@ -38,7 +38,7 @@ const attributeTokens = ({ name, value }: AttributeTokensParams): Token[] => [
 ];
 
 const joinWithSpaces = (groups: Token[][]): Token[] =>
-	groups.flatMap((tokens, index) => (index === 0 ? tokens : [[TokenClass.Plain, " "] as Token, ...tokens]));
+	groups.flatMap((tokens, index): Token[] => (index === 0 ? tokens : [[TokenClass.Plain, " "], ...tokens]));
 
 const isCell = (element: string): boolean => element.startsWith("<") && element.includes(CELL_MARKER);
 
@@ -73,12 +73,13 @@ export const buildSvgLines = (svg: string): CodeLine[] => {
 
 const imageLine = (url: string): CodeLine => {
 	const [base, query] = url.split("?");
+	const queryTokens: Token[] = query ? [[TokenClass.String, `?${query}`]] : [];
 	return [
 		[TokenClass.Tag, "!["],
 		[TokenClass.String, IMAGE_ALT],
 		[TokenClass.Tag, "]("],
 		[TokenClass.Attribute, base],
-		...(query ? ([[TokenClass.String, `?${query}`]] as Token[]) : []),
+		...queryTokens,
 		[TokenClass.Tag, ")"],
 	];
 };

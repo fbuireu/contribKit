@@ -38,4 +38,4 @@ export const resolveYear = ({ requested, thisYear }: ResolveYearParams): number 
 };
 
 export const isYear = (value: unknown): value is Year =>
-	typeof value === "object" && value !== null && (value as { _tag?: unknown })._tag === "Year";
+	typeof value === "object" && value !== null && "_tag" in value && value._tag === "Year";

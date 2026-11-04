@@ -35,7 +35,7 @@ export const usageEventAttributes = (link: UsageEventLink): Record<string, strin
 const memberOf =
 	<T extends string>(members: Record<string, T>): ((value: string | null) => value is T) =>
 	(value: string | null): value is T =>
-		value !== null && (Object.values(members) as string[]).includes(value);
+		value !== null && Object.values<string>(members).includes(value);
 
 const isStoreName = memberOf(StoreName);
 const isStoreLinkPlacement = memberOf(StoreLinkPlacement);

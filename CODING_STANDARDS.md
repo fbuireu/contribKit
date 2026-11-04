@@ -531,6 +531,15 @@ No rule below restates these, and a diff that breaks one fails CI:
   members of a union and is looked up by any of them is a `Partial<Record<Union, …>>` annotation, whose lookup answers
   `… | undefined`; and a `Record<string, …>` annotation is for a map looked up by a key nothing fixes in advance
   (`GLYPHS`, `PALETTES`).
+- `W52` **hard**: Type a value by narrowing it, never by casting it, because a cast checks nothing at run time and a
+  wrong one compiles. A literal takes an annotation, a declared return type or `satisfies` (`W51`), never `as`:
+  `code-preview.ts` types its tokens by the `Token[]` they are read as. A value a check can prove is narrowed by the
+  check (`typeof`, `in`, `instanceof`, `Object.hasOwn` or a `value is T` guard: `isColor` reads `_tag` after
+  `"_tag" in value`), a closure reads a narrowed `const` from an arrow function, because a hoisted function declaration
+  forgets the narrowing (`theme-toggle.ts`), an Astro page types its props with a `Props` interface (`500.astro`), and
+  `as unknown as` is never written. A cast stays only where no check can follow the value: a value object's one
+  constructor (`IsoDate`, `clampLevel`), a DOM lookup and a library's polymorphic types; widening to a supertype
+  (`CELL_SHAPES as readonly string[]`) checks the value and is not a cast that lies.
 
 ## Tests
 
