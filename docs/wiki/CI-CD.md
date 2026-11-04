@@ -382,7 +382,7 @@ Every secret and variable a workflow or the composite action reads, besides the 
 
 - a fork's pull request cannot deploy its preview: `deploy-development` fails without the Cloudflare token, `comment` and `e2e` are skipped, and `Check` is red, whatever the change. The way through is a branch in this repository: the maintainer pushes the contributor's commits to one and opens the pull request from it;
 - `PAT` has to be stored as a Dependabot secret as well as a repository one, or `dependabot-auto-merge.yml` cannot approve or queue a merge;
-- a Dependabot pull request that touches the web set needs the two Cloudflare secrets and the two Access secrets stored as Dependabot secrets too, or its preview fails the way a fork's does.
+- a Dependabot pull request deploys no preview: `deploy-development` and `cleanup` skip a run Dependabot triggers (`github.actor != 'dependabot[bot]'`), so `comment` and `e2e` are skipped with it and `Check` reports on the verification alone; a push to its branch by anyone else starts a run of theirs, with every secret, and that run deploys the preview and runs `e2e`.
 
 ---
 

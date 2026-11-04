@@ -249,7 +249,7 @@ jobs:
   deploy-development:
     name: Deploy to development
     needs: [changes, verify-web]
-    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' }}
+    if: ${{ needs.changes.outputs.web == 'true' && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     uses: $/.github/workflows/_deploy.yml
     with:
       environment: web-development
