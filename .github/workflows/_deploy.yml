@@ -17,6 +17,13 @@ on:
         required: false
         type: string
         description: Override the worker name (for per-PR preview deployments)
+      deploy:
+        required: false
+        type: boolean
+        default: true
+        description: >-
+          Deploy the build. A caller passes false for a run that holds no deploy secret (one
+          Dependabot triggers), which then builds as a deploy would and ships nothing.
     secrets:
       CLOUDFLARE_API_TOKEN:
         required: true
@@ -37,7 +44,7 @@ jobs:
     timeout-minutes: 20
     environment:
       name: ${{ inputs.environment }}
-      url: ${{ inputs.url }}
+      url: ${{ inputs.deploy && inputs.url || '' }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -62,6 +69,7 @@ jobs:
           PUBLIC_BETTER_STACK_TRACKING_TOKEN: ${{ vars.PUBLIC_BETTER_STACK_TRACKING_TOKEN }}
         run: pnpm build
       - name: Deploy to Cloudflare Workers
+        if: ${{ inputs.deploy }}
         working-directory: web
         env:
           INPUTS_WORKER_NAME: ${{ inputs.worker_name }}
