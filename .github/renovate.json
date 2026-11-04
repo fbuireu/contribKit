@@ -77,6 +77,12 @@
 			"addLabels": ["codegen"]
 		},
 		{
+			"description": "riverpod_generator 4.0.9, its latest, caps build below 5.0.0, which build_runner 2.17.1 requires, so the codegen group cannot resolve past 2.17.0; lift this once a riverpod_generator release accepts build 5",
+			"matchManagers": ["pub"],
+			"matchPackageNames": ["build_runner"],
+			"allowedVersions": "<2.17.1"
+		},
+		{
 			"matchManagers": ["pub"],
 			"matchPackageNames": ["purchases_flutter", "purchases_ui_flutter"],
 			"groupName": "purchases"
