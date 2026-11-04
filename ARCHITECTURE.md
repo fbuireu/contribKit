@@ -262,7 +262,6 @@ and the `noneLight` palette variant is app-only because an embedded SVG cannot k
 | `commit-message.yml` | PR opened, edited, reopened or synchronised | Runs commitlint on the **pull request title**, which is what a squash-merge commits. The `commit-msg` hook only sees what is typed locally, so this is the copy that guards `main` |
 | [`dependency-review.yml`](./.github/workflows/dependency-review.yml) | every PR | Fails a pull request that introduces a dependency with a known vulnerability |
 | [`zizmor.yml`](./.github/workflows/zizmor.yml) | push to `main`, every PR | Static analysis of the workflow files themselves |
-| [`dependabot-auto-merge.yml`](./.github/workflows/dependabot-auto-merge.yml) | Dependabot PRs | Approves and turns on squash auto-merge for a patch or minor update, or one to an indirect or development dependency, and comments on a major instead; there is no `dependabot.yml`, so what Dependabot raises is security updates. Renovate merges its own through the platform once `Check` is green; the ruleset requires no approval, so neither approval is what lets a merge through |
 
 **`ci.yml` carries no path filter, and that is the point.** The docs-consistency contract asserts things about
 both clients and about the repository root, so under the old two-workflow split it needed an entry point in each,
@@ -301,6 +300,10 @@ owner's `PAT`, which passes the admin bypass); `tags`, which forbids the same fo
 allowed through and admins exempt; and a deployment-branch policy of `main` only on `web-production` and
 `app-production`, so a job naming either environment from any other ref fails before its first step. The
 [CI/CD](../../wiki/CI-CD) page has all three rulesets, and every secret and variable the workflows read.
+
+Renovate merges its own pull requests through the platform once `Check` is green, so it passes the same gate.
+Dependabot opens no pull requests here: its security updates are off in the repository settings, and only its
+alerts stay on, which Renovate reads to open the security updates.
 
 The `changes` job still counts `docs/**`, `shared/**`, `scripts/**`, `*.md` and the root config files as web
 changes, because the shared tokens and the contract both live outside `web/`. So a docs-only push to `main` still

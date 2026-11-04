@@ -240,8 +240,7 @@ ADR only the index points at will not be read.
    can try the change live. The E2E suite runs against the preview and gates the merge. **A pull request from a
    fork cannot do this**: GitHub gives its run no secrets, so the preview deploy fails for want of the Cloudflare
    token and `Check` goes red whatever the change. That is expected, not your fault: the maintainer pushes your
-   commits to a branch in this repository and opens the pull request from there, which keeps your authorship.
-   Dependabot's pull requests are in the same position unless the secrets are also stored as Dependabot secrets
+   commits to a branch in this repository and opens the pull request from there, which keeps your authorship
    ([CI/CD](../docs/wiki/CI-CD.md#secrets-and-variables)).
 4. After merge to `main`, nothing needs doing by hand. The two components release independently
    ([ADR 0001](../docs/adr/0001-monorepo-with-independently-released-components.md)): the web deploys to
