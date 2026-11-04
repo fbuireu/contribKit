@@ -67,8 +67,9 @@ flowchart TD
     end
 
     verify -->|"pull request"| preview["deploy-development: _deploy.yml into web-development"]
-    preview --> comment["comment: upsert the preview URL"]
-    preview --> e2e["e2e: Playwright against the preview"]
+    preview -->|"not Dependabot"| comment["comment: upsert the preview URL"]
+    preview -->|"not Dependabot"| e2e["e2e: Playwright against the preview"]
+    preview -.->|"Dependabot: deploy false"| built["the site built, nothing deployed"]
     verify -->|"push or dispatch on main"| production["deploy-production: _deploy.yml into web-production"]
     production --> smoke["smoke: the tagged smoke cases against SITE_URL"]
     smoke -->|"failed, after a deploy that succeeded"| rollback["rollback: wrangler rollback --env production"]
@@ -299,10 +300,13 @@ flowchart TD
     open --> title["commit-message.yml: Lint the pull request title"]
     open --> review["dependency-review.yml: Dependency Review"]
     open --> zizmor["zizmor.yml: zizmor"]
-    ci -->|"web set touched"| preview["deploy-development: Worker pr-n-contribkit-development"]
+    ci -->|"web set touched"| bot{"run started by Dependabot?"}
+    bot -->|"no"| preview["deploy-development: Worker pr-n-contribkit-development"]
+    bot -->|"yes"| buildonly["deploy-development with deploy: false: the site built, nothing deployed"]
     preview --> comment["comment: the preview URL on the pull request"]
     preview --> e2e["e2e: Chromium and WebKit against the preview, through Cloudflare Access"]
     ci --> check["Check"]
+    buildonly --> check
     e2e --> check
     check --> gate{"Check, the title, Dependency Review and zizmor all green?"}
     title --> gate
@@ -313,7 +317,7 @@ flowchart TD
     gate -->|"yes"| merge["squash merge into main"]
     merge --> closed["pull request closed"]
     open -. "or closed without merging" .-> closed
-    closed --> cleanup["cleanup: queue behind the pull request's CI group, then wrangler delete the Worker"]
+    closed --> cleanup["cleanup: queue behind the pull request's CI group, then wrangler delete the Worker; skipped on a Dependabot run"]
     merge --> push["push to main: deploy, smoke, release"]
     weekly(["every Monday, or a dispatch"]) --> sweep["sweep: delete the preview Worker of every closed pull request"]
 ```
@@ -326,7 +330,7 @@ flowchart TD
 
 ## Per-PR previews (ephemeral environments)
 
-A pull request that touches the web set gets an **ephemeral environment** of its own: a Worker deployed from its head, tested where it runs, and deleted when the pull request closes. It is the only place a change runs on Cloudflare before production, and once it is deleted, what remains is the records listed at the end.
+A pull request that touches the web set gets an **ephemeral environment** of its own: a Worker deployed from its head, tested where it runs, and deleted when the pull request closes. A Dependabot pull request is the exception: its run holds no deploy secret, so it gets the build without the Worker ([below](#secrets-and-variables)). It is the only place a change runs on Cloudflare before production, and once it is deleted, what remains is the records listed at the end.
 
 **Created on every run that counts as web.** `ci.yml` runs on a `pull_request` into `main` with GitHub's default activity types, so on an open, a push and a reopen, and `deploy-development` (`Deploy to development`) runs when `changes` counts the pull request's whole range as web and `verify-web` passed. It calls `_deploy.yml` with the `web-development` Environment and `worker_name: pr-<n>-contribkit-development`; `_deploy.yml` derives `development` from the Environment, builds with `CLOUDFLARE_ENV=development` and runs `wrangler deploy --env development --name pr-<n>-contribkit-development`. The Worker therefore carries the `[env.development]` block of [`wrangler.toml`](https://github.com/fbuireu/contribKit/blob/main/web/wrangler.toml), with the development rate limiters, the `CONTACT_EMAIL` binding and the development observability destinations, and no route. A later push cancels the run still in progress and redeploys the same Worker in place, so a pull request has one preview, at the last head that passed `verify-web`. A range the web set does not cover deploys nothing, and `comment` and `e2e` are skipped with it. A fork's pull request gets no preview either: its run has no Cloudflare token, so the deploy fails, as [Secrets and variables](#secrets-and-variables) explains.
 
