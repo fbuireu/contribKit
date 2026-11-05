@@ -256,7 +256,9 @@ describe("renderFromGitHub", () => {
 		const button = byId(ElementId.HeroRenderButton) as HTMLButtonElement;
 
 		const rendering = renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false });
-		await vi.waitFor(() => expect(button.disabled).toBe(true));
+		await vi.waitFor(() => expect(button.disabled).toBe(true), {
+			message: "the render button is disabled while GitHub is asked",
+		});
 		expiry.abort();
 		await rendering;
 

@@ -45,6 +45,8 @@ export default defineConfig({
 		include: [...configDefaults.include, "../docs/**/*.test.ts"],
 		exclude: [...configDefaults.exclude, "e2e/**/*.spec.ts"],
 		testTimeout: 20_000,
+		experimental: { traceTimeline: true },
+		fakeTimers: { fakeNodeBuiltins: true },
 		coverage: {
 			provider: "istanbul",
 			reporter: ["text", "lcov"],

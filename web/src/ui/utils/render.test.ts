@@ -404,7 +404,9 @@ describe("renderExportPreview on the markdown tab", () => {
 			.map((line) => line.textContent)
 			.join("\n");
 		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
-		await vi.waitFor(() => expect(copied).toHaveLength(1));
+		await vi.waitFor(() => expect(copied).toHaveLength(1), {
+			message: "the copy button writes to the clipboard",
+		});
 
 		expect(shown).toBe(copied[0]);
 	});
@@ -440,7 +442,9 @@ describe("renderExportPreview on the SVG tab", () => {
 			},
 		});
 		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
-		await vi.waitFor(() => expect(copied).toHaveLength(1));
+		await vi.waitFor(() => expect(copied).toHaveLength(1), {
+			message: "the copy button writes to the clipboard",
+		});
 		return copied[0];
 	};
 
