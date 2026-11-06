@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { isFailure } from "../failures/failure";
 import {
 	type ContactMessage,
-	isContactMessage,
 	MAX_CONTACT_BODY_LENGTH,
 	MAX_CONTACT_EMAIL_LENGTH,
 	MAX_CONTACT_NAME_LENGTH,
@@ -18,7 +17,7 @@ const BODY = "a".repeat(MIN_CONTACT_BODY_LENGTH);
 type Parsed = ReturnType<typeof parseContactMessage>;
 
 const parsed = (message: Parsed): ContactMessage => {
-	expect(isContactMessage(message)).toBe(true);
+	expect(isFailure(message)).toBe(false);
 	return message as ContactMessage;
 };
 
@@ -136,14 +135,5 @@ describe("the per-field rules", () => {
 
 		expect(fieldOf(everythingWrong)).toBe("name");
 		expect(fieldOf(nameFine)).toBe("email");
-	});
-});
-
-describe("isContactMessage", () => {
-	it("recognises what the parser builds and nothing else", () => {
-		expect(isContactMessage(parseContactMessage({ email: "ada@example.com", body: BODY }))).toBe(true);
-		expect(isContactMessage({ email: "ada@example.com", body: BODY })).toBe(false);
-		expect(isContactMessage(null)).toBe(false);
-		expect(isContactMessage("ContactMessage")).toBe(false);
 	});
 });

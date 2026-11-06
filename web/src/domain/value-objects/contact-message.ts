@@ -75,6 +75,3 @@ export const parseContactMessage = ({ name, email, body }: ParseContactMessagePa
 		body: body.trim(),
 	};
 };
-
-export const isContactMessage = (value: unknown): value is ContactMessage =>
-	typeof value === "object" && value !== null && "_tag" in value && value._tag === "ContactMessage";

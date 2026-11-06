@@ -1,6 +1,5 @@
 import { delivery, isFailure } from "@domain/failures/failure";
 import type { ContactMessageRepository } from "@domain/repositories/types";
-import { isContactMessage } from "@domain/value-objects/contact-message";
 import { describe, expect, it, vi } from "vitest";
 import { sendContactMessage } from "./send-contact-message";
 
@@ -14,7 +13,7 @@ describe("sendContactMessage", () => {
 
 		const result = await sendContactMessage(deliver)(VALID);
 
-		expect(isContactMessage(result)).toBe(true);
+		expect(isFailure(result)).toBe(false);
 		expect(deliver).toHaveBeenCalledWith({
 			_tag: "ContactMessage",
 			name: "Ada",
