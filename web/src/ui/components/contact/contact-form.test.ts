@@ -267,12 +267,16 @@ describe("initContactForm", () => {
 		const button = byId<HTMLButtonElement>(ElementId.ContactSubmit);
 
 		form.dispatchEvent(new Event("submit", { cancelable: true }));
-		await vi.waitFor(() => expect(button.disabled).toBe(true));
+		await vi.waitFor(() => expect(button.disabled).toBe(true), {
+			message: "the first submit disables the button",
+		});
 		expect(button.textContent).toBe("sending…");
 
 		form.dispatchEvent(new Event("submit", { cancelable: true }));
 		release();
-		await vi.waitFor(() => expect(button.disabled).toBe(false));
+		await vi.waitFor(() => expect(button.disabled).toBe(false), {
+			message: "the button is enabled again once the request settles",
+		});
 
 		expect(request).toHaveBeenCalledOnce();
 		expect(button.textContent).toBe("send");
