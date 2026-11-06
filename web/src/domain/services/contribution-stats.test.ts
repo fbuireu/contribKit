@@ -132,12 +132,6 @@ describe("statsWithScrapedTotalContributions", () => {
 		).toBe(7);
 	});
 
-	it("keeps the computed Total Contributions when no scraped figure is passed at all", () => {
-		expect(
-			statsWithScrapedTotalContributions({ days: [...days], year: 2024, today: iso("2024-01-02") }).totalContributions,
-		).toBe(7);
-	});
-
 	it("leaves the streaks to computeContributionStats", () => {
 		const stats = statsWithScrapedTotalContributions({
 			days: [...days],

@@ -28,10 +28,10 @@ interface Props {
 	palette: PaletteColors;
 	username: string;
 	thisYear: number;
-	year?: number;
-	error?: string | null;
+	year: number;
+	error: string | null;
 }
-const { heroSVG, stats, palette, username, thisYear, year = thisYear, error = null } = Astro.props;
+const { heroSVG, stats, palette, username, thisYear, year, error } = Astro.props;
 ---
 
 <section class={ClassName.Hero} aria-label="Hero">

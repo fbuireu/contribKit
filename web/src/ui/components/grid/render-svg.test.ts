@@ -4,6 +4,7 @@ import { isFailure } from "@domain/failures/failure";
 import { CELL_SHAPES, CellShape } from "@domain/value-objects/cell-shape";
 import { PALETTES } from "@domain/value-objects/palette";
 import { describe, expect, it } from "vitest";
+import { EXPORT_GRID_GEOMETRY } from "./grid-geometry";
 import { renderCalendarString, shapePreviewSVG } from "./render-svg";
 
 const day = (params: ContributionDayParams): ContributionDay => {
@@ -15,31 +16,37 @@ const day = (params: ContributionDayParams): ContributionDay => {
 const palette = PALETTES.github.colors;
 const days: ContributionDay[] = Array.from({ length: 53 * 7 }, () => day({ date: "2024-01-01", level: 2, count: 4 }));
 
+const GEOMETRY = { ...EXPORT_GRID_GEOMETRY, showLabels: true };
+
 describe("renderCalendarString", () => {
 	it("emits data-count for known counts and omits it entirely when the count is unknown", () => {
 		const unknown: ContributionDay[] = Array.from({ length: 53 * 7 }, () =>
 			day({ date: "2024-01-01", level: 3, count: null }),
 		);
-		const svg = renderCalendarString({ days: unknown, palette, shape: CellShape.Square });
+		const svg = renderCalendarString({ days: unknown, palette, shape: CellShape.Square, ...GEOMETRY });
 		expect(svg).toContain('data-date="2024-01-01"');
 		expect(svg).not.toContain("data-count");
-		expect(renderCalendarString({ days, palette, shape: CellShape.Square })).toContain('data-count="4"');
+		expect(renderCalendarString({ days, palette, shape: CellShape.Square, ...GEOMETRY })).toContain('data-count="4"');
 	});
 
 	it("produces an <svg> with rects for square shapes", () => {
-		const svg = renderCalendarString({ days, palette, shape: CellShape.Square });
+		const svg = renderCalendarString({ days, palette, shape: CellShape.Square, ...GEOMETRY });
 		expect(svg.startsWith("<svg")).toBe(true);
 		expect(svg).toContain("<rect");
 	});
 
 	it("renders circles for dot and polygons for hex", () => {
-		expect(renderCalendarString({ days, palette, shape: CellShape.Dot })).toContain("<circle");
-		expect(renderCalendarString({ days, palette, shape: CellShape.Hex })).toContain("<polygon");
+		expect(renderCalendarString({ days, palette, shape: CellShape.Dot, ...GEOMETRY })).toContain("<circle");
+		expect(renderCalendarString({ days, palette, shape: CellShape.Hex, ...GEOMETRY })).toContain("<polygon");
 	});
 
 	it("includes labels when showLabels is on and omits them when off", () => {
-		expect(renderCalendarString({ days, palette, shape: CellShape.Square, showLabels: true })).toContain("<text");
-		expect(renderCalendarString({ days, palette, shape: CellShape.Square, showLabels: false })).not.toContain("<text");
+		expect(renderCalendarString({ days, palette, shape: CellShape.Square, ...GEOMETRY, showLabels: true })).toContain(
+			"<text",
+		);
+		expect(
+			renderCalendarString({ days, palette, shape: CellShape.Square, ...GEOMETRY, showLabels: false }),
+		).not.toContain("<text");
 	});
 });
 

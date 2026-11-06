@@ -15,9 +15,9 @@ export interface RenderCalendarStringParams {
 	days: readonly ContributionDay[];
 	palette: PaletteColors;
 	shape: CellShape;
-	size?: number;
-	gap?: number;
-	showLabels?: boolean;
+	size: number;
+	gap: number;
+	showLabels: boolean;
 }
 
 export function renderCalendarString({

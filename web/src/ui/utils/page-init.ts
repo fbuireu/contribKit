@@ -68,14 +68,14 @@ export interface RenderFromGitHubParams {
 	username: Username;
 	updateHistory?: boolean;
 	request?: ContributionsRequest;
-	source?: CalendarRequestSource;
+	source: CalendarRequestSource;
 }
 
 export async function renderFromGitHub({
 	username,
 	updateHistory = true,
 	request = sendRequest,
-	source = CalendarRequestSource.Form,
+	source,
 }: RenderFromGitHubParams): Promise<void> {
 	const renderButton = document.getElementById(ElementId.HeroRenderButton) as HTMLButtonElement | null;
 	const renderLabel = document.getElementById(ElementId.HeroRenderLabel);

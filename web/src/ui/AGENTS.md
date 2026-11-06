@@ -102,7 +102,7 @@ and `Telemetry.astro` cannot import at all.
   [`page-init.test.ts`](./utils/page-init.test.ts) doubles [`cookie.ts`](./utils/cookie.ts) and asserts
   `writeUsernameCookie` is reached on the success branch and on neither failure branch.
 - **`renderFromGitHub` takes a `Username` whole, its `request`,** defaulting to `fetch` with
-  `AbortSignal.timeout(REQUEST_TIMEOUT_MS)`, the seam the whole refresh is tested through, **and a `source`**, a `CalendarRequestSource` defaulting to `form`, because the DOM does not say what asked for the
+  `AbortSignal.timeout(REQUEST_TIMEOUT_MS)`, the seam the whole refresh is tested through, **and a `source`**, a required `CalendarRequestSource`, because the DOM does not say what asked for the
   render: the form and the render button pass `form`, a suggestion button `suggestion`, the year select `year` and
   `popstate` `history`. The event is `calendar_rendered` with that source and the Year on success,
   `calendar_render_failed` with a reason `contributionFailureReason` derives from the error body, or `unreachable`

@@ -63,7 +63,7 @@ export interface StatsWithScrapedTotalParams {
 	readonly days: readonly ContributionDay[];
 	readonly year: number;
 	readonly today: IsoDate;
-	readonly scrapedTotalContributions?: number | null;
+	readonly scrapedTotalContributions: number | null;
 }
 
 export const statsWithScrapedTotalContributions = ({
