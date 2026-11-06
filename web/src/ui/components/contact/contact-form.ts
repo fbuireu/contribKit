@@ -10,12 +10,12 @@ import { z } from "astro/zod";
 import { ElementId } from "../../utils/dom-contract";
 import { ContactMessageOutcome, recordUsageEvent, UsageEventName } from "../core/telemetry/usage-event";
 
-export const ContactStatusTone = {
+const ContactStatusTone = {
 	Sent: "sent",
 	Failed: "failed",
 } as const;
 
-export type ContactStatusTone = (typeof ContactStatusTone)[keyof typeof ContactStatusTone];
+type ContactStatusTone = (typeof ContactStatusTone)[keyof typeof ContactStatusTone];
 
 const SENDING_LABEL = "sending…";
 const SEND_LABEL = "send";

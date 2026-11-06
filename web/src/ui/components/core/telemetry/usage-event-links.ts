@@ -7,13 +7,13 @@ export const UsageAttribute = {
 	Section: "data-usage-section",
 } as const;
 
-export interface StoreLinkUsage {
+interface StoreLinkUsage {
 	event: typeof UsageEventName.StoreLinkOpened;
 	store: StoreName;
 	placement: StoreLinkPlacement;
 }
 
-export interface SectionLinkUsage {
+interface SectionLinkUsage {
 	event: typeof UsageEventName.SectionNavigated;
 	section: SiteSection;
 }

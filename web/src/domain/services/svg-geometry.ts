@@ -23,7 +23,7 @@ const CORNER_RADIUS_RATIO = 0.2;
 
 export const CALENDAR_ARIA_LABEL = "GitHub contribution calendar";
 
-export interface Point {
+interface Point {
 	readonly x: number;
 	readonly y: number;
 }
@@ -86,11 +86,11 @@ const monthLabelsFor = (weeks: readonly ContributionWeek[]): Array<{ weekIndex: 
 	return labels;
 };
 
-export interface CalendarLabelPlacement extends Point {
+interface CalendarLabelPlacement extends Point {
 	readonly label: string;
 }
 
-export interface CalendarCellPlacement extends Point {
+interface CalendarCellPlacement extends Point {
 	readonly date: string;
 	readonly level: ContributionLevel;
 	readonly count: number | null;

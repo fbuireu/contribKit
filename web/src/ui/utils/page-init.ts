@@ -46,7 +46,7 @@ const initialDays = (): readonly ContributionDay[] => {
 	return contributionGridSchema.validate(injected) ? toContributionDays(injected) : generateData();
 };
 
-export type ContributionsRequest = (url: string) => Promise<Response>;
+type ContributionsRequest = (url: string) => Promise<Response>;
 
 const sendRequest: ContributionsRequest = (url): Promise<Response> =>
 	fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });

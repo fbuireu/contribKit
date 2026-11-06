@@ -86,7 +86,7 @@ export const ContactMessageOutcome = {
 
 export type ContactMessageOutcome = (typeof ContactMessageOutcome)[keyof typeof ContactMessageOutcome];
 
-export interface UsageEventProperties {
+interface UsageEventProperties {
 	[UsageEventName.CalendarRendered]: { source: CalendarRequestSource; year: number };
 	[UsageEventName.CalendarRenderFailed]: { reason: CalendarFailureReason; year: number };
 	[UsageEventName.PaletteChosen]: { palette: string };

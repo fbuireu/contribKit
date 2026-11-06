@@ -2,7 +2,7 @@ import type { ContributionDay } from "../entities/types";
 import type { CellShape } from "../value-objects/cell-shape";
 import type { Palette } from "../value-objects/palette";
 
-export interface SvgRenderOptions {
+interface SvgRenderOptions {
 	readonly palette: Palette;
 	readonly shape: CellShape;
 	readonly background: string;
@@ -11,7 +11,7 @@ export interface SvgRenderOptions {
 	readonly showLabels?: boolean;
 }
 
-export interface SvgRendererParams {
+interface SvgRendererParams {
 	readonly days: readonly ContributionDay[];
 	readonly options: SvgRenderOptions;
 }

@@ -7,8 +7,7 @@ import { cloudflareContactMessageRepository } from "@infrastructure/email/cloudf
 
 const repository = cloudflareContactMessageRepository(MAINTAINER_EMAIL);
 
-export const deliverContactMessage: ContactMessageRepository["deliver"] = (
-	message,
-): Promise<ContactMessage | Failure> => repository.deliver(message);
+const deliverContactMessage: ContactMessageRepository["deliver"] = (message): Promise<ContactMessage | Failure> =>
+	repository.deliver(message);
 
 export const sendContact = sendContactMessage(deliverContactMessage);

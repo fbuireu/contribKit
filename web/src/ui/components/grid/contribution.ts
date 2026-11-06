@@ -1,6 +1,6 @@
 import type { IsoDate } from "@domain/value-objects/iso-date";
 
-export const UNKNOWN_FIGURE_TEXT = "unknown";
+const UNKNOWN_FIGURE_TEXT = "unknown";
 
 export const formatTotalContributions = (totalContributions: number | null): string =>
 	totalContributions === null ? UNKNOWN_FIGURE_TEXT : totalContributions.toLocaleString();

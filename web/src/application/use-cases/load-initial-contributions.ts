@@ -14,12 +14,12 @@ export interface LoadInitialContributionsParams {
 	thisYear: number;
 }
 
-export interface InitialContributions {
+interface InitialContributions {
 	days: readonly ContributionDay[];
 	totalContributions: number | null;
 }
 
-export interface ChosenYear {
+interface ChosenYear {
 	year: number;
 }
 
