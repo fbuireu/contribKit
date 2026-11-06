@@ -1,3 +1,10 @@
+# [contribkit-web-v2.0.7](https://github.com/fbuireu/contribKit/compare/web-v2.0.6...web-v2.0.7) (2026-11-06)
+
+
+### Bug Fixes
+
+* **contribkit-web:** update astro monorepo ([#179](https://github.com/fbuireu/contribKit/issues/179)) ([ddc1373](https://github.com/fbuireu/contribKit/commit/ddc13731d94534a937918cb44b6c10b44396dfca))
+
 # [contribkit-web-v2.0.6](https://github.com/fbuireu/contribKit/compare/web-v2.0.5...web-v2.0.6) (2026-11-01)
 
 
