@@ -36,6 +36,12 @@ const usernameOf = (raw: string): Username => {
 };
 
 const byId = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
+const ExportSelector = {
+	CodePreview: `#${ElementId.ExportPreview} .${ClassName.CodePreview}`,
+	CopyButton: `#${ElementId.ExportPreview} .${ClassName.CopyButton}`,
+	PngPreview: `#${ElementId.ExportPreview} .${ClassName.PngPreview}`,
+} as const;
+
 const $ = (selector: string): HTMLElement => document.querySelector(selector) as HTMLElement;
 
 const day = (params: ContributionDayParams): ContributionDay => {
@@ -136,7 +142,7 @@ describe("renderExportPreview", () => {
 	it("renders a png card by default", () => {
 		document.body.innerHTML = `<div id="${ElementId.ExportPreview}"></div>`;
 		renderExportPreview();
-		expect(document.querySelector(Selector.ExportPngPreview)).not.toBeNull();
+		expect(document.querySelector(ExportSelector.PngPreview)).not.toBeNull();
 	});
 
 	it("draws the default preview for a selected tab whose key names no Export Format", () => {
@@ -145,16 +151,16 @@ describe("renderExportPreview", () => {
 		expect(getActiveExportTab()).toBeNull();
 		renderExportPreview();
 
-		expect(document.querySelector(Selector.ExportPngPreview)).not.toBeNull();
-		expect(document.querySelector(Selector.ExportCodePreview)).toBeNull();
+		expect(document.querySelector(ExportSelector.PngPreview)).not.toBeNull();
+		expect(document.querySelector(ExportSelector.CodePreview)).toBeNull();
 	});
 
 	it("renders a code preview when the svg tab is active", () => {
 		document.body.innerHTML = `<div id="${ElementId.ExportTabs}"><button data-key="svg" aria-selected="true"></button></div><div id="${ElementId.ExportPreview}"></div>`;
 		expect(getActiveExportTab()).toBe("svg");
 		renderExportPreview();
-		expect(document.querySelector(Selector.ExportCodePreview)).not.toBeNull();
-		expect(document.querySelector(Selector.ExportCopyButton)).not.toBeNull();
+		expect(document.querySelector(ExportSelector.CodePreview)).not.toBeNull();
+		expect(document.querySelector(ExportSelector.CopyButton)).not.toBeNull();
 	});
 });
 
@@ -196,7 +202,7 @@ describe("the copy button", () => {
 		vi.stubGlobal("navigator", { clipboard: { writeText } });
 		document.body.innerHTML = `<div id="${ElementId.ExportTabs}"><button data-key="svg" aria-selected="true"></button></div><div id="${ElementId.ExportPreview}"></div>`;
 		renderExportPreview();
-		const button = document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton);
+		const button = document.querySelector<HTMLButtonElement>(ExportSelector.CopyButton);
 		button?.click();
 		await vi.advanceTimersByTimeAsync(0);
 		return button;
@@ -378,7 +384,7 @@ describe("renderExportPreview on the markdown tab", () => {
 		document.body.innerHTML = MARKDOWN_DOM;
 		renderExportPreview();
 
-		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
+		document.querySelector<HTMLButtonElement>(ExportSelector.CopyButton)?.click();
 		await vi.waitFor(() =>
 			expect(recordUsageEvent.mock.calls).toEqual([
 				[{ event: "export_copied", properties: { format: "md", outcome: "copied" } }],
@@ -400,10 +406,10 @@ describe("renderExportPreview on the markdown tab", () => {
 		document.body.innerHTML = MARKDOWN_DOM.replace('data-key="square"', `data-key="${DEFAULT_CELL_SHAPE}"`);
 		renderExportPreview();
 
-		const shown = [...document.querySelectorAll(`${Selector.ExportCodePreview} .code-line`)]
+		const shown = [...document.querySelectorAll(`${ExportSelector.CodePreview} .code-line`)]
 			.map((line) => line.textContent)
 			.join("\n");
-		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
+		document.querySelector<HTMLButtonElement>(ExportSelector.CopyButton)?.click();
 		await vi.waitFor(() => expect(copied).toHaveLength(1), {
 			message: "the copy button writes to the clipboard",
 		});
@@ -415,7 +421,7 @@ describe("renderExportPreview on the markdown tab", () => {
 		document.body.innerHTML = MARKDOWN_DOM;
 		renderExportPreview();
 
-		const code = $(Selector.ExportCodePreview).textContent ?? "";
+		const code = $(ExportSelector.CodePreview).textContent ?? "";
 
 		expect(getActiveExportTab()).toBe("md");
 		expect(code).toContain("torvalds");
@@ -441,7 +447,7 @@ describe("renderExportPreview on the SVG tab", () => {
 				},
 			},
 		});
-		document.querySelector<HTMLButtonElement>(Selector.ExportCopyButton)?.click();
+		document.querySelector<HTMLButtonElement>(ExportSelector.CopyButton)?.click();
 		await vi.waitFor(() => expect(copied).toHaveLength(1), {
 			message: "the copy button writes to the clipboard",
 		});
@@ -449,7 +455,7 @@ describe("renderExportPreview on the SVG tab", () => {
 	};
 
 	const shownLines = (): string[] =>
-		[...document.querySelectorAll(`${Selector.ExportCodePreview} .code-line`)].map((line) => line.textContent ?? "");
+		[...document.querySelectorAll(`${ExportSelector.CodePreview} .code-line`)].map((line) => line.textContent ?? "");
 
 	it("opens and closes with the markup its copy button copies, and counts the Cells between", async () => {
 		setDays(buildGridFromApi({ days: [], year: 2028 }));
@@ -472,7 +478,7 @@ describe("renderExportPreview on the SVG tab", () => {
 		document.body.innerHTML = SVG_DOM;
 		renderExportPreview();
 
-		const code = $(Selector.ExportCodePreview).textContent ?? "";
+		const code = $(ExportSelector.CodePreview).textContent ?? "";
 
 		expect(code).toContain("<polygon");
 		expect(code).toContain(PALETTES.nord.colors[2].hex);

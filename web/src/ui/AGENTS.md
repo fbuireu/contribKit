@@ -51,9 +51,11 @@ and `Telemetry.astro` cannot import at all.
   one spelling of the ids and classes that cross the `.astro` ↔ `.ts` boundary, and both sides read them. Every
   consumer is written as `if (el) …`, so an id renamed on one side turns a renderer into a silent no-op: the page
   keeps working and stops updating. **The Playwright suite imports this file too**, by relative path: `tsconfig`
-  includes `e2e/` and Playwright's transform resolves it. `ExportCodePreview`, `ExportCopyButton` and
-  `ExportPngPreview` have no reader in `src`: [`render.ts`](./utils/render.ts) writes those nodes through `ClassName`
-  and only the tests read them, so they look dead and are not. `SiteSection`, the Usage Event's closed set, is built
+  includes `e2e/` and Playwright's transform resolves it. `Selector` holds only what `src` reads. The three
+  locators of the export preview nodes (code preview, copy button, PNG preview) have no reader in `src`, since
+  [`render.ts`](./utils/render.ts) writes those nodes through `ClassName`; they are `ExportSelector` in
+  [`e2e/export-selectors.ts`](../../e2e/export-selectors.ts), built from the same `ElementId` and `ClassName`, and the unit
+  tests that need one build it from those two beside their other locators. `SiteSection`, the Usage Event's closed set, is built
   from the section ids, and `ThemeClass` holds the two classes the theme bootstrap and the toggle put on `<html>`, so
   Playwright reads them without importing `theme-toggle.ts`. [`dom-contract.test.ts`](./utils/dom-contract.test.ts)
   fails on a component that spells a declared id or class instead of interpolating it. **A stylesheet cannot import,
@@ -68,12 +70,12 @@ and `Telemetry.astro` cannot import at all.
   visible or hidden.
 - **Adding a `Selector` entry adds an e2e obligation.** [`web/e2e/index.spec.ts`](../../e2e/index.spec.ts) walks the whole enum against the
   landing page and fails on any entry that matches nothing, because an entry no markup satisfies is a renamed id
-  the `if (el)` consumers turn into a silent no-op. Two hand-maintained lists in that spec change the walk.
-  `CODE_TAB_ONLY` is the one carve-out: its entries exist only once the SVG tab is open, so they skip the on-load
-  walk and must match after the spec clicks that tab. `PNG_TAB_ONLY` (`ExportPngPreview`) is the opposite kind of
+  the `if (el)` consumers turn into a silent no-op. The `ExportSelector` entries are walked beside it, by two
+  hand-maintained lists in that spec. `CODE_TAB_ONLY` (`CodePreview`, `CopyButton`) exist only once the SVG tab is
+  open, so they must match after the spec clicks that tab. `PNG_TAB_ONLY` (`PngPreview`) is the opposite kind of
   list: PNG is the default tab, so its entry must match on load and must be *gone* once the SVG tab is clicked. A
-  selector that exists only behind the SVG tab goes in `CODE_TAB_ONLY`; one behind a modal or another tab needs a
-  list and a step of its own in the spec, or the suite fails with nothing saying why.
+  selector behind a modal or another tab needs a list and a step of its own in the spec, or the suite fails with
+  nothing saying why.
 - **The `dataset` reads.** `getActiveShape` reads a `data-key` through `isCellShape` and `getActivePalette` through
   `paletteByKey`, so a key naming no Cell Shape or Palette falls back to the default. `getActiveExportTab` reads it
   through `isExportFormatKey` and answers `null` for a key naming no Export Format, which `renderExportPreview` draws

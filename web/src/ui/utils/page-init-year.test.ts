@@ -3,6 +3,7 @@
 import { isFailure } from "@domain/failures/failure";
 import { parseUsername } from "@domain/value-objects/username";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { CalendarRequestSource } from "../components/core/telemetry/usage-event";
 import { ElementId } from "./dom-contract";
 
 const ZONE_AT_START = process.env.TZ;
@@ -36,6 +37,7 @@ const requestsMade = async ({ zone, instant }: RequestsMadeParams): Promise<stri
 	await renderFromGitHub({
 		username,
 		updateHistory: false,
+		source: CalendarRequestSource.Form,
 		request: (url) => {
 			requested.push(url);
 			return Promise.resolve(new Response(JSON.stringify({ days: [], total: 0 }), { status: 200 }));

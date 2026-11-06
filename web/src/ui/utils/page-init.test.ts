@@ -5,6 +5,7 @@ import { DAYS_PER_WEEK, weeksFor } from "@domain/services/dates";
 import { FIRST_SUGGESTED_USERNAME, parseUsername, type Username } from "@domain/value-objects/username";
 import { MIN_YEAR } from "@domain/value-objects/year";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CalendarRequestSource } from "../components/core/telemetry/usage-event";
 import { formatHeroError } from "./contribution-errors";
 import { ClassName, ElementId, Selector } from "./dom-contract";
 import { initPage, renderFromGitHub } from "./page-init";
@@ -112,6 +113,8 @@ afterAll(() => {
 	vi.useRealTimers();
 });
 
+const EXPORT_CODE_PREVIEW = `#${ElementId.ExportPreview} .${ClassName.CodePreview}`;
+
 describe("initPage", () => {
 	it("wires the page without throwing on a minimal DOM", () => {
 		document.body.innerHTML = "";
@@ -143,6 +146,7 @@ describe("renderFromGitHub", () => {
 				requested = url;
 				return Promise.resolve(jsonResponse({ body: okPayload }));
 			},
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(requested).toContain("user=torvalds");
@@ -161,6 +165,7 @@ describe("renderFromGitHub", () => {
 				requested = url;
 				return Promise.resolve(jsonResponse({ body: okPayload }));
 			},
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(requested).toContain(`year=${CURRENT_YEAR}`);
@@ -177,6 +182,7 @@ describe("renderFromGitHub", () => {
 				requested = url;
 				return Promise.resolve(jsonResponse({ body: okPayload }));
 			},
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(requested).toContain(`year=${CURRENT_YEAR}`);
@@ -190,6 +196,7 @@ describe("renderFromGitHub", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.resolve(jsonResponse({ body: okPayload })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(getDays()).toHaveLength(weeksFor(CURRENT_YEAR) * DAYS_PER_WEEK);
@@ -204,6 +211,7 @@ describe("renderFromGitHub", () => {
 			username: usernameOf("nope"),
 			updateHistory: false,
 			request: () => Promise.resolve(jsonResponse({ body: { error: "User not found" }, status: 404 })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(byId(ElementId.HeroError).textContent).toMatch(/not found/i);
@@ -215,12 +223,14 @@ describe("renderFromGitHub", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.resolve(jsonResponse({ body: okPayload })),
+			source: CalendarRequestSource.Form,
 		});
 
 		await renderFromGitHub({
 			username: usernameOf("nope"),
 			updateHistory: false,
 			request: () => Promise.resolve(jsonResponse({ body: { error: "User not found" }, status: 404 })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(getDays().every((day) => day.count === null)).toBe(true);
@@ -234,6 +244,7 @@ describe("renderFromGitHub", () => {
 				username: usernameOf("torvalds"),
 				updateHistory: false,
 				request: () => Promise.reject(new Error("offline")),
+				source: CalendarRequestSource.Form,
 			}),
 		).resolves.toBeUndefined();
 
@@ -255,7 +266,11 @@ describe("renderFromGitHub", () => {
 		);
 		const button = byId(ElementId.HeroRenderButton) as HTMLButtonElement;
 
-		const rendering = renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false });
+		const rendering = renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			source: CalendarRequestSource.Form,
+		});
 		await vi.waitFor(() => expect(button.disabled).toBe(true), {
 			message: "the render button is disabled while GitHub is asked",
 		});
@@ -278,6 +293,7 @@ describe("renderFromGitHub", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.reject(new Error("offline")),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(button.disabled).toBe(false);
@@ -289,7 +305,12 @@ describe("the username cookie", () => {
 	it("is written only once the answer is known, never on submit", async () => {
 		document.body.innerHTML = HERO;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request: okFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request: okFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(writeUsernameCookie).toHaveBeenCalledWith("torvalds");
 	});
@@ -297,7 +318,12 @@ describe("the username cookie", () => {
 	it("is not written for a username the endpoint refused", async () => {
 		document.body.innerHTML = HERO;
 
-		await renderFromGitHub({ username: usernameOf("torvalsd"), updateHistory: false, request: notFoundFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalsd"),
+			updateHistory: false,
+			request: notFoundFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(writeUsernameCookie).not.toHaveBeenCalled();
 	});
@@ -309,6 +335,7 @@ describe("the username cookie", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.reject(new Error("offline")),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(writeUsernameCookie).not.toHaveBeenCalled();
@@ -364,7 +391,12 @@ describe("the suggestion buttons", () => {
 	it("mark the one whose username is being shown and unmark the rest", async () => {
 		document.body.innerHTML = HERO + SUGGESTIONS;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request: okFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request: okFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		const [torvalds, gaearon] = document.querySelectorAll<HTMLElement>(Selector.SuggestionButtons);
 
@@ -574,7 +606,12 @@ describe("a successful render", () => {
 	it("names the username everywhere the page shows it", async () => {
 		document.body.innerHTML = `${HERO}<span id="${ElementId.HeroYearRange}"></span>`;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request: okFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request: okFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(byId(ElementId.HeroUsernameDisplay).textContent).toBe("torvalds");
 		expect(byId(ElementId.HeroYearRange).textContent).toBe(String(CURRENT_YEAR));
@@ -587,6 +624,7 @@ describe("a successful render", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.resolve(jsonResponse({ body: { ...okPayload, total: 1234 } })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(document.querySelector(Selector.HomeScreenWidgetStreaks)?.textContent).toBe("1");
@@ -596,7 +634,12 @@ describe("a successful render", () => {
 	it("blanks the Home Screen Widget mock-up's figures when the calendar did not load", async () => {
 		document.body.innerHTML = `${HERO}<span class="${ClassName.HomeScreenWidgetStreak}">42</span><span id="${ElementId.HomeScreenWidgetTotal}">1,234 contributions this year</span>`;
 
-		await renderFromGitHub({ username: usernameOf("nope"), updateHistory: false, request: notFoundFetch });
+		await renderFromGitHub({
+			username: usernameOf("nope"),
+			updateHistory: false,
+			request: notFoundFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(document.querySelector(Selector.HomeScreenWidgetStreaks)?.textContent).toBe("unknown");
 		expect(byId(ElementId.HomeScreenWidgetTotal).textContent).toBe("contributions unknown");
@@ -609,6 +652,7 @@ describe("a successful render", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.resolve(jsonResponse({ body: { ...okPayload, total: 42 } })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(document.querySelector(Selector.BarTag)?.textContent).toBe("42 contributions");
@@ -619,10 +663,20 @@ describe("an error state", () => {
 	it("prints the total as unknown and replaces the previous user's streaks", async () => {
 		document.body.innerHTML = `${HERO}<span class="${ClassName.BarTag}"></span><span class="${ClassName.LegendStats}"></span>`;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request: okFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request: okFetch,
+			source: CalendarRequestSource.Form,
+		});
 		expect(document.querySelector(Selector.LegendStats)?.textContent).toContain("1 longest");
 
-		await renderFromGitHub({ username: usernameOf("nope"), updateHistory: false, request: notFoundFetch });
+		await renderFromGitHub({
+			username: usernameOf("nope"),
+			updateHistory: false,
+			request: notFoundFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(document.querySelector(Selector.BarTag)?.textContent).toContain("unknown");
 		expect(document.querySelector(Selector.LegendStats)?.textContent).not.toContain("1 longest");
@@ -631,7 +685,12 @@ describe("an error state", () => {
 	it("prints no Streak as 0, because zero is a number", async () => {
 		document.body.innerHTML = `${HERO}<span class="${ClassName.BarTag}"></span><span class="${ClassName.LegendStats}"></span>`;
 
-		await renderFromGitHub({ username: usernameOf("nope"), updateHistory: false, request: notFoundFetch });
+		await renderFromGitHub({
+			username: usernameOf("nope"),
+			updateHistory: false,
+			request: notFoundFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(document.querySelector(Selector.BarTag)?.textContent).toBe("unknown contributions");
 		expect(document.querySelector(Selector.LegendStats)?.textContent).toBe("unknown day streak·unknown longest");
@@ -645,6 +704,7 @@ describe("an error state", () => {
 			updateHistory: false,
 			request: () =>
 				Promise.resolve(jsonResponse({ body: { error: "Could not parse contributions", kind: "Parse" }, status: 502 })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(byId(ElementId.HeroError).textContent).toBe(
@@ -663,6 +723,7 @@ describe("an error state", () => {
 			updateHistory: false,
 			request: () =>
 				Promise.resolve(jsonResponse({ body: { error: "GitHub returned 503", kind: "Upstream" }, status: 502 })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(byId(ElementId.HeroError).textContent).toBe("↳ github could not serve the calendar, try again in a moment");
@@ -684,6 +745,7 @@ describe("an error state", () => {
 						status: 400,
 					}),
 				),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(byId(ElementId.HeroError).textContent).toBe("↳ invalid year");
@@ -699,6 +761,7 @@ describe("an error state", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.resolve(jsonResponse({ body: { error: "teapot" }, status: 418 })),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(byId(ElementId.HeroError).textContent).toContain("teapot");
@@ -711,6 +774,7 @@ describe("a body that is not the shape the endpoint promises", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.resolve(response),
+			source: CalendarRequestSource.Form,
 		});
 
 	it.each([
@@ -770,7 +834,12 @@ describe("renderFromGitHub with a half-rendered page", () => {
 		const request = vi.fn(okFetch);
 		document.body.innerHTML = `<div id="${ElementId.HeroGrid}"></div>`;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(request).not.toHaveBeenCalled();
 	});
@@ -779,7 +848,12 @@ describe("renderFromGitHub with a half-rendered page", () => {
 		const request = vi.fn(okFetch);
 		document.body.innerHTML = `<button id="${ElementId.HeroRenderButton}"></button>`;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(request).not.toHaveBeenCalled();
 	});
@@ -795,6 +869,7 @@ describe("renderFromGitHub with a half-rendered page", () => {
 				requested = url;
 				return okFetch();
 			},
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(requested).toContain(`year=${CURRENT_YEAR}`);
@@ -805,7 +880,7 @@ describe("history syncing", () => {
 	it("publishes the username it rendered", async () => {
 		document.body.innerHTML = HERO;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), request: okFetch });
+		await renderFromGitHub({ username: usernameOf("torvalds"), request: okFetch, source: CalendarRequestSource.Form });
 
 		expect(new URLSearchParams(globalThis.location.search).get("user")).toBe("torvalds");
 	});
@@ -902,7 +977,7 @@ describe("the Customizer controls", () => {
 
 		document.querySelector<HTMLElement>(`#${ElementId.ExportTabs} [data-key="svg"]`)?.click();
 
-		expect(document.querySelector(Selector.ExportCodePreview)).not.toBeNull();
+		expect(document.querySelector(EXPORT_CODE_PREVIEW)).not.toBeNull();
 	});
 });
 
@@ -957,7 +1032,12 @@ describe("the Usage Event a render records", () => {
 	it("names the form as the source and the year it asked for on success", async () => {
 		document.body.innerHTML = HERO;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request: okFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request: okFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(recordUsageEvent.mock.calls).toEqual([
 			[{ event: "calendar_rendered", properties: { source: "form", year: CURRENT_YEAR } }],
@@ -982,7 +1062,12 @@ describe("the Usage Event a render records", () => {
 	it("records a refused status as a closed reason, never the username", async () => {
 		document.body.innerHTML = HERO;
 
-		await renderFromGitHub({ username: usernameOf("torvalsd"), updateHistory: false, request: notFoundFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalsd"),
+			updateHistory: false,
+			request: notFoundFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(recordUsageEvent.mock.calls).toEqual([
 			[{ event: "calendar_render_failed", properties: { reason: "not_found", year: CURRENT_YEAR } }],
@@ -997,6 +1082,7 @@ describe("the Usage Event a render records", () => {
 			username: usernameOf("torvalds"),
 			updateHistory: false,
 			request: () => Promise.reject(new Error("offline")),
+			source: CalendarRequestSource.Form,
 		});
 
 		expect(recordUsageEvent.mock.calls).toEqual([
@@ -1007,7 +1093,12 @@ describe("the Usage Event a render records", () => {
 	it("records nothing when the page has no render button to drive", async () => {
 		document.body.innerHTML = `<div id="${ElementId.HeroGrid}"></div>`;
 
-		await renderFromGitHub({ username: usernameOf("torvalds"), updateHistory: false, request: okFetch });
+		await renderFromGitHub({
+			username: usernameOf("torvalds"),
+			updateHistory: false,
+			request: okFetch,
+			source: CalendarRequestSource.Form,
+		});
 
 		expect(recordUsageEvent).not.toHaveBeenCalled();
 	});

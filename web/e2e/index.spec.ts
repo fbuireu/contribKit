@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { ExportFormatKey } from "../src/ui/components/export/export-formats";
 import { ClassName, ElementId, Selector, ThemeClass } from "../src/ui/utils/dom-contract";
+import { ExportSelector } from "./export-selectors";
 import { expect, test } from "./fixtures";
 
 const RESOLVED_THEME_CLASS = new RegExp(`${ThemeClass.Light}|${ThemeClass.Dark}`);
@@ -75,14 +76,14 @@ test.describe("homepage", () => {
 
 	test("switching the export tab to SVG shows the code preview", async ({ page }) => {
 		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="${ExportFormatKey.Svg}"]`).click();
-		await expect(page.locator(Selector.ExportCodePreview)).toBeVisible();
-		await expect(page.locator(Selector.ExportCopyButton)).toBeVisible();
+		await expect(page.locator(ExportSelector.CodePreview)).toBeVisible();
+		await expect(page.locator(ExportSelector.CopyButton)).toBeVisible();
 	});
 
 	test("the PNG tab says the size of the calendar it previews", async ({ page }) => {
 		const [, width, height] =
 			/^0 0 (\d+) (\d+)$/.exec(
-				(await page.locator(`${Selector.ExportPngPreview} svg`).getAttribute("viewBox")) ?? "",
+				(await page.locator(`${ExportSelector.PngPreview} svg`).getAttribute("viewBox")) ?? "",
 			) ?? [];
 
 		expect(width).toBeDefined();
@@ -94,13 +95,13 @@ test.describe("homepage", () => {
 	test("the SVG tab previews the start of the markup it copies, and counts the Cells it leaves out", async ({
 		page,
 	}) => {
-		const png = page.locator(Selector.ExportPngPreview);
+		const png = page.locator(ExportSelector.PngPreview);
 		const viewBox = await png.locator("svg").getAttribute("viewBox");
 		const cells = await png.locator("[data-date]").count();
 
 		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="${ExportFormatKey.Svg}"]`).click();
 
-		const code = page.locator(Selector.ExportCodePreview);
+		const code = page.locator(ExportSelector.CodePreview);
 		await expect(code).toContainText(`viewBox="${viewBox}"`);
 		await expect(code).toContainText(`${cells - 3} more cells`);
 	});
@@ -217,43 +218,43 @@ test.describe("rendering a username", () => {
 });
 
 test.describe("the DOM contract", () => {
-	type SelectorName = keyof typeof Selector;
+	type ExportSelectorName = keyof typeof ExportSelector;
 
-	const CODE_TAB_ONLY: readonly SelectorName[] = ["ExportCodePreview", "ExportCopyButton"];
-	const PNG_TAB_ONLY: readonly SelectorName[] = ["ExportPngPreview"];
+	const CODE_TAB_ONLY: readonly ExportSelectorName[] = ["CodePreview", "CopyButton"];
+	const PNG_TAB_ONLY: readonly ExportSelectorName[] = ["PngPreview"];
 
 	interface UnmatchedParams {
 		page: Page;
-		names: readonly SelectorName[];
+		selectors: Readonly<Record<string, string>>;
 	}
 
-	const unmatched = async ({ page, names }: UnmatchedParams): Promise<string[]> => {
+	const unmatched = async ({ page, selectors }: UnmatchedParams): Promise<string[]> => {
 		const missing: string[] = [];
-		for (const name of names) {
-			const selector = Selector[name];
+		for (const [name, selector] of Object.entries(selectors)) {
 			if ((await page.locator(selector).count()) === 0) missing.push(`${name} -> ${selector}`);
 		}
 		return missing;
 	};
 
+	const only = (names: readonly ExportSelectorName[]): Record<string, string> =>
+		Object.fromEntries(names.map((name) => [name, ExportSelector[name]]));
+
 	test("every Selector matches something in the state that owns it", async ({ page }) => {
 		await page.goto("/");
 
-		const all = Object.keys(Selector) as SelectorName[];
-		const onLoad = all.filter((name) => !CODE_TAB_ONLY.includes(name));
-
 		expect(
-			await unmatched({ page, names: onLoad }),
+			await unmatched({ page, selectors: Selector }),
 			"a Selector matching nothing is a renderer that has silently become a no-op",
 		).toEqual([]);
+		expect(await unmatched({ page, selectors: only(PNG_TAB_ONLY) })).toEqual([]);
 
 		await page.locator(`${byId(ElementId.ExportTabs)} [data-key="${ExportFormatKey.Svg}"]`).click();
-		await expect(page.locator(Selector.ExportCodePreview)).toBeVisible();
+		await expect(page.locator(ExportSelector.CodePreview)).toBeVisible();
 
-		expect(await unmatched({ page, names: CODE_TAB_ONLY })).toEqual([]);
+		expect(await unmatched({ page, selectors: only(CODE_TAB_ONLY) })).toEqual([]);
 		expect(
-			await unmatched({ page, names: PNG_TAB_ONLY }),
+			await unmatched({ page, selectors: only(PNG_TAB_ONLY) }),
 			"the PNG preview belongs to the PNG tab and must go when it is not selected",
-		).toEqual(PNG_TAB_ONLY.map((name) => `${name} -> ${Selector[name]}`));
+		).toEqual(PNG_TAB_ONLY.map((name) => `${name} -> ${ExportSelector[name]}`));
 	});
 });
