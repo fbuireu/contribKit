@@ -5,10 +5,10 @@ import { digitsToMatrix, noiseLevel } from "./glyph-utils";
 
 interface Props {
 	digits: string;
-	seed?: number;
+	seed: number;
 }
 
-const { digits, seed = 3 } = Astro.props;
+const { digits, seed } = Astro.props;
 
 const matrix = digitsToMatrix(digits);
 const columns = matrix[0]?.length ?? 0;

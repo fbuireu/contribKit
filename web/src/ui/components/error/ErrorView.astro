@@ -15,19 +15,11 @@ interface Props {
 	message: string;
 	terminal: TerminalLine[];
 	primary: ErrorAction;
-	reportUrl?: string;
 }
 
-const {
-	code,
-	tone = Tone.Accent,
-	eyebrow,
-	title,
-	message,
-	terminal,
-	primary,
-	reportUrl = "https://github.com/fbuireu/contribkit/issues/new?template=bug_report.yml",
-} = Astro.props;
+const { code, tone = Tone.Accent, eyebrow, title, message, terminal, primary } = Astro.props;
+
+const REPORT_URL = "https://github.com/fbuireu/contribkit/issues/new?template=bug_report.yml";
 
 const seed = code === 500 ? 7 : 3;
 ---
@@ -73,7 +65,7 @@ const seed = code === 500 ? 7 : 3;
         {primary.icon === ErrorActionIcon.Reload ? <Reload /> : <ArrowLeft />}
         {primary.label}
       </a>
-      <a class="error-btn error-btn-ghost" href={reportUrl} target="_blank" rel="noopener noreferrer">
+      <a class="error-btn error-btn-ghost" href={REPORT_URL} target="_blank" rel="noopener noreferrer">
         <GitHub width={14} height={14} />
         Report issue
       </a>

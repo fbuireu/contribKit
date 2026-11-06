@@ -18,19 +18,19 @@ describe("generateData", () => {
 	});
 
 	it("is deterministic and produces a full grid", () => {
-		expect(generateData(7)).toEqual(generateData(7));
-		expect(generateData(7)).toHaveLength(53 * 7);
+		expect(generateData()).toEqual(generateData());
+		expect(generateData()).toHaveLength(53 * 7);
 	});
 
 	it("ends on the Saturday of the current week, so the placeholder rolls with today", () => {
-		const days = generateData(7);
+		const days = generateData();
 
 		expect(getWeekday(days[0].date)).toBe(0);
 		expect(days.at(-1)?.date).toBe("2026-10-03");
 	});
 
 	it("gives every day a real count that agrees with its level", () => {
-		const days = generateData(7);
+		const days = generateData();
 		expect(days.every((day) => day.count !== null)).toBe(true);
 		expect(days.every((day) => (day.count === 0) === (day.level === 0))).toBe(true);
 		expect(days.some((day) => day.level === 0)).toBe(true);

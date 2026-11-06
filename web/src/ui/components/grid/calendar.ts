@@ -2,6 +2,8 @@ import type { ContributionDay } from "@domain/entities/types";
 import { addDays, GRID_CELL_COUNT, getWeekday, toIsoDate } from "@domain/services/dates";
 import { mulberry32 } from "../../utils/mulberry";
 
+const SEED = 7;
+
 const COUNT_SPREAD_PER_LEVEL = [0, 3, 7, 12, 24] as const;
 
 const LEVEL_THRESHOLDS = [
@@ -11,8 +13,8 @@ const LEVEL_THRESHOLDS = [
 	{ minScore: 0.2, level: 1 },
 ] as const;
 
-export function generateData(seed = 7): readonly ContributionDay[] {
-	const random = mulberry32(seed);
+export function generateData(): readonly ContributionDay[] {
+	const random = mulberry32(SEED);
 	const days: ContributionDay[] = [];
 	const today = toIsoDate(new Date());
 	const end = addDays({ iso: today, days: 6 - getWeekday(today) });
