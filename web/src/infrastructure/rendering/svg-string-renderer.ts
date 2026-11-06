@@ -46,22 +46,14 @@ const labelStyleFor = (background: string): string =>
 
 export const svgStringRenderer: SvgRenderer = ({ days, options }): string => {
 	const { palette, shape, background } = options;
-	const layout = calendarLayout({
-		days,
-		shape,
-		size: options.cellSize,
-		gap: options.cellGap,
-		showLabels: options.showLabels,
-	});
+	const layout = calendarLayout({ days, shape });
 
 	const parts: string[] = [];
 	parts.push(
 		`<svg viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width}" height="${layout.height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${CALENDAR_ARIA_LABEL}">`,
 	);
 
-	if (layout.monthLabels.length + layout.weekdayLabels.length > 0) {
-		parts.push(`<style>${labelStyleFor(background)}</style>`);
-	}
+	parts.push(`<style>${labelStyleFor(background)}</style>`);
 
 	if (background !== DEFAULT_BACKGROUND_COLOR) {
 		parts.push(`<rect width="${layout.width}" height="${layout.height}" fill="${background}"/>`);

@@ -38,8 +38,8 @@ describe("renderCalendarString", () => {
 	});
 
 	it("includes labels when showLabels is on and omits them when off", () => {
-		expect(renderCalendarString({ days, palette, showLabels: true })).toContain("<text");
-		expect(renderCalendarString({ days, palette, showLabels: false })).not.toContain("<text");
+		expect(renderCalendarString({ days, palette, shape: CellShape.Square, showLabels: true })).toContain("<text");
+		expect(renderCalendarString({ days, palette, shape: CellShape.Square, showLabels: false })).not.toContain("<text");
 	});
 });
 

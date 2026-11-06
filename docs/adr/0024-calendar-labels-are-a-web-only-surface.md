@@ -10,7 +10,7 @@ Accepted.
 
 [`GLOSSARY.md`](../../GLOSSARY.md) defines **Calendar Labels** as "the month strip along the top of the Contribution Grid and the weekday strip down its side, which can be shown or hidden". It is a first-class term in the ubiquitous language.
 
-The web implements all of it: `MONTH_LABELS` and `WEEKDAY_LABELS` in `web/src/domain/value-objects/calendar-labels.ts`, `CalendarLabelPlacement` and `monthLabelsFor` in `svg-geometry.ts`, and a `showLabels` flag threaded through `SvgRenderOptions` down to `svgStringRenderer`. The landing page passes `true` for the hero and `false` for the widget mock, so the show-or-hide half is real and used.
+The web implements all of it: `MONTH_LABELS` and `WEEKDAY_LABELS` in `web/src/domain/value-objects/calendar-labels.ts`, `CalendarLabelPlacement` and `monthLabelsFor` in `svg-geometry.ts`, and a `showLabels` flag on `calendarLayout`. The landing page passes `true` for the hero and `false` for the widget mock, so the show-or-hide half is real and used.
 
 The app implements none of it. Grepping `app/lib` for a month or weekday label construct returns nothing. `ContributionGrid` renders bare columns of `ContributionCell`; `SvgExportRepository` emits a `<title>` and cells; `PngExportRepository` paints cells; the Kotlin widget merges columns and draws squares.
 
@@ -31,6 +31,6 @@ Adding `MONTH_LABELS` and `WEEKDAY_LABELS` to `app/lib/domain/` without a render
 ## Consequences
 
 - **An SVG exported from the app and an SVG served by the web are not the same image**, and that is now a stated difference rather than a surprise. They agree on the cell lattice, the Palette, the Cell Shape and the geometry ([ADR 0020](0020-the-cell-geometry-is-the-apps-in-three-languages.md)); they differ on labels.
-- **`showLabels` has no Dart counterpart**, and `SvgRenderOptions` keeps a field the app's `RenderOptions` does not carry. A reader diffing the two render option types will find it and should find this ADR.
+- **`showLabels` has no Dart counterpart**, and `calendarLayout` keeps a flag the app's layout does not carry. A reader diffing the two will find it and should find this ADR.
 - **If the app grows a labelled export**, this decision is what to revisit, and the work is a rendering feature: where the strips sit on a scrolled grid, whether the widget opts out, and what happens to the exported dimensions. It is not a modelling change, which is why it was wrong to make it silently during an audit.
 - The glossary keeps its Calendar Labels entry. A term the ubiquitous language defines does not have to be implemented by every client, and [ADR 0016](0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md) already set that precedent in the other direction.

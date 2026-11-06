@@ -6,9 +6,6 @@ interface SvgRenderOptions {
 	readonly palette: Palette;
 	readonly shape: CellShape;
 	readonly background: string;
-	readonly cellSize?: number;
-	readonly cellGap?: number;
-	readonly showLabels?: boolean;
 }
 
 interface SvgRendererParams {

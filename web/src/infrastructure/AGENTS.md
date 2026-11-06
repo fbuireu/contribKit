@@ -88,8 +88,8 @@ Pure string concatenation into a `parts` array, joined once, with its whole geom
 `@domain/services/svg-geometry` and its per-shape markup from `@domain/services/cell-shapes`, so the server renderer
 and the client-side preview draw identical cells at identical positions. What is left here is the string templates.
 
-- Defaults when the options omit them: `calendarLayout` applies `SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP` and
-  `showLabels: true` when the option is `undefined`.
+- Defaults: `svgStringRenderer` hands `calendarLayout` only the days and the shape, so it applies
+  `SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP` and `showLabels: true`.
 - **The background `<rect>` is emitted only when `background !== DEFAULT_BACKGROUND_COLOR`** (`"transparent"`). A
   transparent embed is the absence of a rect, not a rect with alpha, which is what lets a README show through.
   `background` goes into `fill` verbatim, so the caller validates it: the SVG route through

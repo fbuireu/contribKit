@@ -8,13 +8,13 @@ import {
 	SVG_MONTH_LABEL_LETTER_SPACING,
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
 } from "@domain/services/svg-geometry";
-import { CellShape, DEFAULT_CELL_SHAPE } from "@domain/value-objects/cell-shape";
+import { CellShape } from "@domain/value-objects/cell-shape";
 import type { PaletteColors } from "@domain/value-objects/palette";
 
 export interface RenderCalendarStringParams {
 	days: readonly ContributionDay[];
 	palette: PaletteColors;
-	shape?: CellShape;
+	shape: CellShape;
 	size?: number;
 	gap?: number;
 	showLabels?: boolean;
@@ -23,7 +23,7 @@ export interface RenderCalendarStringParams {
 export function renderCalendarString({
 	days,
 	palette,
-	shape = DEFAULT_CELL_SHAPE,
+	shape,
 	size,
 	gap,
 	showLabels,

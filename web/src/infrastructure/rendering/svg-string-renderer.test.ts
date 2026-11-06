@@ -59,9 +59,8 @@ describe("svgStringRenderer", () => {
 		expect(render({ shape: "square" })).not.toContain('<rect width="');
 	});
 
-	it("includes labels by default and omits them when disabled", () => {
+	it("includes labels", () => {
 		expect(render({ shape: "square" })).toContain("<text");
-		expect(render({ shape: "square", overrides: { showLabels: false } })).not.toContain("<text");
 	});
 });
 
@@ -98,10 +97,6 @@ describe("the labels of an SVG on a transparent Background", () => {
 		expect(svg.indexOf("<style>")).toBeGreaterThan(svg.indexOf("<svg"));
 		expect(svg.indexOf("<style>")).toBeLessThan(svg.indexOf("<text"));
 		expect([...svg.matchAll(/<style>/g)]).toHaveLength(1);
-	});
-
-	it("leave no stylesheet behind when there are no labels", () => {
-		expect(render({ shape: "square", overrides: { showLabels: false } })).not.toContain("<style>");
 	});
 });
 

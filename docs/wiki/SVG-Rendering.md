@@ -21,11 +21,8 @@ svgStringRenderer({ days, options })
 | `palette` | `github` | 5-color ramp (none → veryHigh) |
 | `shape` | `rounded` | `rounded`, `square`, `circle`, `dot`, `hex` |
 | `background` | `transparent` | skipped entirely when transparent |
-| `cellSize` | `10` | `SVG_DEFAULT_CELL_SIZE`. **No caller ever sets it** |
-| `cellGap` | `2` | `SVG_DEFAULT_CELL_GAP`. Same |
-| `showLabels` | `true` | month + day-of-week labels. Same |
 
-The last three are declared, forwarded to `calendarLayout`, and assigned by nobody. Cell Size as a person's choice is app-only ([ADR 0016](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)); this is pixel geometry, and the endpoint exposes no size knob.
+`calendarLayout` is handed the days and the shape and nothing else, so its defaults apply: `SVG_DEFAULT_CELL_SIZE` (`10`), `SVG_DEFAULT_CELL_GAP` (`2`) and month + day-of-week labels. Cell Size as a person's choice is app-only ([ADR 0016](https://github.com/fbuireu/contribKit/blob/main/docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)); this is pixel geometry, and the endpoint exposes no size knob.
 
 ---
 

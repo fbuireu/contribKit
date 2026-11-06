@@ -148,11 +148,10 @@ the calendar renders blank. Workers run in UTC and never show it. Before touchin
   `1.4 + level`, so level 4 is 5.4 against a default cell half-width of 5. It still fits the 12 px pitch that
   `SVG_DEFAULT_CELL_SIZE` (10) plus `SVG_DEFAULT_CELL_GAP` (2) gives, so dots never collide. Shrink the gap and
   they will.
-- **`cellSize` in [`services/types.ts`](./services/types.ts) is pixel geometry, not the glossary's Cell Size.** Nothing assigns it, or
-  `cellGap`: `svgStringRenderer` hands both to `calendarLayout` undefined, so its defaults
-  (`SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP`) apply, and the SVG endpoint exposes no size parameter. The
-  three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
-  browser grid, not this option
+- **`size` and `gap` in `calendarLayout` are pixel geometry, not the glossary's Cell Size.** `svgStringRenderer` passes
+  neither, so its defaults (`SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP`) apply, and the SVG endpoint exposes no size
+  parameter. The three fixed geometries in [`ui/components/grid/grid-geometry.ts`](../ui/components/grid/grid-geometry.ts) carry their own `size`/`gap` and feed the
+  browser grid
   ([ADR 0016](../../../docs/adr/0016-cell-size-is-a-named-choice-in-the-app-and-fixed-geometry-on-the-web.md)).
 - **`IsoDate` is a branded string, and `date` is one.** It keys `byDate`, orders with `<` and `>`, is templated by
   `addDays` and sliced by `monthOf` and `dayOfMonthOf`, and each of those is correct only for a zero-padded
