@@ -9,7 +9,7 @@ import { type ErrorAction, ErrorActionIcon, type TerminalLine, TerminalLineKind,
 
 interface Props {
 	code: number;
-	tone?: Tone;
+	tone: Tone;
 	eyebrow: string;
 	title: string;
 	message: string;
@@ -17,14 +17,15 @@ interface Props {
 	primary: ErrorAction;
 }
 
-const { code, tone = Tone.Accent, eyebrow, title, message, terminal, primary } = Astro.props;
+const { code, tone, eyebrow, title, message, terminal, primary } = Astro.props;
 
 const REPORT_URL = "https://github.com/fbuireu/contribkit/issues/new?template=bug_report.yml";
 
+const isDanger = tone === Tone.Danger;
 const seed = code === 500 ? 7 : 3;
 ---
 
-<section class:list={[ClassName.ErrorPage, { [ClassName.DangerTone]: tone === Tone.Danger }]} aria-labelledby={ElementId.ErrorTitle}>
+<section class:list={[ClassName.ErrorPage, { [ClassName.DangerTone]: isDanger }]} aria-labelledby={ElementId.ErrorTitle}>
   <div class="error-glow" aria-hidden="true"></div>
   <div class="error-texture" aria-hidden="true"></div>
 
