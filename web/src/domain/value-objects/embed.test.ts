@@ -13,7 +13,13 @@ const usernameOf = (raw: string): Username => {
 
 describe("EMBED_ROUTE", () => {
 	it("matches the path buildEmbedUrl produces", () => {
-		expect(EMBED_ROUTE.test(new URL(buildEmbedUrl({ username: usernameOf("torvalds") })).pathname)).toBe(true);
+		expect(
+			EMBED_ROUTE.test(
+				new URL(
+					buildEmbedUrl({ username: usernameOf("torvalds"), palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE }),
+				).pathname,
+			),
+		).toBe(true);
 	});
 
 	it("still matches once the query carries every option", () => {
@@ -29,7 +35,9 @@ describe("EMBED_ROUTE", () => {
 
 describe("buildEmbedUrl", () => {
 	it("writes the Username the value object holds into the path", () => {
-		expect(buildEmbedUrl({ username: usernameOf("a--b") })).toBe("https://contribkit.app/user/a--b.svg");
+		expect(
+			buildEmbedUrl({ username: usernameOf("a--b"), palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE }),
+		).toBe("https://contribkit.app/user/a--b.svg");
 	});
 
 	it("omits the query when every option is the default", () => {
@@ -42,10 +50,6 @@ describe("buildEmbedUrl", () => {
 		).toBe("https://contribkit.app/user/torvalds.svg");
 	});
 
-	it("omits the query when no option is given", () => {
-		expect(buildEmbedUrl({ username: usernameOf("torvalds") })).toBe("https://contribkit.app/user/torvalds.svg");
-	});
-
 	it("separates the first option with ? and the rest with a single &", () => {
 		const url = buildEmbedUrl({ username: usernameOf("torvalds"), palette: "catppuccin", shape: "hex" });
 
@@ -55,8 +59,8 @@ describe("buildEmbedUrl", () => {
 	});
 
 	it("never emits a doubled separator for any combination of options", () => {
-		const values = [undefined, "catppuccin"];
-		const shapes: (CellShape | undefined)[] = [undefined, CellShape.Hex];
+		const values = [DEFAULT_PALETTE_KEY, "catppuccin"];
+		const shapes: CellShape[] = [DEFAULT_CELL_SHAPE, CellShape.Hex];
 
 		for (const palette of values) {
 			for (const shape of shapes) {

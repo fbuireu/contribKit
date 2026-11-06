@@ -26,9 +26,9 @@ const toText = (lines: Lines): string => lines.map((line) => line.map(([, text])
 
 describe("markdownSnippet", () => {
 	it("wraps the svg url in a markdown image", () => {
-		expect(markdownSnippet({ username: usernameOf("torvalds") })).toBe(
-			"![contributions](https://contribkit.app/user/torvalds.svg)",
-		);
+		expect(
+			markdownSnippet({ username: usernameOf("torvalds"), palette: DEFAULT_PALETTE_KEY, shape: DEFAULT_CELL_SHAPE }),
+		).toBe("![contributions](https://contribkit.app/user/torvalds.svg)");
 	});
 
 	it("carries the chosen palette and shape, so copying preserves the customization", () => {
@@ -200,7 +200,9 @@ describe("buildMarkdownLines", () => {
 		const text = toText(
 			buildMarkdownLines({ username: usernameOf("torvalds"), palette: "catppuccin", shape: CellShape.Hex }),
 		);
-		expect(text).toContain(buildEmbedUrl({ username: usernameOf("torvalds") }));
+		expect(text).toContain(
+			buildEmbedUrl({ username: usernameOf("torvalds"), palette: "catppuccin", shape: CellShape.Hex }),
+		);
 		expect(text).toContain("catppuccin");
 		expect(text).toContain("hex");
 	});

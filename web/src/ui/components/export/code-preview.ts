@@ -22,8 +22,8 @@ const ATTRIBUTE = /([^\s="/<>]+)="([^"]*)"/g;
 
 export interface MarkdownSnippetParams {
 	username: Username;
-	palette?: string;
-	shape?: CellShape;
+	palette: string;
+	shape: CellShape;
 }
 
 interface AttributeTokensParams {
