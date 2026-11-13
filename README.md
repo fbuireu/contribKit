@@ -130,6 +130,7 @@ Component-specific setup, commands, and deploy flows live in **[web/README.md](w
 | --------------------------------------------------- | ------------------------------------------------------------ |
 | **[Architecture](ARCHITECTURE.md)**                 | The layer map both clients share, a request end to end, build and release |
 | **[Contributing](.github/CONTRIBUTING.md)**         | Setup, the checks, commit rules, and how a change gets released |
+| **[Accessibility](.github/ACCESSIBILITY.md)**       | What each client does for keyboard, screen reader and large-text use, and how to report a barrier |
 | **[Coding standards](CODING_STANDARDS.md)**         | The rules a change is reviewed against, and which of them the tooling enforces |
 | **[Domain glossary](GLOSSARY.md)**                   | The canonical name for every domain concept, and the ones to avoid |
 | **[Web](web/README.md)**                            | API reference, embedding guide, architecture, deploys        |

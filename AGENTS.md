@@ -66,7 +66,7 @@ A `package.json` script runs under `cmd` on Windows, which passes `$(...)` throu
 GLOSSARY.md          domain glossary: the single vocabulary both clients obey
 CODING_STANDARDS.md the rules a reviewer holds a diff to
 ARCHITECTURE.md     the big picture, and the only ADR index
-.github/            CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md, the templates and the workflows
+.github/            CONTRIBUTING.md, SECURITY.md, ACCESSIBILITY.md, CODE_OF_CONDUCT.md, the templates and the workflows
 docs/docs-consistency.test.ts  the repo-wide contract: the one test that lives with its subject, not with the code
 docs/adr/           decisions (0001…), sequentially numbered
 docs/plans/         deferred work, kept because the decision to defer is recorded

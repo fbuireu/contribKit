@@ -34,7 +34,9 @@ Check the existing issues first, then use the [bug report template](ISSUE_TEMPLA
 mobile app's under `app/lib`, so a pull request can fix either; if you would rather not open one, use the
 [content issue template](ISSUE_TEMPLATE/content_issue.yml) and say which client it is in.
 
-Security issues go through the [Security Policy](./SECURITY.md), never a public issue.
+Security issues go through the [Security Policy](./SECURITY.md), never a public issue. A barrier for someone
+using a keyboard, a screen reader, large text or reduced motion is a bug like any other;
+[ACCESSIBILITY.md](./ACCESSIBILITY.md) lists what helps in the report.
 
 ### Suggesting features
 
