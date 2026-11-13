@@ -233,7 +233,7 @@ Android only: there is no iOS widget.
 | Size | Provider | Shows |
 |------|----------|-------|
 | Small (80×40dp) | `ContribKitSmallWidgetProvider` | Streak counter |
-| Medium (250×110dp) | `ContribKitWidgetProvider` | Username, streak badge, grid image and year total |
+| Medium (250×110dp) | `ContribKitWidgetProvider` | Username, streak badge, grid image and year total; the grid image carries a content description for TalkBack, `Contribution calendar for <username>: <total>` |
 
 Widgets are driven by [`home_screen_widget_service.dart`](https://github.com/fbuireu/contribKit/blob/main/app/lib/ui/features/home_screen_widget/home_screen_widget_service.dart): the Viewer rewrites them after every fetch and every Palette or Cell Shape change, and WorkManager refreshes them once a day in the background ([above](#keeping-the-home-screen-widget-current)).
 

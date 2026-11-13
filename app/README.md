@@ -123,7 +123,7 @@ Git hooks are repo-wide. See **[Monorepo Development](../README.md#monorepo-deve
 | Size            | Provider                        | Shows                                                     |
 | --------------- | ------------------------------- | --------------------------------------------------------- |
 | Small (80×40dp) | `ContribKitSmallWidgetProvider` | Streak counter                                            |
-| Medium (250×110dp) | `ContribKitWidgetProvider`   | Username, streak badge, the grid image and the year total |
+| Medium (250×110dp) | `ContribKitWidgetProvider`   | Username, streak badge, the grid image (described to TalkBack as `Contribution calendar for <username>: <total>`) and the year total |
 
 Widgets render with whatever palette you set in the app. The app rewrites them after every calendar it fetches and every Palette or Cell Shape change, and WorkManager refreshes them once a day in the background, when there is a network, so the grid stays current without draining the battery. A refresh that fails for the world's reasons (no network, a rate limit) is retried later; one that fails for a defect is reported to Sentry. The [Mobile App](https://github.com/fbuireu/contribKit/wiki/Mobile-App#keeping-the-home-screen-widget-current) wiki page follows both writers end to end, and says why iOS has neither.
 

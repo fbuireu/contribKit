@@ -6,4 +6,7 @@
     <string name="widget_small_name">ContribKit Streak</string>
     <string name="widget_small_description">See your current GitHub contribution streak at a glance</string>
     <string name="widget_unknown_figure">unknown</string>
+    <string name="widget_calendar_description">Contribution calendar</string>
+    <string name="widget_calendar_description_for_user">Contribution calendar for %1$s</string>
+    <string name="widget_calendar_description_for_user_with_total">Contribution calendar for %1$s: %2$s</string>
 </resources>

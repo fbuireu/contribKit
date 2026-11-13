@@ -181,5 +181,31 @@ void main() {
         reason: 'each provider reads a Streak nothing wrote as unknown',
       );
     });
+
+    test('describes the calendar image to a screen reader, in both the layout '
+        'and the provider, from strings that take the Username and the total', () {
+      final strings = File(_strings).readAsStringSync();
+      final layout = File('$_layouts/contribkit_widget.xml').readAsStringSync();
+      final described = RegExp(
+        r'android:id="@\+id/widget_image"[^>]*?'
+        r'android:contentDescription="@string/(\w+)"',
+      ).firstMatch(layout)?.group(1);
+      final withTotal = RegExp(
+        '<string name="widget_calendar_description_for_user_with_total">'
+        '([^<]*)</string>',
+      ).firstMatch(strings)?.group(1);
+
+      expect(described, 'widget_calendar_description');
+      expect(strings, contains('name="$described"'));
+      expect(withTotal, allOf(contains(r'%1$s'), contains(r'%2$s')));
+      expect(
+        RegExp(r'setContentDescription\(\s*R\.id\.widget_image')
+            .hasMatch(_kotlin()),
+        isTrue,
+        reason:
+            'the layout default names the image, but the provider is what says '
+            'whose calendar it is and what it holds',
+      );
+    });
   });
 }

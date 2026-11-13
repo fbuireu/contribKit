@@ -102,6 +102,10 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
                         appWidgetManager, widgetId, levels, weeks, colors, shape,
                     )
                     views.setImageViewBitmap(R.id.widget_image, bitmap)
+                    views.setContentDescription(
+                        R.id.widget_image,
+                        calendarDescription(context, username, totalContributionsText),
+                    )
                     views.setViewVisibility(R.id.widget_image, View.VISIBLE)
                     views.setViewVisibility(R.id.widget_placeholder, View.GONE)
                     bitmapRef = bitmap
@@ -123,6 +127,23 @@ class ContribKitWidgetProvider : AppWidgetProvider() {
         } catch (e: Exception) {
             Log.e("ContribKitWidget", "updateWidget failed for id=$widgetId", e)
         }
+    }
+
+    private fun calendarDescription(
+        context: Context,
+        username: String?,
+        totalContributionsText: String?,
+    ): String = when {
+        username != null && totalContributionsText != null -> context.getString(
+            R.string.widget_calendar_description_for_user_with_total,
+            username,
+            totalContributionsText,
+        )
+        username != null -> context.getString(
+            R.string.widget_calendar_description_for_user,
+            username,
+        )
+        else -> context.getString(R.string.widget_calendar_description)
     }
 
     private fun renderGrid(

@@ -70,6 +70,7 @@
 
             <ImageView
                 android:id="@+id/widget_image"
+                android:contentDescription="@string/widget_calendar_description"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="fitStart"

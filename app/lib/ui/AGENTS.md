@@ -277,6 +277,15 @@ the widget's real width at its fixed 20 px cell, taking the **maximum** Contribu
 whole Year stays visible on a small widget without distortion. That merge is why the column count is derived from
 `widget_weeks` rather than assumed.
 
+**The grid image is described to a screen reader in the provider**, because a bitmap says nothing to TalkBack and the
+grid is most of the Home Screen Widget. `ContribKitWidgetProvider` sets `contentDescription` on `widget_image` with
+`RemoteViews.setContentDescription` when it draws the bitmap, from the Username and the finished total sentence it
+already reads (`Contribution calendar for <username>: <total>`), through the three `widget_calendar_description*`
+strings in `res/values/strings.xml`. The total sentence is spoken as it is written, so the description needs no
+plural form and no second format string. The layout carries the bare `Contribution calendar` as its default; the
+image is `gone` until the first bitmap, so the empty state shows only the placeholder text. `dart_kotlin_seam_test.dart`
+pins the layout default, the placeholders and the `setContentDescription` call.
+
 **Reordering `ContributionLevel` silently recolours every Home Screen Widget**, because both payloads are indexed by
 position and Kotlin reads them positionally. It also changes what every cached calendar means. A test in
 `test/ui/features/home_screen_widget/` pins the enum order for exactly that reason; without it the first symptom is a person's

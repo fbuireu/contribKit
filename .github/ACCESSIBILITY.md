@@ -28,6 +28,10 @@ number that matters as text next to the image.
 
 - **Every control says what it is.** Each tappable control has a label and a role, and says whether it is selected,
   switched on or disabled. Icon-only buttons have a label of their own.
+- **The widget's calendar has a description.** The medium home-screen widget draws the calendar as an image. TalkBack
+  reads it as "Contribution calendar for", the username and the total, such as "Contribution calendar for octocat:
+  1,234 contributions this year". Before the first calendar has loaded the widget shows only the text "Open
+  ContribKit to load your calendar". The small widget shows the streak as text and has no image.
 - **Text follows your font size.** Rows wrap or truncate instead of clamping the size you set in Android.
 - **Light and dark themes.** The app follows your system unless you pick one in its settings.
 
@@ -39,6 +43,8 @@ number that matters as text next to the image.
   Flutter's guidelines for tap-target size on Android and iOS, text contrast and labelled controls. A text-scaling
   test renders the same screens at 1x, 1.3x, 2x and 3x text on two small phone sizes, and fails if anything
   overflows. Both run in CI whenever the app changes.
+- A test checks that the widget's calendar image is given its description. No screen reader reads a home-screen
+  widget in CI, so how TalkBack speaks it is not tested.
 - The app supports Android 12 and later. The same code builds for iOS, but no iOS app is released.
 - No screen reader, voice control or switch access is tested on a schedule, and no automated accessibility scan of
   the web app runs in CI. Reports from people who use them are the main way barriers there come to light.
