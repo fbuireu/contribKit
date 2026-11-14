@@ -14,3 +14,5 @@ allowBuilds:
 minimumReleaseAgeExclude:
   # Renovate security update: happy-dom@21.0.4
   - happy-dom@21.0.4
+  # Renovate security update: astro@7.4.7
+  - astro@7.4.7
