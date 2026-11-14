@@ -1,3 +1,10 @@
+# [contribkit-web-v2.0.8](https://github.com/fbuireu/contribKit/compare/web-v2.0.7...web-v2.0.8) (2026-11-14)
+
+
+### Bug Fixes
+
+* **contribkit-web:** update dependency astro to v7.4.7 [security] ([#187](https://github.com/fbuireu/contribKit/issues/187)) ([3162c62](https://github.com/fbuireu/contribKit/commit/3162c6231a2175dd5f980e8130628badd6ebb090))
+
 # [contribkit-web-v2.0.7](https://github.com/fbuireu/contribKit/compare/web-v2.0.6...web-v2.0.7) (2026-11-06)
 
 
