@@ -1,3 +1,10 @@
+# [contribkit-web-v2.0.9](https://github.com/fbuireu/contribKit/compare/web-v2.0.8...web-v2.0.9) (2026-11-15)
+
+
+### Bug Fixes
+
+* **contribkit-web:** update dependency react-email to v6.11.11 ([#192](https://github.com/fbuireu/contribKit/issues/192)) ([4ca30bd](https://github.com/fbuireu/contribKit/commit/4ca30bd53852975e3015fc4a580c2df3701f66bf))
+
 # [contribkit-web-v2.0.8](https://github.com/fbuireu/contribKit/compare/web-v2.0.7...web-v2.0.8) (2026-11-14)
 
 
