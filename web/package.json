@@ -67,7 +67,7 @@
 		"astro": "7.4.7",
 		"react": "19.2.8",
 		"react-dom": "19.2.8",
-		"react-email": "6.11.5",
+		"react-email": "6.11.11",
 		"vanilla-cookieconsent": "3.1.0"
 	},
 	"devDependencies": {
