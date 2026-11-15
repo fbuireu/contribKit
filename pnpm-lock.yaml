@@ -216,16 +216,16 @@ importers:
     dependencies:
       '@astrojs/cloudflare':
         specifier: 14.4.3
-        version: 14.4.3(@types/node@26.2.0)(astro@7.4.7(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(esbuild@0.28.1)(jiti@2.6.1)(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.2.0))(yaml@2.9.0)
+        version: 14.4.3(@types/node@26.6.6)(astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(esbuild@0.28.1)(jiti@2.6.1)(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.6.6))(yaml@2.9.0)
       '@astrojs/react':
         specifier: 6.0.6
-        version: 6.0.6(@types/node@26.2.0)(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(esbuild@0.28.1)(jiti@2.6.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)(yaml@2.9.0)
+        version: 6.0.6(@types/node@26.6.6)(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(esbuild@0.28.1)(jiti@2.6.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)(yaml@2.9.0)
       '@astrojs/sitemap':
         specifier: 3.7.4
         version: 3.7.4
       astro:
         specifier: 7.4.7
-        version: 7.4.7(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+        version: 7.4.7(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -270,8 +270,8 @@ importers:
         specifier: 14.1.1
         version: 14.1.1(semantic-release@25.0.9(supports-color@10.2.2)(typescript@6.0.3))(supports-color@10.2.2)
       '@types/node':
-        specifier: 26.2.0
-        version: 26.2.0
+        specifier: 26.6.6
+        version: 26.6.6
       '@types/react':
         specifier: 19.2.18
         version: 19.2.18
@@ -295,10 +295,10 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 5.1.0
-        version: 5.1.0(@types/node@26.2.0)(@vitest/coverage-istanbul@5.1.0)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+        version: 5.1.0(@types/node@26.6.6)(@vitest/coverage-istanbul@5.1.0)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
       wrangler:
         specifier: 4.156.2
-        version: 4.156.2(@types/node@26.2.0)
+        version: 4.156.2(@types/node@26.6.6)
 
 packages:
 
@@ -2045,6 +2045,9 @@ packages:
 
   '@types/node@26.2.0':
     resolution: {integrity: sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg==}
+
+  '@types/node@26.6.6':
+    resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -4644,6 +4647,9 @@ packages:
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
+  undici-types@8.9.0:
+    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
+
   undici@6.27.0:
     resolution: {integrity: sha512-YmfV3YnEDzXRC5lZ2jWtWWHKGUm1zIt8AhesR1tens+HTNv+YZlN/dp6G727LOvMJ8xjP9Be7Y2Sdr96LDm+pg==}
     engines: {node: '>=18.17'}
@@ -5307,16 +5313,16 @@ snapshots:
       - prettier
       - prettier-plugin-astro
 
-  '@astrojs/cloudflare@14.4.3(@types/node@26.2.0)(astro@7.4.7(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(esbuild@0.28.1)(jiti@2.6.1)(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.2.0))(yaml@2.9.0)':
+  '@astrojs/cloudflare@14.4.3(@types/node@26.6.6)(astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(esbuild@0.28.1)(jiti@2.6.1)(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.6.6))(yaml@2.9.0)':
     dependencies:
       '@astrojs/internal-helpers': 0.13.0
       '@astrojs/underscore-redirects': 1.0.4
-      '@cloudflare/vite-plugin': 1.67.0(@types/node@26.2.0)(vite@8.3.4(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.2.0))
-      astro: 7.4.7(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      '@cloudflare/vite-plugin': 1.67.0(@types/node@26.6.6)(vite@8.3.4(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.6.6))
+      astro: 7.4.7(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
       piccolore: 0.1.3
       prismjs: 1.30.0
-      vite: 8.3.4(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
-      wrangler: 4.156.2(@types/node@26.2.0)
+      vite: 8.3.4(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      wrangler: 4.156.2(@types/node@26.6.6)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -5456,17 +5462,17 @@ snapshots:
     dependencies:
       prismjs: 1.30.0
 
-  '@astrojs/react@6.0.6(@types/node@26.2.0)(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(esbuild@0.28.1)(jiti@2.6.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)(yaml@2.9.0)':
+  '@astrojs/react@6.0.6(@types/node@26.6.6)(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(esbuild@0.28.1)(jiti@2.6.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2)(yaml@2.9.0)':
     dependencies:
       '@astrojs/internal-helpers': 0.11.0
       '@types/react': 19.2.18
       '@types/react-dom': 19.2.7(@types/react@19.2.18)
-      '@vitejs/plugin-react': 5.2.0(supports-color@10.2.2)(vite@8.1.0(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      '@vitejs/plugin-react': 5.2.0(supports-color@10.2.2)(vite@8.1.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
       devalue: 5.8.1
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       ultrahtml: 1.6.0
-      vite: 8.1.0(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 8.1.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -5735,13 +5741,13 @@ snapshots:
     optionalDependencies:
       workerd: 1.20261102.1
 
-  '@cloudflare/vite-plugin@1.67.0(@types/node@26.2.0)(vite@8.3.4(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.2.0))':
+  '@cloudflare/vite-plugin@1.67.0(@types/node@26.6.6)(vite@8.3.4(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))(workerd@1.20261102.1)(wrangler@4.156.2(@types/node@26.6.6))':
     dependencies:
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261102.1)
-      miniflare: 5.20261101.0-beta(@types/node@26.2.0)
+      miniflare: 5.20261101.0-beta(@types/node@26.6.6)
       unenv: 2.0.0-rc.24
-      vite: 8.3.4(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
-      wrangler: 4.156.2(@types/node@26.2.0)
+      vite: 8.3.4(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      wrangler: 4.156.2(@types/node@26.6.6)
       ws: 8.22.0
     transitivePeerDependencies:
       - '@types/node'
@@ -6971,6 +6977,10 @@ snapshots:
     dependencies:
       undici-types: 8.3.0
 
+  '@types/node@26.6.6':
+    dependencies:
+      undici-types: 8.9.0
+
   '@types/normalize-package-data@2.4.4': {}
 
   '@types/react-dom@19.2.7(@types/react@19.2.18)':
@@ -7055,7 +7065,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.2': {}
 
-  '@vitejs/plugin-react@5.2.0(supports-color@10.2.2)(vite@8.1.0(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))':
+  '@vitejs/plugin-react@5.2.0(supports-color@10.2.2)(vite@8.1.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))':
     dependencies:
       '@babel/core': 7.29.7(supports-color@10.2.2)
       '@babel/plugin-transform-react-jsx-self': 7.29.7(@babel/core@7.29.7(supports-color@10.2.2))
@@ -7063,7 +7073,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-rc.3
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 8.1.0(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 8.1.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -7076,7 +7086,7 @@ snapshots:
       magicast: 0.5.5
       obug: 3.0.0
       tinyrainbow: 3.2.0
-      vitest: 5.1.0(@types/node@26.2.0)(@vitest/coverage-istanbul@5.1.0)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      vitest: 5.1.0(@types/node@26.6.6)(@vitest/coverage-istanbul@5.1.0)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
 
   '@vitest/istanbul-lib-coverage@2.1.0': {}
 
@@ -7099,14 +7109,14 @@ snapshots:
       '@vitest/istanbul-lib-coverage': 2.1.0
       obug: 3.0.0
 
-  '@vitest/mocker@5.1.0(vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))':
+  '@vitest/mocker@5.1.0(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.1.0
       estree-walker: 3.0.3
       magic-string: 1.4.3
     optionalDependencies:
-      vite: 8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
 
   '@vitest/spy@5.1.0': {}
 
@@ -7247,7 +7257,7 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
-  astro@7.4.7(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
+  astro@7.4.7(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
     dependencies:
       '@astrojs/compiler-rs': 0.5.3
       '@astrojs/internal-helpers': 0.13.1
@@ -7296,13 +7306,13 @@ snapshots:
       unifont: 1.0.3
       unstorage: 1.17.6
       verkit: 0.5.0
-      vite: 8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
-      vitefu: 1.1.3(vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      vite: 8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      vitefu: 1.1.3(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.6.7
     optionalDependencies:
-      sharp: 0.35.5(@types/node@26.2.0)
+      sharp: 0.35.5(@types/node@26.6.6)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -7382,7 +7392,7 @@ snapshots:
 
   buffer-image-size@0.6.4:
     dependencies:
-      '@types/node': 26.2.0
+      '@types/node': 26.6.6
 
   callsites@3.1.0: {}
 
@@ -8058,7 +8068,7 @@ snapshots:
 
   happy-dom@21.0.4:
     dependencies:
-      '@types/node': 26.2.0
+      '@types/node': 26.6.6
       '@types/whatwg-mimetype': 3.0.2
       '@types/ws': 8.18.1
       buffer-image-size: 0.6.4
@@ -8569,10 +8579,10 @@ snapshots:
 
   mimic-function@5.0.1: {}
 
-  miniflare@5.20261101.0-beta(@types/node@26.2.0):
+  miniflare@5.20261101.0-beta(@types/node@26.6.6):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      sharp: 0.35.5(@types/node@26.2.0)
+      sharp: 0.35.5(@types/node@26.6.6)
       undici: 7.30.1
       workerd: 1.20261101.1
       ws: 8.21.0
@@ -8582,10 +8592,10 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  miniflare@5.20261102.0-beta(@types/node@26.2.0):
+  miniflare@5.20261102.0-beta(@types/node@26.6.6):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      sharp: 0.35.5(@types/node@26.2.0)
+      sharp: 0.35.5(@types/node@26.6.6)
       undici: 7.30.1
       workerd: 1.20261102.1
       ws: 8.21.0
@@ -9282,7 +9292,7 @@ snapshots:
 
   semver@7.8.5: {}
 
-  sharp@0.35.5(@types/node@26.2.0):
+  sharp@0.35.5(@types/node@26.6.6):
     dependencies:
       '@img/colour': 1.1.0
       detect-libc: 2.1.2
@@ -9313,7 +9323,7 @@ snapshots:
       '@img/sharp-win32-arm64': 0.35.5
       '@img/sharp-win32-ia32': 0.35.5
       '@img/sharp-win32-x64': 0.35.5
-      '@types/node': 26.2.0
+      '@types/node': 26.6.6
 
   shebang-command@2.0.0:
     dependencies:
@@ -9669,6 +9679,8 @@ snapshots:
 
   undici-types@8.3.0: {}
 
+  undici-types@8.9.0: {}
+
   undici@6.27.0: {}
 
   undici@7.29.0: {}
@@ -9783,7 +9795,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@8.1.0(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
+  vite@8.1.0(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.7
@@ -9791,13 +9803,13 @@ snapshots:
       rolldown: 1.1.3
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 26.2.0
+      '@types/node': 26.6.6
       esbuild: 0.28.1
       fsevents: 2.3.3
       jiti: 2.6.1
       yaml: 2.9.0
 
-  vite@8.3.4(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
+  vite@8.3.4(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -9805,13 +9817,13 @@ snapshots:
       rolldown: 1.2.13
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 26.2.0
+      '@types/node': 26.6.6
       esbuild: 0.28.1
       fsevents: 2.3.3
       jiti: 2.6.1
       yaml: 2.9.0
 
-  vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
+  vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -9819,20 +9831,20 @@ snapshots:
       rolldown: 1.2.16
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 26.2.0
+      '@types/node': 26.6.6
       esbuild: 0.28.1
       fsevents: 2.3.3
       jiti: 2.6.1
       yaml: 2.9.0
 
-  vitefu@1.1.3(vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)):
+  vitefu@1.1.3(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)):
     optionalDependencies:
-      vite: 8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
 
-  vitest@5.1.0(@types/node@26.2.0)(@vitest/coverage-istanbul@5.1.0)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)):
+  vitest@5.1.0(@types/node@26.6.6)(@vitest/coverage-istanbul@5.1.0)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.1.0(vite@8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
+      '@vitest/mocker': 5.1.0(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -9843,10 +9855,10 @@ snapshots:
       tinybench: 6.2.2
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.3.5(@types/node@26.2.0)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
+      vite: 8.3.5(@types/node@26.6.6)(esbuild@0.28.1)(jiti@2.6.1)(yaml@2.9.0)
       why-is-node-running: 3.2.1
     optionalDependencies:
-      '@types/node': 26.2.0
+      '@types/node': 26.6.6
       '@vitest/coverage-istanbul': 5.1.0(vitest@5.1.0)
       happy-dom: 21.0.4
     transitivePeerDependencies:
@@ -9994,14 +10006,14 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261102.1
       '@cloudflare/workerd-windows-64': 1.20261102.1
 
-  wrangler@4.156.2(@types/node@26.2.0):
+  wrangler@4.156.2(@types/node@26.6.6):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.0
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261102.1)
       '@cspotcode/source-map-support': 0.8.1
       blake3-wasm: 2.1.5
       esbuild: 0.28.2
-      miniflare: 5.20261102.0-beta(@types/node@26.2.0)
+      miniflare: 5.20261102.0-beta(@types/node@26.6.6)
       path-to-regexp: 6.3.0
       unenv: 2.0.0-rc.24
       workerd: 1.20261102.1
