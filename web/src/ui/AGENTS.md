@@ -234,6 +234,18 @@ group is a single tab stop rather than one per swatch or tab.
   **No token is registered with `@property`**, and the docs contract rejects one: a registered property whose value
   is unset or invalid falls back to its `initial-value` rather than to the theme's, and a registered colour animates,
   so a theme switch would fade through intermediate colours instead of flipping.
+- **The page draws under the notch and keeps its content out of it.** The viewport meta in `BaseLayout.astro` carries
+  `viewport-fit=cover`, so on a notched phone or an iPad, installed as a web app or not, the background reaches every
+  edge and the safe-area insets stop being 0; with every inset at 0 (desktop, Android without a cutout) nothing
+  moves. The rule per element: one that keeps a distance from an edge takes `max(<that distance>, env(safe-area-inset-<edge>))`
+  (the `.wrap` gutter on the left and right, the footer's bottom padding, the consent preferences box's margins); one that is flush with an edge keeps its
+  position and takes the inset as inner padding, so its background still reaches the edge (the sticky header's
+  `padding-top`, the skip link, the consent bar, and the preferences sheet below 640px). The error pages subtract the
+  top and bottom insets from their `min-height` so they do not scroll for nothing. The Cell Tooltip is the one that
+  cannot read `env()` in script: `cell-tooltip.css` declares the insets as its `scroll-margin`, which resolves to
+  pixels, and `cell-tooltip.ts` reads them back as the floor of its 8 px viewport margin. A new element pinned to an
+  edge (`position: fixed` or `sticky`, a full-viewport overlay) takes its inset the same way; the docs contract pins
+  the meta and each file's inset, and there is exactly one viewport meta, in `BaseLayout`.
 - **The consent banner's own stylesheet is imported inside `@layer vendor`, ahead of ours.**
   [`styles/vendor/index.css`](./styles/vendor/index.css) imports `vanilla-cookieconsent`'s CSS with
   `layer(vendor)` and then [`styles/vendor/cookie-consent.css`](./styles/vendor/cookie-consent.css), so a rule there

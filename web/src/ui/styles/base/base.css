@@ -31,7 +31,8 @@
 	.wrap {
 		max-width: var(--max-width);
 		margin: 0 auto;
-		padding: 0 var(--page-padding);
+		padding: 0 max(var(--page-padding), env(safe-area-inset-right)) 0
+			max(var(--page-padding), env(safe-area-inset-left));
 	}
 	.link-action {
 		color: var(--text-dim);

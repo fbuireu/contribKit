@@ -2185,6 +2185,43 @@ describe("the web's code keeps the shapes the standards hold it to", () => {
 		expect(offenders).toEqual([]);
 	});
 
+	it("draws under the notch: viewport-fit=cover once, in BaseLayout, and an inset on everything pinned to an edge", () => {
+		const UI = "web/src/ui/";
+		const VIEWPORT_META = /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/;
+		const markup = walk({ dir: join(REPO, "web/src"), match: (path) => path.endsWith(".astro") });
+		const insets: Record<string, RegExp[]> = {
+			"components/core/header/header.css": [/padding-top: env\(safe-area-inset-top\)/],
+			"components/core/footer/footer.css": [/max\(2rem, env\(safe-area-inset-bottom\)\)/],
+			"styles/base/base.css": [
+				/max\(var\(--page-padding\), env\(safe-area-inset-right\)\)/,
+				/max\(var\(--page-padding\), env\(safe-area-inset-left\)\)/,
+			],
+			"styles/reset/reset.css": [
+				/calc\(0\.5rem \+ env\(safe-area-inset-top\)\)/,
+				/calc\(1rem \+ env\(safe-area-inset-left\)\)/,
+			],
+			"styles/vendor/cookie-consent.css": [
+				/padding: 0 env\(safe-area-inset-right\) env\(safe-area-inset-bottom\) env\(safe-area-inset-left\)/,
+				/#cc-main \.pm \{\s*padding: env\(safe-area-inset-top\) env\(safe-area-inset-right\)/,
+				/max\(1em, env\(safe-area-inset-top\)\)/,
+				/max\(1em, env\(safe-area-inset-bottom\)\)/,
+			],
+			"components/grid/cell-tooltip.css": [
+				/scroll-margin: env\(safe-area-inset-top\) env\(safe-area-inset-right\) 0 env\(safe-area-inset-left\)/,
+			],
+			"components/error/error-view.css": [/env\(safe-area-inset-top\)/, /env\(safe-area-inset-bottom\)/],
+		};
+		const missing = Object.entries(insets).flatMap(([file, patterns]) =>
+			patterns.filter((pattern) => !pattern.test(read(join(REPO, UI, file)))).map((pattern) => `${file}: ${pattern}`),
+		);
+
+		expect(VIEWPORT_META.test(read(join(REPO, UI, "components/core/layouts/BaseLayout.astro")))).toBe(true);
+		expect(markup.filter((path) => read(path).includes('name="viewport"')).map(relative)).toEqual([
+			"web/src/ui/components/core/layouts/BaseLayout.astro",
+		]);
+		expect(missing).toEqual([]);
+	});
+
 	it("wraps every .ts route's handler in the boundary that logs and answers SERVER_ERROR_MESSAGE", () => {
 		const endpoints = productionFiles().filter(
 			(path) =>
