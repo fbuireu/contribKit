@@ -1,3 +1,10 @@
+# [contribkit-web-v2.1.0](https://github.com/fbuireu/contribKit/compare/web-v2.0.9...web-v2.1.0) (2026-11-22)
+
+
+### Features
+
+* **contribkit-web:** draw edge to edge and keep the content out of the notch ([#198](https://github.com/fbuireu/contribKit/issues/198)) ([d4b7baa](https://github.com/fbuireu/contribKit/commit/d4b7baa6fa50d621652d86f1688a0f25ea1b09f8)), closes [#123](https://github.com/fbuireu/contribKit/issues/123)
+
 # [contribkit-web-v2.0.9](https://github.com/fbuireu/contribKit/compare/web-v2.0.8...web-v2.0.9) (2026-11-15)
 
 
