@@ -1,6 +1,7 @@
 .header {
 	position: sticky;
 	top: 0;
+	padding-top: env(safe-area-inset-top);
 	z-index: 100;
 	background: var(--header-background);
 	backdrop-filter: saturate(160%) blur(0.75rem);

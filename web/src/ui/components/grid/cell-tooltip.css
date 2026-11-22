@@ -3,6 +3,7 @@
 		position: fixed;
 		inset: auto;
 		margin: 0;
+		scroll-margin: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 		padding: 0.375rem 0.625rem;
 		border: 0.0625rem solid var(--border-strong);
 		border-radius: 0.375rem;

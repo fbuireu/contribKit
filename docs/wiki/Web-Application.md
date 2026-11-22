@@ -133,6 +133,10 @@ Both GA4 and Better Stack receive every event, and each only once its own consen
 
 ---
 
+## Notches and the home indicator
+
+The viewport meta in `BaseLayout.astro` carries `viewport-fit=cover`, so on a notched phone or an iPad the page, installed to the home screen (`display: standalone` in the manifest) or open in a browser, is drawn edge to edge. Everything pinned to an edge then takes its safe-area inset: the sticky header, the footer, the skip link, the consent banner and its preferences sheet, the Cell Tooltip, and the page's left and right gutter in landscape. An element that keeps a distance from an edge uses `max(<distance>, env(safe-area-inset-<edge>))`; one that is flush with an edge takes the inset as inner padding so its background still reaches the edge. With every inset at 0 the page looks as it did before. [The UI guide](https://github.com/fbuireu/contribKit/blob/main/web/src/ui/AGENTS.md) has the rule and where each one lives.
+
 ## See also
 
 - **[Architecture](Architecture)** · **[Fetching Contributions](Fetching-Contributions)** · **[SVG Rendering](SVG-Rendering)**

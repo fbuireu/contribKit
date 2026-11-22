@@ -5,12 +5,18 @@ import { ElementId } from "./dom-contract";
 
 const CELL_GAP = 8;
 const VIEWPORT_MARGIN = 8;
+const PX = /^-?\d+(\.\d+)?px$/;
 const DECIMAL_COUNT = /^\d+$/;
 
 const countFrom = (raw: string | undefined): number | null => {
 	if (raw === undefined || !DECIMAL_COUNT.test(raw)) return null;
 	const count = Number(raw);
 	return isCount(count) ? count : null;
+};
+
+const edgeClearance = (declared: string): number => {
+	const px = PX.test(declared) ? Number.parseFloat(declared) : 0;
+	return Math.max(VIEWPORT_MARGIN, px);
 };
 
 export function initCellTooltip(): void {
@@ -24,10 +30,14 @@ export function initCellTooltip(): void {
 		if (!activeCell) return;
 		const cellRect = activeCell.getBoundingClientRect();
 		const tooltipRect = tooltip.getBoundingClientRect();
+		const style = getComputedStyle(tooltip);
+		const clearTop = edgeClearance(style.scrollMarginTop);
+		const clearLeft = edgeClearance(style.scrollMarginLeft);
+		const clearRight = edgeClearance(style.scrollMarginRight);
 		let left = cellRect.left + cellRect.width / 2 - tooltipRect.width / 2;
 		let top = cellRect.top - tooltipRect.height - CELL_GAP;
-		left = Math.max(VIEWPORT_MARGIN, Math.min(left, globalThis.innerWidth - tooltipRect.width - VIEWPORT_MARGIN));
-		if (top < VIEWPORT_MARGIN) top = cellRect.bottom + CELL_GAP;
+		left = Math.max(clearLeft, Math.min(left, globalThis.innerWidth - tooltipRect.width - clearRight));
+		if (top < clearTop) top = cellRect.bottom + CELL_GAP;
 		tooltip.style.left = `${left}px`;
 		tooltip.style.top = `${top}px`;
 	}

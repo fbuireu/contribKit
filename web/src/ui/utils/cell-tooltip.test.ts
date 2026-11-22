@@ -170,6 +170,25 @@ describe("initCellTooltip", () => {
 		expect(tooltip.element.style.left).toBe("892px");
 	});
 
+	it("keeps clear of the safe-area insets the stylesheet declares, where they are wider than the margin", () => {
+		const tooltip = mountTooltip(
+			`<div id="left-cell" data-date="2024-03-15" data-count="1"></div><div id="right-cell" data-date="2024-03-16" data-count="1"></div><div id="top-cell" data-date="2024-03-17" data-count="1"></div>`,
+		);
+		tooltip.element.style.scrollMarginLeft = "59px";
+		tooltip.element.style.scrollMarginRight = "59px";
+		tooltip.element.style.scrollMarginTop = "59px";
+		initCellTooltip();
+
+		hover(place({ id: "left-cell", left: 0, top: 200 }));
+		expect(tooltip.element.style.left).toBe("59px");
+
+		hover(place({ id: "right-cell", left: 995, top: 200 }));
+		expect(tooltip.element.style.left).toBe("841px");
+
+		hover(place({ id: "top-cell", left: 100, top: 100 }));
+		expect(tooltip.element.style.top).toBe("118px");
+	});
+
 	it("hides once the pointer leaves the cell for something that is not one", () => {
 		const tooltip = mountTooltip(
 			`<div id="cell" data-date="2024-03-15" data-count="5"></div><p id="elsewhere">text</p>`,

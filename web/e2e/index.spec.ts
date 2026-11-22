@@ -41,6 +41,13 @@ test.describe("homepage", () => {
 		expect(await page.locator('meta[property="og:title"]').getAttribute("content")).toBe(await page.title());
 	});
 
+	test("opts into drawing under the notch, so the safe-area insets apply", async ({ page }) => {
+		await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
+			"content",
+			"width=device-width, initial-scale=1, viewport-fit=cover",
+		);
+	});
+
 	test("BaseLayout renders the page shell (lang, skip link, main, footer)", async ({ page }) => {
 		await expect(page.locator("html")).toHaveAttribute("lang", "en");
 		await expect(page.locator(`a.${ClassName.SkipLink}`)).toHaveAttribute("href", byId(ElementId.MainContent));

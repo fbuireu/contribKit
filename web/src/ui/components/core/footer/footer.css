@@ -1,6 +1,6 @@
 @scope (.footer) {
 	:scope {
-		padding: 3rem 0 2rem;
+		padding: 3rem 0 max(2rem, env(safe-area-inset-bottom));
 	}
 	.foot-top {
 		display: flex;

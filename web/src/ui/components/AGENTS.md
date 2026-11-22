@@ -125,6 +125,10 @@ Saturday of the current week and walks 371 days back from there, so it never sho
   needs script, it still needs the `href` underneath it. "get app" means the Android app: a web-install affordance
   such as `<install>` installs the **web** app this page's manifest describes, a second artefact, so it gets a label
   of its own rather than this one.
+- **The header, the footer and the skip link clear the safe-area insets.** The sticky header is flush with the top, so
+  it keeps `top: 0` and takes `padding-top: env(safe-area-inset-top)`, which lets its background run under the notch
+  while the 3.5rem row stays below it; the footer's bottom padding is `max(2rem, env(safe-area-inset-bottom))`. The
+  rule and the rest of the elements are in the [`ui/` guide](../AGENTS.md).
 - **The values this project declares that cross into the `is:inline` head scripts all go through `define:vars`.**
   An `is:inline` script cannot import, so the values are read in the frontmatter and injected: `BaseLayout` takes
   `COLOR_SCHEME_KEY` and `COLOR_SCHEME_META_SELECTOR` from [`header/theme-toggle.ts`](./core/header/theme-toggle.ts), `ThemeClass` from
