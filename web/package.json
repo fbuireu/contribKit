@@ -61,10 +61,10 @@
 		"check": "pnpm types && astro check"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "14.4.3",
+		"@astrojs/cloudflare": "14.4.9",
 		"@astrojs/react": "6.0.6",
-		"@astrojs/sitemap": "3.7.4",
-		"astro": "7.4.7",
+		"@astrojs/sitemap": "3.7.6",
+		"astro": "7.4.13",
 		"react": "19.2.8",
 		"react-dom": "19.2.8",
 		"react-email": "6.11.11",
@@ -72,7 +72,7 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "0.9.12",
-		"@astrojs/ts-plugin": "1.10.12",
+		"@astrojs/ts-plugin": "1.11.0",
 		"@biomejs/biome": "2.5.14",
 		"@playwright/test": "1.65.0",
 		"@semantic-release/changelog": "7.0.0",
