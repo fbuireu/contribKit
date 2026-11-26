@@ -22,7 +22,7 @@ export interface ContactMessageEmailProps {
 	site: string;
 }
 
-const GREENS = PALETTES.github.colors.map((color) => color.hex);
+const GREENS = PALETTES.github.colors.map((color) => color);
 const STRIP = [GREENS[1], GREENS[2], GREENS[3], GREENS[4], GREENS[3]] as const;
 const BRAND = GREENS[2];
 const BRAND_ON_DARK = GREENS[4];

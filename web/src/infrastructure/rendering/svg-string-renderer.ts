@@ -7,7 +7,7 @@ import {
 	SVG_WEEKDAY_LABEL_FONT_SIZE,
 } from "@domain/services/svg-geometry";
 import type { SvgRenderer } from "@domain/services/types";
-import { DEFAULT_BACKGROUND_COLOR } from "@domain/value-objects/palette";
+import { DEFAULT_BACKGROUND_COLOR, type EmbedBackground } from "@domain/value-objects/embed-background";
 
 const LABEL_FONT_FAMILY = "ui-monospace,monospace";
 const MONTH_LABEL_CLASS = "month";
@@ -23,7 +23,7 @@ const CONTRASTING_CHANNEL = "calc(255 * clamp(0,(128 - r) * 1000,1))";
 const IS_LIGHT = "clamp(0,(r - 128) * 1000,1)";
 
 interface LabelFillAgainstParams {
-	background: string;
+	background: EmbedBackground;
 	alphaOnDark: number;
 }
 
@@ -35,13 +35,13 @@ const labelFillAgainst = ({ background, alphaOnDark }: LabelFillAgainstParams): 
 
 const LIGHT_SCHEME_LABEL_STYLE = `@media (prefers-color-scheme:light){.${MONTH_LABEL_CLASS}{fill:${MONTH_LABEL_FILL_ON_LIGHT}}.${WEEKDAY_LABEL_CLASS}{fill:${WEEKDAY_LABEL_FILL_ON_LIGHT}}}`;
 
-const paintedLabelStyleFor = (background: string): string => {
+const paintedLabelStyleFor = (background: EmbedBackground): string => {
 	const month = labelFillAgainst({ background, alphaOnDark: MONTH_LABEL_ALPHA_ON_DARK });
 	const weekday = labelFillAgainst({ background, alphaOnDark: WEEKDAY_LABEL_ALPHA_ON_DARK });
 	return `.${MONTH_LABEL_CLASS}{fill:${month}}.${WEEKDAY_LABEL_CLASS}{fill:${weekday}}`;
 };
 
-const labelStyleFor = (background: string): string =>
+const labelStyleFor = (background: EmbedBackground): string =>
 	background === DEFAULT_BACKGROUND_COLOR ? LIGHT_SCHEME_LABEL_STYLE : paintedLabelStyleFor(background);
 
 export const svgStringRenderer: SvgRenderer = ({ days, options }): string => {
@@ -81,7 +81,7 @@ export const svgStringRenderer: SvgRenderer = ({ days, options }): string => {
 				y,
 				size: layout.size,
 				radius: layout.radius,
-				fill: palette.colors[level].hex,
+				fill: palette.colors[level],
 				level,
 			}),
 		);

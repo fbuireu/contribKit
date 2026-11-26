@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isFailure } from "../failures/failure";
-import { dayOfMonthOf, isIsoDate, isoDateOf, monthOf, parseIsoDate } from "./iso-date";
+import { dayOfMonthOf, isIsoDate, isoDateOf, monthOf, parseIsoDate, yearEndOf, yearStartOf } from "./iso-date";
 
 describe("parseIsoDate", () => {
 	it("accepts a zero-padded calendar date, which is the only shape the grid can key on", () => {
@@ -31,6 +31,21 @@ describe("isoDateOf", () => {
 	it("zero-pads, so lexicographic order is calendar order", () => {
 		expect(isoDateOf(new Date(2024, 5, 9))).toBe("2024-06-09");
 		expect(isoDateOf(new Date(2024, 5, 9)) < isoDateOf(new Date(2024, 5, 10))).toBe(true);
+	});
+});
+
+describe("yearStartOf and yearEndOf", () => {
+	it("name the first and the last day of a Year, leap or not", () => {
+		expect(yearStartOf(2024)).toBe("2024-01-01");
+		expect(yearEndOf(2024)).toBe("2024-12-31");
+		expect(yearStartOf(2005)).toBe("2005-01-01");
+		expect(yearEndOf(2023)).toBe("2023-12-31");
+	});
+
+	it("are dates the guard accepts, so they key the same map a parsed date does", () => {
+		expect(isIsoDate(yearStartOf(2028))).toBe(true);
+		expect(isIsoDate(yearEndOf(2028))).toBe(true);
+		expect(yearStartOf(2028) < yearEndOf(2028)).toBe(true);
 	});
 });
 

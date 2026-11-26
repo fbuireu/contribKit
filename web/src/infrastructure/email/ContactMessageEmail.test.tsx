@@ -1,13 +1,20 @@
-import type { ContactMessage } from "@domain/value-objects/contact-message";
+import { isFailure } from "@domain/failures/failure";
+import { type ContactMessage, type EmailAddress, parseEmailAddress } from "@domain/value-objects/contact-message";
 import { PALETTES } from "@domain/value-objects/palette";
 import { render } from "react-email";
 import { describe, expect, it } from "vitest";
 import { ContactMessageEmail } from "./ContactMessageEmail";
 
+const emailOf = (raw: string): EmailAddress => {
+	const parsed = parseEmailAddress(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not an EmailAddress: ${raw}`);
+	return parsed;
+};
+
 const message = (overrides: Partial<ContactMessage> = {}): ContactMessage => ({
 	_tag: "ContactMessage",
 	name: "Ada",
-	email: "ada@example.com",
+	email: emailOf("ada@example.com"),
 	body: "please add a palette",
 	...overrides,
 });
@@ -46,7 +53,7 @@ describe("ContactMessageEmail", () => {
 	});
 
 	it("percent-encodes the address in both mailto links, so one that passes the address rule adds no header to the reply", async () => {
-		const document = await html({ email: "ada?bcc=victim%40evil.com&x=@example.com" });
+		const document = await html({ email: emailOf("ada?bcc=victim%40evil.com&x=@example.com") });
 		const links = [...document.matchAll(/href="(mailto:[^"]*)"/g)].map(([, href]) => href);
 
 		expect(links).toHaveLength(2);
@@ -58,8 +65,8 @@ describe("ContactMessageEmail", () => {
 	});
 
 	it("keeps a plain address legible in the links, and a comma from adding a second recipient", async () => {
-		const plain = await html({ email: "ada@example.com" });
-		const listed = await html({ email: "ada,evil@example.com" });
+		const plain = await html({ email: emailOf("ada@example.com") });
+		const listed = await html({ email: emailOf("ada,evil@example.com") });
 
 		expect(plain).toContain('href="mailto:ada@example.com"');
 		expect(plain).toContain('href="mailto:ada@example.com?subject=Re%3A%20your%20message%20to%20ContribKit"');
@@ -93,7 +100,7 @@ describe("ContactMessageEmail", () => {
 		const document = await html();
 
 		for (const color of PALETTES.github.colors.slice(1)) {
-			expect(document.toLowerCase()).toContain(color.hex.toLowerCase());
+			expect(document.toLowerCase()).toContain(color.toLowerCase());
 		}
 	});
 

@@ -14,7 +14,7 @@ describe("parseColor", () => {
 		const withHash = parseColor("#0d1117");
 		const without = parseColor("0d1117");
 
-		expect(isColor(withHash) && isColor(without) && withHash.hex === without.hex).toBe(true);
+		expect(isColor(withHash) && isColor(without) && withHash === without).toBe(true);
 	});
 
 	it("rejects anything that could break out of a fill attribute", () => {
@@ -26,12 +26,26 @@ describe("parseColor", () => {
 	});
 });
 
+describe("isColor", () => {
+	it("holds a normalised colour only: the leading hash is part of the value", () => {
+		expect(isColor("#0d1117")).toBe(true);
+		expect(isColor("0d1117")).toBe(false);
+		expect(isColor("#0d1117 ")).toBe(false);
+	});
+
+	it("refuses a value that is not text", () => {
+		for (const value of [null, undefined, 0, {}, { _tag: "Color", hex: "#0d1117" }]) {
+			expect(isColor(value)).toBe(false);
+		}
+	});
+});
+
 describe("every shipped Palette colour is a Color", () => {
 	it("parses shared/palettes.json at module load, so a malformed token cannot reach an SVG", () => {
 		for (const palette of Object.values(PALETTES)) {
 			for (const color of palette.colors) {
 				expect(isColor(color), `${palette.key}: ${JSON.stringify(color)}`).toBe(true);
-				expect(color.hex).toMatch(/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/);
+				expect(color).toMatch(/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/);
 			}
 		}
 	});

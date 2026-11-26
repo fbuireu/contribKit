@@ -58,7 +58,7 @@ export function renderCalendarString({
 				y,
 				size: layout.size,
 				radius: layout.radius,
-				fill: palette[level].hex,
+				fill: palette[level],
 				level,
 				attributes,
 			}),

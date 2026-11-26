@@ -327,9 +327,9 @@ describe("renderCustomizer over a full Customizer panel", () => {
 		const squares = document.querySelectorAll<HTMLElement>(Selector.LegendSquares);
 		const colours = PALETTES.nord.colors;
 
-		expect(squares[0].style.background).toBe(colours[0].hex);
-		expect(squares[4].style.background).toBe(colours[4].hex);
-		expect(squares[5].style.background).toBe(colours[0].hex);
+		expect(squares[0].style.background).toBe(colours[0]);
+		expect(squares[4].style.background).toBe(colours[4]);
+		expect(squares[5].style.background).toBe(colours[0]);
 	});
 
 	it("skips every node the page does not carry rather than throwing", () => {
@@ -344,7 +344,7 @@ describe("renderHomeScreenWidget", () => {
 		document.body.innerHTML = `${CUSTOMIZER_DOM}<div id="${ElementId.PhoneScreen}"></div><div id="${ElementId.HomeScreenWidgetMiniGrid}"></div><span id="${ElementId.HomeScreenWidgetUsername}"></span>`;
 		renderHomeScreenWidget();
 
-		expect(byId(ElementId.PhoneScreen).style.getPropertyValue("--wp-peak")).toBe(PALETTES.nord.colors[4].hex);
+		expect(byId(ElementId.PhoneScreen).style.getPropertyValue("--wp-peak")).toBe(PALETTES.nord.colors[4]);
 		expect(byId(ElementId.HomeScreenWidgetMiniGrid).innerHTML).toContain("<svg");
 		expect(byId(ElementId.HomeScreenWidgetUsername).textContent).toBe("torvalds");
 	});
@@ -481,7 +481,7 @@ describe("renderExportPreview on the SVG tab", () => {
 		const code = $(ExportSelector.CodePreview).textContent ?? "";
 
 		expect(code).toContain("<polygon");
-		expect(code).toContain(PALETTES.nord.colors[2].hex);
+		expect(code).toContain(PALETTES.nord.colors[2]);
 	});
 
 	it("names the file after the viewer", () => {

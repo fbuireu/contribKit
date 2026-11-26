@@ -241,8 +241,8 @@ describe("the SVG preview shows what the copy button copies", () => {
 	it("draws the visitor's Palette, not the default one", () => {
 		const text = lineTexts(buildSvgLines(copiedSvg({ year: 2024, palette: NORD }))).join("");
 
-		expect(text).toContain(NORD[1].hex);
-		expect(text).not.toContain(GITHUB[1].hex);
+		expect(text).toContain(NORD[1]);
+		expect(text).not.toContain(GITHUB[1]);
 	});
 
 	it("squares a square, rather than rounding it like the default", () => {

@@ -85,7 +85,7 @@ and `Telemetry.astro` cannot import at all.
   through the domain's `isCount`, so an empty, signed, fractional or non-numeric value is an unknown Count
   (`Contributions unknown`), never `NaN` or a truncated guess.
 - **State is module-level, in [`state.ts`](./utils/state.ts)**: two variables, `days` and `username`, behind getters and
-  setters. `days` is readonly in both directions, and `username` is the `Username` value object, or `null` until the
+  setters. `days` is readonly in both directions, and `username` is the `Username` brand, or `null` until the
   page holds a valid one: an SSR input that names none (`?user=foo_bar`) leaves it `null`, and the renderers that need
   one (`renderExportPreview`, the Home Screen Widget's name) skip. There is no store and no framework. Anything needing
   the current grid calls `getDays()`; anything changing it calls `setDays()` and then a `render*` function. Nothing

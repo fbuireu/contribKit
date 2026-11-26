@@ -92,8 +92,8 @@ and the client-side preview draw identical cells at identical positions. What is
   `SVG_DEFAULT_CELL_SIZE`, `SVG_DEFAULT_CELL_GAP` and `showLabels: true`.
 - **The background `<rect>` is emitted only when `background !== DEFAULT_BACKGROUND_COLOR`** (`"transparent"`). A
   transparent embed is the absence of a rect, not a rect with alpha, which is what lets a README show through.
-  `background` goes into `fill` verbatim, so the caller validates it: the SVG route through
-  `EMBED_BACKGROUND_PATTERN`.
+  `background` goes into `fill` verbatim, so it is an `EmbedBackground`, which only `isEmbedBackground` builds: the SVG
+  route refines its query parameter with it.
 - **Cells carry no attributes.** `renderCellShape` is called without the optional `attributes`, so the server's SVG
   has no `data-date` or `data-count`: only the client-side preview adds them, for the Cell Tooltip.
 - The root element carries `role="img"` and a fixed `aria-label`.

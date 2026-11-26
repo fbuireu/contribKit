@@ -43,7 +43,7 @@ const asSaved = (raw?: string | null): string | undefined => {
 	const trimmed = raw?.trim();
 	if (!trimmed) return undefined;
 	const parsed = parseUsername(trimmed);
-	return isUsername(parsed) ? parsed.value : undefined;
+	return isUsername(parsed) ? parsed : undefined;
 };
 
 export const resolveViewerIdentity = ({

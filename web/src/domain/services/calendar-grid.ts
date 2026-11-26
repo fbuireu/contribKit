@@ -1,7 +1,7 @@
 import { emptyDay } from "../entities/contribution-day";
 import type { ContributionDay } from "../entities/types";
 import type { ContributionLevel } from "../value-objects/contribution-level";
-import type { IsoDate } from "../value-objects/iso-date";
+import { type IsoDate, yearStartOf } from "../value-objects/iso-date";
 import { addDays, DAYS_PER_WEEK, GRID_CELL_COUNT, getWeekday, leadingDaysFor, weeksFor } from "./dates";
 
 interface ContributionDayValues {
@@ -34,7 +34,7 @@ export interface BuildGridFromApiParams {
 }
 
 export const buildGridFromApi = ({ days, year }: BuildGridFromApiParams): readonly ContributionDay[] => {
-	const yearStart = `${year}-01-01` as IsoDate;
+	const yearStart = yearStartOf(year);
 	return walkFrom({
 		start: addDays({ iso: yearStart, days: -leadingDaysFor(year) }),
 		map: byDate(days),

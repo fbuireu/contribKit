@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { isFailure } from "../failures/failure";
 import {
 	type ContactMessage,
+	isEmailAddress,
 	MAX_CONTACT_BODY_LENGTH,
 	MAX_CONTACT_EMAIL_LENGTH,
 	MAX_CONTACT_NAME_LENGTH,
 	MIN_CONTACT_BODY_LENGTH,
 	parseContactMessage,
+	parseEmailAddress,
 	validateContactBody,
 	validateContactEmail,
 	validateContactName,
@@ -21,7 +23,7 @@ const parsed = (message: Parsed): ContactMessage => {
 	return message as ContactMessage;
 };
 
-const fieldOf = (value: Parsed | null): string => {
+const fieldOf = (value: unknown): string => {
 	expect(isFailure(value)).toBe(true);
 	return (value as { field: string }).field;
 };
@@ -135,5 +137,21 @@ describe("the per-field rules", () => {
 
 		expect(fieldOf(everythingWrong)).toBe("name");
 		expect(fieldOf(nameFine)).toBe("email");
+	});
+});
+
+describe("EmailAddress", () => {
+	it("is held by an address that passes the rule at the length limit, and by nothing untrimmed", () => {
+		expect(isEmailAddress("ada@example.com")).toBe(true);
+		expect(isEmailAddress(" ada@example.com")).toBe(false);
+		expect(isEmailAddress("ada@example.com\r\nBcc: victim@example.com")).toBe(false);
+		expect(isEmailAddress(`${"a".repeat(MAX_CONTACT_EMAIL_LENGTH)}@example.com`)).toBe(false);
+		expect(isEmailAddress(null)).toBe(false);
+	});
+
+	it("is parsed from a trimmed field, and a refusal names the email", () => {
+		expect(parseEmailAddress("  ada@example.com ")).toBe("ada@example.com");
+		expect(fieldOf(parseEmailAddress("ada"))).toBe("email");
+		expect(fieldOf(parseEmailAddress("   "))).toBe("email");
 	});
 });

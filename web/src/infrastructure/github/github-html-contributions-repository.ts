@@ -87,7 +87,7 @@ const retryAfterFrom = (header: string | null): number | null => {
 
 export const githubHtmlContributionRepository: ContributionRepository = {
 	async fetchCalendar({ username, year }: FetchCalendarParams): Promise<ContributionCalendar | Failure> {
-		const url = buildUrl({ username: username.value, year });
+		const url = buildUrl({ username, year });
 
 		let response: Response;
 		try {
@@ -100,7 +100,7 @@ export const githubHtmlContributionRepository: ContributionRepository = {
 					Accept: "text/html, */*",
 					"Accept-Language": "en-US,en;q=0.9",
 					"X-Requested-With": "XMLHttpRequest",
-					Referer: `https://github.com/${encodeURIComponent(username.value)}`,
+					Referer: `https://github.com/${encodeURIComponent(username)}`,
 				},
 			});
 		} catch (error) {

@@ -3,7 +3,9 @@ import type { ContributionCalendar, ContributionDay } from "@domain/entities/typ
 import { isFailure } from "@domain/failures/failure";
 import { WEEKDAY_LABELS } from "@domain/value-objects/calendar-labels";
 import type { CellShape } from "@domain/value-objects/cell-shape";
+import { DEFAULT_BACKGROUND_COLOR, embedBackgroundOrThrow } from "@domain/value-objects/embed-background";
 import { DEFAULT_PALETTE_KEY, paletteByKey } from "@domain/value-objects/palette";
+import { parseUsername, type Username } from "@domain/value-objects/username";
 import { describe, expect, it } from "vitest";
 import { svgStringRenderer } from "./svg-string-renderer";
 
@@ -13,8 +15,14 @@ const day = (params: ContributionDayParams): ContributionDay => {
 	return built;
 };
 
+const usernameOf = (raw: string): Username => {
+	const parsed = parseUsername(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not a Username: ${raw}`);
+	return parsed;
+};
+
 const calendar: ContributionCalendar = {
-	username: { _tag: "Username", value: "torvalds" },
+	username: usernameOf("torvalds"),
 	year: null,
 	days: Array.from({ length: 371 }, (_, index) => day({ date: "2024-01-01", level: index % 5, count: index % 5 })),
 	totalContributions: 100,
@@ -28,7 +36,10 @@ interface RenderParams {
 }
 
 const render = ({ shape, overrides = {} }: RenderParams): string =>
-	svgStringRenderer({ days: calendar.days, options: { palette, shape, background: "transparent", ...overrides } });
+	svgStringRenderer({
+		days: calendar.days,
+		options: { palette, shape, background: DEFAULT_BACKGROUND_COLOR, ...overrides },
+	});
 
 describe("svgStringRenderer", () => {
 	it("produces an <svg> root with a viewBox", () => {
@@ -53,7 +64,7 @@ describe("svgStringRenderer", () => {
 	});
 
 	it("paints a background rect when not transparent, and none when it is", () => {
-		const painted = render({ shape: "square", overrides: { background: "#101010" } });
+		const painted = render({ shape: "square", overrides: { background: embedBackgroundOrThrow("#101010") } });
 
 		expect(painted).toMatch(/<rect width="[\d.]+" height="[\d.]+" fill="#101010"\/>/);
 		expect(render({ shape: "square" })).not.toContain('<rect width="');
@@ -102,7 +113,7 @@ describe("the labels of an SVG on a transparent Background", () => {
 
 describe("the labels of an SVG on a painted Background", () => {
 	it("follow the Background and not the viewer's scheme, since the Background is known", () => {
-		const svg = render({ shape: "square", overrides: { background: "#101010" } });
+		const svg = render({ shape: "square", overrides: { background: embedBackgroundOrThrow("#101010") } });
 
 		expect(svg).not.toContain("prefers-color-scheme");
 		const grey = "lch(from #101010 l 0 0)";
@@ -114,7 +125,7 @@ describe("the labels of an SVG on a painted Background", () => {
 	});
 
 	it("keep the light fill they always had where a renderer reads no stylesheet", () => {
-		const svg = render({ shape: "square", overrides: { background: "white" } });
+		const svg = render({ shape: "square", overrides: { background: embedBackgroundOrThrow("white") } });
 
 		expect(svg).toContain(".month{fill:rgb(from lch(from white l 0 0) ");
 		expect(svg).toMatch(/<text [^>]*fill="rgba\(255,255,255,0.45\)"/);

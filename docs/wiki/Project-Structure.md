@@ -23,7 +23,7 @@ ContribKit/
 
 ```
 domain/
-  value-objects/   Username, Year, ContributionLevel, Palette, CellShape, Color, IsoDate, Embed, ContactMessage, calendar-labels
+  value-objects/   Username, Year, ContributionLevel, Palette, CellShape, Color, IsoDate, Embed, EmbedBackground, ContactMessage (with EmailAddress), calendar-labels
   entities/        ContributionDay, ContributionCalendar (types.ts)
   repositories/    ContributionRepository, ContactMessageRepository (interfaces only)
   services/        calendar-grid, svg-geometry, cell-shapes, dates, contribution-stats, SvgRenderer type

@@ -307,7 +307,7 @@ type Failure =
   | { kind: "Delivery"; message: string };
 ```
 
-`username` is the `Username` value object, not a string, and every field is `readonly` in the source, [`domain/failures/failure.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/failures/failure.ts).
+`username` is the `Username` value object, a branded string that only `parseUsername` hands out, and every field is `readonly` in the source, [`domain/failures/failure.ts`](https://github.com/fbuireu/contribKit/blob/main/web/src/domain/failures/failure.ts).
 
 **The exception** is a deployment fault, not a request's: the contact repository throws when the `CONTACT_EMAIL` binding is absent. Each route also wraps its handler in a boundary that catches anything thrown, logs it and answers a `no-store` 500 in the route's own content type, and the landing page renders `500.astro` for the same reason.
 

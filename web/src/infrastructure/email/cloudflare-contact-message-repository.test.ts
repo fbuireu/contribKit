@@ -25,17 +25,24 @@ vi.mock("cloudflare:email", () => ({
 	},
 }));
 
-import type { ContactMessage } from "@domain/value-objects/contact-message";
+import { isFailure } from "@domain/failures/failure";
+import { type ContactMessage, type EmailAddress, parseEmailAddress } from "@domain/value-objects/contact-message";
 import { CONTACT_SENDER, cloudflareContactMessageRepository } from "./cloudflare-contact-message-repository";
 
 const DESTINATION = "maintainer@example.com";
 
 const repository = cloudflareContactMessageRepository(DESTINATION);
 
+const emailOf = (raw: string): EmailAddress => {
+	const parsed = parseEmailAddress(raw);
+	if (isFailure(parsed)) throw new Error(`fixture is not an EmailAddress: ${raw}`);
+	return parsed;
+};
+
 const message = (overrides: Partial<ContactMessage> = {}): ContactMessage => ({
 	_tag: "ContactMessage",
 	name: "Ada",
-	email: "ada@example.com",
+	email: emailOf("ada@example.com"),
 	body: "a message long enough to send",
 	...overrides,
 });

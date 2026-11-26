@@ -49,7 +49,7 @@ export function generateMiniGrid({ palette, liveDays }: GenerateMiniGridParams):
 	for (let weekIndex = 0; weekIndex < weekCount; weekIndex++) {
 		for (let dayIndex = 0; dayIndex < DAYS_PER_WEEK; dayIndex++) {
 			const level = levels[weekIndex * DAYS_PER_WEEK + dayIndex];
-			svg += `<rect x="${weekIndex * STEP}" y="${dayIndex * STEP}" width="${CELL_SIZE}" height="${CELL_SIZE}" rx="1" fill="${palette[level].hex}"/>`;
+			svg += `<rect x="${weekIndex * STEP}" y="${dayIndex * STEP}" width="${CELL_SIZE}" height="${CELL_SIZE}" rx="1" fill="${palette[level]}"/>`;
 		}
 	}
 	return `${svg}</svg>`;

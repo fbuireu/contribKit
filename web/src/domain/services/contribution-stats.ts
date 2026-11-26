@@ -1,5 +1,5 @@
 import type { ContributionDay } from "../entities/types";
-import type { IsoDate } from "../value-objects/iso-date";
+import { type IsoDate, yearEndOf, yearStartOf } from "../value-objects/iso-date";
 
 export interface ContributionStats {
 	readonly totalContributions: number | null;
@@ -42,8 +42,8 @@ export function computeContributionStats({ days, year, today }: ComputeContribut
 			if (streak > longestStreak) longestStreak = streak;
 		} else streak = 0;
 	}
-	const yearStart = `${year}-01-01` as IsoDate;
-	const yearEnd = `${year}-12-31` as IsoDate;
+	const yearStart = yearStartOf(year);
+	const yearEnd = yearEndOf(year);
 	const anchor = yearEnd < today ? yearEnd : today;
 	let index = sorted.length - 1;
 	while (index >= 0) {

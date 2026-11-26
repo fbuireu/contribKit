@@ -1,5 +1,6 @@
 import { type CellShape, DEFAULT_CELL_SHAPE } from "./cell-shape";
-import { DEFAULT_BACKGROUND_COLOR, DEFAULT_PALETTE_KEY } from "./palette";
+import { DEFAULT_BACKGROUND_COLOR, type EmbedBackground } from "./embed-background";
+import { DEFAULT_PALETTE_KEY } from "./palette";
 import type { Username } from "./username";
 
 const EMBED_ORIGIN = "https://contribkit.app";
@@ -7,8 +8,6 @@ const EMBED_EXTENSION = ".svg";
 const EMBED_SEGMENT = "user";
 
 export const EMBED_ROUTE = /^\/user\/[^/]+\.svg$/;
-
-export const EMBED_BACKGROUND_PATTERN = /^(transparent|#[0-9a-fA-F]{3,8}|[a-zA-Z]{1,30})$/;
 
 export const EmbedParam = {
 	Palette: "palette",
@@ -19,7 +18,7 @@ export const EmbedParam = {
 export interface EmbedQuery {
 	readonly palette: string;
 	readonly shape: string;
-	readonly background: string;
+	readonly background: EmbedBackground;
 }
 
 export const DEFAULT_EMBED_QUERY: EmbedQuery = {
@@ -35,7 +34,7 @@ export interface BuildEmbedUrlParams {
 }
 
 const embedPathFor = (username: Username): string =>
-	`/${EMBED_SEGMENT}/${encodeURIComponent(username.value)}${EMBED_EXTENSION}`;
+	`/${EMBED_SEGMENT}/${encodeURIComponent(username)}${EMBED_EXTENSION}`;
 
 type EmbedQueryEntry = readonly [name: string, value: string, fallback: string];
 

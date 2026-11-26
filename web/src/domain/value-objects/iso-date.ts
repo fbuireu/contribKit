@@ -28,6 +28,10 @@ export const parseIsoDate = (raw: string): IsoDate | Failure =>
 export const isoDateOf = (date: Date): IsoDate =>
 	`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(DATE_DIGITS, "0")}-${String(date.getDate()).padStart(DATE_DIGITS, "0")}` as IsoDate;
 
+export const yearStartOf = (year: number): IsoDate => isoDateOf(new Date(`${year}-01-01T12:00:00`));
+
+export const yearEndOf = (year: number): IsoDate => isoDateOf(new Date(`${year}-12-31T12:00:00`));
+
 export const monthOf = (date: IsoDate): number => Number.parseInt(date.slice(MONTH_START, MONTH_END), 10);
 
 export const dayOfMonthOf = (date: IsoDate): number => Number.parseInt(date.slice(DAY_START, DAY_END), 10);

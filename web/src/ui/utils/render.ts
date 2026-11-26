@@ -67,12 +67,12 @@ export const getActiveExportTab = (): ExportFormatKey | null => {
 export function renderHomeScreenWidget(): void {
 	const palette = getActivePalette().colors;
 	const phoneScreen = document.getElementById(ElementId.PhoneScreen);
-	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4].hex);
+	if (phoneScreen) phoneScreen.style.setProperty("--wp-peak", palette[4]);
 	const homeScreenWidgetGrid = document.getElementById(ElementId.HomeScreenWidgetMiniGrid);
 	if (homeScreenWidgetGrid) homeScreenWidgetGrid.innerHTML = generateMiniGrid({ palette, liveDays: getDays() });
 	const homeScreenWidgetUsername = document.getElementById(ElementId.HomeScreenWidgetUsername);
 	const username = getUsername();
-	if (homeScreenWidgetUsername && username) homeScreenWidgetUsername.textContent = username.value;
+	if (homeScreenWidgetUsername && username) homeScreenWidgetUsername.textContent = username;
 }
 
 export function renderCustomizer(): void {
@@ -92,7 +92,7 @@ export function renderCustomizer(): void {
 	if (heroGrid)
 		heroGrid.innerHTML = renderCalendarString({ days, palette, shape, ...HERO_GRID_GEOMETRY, showLabels: true });
 	document.querySelectorAll<HTMLElement>(Selector.LegendSquares).forEach((square, index) => {
-		square.style.background = (palette[index] ?? palette[0]).hex;
+		square.style.background = palette[index] ?? palette[0];
 	});
 	const paletteLabelEl = document.getElementById(ElementId.CustomPaletteLabel);
 	if (paletteLabelEl) paletteLabelEl.textContent = getActivePalette().key;
@@ -135,7 +135,7 @@ export function renderExportPreview(): void {
 		card.appendChild(content);
 		const tag = document.createElement("div");
 		tag.className = `${ClassName.PreviewTag} mono`;
-		tag.textContent = `${username.value}.png`;
+		tag.textContent = `${username}.png`;
 		card.appendChild(tag);
 	} else {
 		card.classList.add(ClassName.CodePreview);
@@ -165,7 +165,7 @@ export function renderExportPreview(): void {
 		card.appendChild(copyButton);
 		const tag = document.createElement("div");
 		tag.className = `${ClassName.PreviewTag} mono`;
-		tag.textContent = isSvgTab ? `${username.value}.svg` : "README.md";
+		tag.textContent = isSvgTab ? `${username}.svg` : "README.md";
 		card.appendChild(tag);
 	}
 	preview.appendChild(card);

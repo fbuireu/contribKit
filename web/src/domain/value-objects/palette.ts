@@ -27,6 +27,5 @@ export const PALETTES: Readonly<Record<string, Palette>> = Object.fromEntries(
 );
 
 export const DEFAULT_PALETTE_KEY = PALETTES.github.key;
-export const DEFAULT_BACKGROUND_COLOR = "transparent";
 
 export const paletteByKey = (key: string): Palette => PALETTES[key] ?? PALETTES[DEFAULT_PALETTE_KEY];

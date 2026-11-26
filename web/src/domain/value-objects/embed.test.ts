@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isFailure } from "../failures/failure";
 import { CellShape, DEFAULT_CELL_SHAPE } from "./cell-shape";
-import { buildEmbedUrl, EMBED_BACKGROUND_PATTERN, EMBED_ROUTE, EmbedParam } from "./embed";
+import { buildEmbedUrl, EMBED_ROUTE, EmbedParam } from "./embed";
 import { DEFAULT_PALETTE_KEY } from "./palette";
 import { parseUsername, type Username } from "./username";
 
@@ -76,16 +76,5 @@ describe("buildEmbedUrl", () => {
 		const url = buildEmbedUrl({ username: usernameOf("torvalds"), palette: "nord", shape: "hex" });
 
 		expect(url).not.toContain(EmbedParam.Background);
-	});
-});
-
-describe("EMBED_BACKGROUND_PATTERN", () => {
-	it("accepts what the SVG route may be handed, and nothing that could break out of an attribute", () => {
-		for (const accepted of ["transparent", "#0d1117", "#fff", "#0d1117ff", "rebeccapurple"]) {
-			expect(EMBED_BACKGROUND_PATTERN.test(accepted), accepted).toBe(true);
-		}
-		for (const rejected of ['"', "'", "<script>", '#0d1117" onload=x', "url(evil)", ""]) {
-			expect(EMBED_BACKGROUND_PATTERN.test(rejected), rejected).toBe(false);
-		}
 	});
 });

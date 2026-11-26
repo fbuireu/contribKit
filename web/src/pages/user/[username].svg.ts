@@ -10,7 +10,8 @@ import {
 import { isFailure } from "@domain/failures/failure";
 import { buildRollingGrid } from "@domain/services/calendar-grid";
 import { type CellShape, DEFAULT_CELL_SHAPE, isCellShape } from "@domain/value-objects/cell-shape";
-import { DEFAULT_EMBED_QUERY, EMBED_BACKGROUND_PATTERN, EmbedParam } from "@domain/value-objects/embed";
+import { DEFAULT_EMBED_QUERY, EmbedParam } from "@domain/value-objects/embed";
+import { isEmbedBackground } from "@domain/value-objects/embed-background";
 import { paletteByKey } from "@domain/value-objects/palette";
 import { parseUsername } from "@domain/value-objects/username";
 import { logger } from "@infrastructure/logging/logger";
@@ -24,7 +25,7 @@ export const prerender = false;
 const embedQuerySchema = z.object({
 	[EmbedParam.Palette]: z.string().catch(DEFAULT_EMBED_QUERY.palette),
 	[EmbedParam.Shape]: z.string().catch(DEFAULT_EMBED_QUERY.shape),
-	[EmbedParam.Background]: z.string().regex(EMBED_BACKGROUND_PATTERN).catch(DEFAULT_EMBED_QUERY.background),
+	[EmbedParam.Background]: z.string().refine(isEmbedBackground).catch(DEFAULT_EMBED_QUERY.background),
 });
 
 const handle: APIRoute = async ({ params, url }): Promise<Response> => {
@@ -41,7 +42,7 @@ const handle: APIRoute = async ({ params, url }): Promise<Response> => {
 		const status = statusFor(calendar);
 		logContributionsFailure({
 			logger,
-			username: username.value,
+			username,
 			kind: calendar.kind,
 			reason: reasonFor(calendar),
 			status,

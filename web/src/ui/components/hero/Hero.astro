@@ -123,7 +123,7 @@ const { heroSVG, stats, palette, username, thisYear, year, error } = Astro.props
           <div class={ClassName.Legend} role="img" aria-label="Contribution level: less to more">
             <span class="mono dimmer" aria-hidden="true">less</span>
             {palette.map((color) => (
-              <span class={ClassName.LegendSquare} style={`background:${color.hex};border-radius:0.125rem`} aria-hidden="true"></span>
+              <span class={ClassName.LegendSquare} style={`background:${color};border-radius:0.125rem`} aria-hidden="true"></span>
             ))}
             <span class="mono dimmer" aria-hidden="true">more</span>
           </div>

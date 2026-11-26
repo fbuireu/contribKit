@@ -2,7 +2,7 @@ import type { ContributionDay, ContributionWeek } from "../entities/types";
 import { MONTH_LABELS, WEEKDAY_LABELS } from "../value-objects/calendar-labels";
 import { CellShape } from "../value-objects/cell-shape";
 import type { ContributionLevel } from "../value-objects/contribution-level";
-import { dayOfMonthOf, monthOf } from "../value-objects/iso-date";
+import { dayOfMonthOf, type IsoDate, monthOf } from "../value-objects/iso-date";
 import { DAYS_PER_WEEK, weeksOf } from "./dates";
 
 const SVG_PAD_X = 12;
@@ -91,7 +91,7 @@ interface CalendarLabelPlacement extends Point {
 }
 
 interface CalendarCellPlacement extends Point {
-	readonly date: string;
+	readonly date: IsoDate;
 	readonly level: ContributionLevel;
 	readonly count: number | null;
 }

@@ -23,7 +23,7 @@ describe("state", () => {
 		expectTypeOf(setDays).parameter(0).toEqualTypeOf<readonly ContributionDay[]>();
 	});
 
-	it("stores and returns the Username as the value object, not as its text", () => {
+	it("stores and returns the Username it was given", () => {
 		const username = parseUsername("torvalds");
 		if (isFailure(username)) throw new Error("fixture is not a Username");
 

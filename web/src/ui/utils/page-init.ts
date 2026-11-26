@@ -86,8 +86,8 @@ export async function renderFromGitHub({
 
 	const year = resolveYear({ requested: yearSelect?.value, thisYear: CURRENT_YEAR });
 
-	if (updateHistory) syncUrl({ username: username.value, year, currentYear: CURRENT_YEAR });
-	syncSuggestionSelection(username.value);
+	if (updateHistory) syncUrl({ username, year, currentYear: CURRENT_YEAR });
+	syncSuggestionSelection(username);
 	setUsername(username);
 
 	setHeroError(null);
@@ -95,7 +95,7 @@ export async function renderFromGitHub({
 	if (renderLabel) renderLabel.textContent = "loading…";
 
 	try {
-		const response = await request(`/api/contributions?user=${encodeURIComponent(username.value)}&year=${year}`);
+		const response = await request(`/api/contributions?user=${encodeURIComponent(username)}&year=${year}`);
 		const body: unknown = await response.json().catch(() => null);
 
 		if (!response.ok || !contributionCalendarSchema.validate(body)) {
@@ -117,11 +117,11 @@ export async function renderFromGitHub({
 				},
 			});
 		} else {
-			void writeUsernameCookie(username.value);
+			void writeUsernameCookie(username);
 			const days = toContributionDays(body.days);
 			setDays(buildGridFromApi({ days, year }));
 			renderCustomizer();
-			if (usernameDisplay) usernameDisplay.textContent = username.value;
+			if (usernameDisplay) usernameDisplay.textContent = username;
 			const stats = statsWithScrapedTotalContributions({
 				days,
 				year,
@@ -247,8 +247,8 @@ function initUsernameStrip(): void {
 				setHeroError(username.message);
 				return;
 			}
-			input.value = username.value;
-			usernameDisplay.textContent = username.value;
+			input.value = username;
+			usernameDisplay.textContent = username;
 			renderFromGitHub({ username, source: CalendarRequestSource.Suggestion });
 		});
 	});

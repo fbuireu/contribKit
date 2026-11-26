@@ -54,7 +54,7 @@ const handle: APIRoute = async ({ url }): Promise<Response> => {
 		const status = statusFor(result);
 		logContributionsFailure({
 			logger,
-			username: username.value,
+			username,
 			kind: result.kind,
 			reason: reasonFor(result),
 			status,
@@ -70,7 +70,7 @@ const handle: APIRoute = async ({ url }): Promise<Response> => {
 
 	return Response.json(
 		{
-			username: result.username.value,
+			username: result.username,
 			days,
 			total: result.totalContributions,
 		},

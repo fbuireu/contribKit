@@ -18,9 +18,16 @@ lives in `infrastructure/`.
 | `Username` | trimmed, then `/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/`: 1–39 chars, no leading or trailing hyphen | `InvalidInput(username)` |
 | `Year` | `null` / `''` / `undefined` → `null`: no Year was given; otherwise an integer from `MIN_YEAR` to the `thisYear` the caller passes | `InvalidInput(year)` |
 | `Color` | trimmed, then six or eight hex digits with or without a `#`, stored with the `#` | `InvalidInput(color)` |
+| `EmbedBackground` | `transparent`, a `#` and three to eight hex digits, or one to thirty letters: nothing that can leave a `fill` attribute or a CSS colour | the SVG route falls back to `transparent` |
 | `IsoDate` | a zero-padded `YYYY-MM-DD` that names a real calendar date | `InvalidInput(date)` |
 | `ContributionLevel` | `clampLevel` forces any number into `0–4` | never fails: it clamps, rounds, and answers `0` for `NaN` |
 | `Palette` / `CellShape` | `paletteByKey` falls back to `DEFAULT_PALETTE_KEY` (`github`) for an unknown key; `isCellShape` guards a Cell Shape and the caller falls back to `DEFAULT_CELL_SHAPE` (the first key in `shapes.json` the union knows) | never fails: it defaults |
+
+**A brand or a `_tag` object.** A value object that is one primitive with nothing beside it, unwrapped wherever it is
+used, is a brand over that primitive, whose guard is the rule itself and so builds the value without a cast
+(`IsoDate`, `Username`, `Color`, `EmailAddress`, `EmbedBackground`); one that carries more than one field, or whose
+rule depends on what the caller passes in, stays a `_tag` object (`Year`, whose bound is the caller's `thisYear`, and
+`ContactMessage`).
 
 `MIN_YEAR` is **2005**, which is a product floor, not GitHub's launch year. GitHub launched in 2008. Do not
 "correct" the constant to 2008. The floor is deliberate.
@@ -69,8 +76,8 @@ interpolated from these constants.
 
 [`value-objects/embed.ts`](./value-objects/embed.ts) is the one spelling of what an Embed URL is: `EMBED_ROUTE` (the path the middleware
 exempts from `Cross-Origin-Resource-Policy`), `EmbedParam` (the three query names), `DEFAULT_EMBED_QUERY`,
-`EMBED_BACKGROUND_PATTERN`, and `buildEmbedUrl`, which takes the `Username` whole, omits any option equal to its
-default, joins the rest with a single `&`, takes a `CellShape` and URL-encodes the Username's value into the path.
+`EmbedBackground` (beside it, in [`embed-background.ts`](./value-objects/embed-background.ts)), and `buildEmbedUrl`, which omits any option equal to its
+default, joins the rest with a single `&`, takes a `CellShape` and URL-encodes the Username into the path.
 
 **This file has a Dart twin, and the docs contract diffs them.** [`app/lib/domain/value_objects/embed.dart`](../../../app/lib/domain/value_objects/embed.dart) holds
 the same origin, segment and extension, because the app's Markdown Export writes an Embed URL the web has to serve.
@@ -79,8 +86,8 @@ these three declarations is load-bearing**: split one across two lines, or move 
 fails against code that is perfectly correct. It also asserts that both clients omit the *same* defaults: the
 Palette `github`, and the Cell Shape that is **first in [`shared/shapes.json`](../../../shared/shapes.json)**, which the web derives and
 the Dart spells as a literal, so reordering that file fails the contract until the two agree again. Neither builder
-emits a Background. The **route** accepts `background`, validated by `EMBED_BACKGROUND_PATTERN`, which is what an
-Embed URL written by hand may carry; `embed.test.ts` tests the pattern against what it must reject.
+emits a Background. The **route** accepts `background`, which `isEmbedBackground` checks and the renderer's options require as an `EmbedBackground`: it is
+what an Embed URL written by hand may carry, and `embed-background.test.ts` tests the guard against what it must reject.
 
 ## One timeout for every request
 
@@ -158,7 +165,8 @@ the calendar renders blank. Workers run in UTC and never show it. Before touchin
   `YYYY-MM-DD`. `parseIsoDate` rejects `2024-6-15`, a full timestamp and `20240615`, the shapes that miss a map
   lookup in silence, and it rejects a date that looks right and does not exist, like `2023-02-30`. Because the brand
   is a `string` at runtime, ordering and map keys work untouched, and `isIsoDate` checks the shape rather than a
-  tag.
+  tag. A date no parse produced, the first and last day of a Year, comes from `yearStartOf` and `yearEndOf`, which read
+  their date through `isoDateOf` and so stay in local time like every other.
 - **`InvalidInput` carries a `field`, and the JSON answers name it.** `fieldFor` spreads it into the body of
   `/api/contributions` and `/api/contact`, and the contact form reads it back to mark the field. The SVG route
   stays `text/plain`, because an `<img>` cannot read a field name.
@@ -189,9 +197,8 @@ the calendar renders blank. Workers run in UTC and never show it. Before touchin
   then that month is labelled at both ends, thirteen labels in all. `WEEKDAY_LABELS` is `["Mon", "Wed", "Fri"]`,
   drawn on alternate rows.
 - **`Color` values are parsed at module load**: `PALETTES` runs every colour through `colorOrThrow`, so a bad token
-  fails the build rather than the render, and a colour comes apart with `.hex` only where markup or a style is
-  written. TypeScript cannot see a template literal in an `.astro` expression stringifying an object, which is why
-  the home e2e asserts each palette swatch's style is a hex colour.
+  fails the build rather than the render, and a `Color` is the normalised `#rrggbb[aa]` string itself, written into
+  markup or a style as it is. The home e2e still asserts each palette swatch's style is a hex colour.
 - **The aggregate's field is `totalContributions`, and the endpoint's JSON key is still `total`**, a published
   contract; the two are decoupled at the one line in `pages/api/contributions.ts` that serialises the field. The
   glossary guard does not police `total`: it would fire on that published key and on the code that carries it

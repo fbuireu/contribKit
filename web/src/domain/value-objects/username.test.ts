@@ -5,12 +5,12 @@ describe("parseUsername", () => {
 	it("accepts a valid username", () => {
 		const result = parseUsername("torvalds");
 		expect(isUsername(result)).toBe(true);
-		expect(isUsername(result) && result.value).toBe("torvalds");
+		expect(isUsername(result) && result).toBe("torvalds");
 	});
 
 	it("trims surrounding whitespace", () => {
 		const result = parseUsername("  torvalds  ");
-		expect(isUsername(result) && result.value).toBe("torvalds");
+		expect(isUsername(result) && result).toBe("torvalds");
 	});
 
 	it("accepts hyphens and digits", () => {
@@ -43,6 +43,19 @@ describe("parseUsername", () => {
 		const result = parseUsername("");
 		expect(isUsername(result)).toBe(false);
 		expect((result as { kind: string }).kind).toBe("InvalidInput");
+	});
+});
+
+describe("isUsername", () => {
+	it("is the one reading of the rule, so it holds a trimmed handle and refuses an untrimmed one", () => {
+		expect(isUsername("torvalds")).toBe(true);
+		expect(isUsername(" torvalds ")).toBe(false);
+	});
+
+	it("refuses a value that is not text", () => {
+		for (const value of [null, undefined, 1, {}, { _tag: "Username", value: "torvalds" }]) {
+			expect(isUsername(value)).toBe(false);
+		}
 	});
 });
 
